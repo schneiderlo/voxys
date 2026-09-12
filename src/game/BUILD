@@ -556,3 +556,30 @@ cc_library(
     includes = [".."],
     deps = ["//src/core:sha256", "//third_party:tinygltf"],
 )
+
+cc_library(
+    name = "cove_environment",
+    srcs = ["assets/cove_environment.cpp"],
+    hdrs = ["assets/cove_environment.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":rigid_prefab", ":cooked_part_directory", "//src/core:sha256", "//src/moto:moto", "//third_party:tinygltf"],
+)
+
+cc_library(
+    name = "cove_effects",
+    srcs = ["expedition/cove_effects.cpp"],
+    hdrs = ["expedition/cove_effects.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":construction_types", "//src/physics:physics", "//third_party:glm"],
+)
+
+cc_library(
+    name = "cove_environment_collision",
+    srcs = ["expedition/cove_environment_collision.cpp"],
+    hdrs = ["expedition/cove_environment_collision.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":cove_environment", "//src/geometry:box_union", "//src/physics:authored_shape"],
+)

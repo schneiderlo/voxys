@@ -1,0 +1,174 @@
+{
+  "status": "failed-driver-oracle",
+  "source": "build-cove-visual-r01/native-environment-r03/summary.json",
+  "runtimeStagesPassed": [
+    "old-act-v6-world-restored-with39-environment-solids",
+    "real-workshop-stair-approach",
+    "four-stair-workshop-entry"
+  ],
+  "ascent": {
+    "treadsCrossed": [
+      8,
+      8.5,
+      9,
+      9.5
+    ],
+    "finalHeight": 2.565,
+    "samples": [
+      {
+        "label": "four stair ascent",
+        "feet": [
+          7.37138,
+          1.44578,
+          -41.163
+        ],
+        "mode": "walking",
+        "tick": "473"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          7.76464,
+          1.49399,
+          -41.3105
+        ],
+        "mode": "walking",
+        "tick": "491"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          8.23324,
+          1.76786,
+          -41.0788
+        ],
+        "mode": "walking",
+        "tick": "513"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          8.58984,
+          1.925,
+          -41.239
+        ],
+        "mode": "walking",
+        "tick": "531"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          9.16291,
+          2.245,
+          -40.9558
+        ],
+        "mode": "walking",
+        "tick": "553"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          9.48225,
+          2.56448,
+          -41.088
+        ],
+        "mode": "walking",
+        "tick": "571"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          10.0284,
+          2.565,
+          -40.8397
+        ],
+        "mode": "walking",
+        "tick": "593"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          10.3093,
+          2.565,
+          -40.945
+        ],
+        "mode": "walking",
+        "tick": "611"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          10.9272,
+          2.565,
+          -41.1767
+        ],
+        "mode": "walking",
+        "tick": "634"
+      },
+      {
+        "label": "four stair ascent",
+        "feet": [
+          10.534,
+          2.565,
+          -41.0293
+        ],
+        "mode": "walking",
+        "tick": "652"
+      }
+    ]
+  },
+  "wallObservation": {
+    "feet": [
+      15.455,
+      2.565,
+      -40.3053
+    ],
+    "mode": "walking",
+    "camera": {
+      "available": true,
+      "mode": "orbit",
+      "distance": 5.5,
+      "actualDistance": 0.389559,
+      "reducedMotion": true,
+      "frameLoad": true,
+      "valid": true,
+      "held": false,
+      "geometryTick": "3116",
+      "presentedTick": "3116",
+      "yaw": 0.358771,
+      "elevation": 0.32,
+      "eye": [
+        15.5848,
+        3.88754,
+        -39.959
+      ]
+    },
+    "character": {
+      "clip": "idle",
+      "time": 11.2833,
+      "blend": 1,
+      "facingYaw": -1.21203,
+      "worldVelocity": [
+        0,
+        0,
+        0
+      ],
+      "draws": 0
+    }
+  },
+  "processChecks": [
+    {
+      "process": 1,
+      "exitBeforeStop": null,
+      "exitCode": -15,
+      "requestedTermination": true,
+      "forceKilled": false,
+      "errorLines": []
+    }
+  ],
+  "sourceArchiveUnchanged": true,
+  "cause": "Record required34 robot draws at the wall despite the existing valid-camera hideAvatar contract below0.65m. Actual camera distance0.389559 and0draws are expected.",
+  "correction": "Only wall contact permits exactly0 below0.65m; every other stage still requires34, including explicit visible-again wait. X must match wall contact15.455\u00b1.015; Z must contain capsule within actual wall span rather than an arbitrary path line.",
+  "sourceHash": "0d5b7a565c2efba26f3e6fc34f27f8dfd3b2054e9003546cb151d9f09dae398c",
+  "nextRuntime": "r04 pending GPU lane; r03 had no new manual checkpoint, so last durable feet remain at dock."
+}

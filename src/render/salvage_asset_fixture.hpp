@@ -2,6 +2,7 @@
 
 #include "game/assets/cooked_part_bundle.hpp"
 #include "game/assets/rigid_animation.hpp"
+#include "game/assets/cove_environment.hpp"
 #include "game/assets/fixture_limits.hpp"
 #include "render/mesh_path.hpp"
 #include "render/inspection_guides.hpp"
@@ -20,6 +21,10 @@ struct SalvageFixtureConfig {
     // Includes the conservative fixed buffer/fallback reservation below.
     uint64_t maximumOwnerGpuBytes = 16ull * 1024ull * 1024ull;
     uint64_t maximumResidentGpuBytes = 48ull * 1024ull * 1024ull;
+    // Storage allocated once by the surrounding scene (for example effects).
+    // Reserved conservatively in each generation's owner/resident budget;
+    // fixture does not allocate it or include it in assetGpuBytes.
+    uint64_t reservedExternalGpuBytes = 0;
     bool linearHdrOutput = false;
     bool filteredEnvironment = false;
     bool sunShadows = false;
@@ -36,6 +41,7 @@ struct SalvageFixturePlacement {
     glm::vec4 tint{1.0f}; // Workshop selection; material remains authored.
     bool castsSunShadow = true; // Screen-space palette thumbnails opt out.
     glm::vec4 baseColorOverride{0.0f}; // Linear RGB + enable; independent of selection tint.
+    glm::vec4 surface{0.0f}; // Wet coverage, accepted damage, explicit Cove enable, immersion; disabled means all zero.
     std::optional<game::assets::RigidMechanismPose> mechanism{}; // Radians for the explicit named moving root only.
 };
 
@@ -63,6 +69,12 @@ struct SalvageFixtureFrame {
     // receives a body/inventory identity. Draws share opaque depth and shadows.
     const game::assets::RigidAnimationPose* robot=nullptr;
     physics::BodyHandle robotBody{}; // Aboard: matrices are authored root-local.
+    glm::vec4 robotSurface{0.0f};
+    glm::vec4 environmentSurface{0.0f}; // Dock markings and temporary harbor solids.
+    glm::vec4 ropeSurface{0.0f}; // Enable selects the lit round rope; zero preserves legacy helpers.
+    std::optional<glm::dmat4> sceneryRoot{}; // Static scene origin, camera sector removed.
+    std::optional<glm::dmat4> gantryRoot{}; // Installed gantry root; replaces harborStructure helpers.
+    uint32_t sceneryLod=0,gantryLod=0; // Explicit indices0..2 in the admitted fixed package.
 };
 
 struct SalvageFixtureTicket {
@@ -90,6 +102,8 @@ struct SalvageFixtureOwnerStats {
     bool environmentReady = false;
     uint64_t dockMarkingGpuBytes = 0; // Extra owned mesh; outside fixed reservation.
     uint64_t robotGpuBytes = 0;
+    uint64_t sceneryGpuBytes = 0; // All six scenery/gantry LODs, distinct from the lighting filter.
+    uint64_t reservedExternalGpuBytes = 0;
 };
 
 struct SalvageFixtureStats {
@@ -101,6 +115,8 @@ struct SalvageFixtureStats {
     uint32_t lastEncodedDockMarkingDraws = 0;
     uint32_t lastSubmittedDockMarkingDraws = 0;
     uint32_t lastSubmittedRobotDraws = 0;
+    uint32_t lastEncodedSceneryDraws = 0;
+    uint32_t lastSubmittedSceneryDraws = 0;
     uint32_t pendingViewCallbacks = 0;
 };
 
@@ -118,19 +134,18 @@ public:
     static constexpr uint32_t maximumPlacements = game::assets::kMaximumFixturePlacements + maximumPalettePlacements;
     static constexpr uint32_t maximumMeshInstances = 256; // Authored nodes, excluding helper boxes.
     static constexpr uint32_t maximumExpandedDraws = 512; // Per model or guide path.
-    // Model and X-ray paths each reserve 512 * 112-byte instances, 160-byte
-    // uniforms, two 1x1 2D fallbacks and one 1x1 cube, plus one 1936-byte helper
-    // mesh in each path: 118944 base requested bytes. Both paths' 64-byte body
-    // fallbacks, 32-byte body cameras, 96-byte shadow uniforms and 1-texel maps
-    // bring the total to 119336 bytes. The old 96-byte stride requested 102952 bytes;
-    // paint adds 16384 bytes. Live shadow storage is additionally charged below.
-    // The independent paths can each draw 512;
-    // guides do not consume the model path's already reserved capacity.
-    // Conservative requested-storage reservation, not driver working set.
-    static constexpr uint64_t fixedGpuReservationBytes = 128ull * 1024ull;
+    // Each path reserves 512 * 128-byte instances, uniforms, fallback textures,
+    // body/shadow resources and a 1936-byte guide. One model-only smooth rope
+    // mesh adds 34 * 72 vertex + 96 * 4 expanded index + 64 material bytes. Total actual
+    // requested fixed storage is 138616 bytes, inside the 144 KiB reservation.
+    // This is requested storage, not driver working set. Owner/resident caps
+    // remain 16/48 MiB; live environment/shadow storage is charged separately.
+    static constexpr uint64_t ropeGpuRequestedBytes = 34u * 72u + 96u * 4u + 64u;
+    static constexpr uint64_t fixedGpuReservationBytes = 144ull * 1024ull;
     static constexpr uint64_t fixedGpuRequestedBytes = 2u * (
         maximumExpandedDraws * MeshPath::gpuInstanceBytes + 160u + 32u
-        + 64u + 32u + sizeof(SunShadowUniforms) + 4u + 1936u);
+        + 64u + 32u + sizeof(SunShadowUniforms) + 4u + 1936u)
+        + ropeGpuRequestedBytes;
     static_assert(fixedGpuRequestedBytes <= fixedGpuReservationBytes);
     // Optional filter is added once per generation, outside the fixed reserve
     // but inside the unchanged owner/resident ceilings. Guides never own one.
@@ -147,7 +162,8 @@ public:
         std::string& error,
         std::span<const game::construction::PartDefinition> prototypes = {},
         const CoveDockMarkings* dockMarkings = nullptr,
-        std::shared_ptr<const game::assets::RigidAnimationAsset> robot = {});
+        std::shared_ptr<const game::assets::RigidAnimationAsset> robot = {},
+        std::shared_ptr<const game::assets::CoveEnvironmentAsset> environment = {});
     [[nodiscard]] SalvageFixtureStatus poll();
     [[nodiscard]] bool publishCandidate(std::string& error);
     // Retains refs. Rebinding is validated asynchronously; encode waits until

@@ -20,6 +20,9 @@ set(GAME_SOURCES
     game/assets/rigid_prefab.cpp
     game/assets/rigid_animation.cpp
     game/assets/robot_asset.cpp
+    game/assets/cove_environment.cpp
+    game/expedition/cove_environment_collision.cpp
+    game/expedition/cove_effects.cpp
     game/assets/gameplay_sidecar.cpp
     game/expedition/game_session.cpp
     game/expedition/session_recovery.cpp
@@ -294,6 +297,7 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
     list(APPEND RENDER_SOURCES
         render/blit_path.cpp
+    render/cove_effects_path.cpp
         render/opaque_scene.cpp
         render/water_clipmap_mesh.cpp
     )

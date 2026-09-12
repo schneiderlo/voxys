@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="0" disabled="0" errors="0" time="0.458" timestamp="2026-09-12T14:49:36.981" name="AllTests">
+  <testsuite name="MeshPathGPUTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.365" timestamp="2026-09-12T14:49:36.981">
+    <testcase name="AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration" file="tests/test_mesh_path.cpp" line="370" status="run" result="completed" time="0.109" timestamp="2026-09-12T14:49:36.981" classname="MeshPathGPUTest">
+      <properties>
+        <property name="surfaceLiveStaticDifferingBytes" value="0"/>
+      </properties>
+    </testcase>
+    <testcase name="CoveSurfaceLayersWetReflectionWithoutChangingLegacyAlphaOrMetalHue" file="tests/test_mesh_path.cpp" line="678" status="run" result="completed" time="0.12" timestamp="2026-09-12T14:49:37.090" classname="MeshPathGPUTest">
+      <properties>
+        <property name="plasticWetChangedBytes" value="4784"/>
+        <property name="plasticWetPeak" value="193"/>
+        <property name="plasticImmersedPeak" value="42"/>
+        <property name="metalWetChangedBytes" value="4080"/>
+        <property name="metalWetPeak" value="212"/>
+        <property name="metalImmersedPeak" value="152"/>
+      </properties>
+    </testcase>
+    <testcase name="CoveNormalVarianceBroadensSubpixelSpecularHighlights" file="tests/test_mesh_path.cpp" line="744" status="run" result="completed" time="0.066" timestamp="2026-09-12T14:49:37.211" classname="MeshPathGPUTest">
+      <properties>
+        <property name="unfilteredHighlightPixels" value="0"/>
+        <property name="filteredHighlightPixels" value="16"/>
+      </properties>
+    </testcase>
+    <testcase name="CoveSmoothGgxPeakUsesFinitePhysicalDenominatorAndLeavesLegacyUntouched" file="tests/test_mesh_path.cpp" line="1104" status="run" result="completed" time="0.068" timestamp="2026-09-12T14:49:37.277" classname="MeshPathGPUTest">
+      <properties>
+        <property name="smoothPeakExpectedGrey" value="73"/>
+        <property name="smoothPeakActualGrey" value="73"/>
+      </properties>
+    </testcase>
+  </testsuite>
+  <testsuite name="MeshEnvironmentGPUTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.093" timestamp="2026-09-12T14:49:37.346">
+    <testcase name="CoveWetFilmKeepsWhiteFurnaceBoundedAndUsesSharedFilteredOwner" file="tests/test_mesh_path.cpp" line="1155" status="run" result="completed" time="0.093" timestamp="2026-09-12T14:49:37.346" classname="MeshEnvironmentGPUTest">
+      <properties>
+        <property name="plasticWetFurnaceGrey" value="224"/>
+        <property name="plasticImmersedFurnaceGrey" value="227"/>
+        <property name="metalWetFurnaceGrey" value="222"/>
+        <property name="metalImmersedFurnaceGrey" value="224"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

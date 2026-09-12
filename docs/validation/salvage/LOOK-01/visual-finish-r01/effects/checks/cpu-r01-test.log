@@ -1,0 +1,30 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_effects
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from CoveEffects
+[ RUN      ] CoveEffects.WakesRequireActualAcceptedMovementAndCannotReplayOnDisplayFrames
+[       OK ] CoveEffects.WakesRequireActualAcceptedMovementAndCannotReplayOnDisplayFrames (0 ms)
+[ RUN      ] CoveEffects.PropellerFoamUsesEnabledEffectiveDriveAndWetness
+[       OK ] CoveEffects.PropellerFoamUsesEnabledEffectiveDriveAndWetness (0 ms)
+[ RUN      ] CoveEffects.WaterCrossingsCreateOneSplashThenRealSurfaceRunoff
+[       OK ] CoveEffects.WaterCrossingsCreateOneSplashThenRealSurfaceRunoff (0 ms)
+[ RUN      ] CoveEffects.ExactPairedImpactsRejectStaleUnknownAndMalformedInputsAtomically
+[       OK ] CoveEffects.ExactPairedImpactsRejectStaleUnknownAndMalformedInputsAtomically (0 ms)
+[ RUN      ] CoveEffects.ContactsAreDeduplicatedWithoutMergingDifferentBodiesAndDeepImpactsDoNotSpray
+[       OK ] CoveEffects.ContactsAreDeduplicatedWithoutMergingDifferentBodiesAndDeepImpactsDoNotSpray (0 ms)
+[ RUN      ] CoveEffects.PauseFreezesParticlesAndRebasesWithoutResumeCatchup
+[       OK ] CoveEffects.PauseFreezesParticlesAndRebasesWithoutResumeCatchup (0 ms)
+[ RUN      ] CoveEffects.CapacityDropsNewCosmeticsAndAllInstancesFadeWithinBounds
+[       OK ] CoveEffects.CapacityDropsNewCosmeticsAndAllInstancesFadeWithinBounds (0 ms)
+[ RUN      ] CoveEffects.EpochResetRetiredHandlesAndLongGapsCannotBridgeOldMotion
+[       OK ] CoveEffects.EpochResetRetiredHandlesAndLongGapsCannotBridgeOldMotion (0 ms)
+[ RUN      ] CoveEffects.DuplicateSourcesAndInvalidNumbersPreserveExistingPool
+[       OK ] CoveEffects.DuplicateSourcesAndInvalidNumbersPreserveExistingPool (0 ms)
+[----------] 9 tests from CoveEffects (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 9 tests.

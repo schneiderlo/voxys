@@ -1,0 +1,101 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:blit_path
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth:BlitPathTest.CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [14:43:32.961] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [14:43:32.961] [GPU]   Vendor: radv[0m
+[32m[INFO ] [14:43:32.961] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [14:43:32.961] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [14:43:32.963] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [14:43:33.696] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [14:43:34.014] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [14:43:37.035] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=196 shadow=37 moved=196
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=191 shadow=181 moved=191
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=84,79,72 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+[       OK ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (4357 ms)
+[ RUN      ] BlitPathTest.CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment
+[32m[INFO ] [14:43:37.296] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [14:43:37.296] [GPU]   Vendor: radv[0m
+[32m[INFO ] [14:43:37.296] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [14:43:37.296] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [14:43:37.297] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [14:43:37.903] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [14:43:38.219] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [14:43:41.244] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=161,153,142 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=161,153,142 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=161 shadow=35 moved=161
+  caster=0 rgba=161,153,142 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=0,0,0 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=161,153,142 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=161,153,142 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=35,25,10 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=68,73,53 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=107 shadow=68 moved=107
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=79,81,75 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=28,30,21 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=28,30,21 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=68,73,53 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=68,73,53 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=107,110,96 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=68,73,53 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=74,91,99 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+[       OK ] BlitPathTest.CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment (4223 ms)
+[----------] 2 tests from BlitPathTest (8581 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (8581 ms total)
+[  PASSED  ] 2 tests.

@@ -299,6 +299,14 @@ and cargo collision now match that surface, including open gaps between studs
 and pontoons. The actual skiff and generator pass grounding checks; the player
 walks up a brick terrace and lands on studs after jumping.
 [Brick terrain restoration and playable checks](docs/validation/salvage/LEGO-01/terrain-r01/README.md).
+The playable shore now has an original brick-built workshop with walkable
+steps, a wreck and navigation beacons. Cream/teal/coral materials, shared sun/sky
+lighting, wet surfaces and turquoise water carry the same toy style across
+land and machinery. Sailing produces wakes and foam; entering the water adds
+splashes. The starting third-person view frames the workshop, dock and skiff,
+and the compact controls keep the workshop visible. Expand **More controls**
+for camera, winch and recovery details. Existing saves and boat designs remain
+compatible. [Current visual finish, playable footage and checks](docs/validation/salvage/LOOK-01/visual-finish-r01/README.md).
 The boat also collides with the authored dock and generator. A separate 420 kg
 salvage generator rests on the seabed nearby: **F** hooks/releases its tow eye,
 hold **Q** to reel in and **Z** to pay out. Browser buttons provide the same

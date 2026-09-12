@@ -358,7 +358,7 @@ try{
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
-    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE && !process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS){
+    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE && !process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS && !process.env.VOXY_SMOKE_COVE_EFFECTS){
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
@@ -392,6 +392,22 @@ try{
         assert(isSalvageAsset,'asset fixture journey requires the salvage-asset route');
         const {validateSalvageAssetFixture}=await import('./validate_salvage_asset_fixture.mjs');
         report.asset_fixture_journey=await validateSalvageAssetFixture(call,process.env.VOXY_SMOKE_ASSET_FIXTURE);
+    }
+    if(process.env.VOXY_SMOKE_COVE_EFFECTS){
+        assert.equal(selected,'salvage-cove');
+        let finishVisual,beginVisual;
+        if(process.env.VOXY_SMOKE_VISUAL_CAPTURE){
+            const {beginCoveVisualCapture}=await import('./record_cove_visual.mjs');
+            beginVisual=async()=>{finishVisual=await beginCoveVisualCapture(call,process.env.VOXY_SMOKE_VISUAL_CAPTURE);};
+        }
+        const {validateCoveEffects}=await import('./validate_cove_effects.mjs');
+        let journeyError;
+        try { report.cove_effects=await validateCoveEffects(call,process.env.VOXY_SMOKE_COVE_EFFECTS,beginVisual); }
+        catch(error){journeyError=error;throw error;}
+        finally {
+            if(finishVisual)try { report.cove_visual=await finishVisual(); }
+            catch(error){if(journeyError)report.visual_capture_error=String(error);else throw error;}
+        }
     }
     if(process.env.VOXY_SMOKE_COVE_CHARACTER){
         assert.equal(selected,'salvage-cove');

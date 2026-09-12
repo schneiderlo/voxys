@@ -63,6 +63,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , sceneTerrainPipeline_(other.sceneTerrainPipeline_)
     , sceneWaterPipeline_(other.sceneWaterPipeline_)
     , sceneWaterColorPipeline_(other.sceneWaterColorPipeline_)
+    , sceneEnvironmentLayout_(other.sceneEnvironmentLayout_)
+    , sceneEnvironmentBindings_(other.sceneEnvironmentBindings_)
+    , sceneEnvironmentViews_(other.sceneEnvironmentViews_)
     , sceneTerrainBindings_(other.sceneTerrainBindings_)
     , sceneWaterBindings_(other.sceneWaterBindings_)
     , cachedPipelineLayout_(other.cachedPipelineLayout_)
@@ -170,6 +173,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.sceneWaterPipeline_ = nullptr;
     other.sceneWaterColorPipeline_ = nullptr;
     other.sceneTerrainBindings_ = nullptr;
+    other.sceneEnvironmentLayout_ = nullptr;
+    other.sceneEnvironmentBindings_ = nullptr;
+    other.sceneEnvironmentViews_ = {};
     other.cachedPipelineLayout_ = nullptr;
     other.cachedPipeline_ = nullptr;
     other.cachedColorPipeline_ = nullptr;
@@ -257,6 +263,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         sceneTerrainPipeline_ = other.sceneTerrainPipeline_;
         sceneWaterPipeline_ = other.sceneWaterPipeline_;
         sceneWaterColorPipeline_ = other.sceneWaterColorPipeline_;
+        sceneEnvironmentLayout_ = other.sceneEnvironmentLayout_;
+        sceneEnvironmentBindings_ = other.sceneEnvironmentBindings_;
+        sceneEnvironmentViews_ = other.sceneEnvironmentViews_;
         sceneTerrainBindings_ = other.sceneTerrainBindings_;
         cachedPipelineLayout_ = other.cachedPipelineLayout_;
         cachedPipeline_ = other.cachedPipeline_;
@@ -362,6 +371,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.sceneWaterPipeline_ = nullptr;
         other.sceneWaterColorPipeline_ = nullptr;
         other.sceneTerrainBindings_ = nullptr;
+        other.sceneEnvironmentLayout_ = nullptr;
+        other.sceneEnvironmentBindings_ = nullptr;
+        other.sceneEnvironmentViews_ = {};
         other.cachedPipelineLayout_ = nullptr;
         other.cachedPipeline_ = nullptr;
         other.cachedColorPipeline_ = nullptr;
@@ -514,6 +526,8 @@ void BlitPath::shutdown() {
     if (sceneWaterBindings_) { wgpuBindGroupRelease(sceneWaterBindings_); sceneWaterBindings_ = nullptr; }
     if (sceneTerrainInputsLayout_) { wgpuBindGroupLayoutRelease(sceneTerrainInputsLayout_); sceneTerrainInputsLayout_ = nullptr; }
     if (sceneWaterInputsLayout_) { wgpuBindGroupLayoutRelease(sceneWaterInputsLayout_); sceneWaterInputsLayout_ = nullptr; }
+    clearSceneEnvironment();
+    if (sceneEnvironmentLayout_) { wgpuBindGroupLayoutRelease(sceneEnvironmentLayout_); sceneEnvironmentLayout_ = nullptr; }
     if (sceneTerrainBindings_) { wgpuBindGroupRelease(sceneTerrainBindings_); sceneTerrainBindings_ = nullptr; }
     if (sceneWaterColorPipeline_) { wgpuRenderPipelineRelease(sceneWaterColorPipeline_); sceneWaterColorPipeline_ = nullptr; }
     if (sceneWaterPipeline_) { wgpuRenderPipelineRelease(sceneWaterPipeline_); sceneWaterPipeline_ = nullptr; }
@@ -2004,6 +2018,9 @@ bool BlitPath::createBindGroupLayout() {
     // The old fused layout already fills that limit; scene receivers bind only
     // the textures reachable by their terrain or water entry point.
     std::vector<gpu::BindGroupLayoutEntry> terrainEntries(entries.begin(), entries.end());
+    // Cove terrain takes its IBL from group2. Sky pixels are already seeded
+    // by the background pass; its unused LUT would exceed the baseline16.
+    if(config_.coveVisuals)terrainEntries.erase(terrainEntries.begin()+8);
     terrainEntries.push_back(gpu::BindGroupLayoutEntry(11).fragmentVisible().texture());
     sceneTerrainInputsLayout_ = gpu::createBindGroupLayout(device_, terrainEntries, "scene_terrain_inputs_layout");
     const std::array waterEntries{cachedEntries[0], cachedEntries[1], cachedEntries[6], cachedEntries[7],
@@ -2053,6 +2070,10 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     
     WGPUFragmentState fragmentState{};
     fragmentState.module = shaderModule_;
+    WGPUConstantEntry coveVisuals{};
+    coveVisuals.key = gpu::toStringView("COVE_VISUALS");
+    coveVisuals.value = config.coveVisuals ? 1.0 : 0.0;
+    fragmentState.constantCount = 1; fragmentState.constants = &coveVisuals;
     WGPU_SET_ENTRY_POINT(fragmentState, "fs");
     fragmentState.targetCount = 1;
     fragmentState.targets = &colorTarget;
@@ -2102,7 +2123,18 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         if (!sceneShadowLayout_) return false;
         const std::array sceneLayouts{sceneTerrainInputsLayout_, sceneShadowLayout_};
         const std::array waterLayouts{sceneWaterInputsLayout_, sceneShadowLayout_};
-        sceneTerrainLayout_ = gpu::createPipelineLayout(device_, sceneLayouts, "scene_terrain_layout");
+        if (config.coveVisuals) {
+            using Entry = gpu::BindGroupLayoutEntry;
+            const std::array entries{
+                Entry(0).fragmentVisible().texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_Cube),
+                Entry(1).fragmentVisible().texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_Cube),
+                Entry(2).fragmentVisible().texture(WGPUTextureSampleType_Float),
+                Entry(3).fragmentVisible().sampler(WGPUSamplerBindingType_Filtering)};
+            sceneEnvironmentLayout_ = gpu::createBindGroupLayout(device_, entries, "cove_shared_environment_layout");
+            if (!sceneEnvironmentLayout_) return false;
+            const std::array coveLayouts{sceneTerrainInputsLayout_, sceneShadowLayout_, sceneEnvironmentLayout_};
+            sceneTerrainLayout_ = gpu::createPipelineLayout(device_, coveLayouts, "cove_terrain_layout");
+        } else sceneTerrainLayout_ = gpu::createPipelineLayout(device_, sceneLayouts, "scene_terrain_layout");
         sceneWaterLayout_ = gpu::createPipelineLayout(device_, waterLayouts, "scene_water_layout");
         if (!sceneTerrainLayout_ || !sceneWaterLayout_) return false;
         std::array<WGPUColorTargetState, 2> sceneTargets{};
@@ -2110,7 +2142,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         sceneTargets[1].format = WGPUTextureFormat_R32Float;
         for (auto& target : sceneTargets) target.writeMask = WGPUColorWriteMask_All;
         fragmentState.targetCount = sceneTargets.size(); fragmentState.targets = sceneTargets.data();
-        WGPU_SET_ENTRY_POINT(fragmentState, "fsSceneTerrain");
+        WGPU_SET_ENTRY_POINT(fragmentState, config.coveVisuals ? "fsSceneTerrainCove" : "fsSceneTerrain");
         pipelineDesc.layout = sceneTerrainLayout_;
         WGPU_SET_LABEL(pipelineDesc, "scene_live_terrain_lighting");
         sceneTerrainPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
@@ -2171,8 +2203,28 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+void BlitPath::clearSceneEnvironment() noexcept {
+    if (sceneEnvironmentBindings_) wgpuBindGroupRelease(sceneEnvironmentBindings_);
+    sceneEnvironmentBindings_ = nullptr; sceneEnvironmentViews_ = {};
+}
+
+bool BlitPath::bindSceneEnvironment(const FilteredEnvironmentViews& views) {
+    if (!config_.coveVisuals) return true;
+    if (!views.specular || !views.diffuse || !views.brdf || !sceneEnvironmentLayout_) return false;
+    if (sceneEnvironmentBindings_ && sceneEnvironmentViews_.specular == views.specular
+        && sceneEnvironmentViews_.diffuse == views.diffuse && sceneEnvironmentViews_.brdf == views.brdf) return true;
+    const std::array entries{gpu::BindGroupEntry(0).textureView(views.specular),
+        gpu::BindGroupEntry(1).textureView(views.diffuse), gpu::BindGroupEntry(2).textureView(views.brdf),
+        gpu::BindGroupEntry(3).sampler(sampler_)};
+    auto candidate = gpu::createBindGroup(device_, sceneEnvironmentLayout_, entries, "cove_shared_environment");
+    if (!candidate) return false;
+    clearSceneEnvironment(); sceneEnvironmentBindings_ = candidate; sceneEnvironmentViews_ = views;
+    return true;
+}
+
 bool BlitPath::renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows) {
-    if (!opaqueScene_ || !sceneTerrainPipeline_ || !sceneTerrainBindings_ || !shadows) return false;
+    if (!opaqueScene_ || !sceneTerrainPipeline_ || !sceneTerrainBindings_ || !shadows
+        || (config_.coveVisuals && !sceneEnvironmentBindings_)) return false;
     std::array<WGPURenderPassColorAttachment, 2> targets{};
     targets[0].view = opaqueScene_->colorView(); targets[1].view = opaqueScene_->depthView();
     for (auto& target : targets) {
@@ -2187,6 +2239,7 @@ bool BlitPath::renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shad
     wgpuRenderPassEncoderSetPipeline(pass, sceneTerrainPipeline_);
     wgpuRenderPassEncoderSetBindGroup(pass, 0, sceneTerrainBindings_, 0, nullptr);
     wgpuRenderPassEncoderSetBindGroup(pass, 1, shadows, 0, nullptr);
+    if (config_.coveVisuals) wgpuRenderPassEncoderSetBindGroup(pass, 2, sceneEnvironmentBindings_, 0, nullptr);
     wgpuRenderPassEncoderDraw(pass, 3, 1, 0, 0);
     wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
     return true;
@@ -2229,11 +2282,13 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     WGPU_SET_ENTRY_POINT(fragmentState, "fs");
     fragmentState.targetCount = colorTargets.size();
     fragmentState.targets = colorTargets.data();
-    WGPUConstantEntry opaqueWater{};
-    opaqueWater.key = gpu::toStringView("OPAQUE_SCENE_WATER");
-    opaqueWater.value = config.enableOpaqueScene ? 1.0 : 0.0;
-    fragmentState.constantCount = 1;
-    fragmentState.constants = &opaqueWater;
+    std::array<WGPUConstantEntry,2> waterConstants{};
+    waterConstants[0].key = gpu::toStringView("OPAQUE_SCENE_WATER");
+    waterConstants[0].value = config.enableOpaqueScene ? 1.0 : 0.0;
+    waterConstants[1].key = gpu::toStringView("COVE_VISUALS");
+    waterConstants[1].value = config.coveVisuals ? 1.0 : 0.0;
+    fragmentState.constantCount = waterConstants.size();
+    fragmentState.constants = waterConstants.data();
 
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
@@ -2496,6 +2551,7 @@ bool BlitPath::createBindGroup() {
         };
         if (opaqueScene_) {
             std::vector<gpu::BindGroupEntry> terrainEntries(staticEntries.begin(), staticEntries.end());
+            if(config_.coveVisuals)terrainEntries.erase(terrainEntries.begin()+8);
             terrainEntries.push_back(gpu::BindGroupEntry(11).textureView(backgroundView_));
             nextSceneTerrainBindings = gpu::createBindGroup(device_, sceneTerrainInputsLayout_, terrainEntries, "scene_terrain_inputs");
             const std::array waterEntries{cachedEntries[0], cachedEntries[1], cachedEntries[6], cachedEntries[7],
@@ -2927,10 +2983,15 @@ bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 // receives current terrain lighting, object color, then water.
                 return path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin)
                     && (!shadows || path.renderSceneTerrain(commands, shadows));
+            }, [](void* context, const FilteredEnvironmentViews& views) {
+                return static_cast<SceneBackground*>(context)->path->bindSceneEnvironment(views);
             }};
         if (!opaque.encode(opaque.context, encoder, opaqueScene_->colorView(), opaqueScene_->depthView(), background)) return false;
         // During admission/Leave the application may have no active fixture.
-        if (!sceneBackground.encoded && !background(encoder, nullptr)) return false;
+        if (!sceneBackground.encoded) {
+            clearSceneEnvironment(); // No active fixture may retain a retired environment.
+            if (!background(encoder, nullptr)) return false;
+        }
         lightingTimestampStarted = timestampQuerySet != nullptr;
     }
 

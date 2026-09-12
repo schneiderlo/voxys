@@ -71,6 +71,11 @@ struct MeshDrawInstance {
     // Linear base RGB replacement + enable (0 or 1), applied before tintColor.
     // Zero retains authored RGB; the material's alpha and texture stay intact.
     glm::vec4 baseColorOverride{0.0f};
+    // x: wet coverage, y: accepted damage, z: Cove enable, w: immersion.
+    // Coverage/damage/immersion are [0,1]; enable is exactly 0/1. Disabled
+    // surfaces must be entirely zero. Immersion removes the air/water film
+    // already owned by the ocean compositor, retaining the wet substrate.
+    glm::vec4 surface{0.0f};
 };
 
 /// A loaded mesh part (one glTF mesh). The importer flattens multi-primitive
@@ -88,7 +93,7 @@ struct MeshAsset {
 class MeshPath {
 public:
     // The private GPU ABI is statically checked against this accounting value.
-    static constexpr uint64_t gpuInstanceBytes = 112u;
+    static constexpr uint64_t gpuInstanceBytes = 128u;
     MeshPath() = default;
     ~MeshPath();
 
@@ -121,6 +126,11 @@ public:
     // buffers; dynamic draws resolve COM/principal pose directly on the GPU.
     [[nodiscard]] bool setAuthoredBodyView(const physics::PhysicsRenderView&, physics::WorldPosition camera);
     [[nodiscard]] size_t assetCount() const noexcept { return assets_.size(); }
+    // Actual color commands from the last render, after culling; no submission
+    // claim. The fixture publishes this only after its ticket is submitted.
+    [[nodiscard]] uint32_t lastEncodedDrawCountForAsset(uint32_t asset) const noexcept {
+        return asset<assets_.size() ? assets_[asset].encodedColorDraws : 0u;
+    }
     // Color-pass draw count. Sun-shadow mode additionally replays the opaque
     // caster subset (bounded by the same maxDrawsPerFrame, not included here).
     [[nodiscard]] uint32_t lastSubmittedDrawCount() const noexcept {
@@ -150,6 +160,9 @@ public:
     [[nodiscard]] bool invalidateEnvironmentLighting() noexcept;
     [[nodiscard]] uint64_t environmentLightingBytes() const noexcept {
         return filteredEnvironment_.requestedBytes();
+    }
+    [[nodiscard]] FilteredEnvironmentViews filteredEnvironmentViews() const noexcept {
+        return filteredEnvironment_.views();
     }
     static constexpr uint64_t filteredEnvironmentReservationBytes = 1228944u;
     static constexpr uint32_t sunShadowResolution = 1024u;
@@ -208,6 +221,7 @@ private:
         std::vector<uint8_t> materialAlphaModes;
         uint32_t vertexCount = 0;
         uint32_t indexCount = 0;
+        uint32_t encodedColorDraws = 0;
     };
 
     [[nodiscard]] bool createPipeline(const MeshPathConfig& config);

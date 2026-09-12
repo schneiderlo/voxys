@@ -1,0 +1,52 @@
+{
+  "scope": "Driver-only wait correction; no game/package change or repeated capture",
+  "firstRun": {
+    "summary": "build-cove-visual-r01/browser-effects-r01/summary.json",
+    "sha256": "5b979698bc3c12300fd4e9144734202a5180797b29b55520695dd568f07da27e",
+    "status": "failed",
+    "seconds": 11.513,
+    "recordedStages": 2,
+    "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Math.hypot(...moving.boat.position.map((v,i)=>v-before.boat.position[i]))>.35)\n",
+    "gpuErrors": [],
+    "browserErrors": [],
+    "runtimeErrors": [],
+    "observedEffects": {
+      "epoch": "1",
+      "tick": "610",
+      "active": 12,
+      "highWater": 12,
+      "emitted": "12",
+      "dropped": "0",
+      "rejected": "0",
+      "skippedContacts": "0",
+      "wake": "1",
+      "foam": "11",
+      "splash": "0",
+      "runoff": "0",
+      "playerEntrySplashes": "0",
+      "dust": "0",
+      "encoded": 12,
+      "ownerBytes": 33328
+    },
+    "mode": "helm"
+  },
+  "finding": "The positive-drive/wake/foam predicate omitted the travel condition, then immediately asserted it. R01 therefore stopped at an incomplete observation; the recorded result is not gameplay failure or full journey success. The local pre-drive pose was not persisted before that assertion, so an exact R01 travel delta cannot be reconstructed from this report.",
+  "correction": "The same bounded wait now requires real XZ displacement greater than0.35m in addition to speed, positive effective drive, growing wake/foam and encoded sprites. Vertical displacement from waves cannot satisfy travel. The successful movement stage records its pre-drive observation and horizontal distance.",
+  "finalDriver": {
+    "path": "scripts/validate_cove_effects.mjs",
+    "sha256": "f65fc0ad6b9ed39206572498bffad268bce343f7e6515111fc0ad2233c966d9e"
+  },
+  "rerun": {
+    "directory": "build-cove-visual-r01/browser-effects-r02",
+    "package": "build-cove-visual-r01/web-r02",
+    "port": 43874,
+    "profile": "new isolated profile created by the runner",
+    "screenshots": false,
+    "recording": false,
+    "status": "passed",
+    "processExitCode": 0,
+    "stages": 8,
+    "seconds": 8.63,
+    "proof": "checks/browser-effects-final-r02.json"
+  }
+}

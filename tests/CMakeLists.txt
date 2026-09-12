@@ -46,6 +46,10 @@ set(TEST_SOURCES
     test_salvage_preview.cpp
     test_cove_player.cpp
     test_cove_camera.cpp
+    test_cove_environment.cpp
+    test_cove_environment_collision.cpp
+    test_cove_effects.cpp
+    test_cove_effects_path.cpp
     test_cove_character.cpp
     test_rigid_animation.cpp
     test_robot_asset.cpp
@@ -122,6 +126,7 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_triangle_path.cpp
         test_raycast_path.cpp
         test_blit_path.cpp
+        test_scene_sun_shadows.cpp
         test_cove_hud.cpp
         test_water_simulation.cpp
         test_debug_visualizer.cpp

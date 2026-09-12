@@ -1,0 +1,796 @@
+{
+  "schema": 1,
+  "profile": "salvage-rigid-v1",
+  "asset_id": "voxys-cove-environment-r01",
+  "render_to_canonical": 12,
+  "collision": [
+    {
+      "group": "workshop",
+      "name": "workshop_foundation",
+      "minimum": [
+        500,
+        32,
+        -2100
+      ],
+      "maximum": [
+        800,
+        128,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_0",
+      "minimum": [
+        400,
+        32,
+        -2100
+      ],
+      "maximum": [
+        425,
+        80,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_1",
+      "minimum": [
+        425,
+        32,
+        -2100
+      ],
+      "maximum": [
+        450,
+        96,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_2",
+      "minimum": [
+        450,
+        32,
+        -2100
+      ],
+      "maximum": [
+        475,
+        112,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_3",
+      "minimum": [
+        475,
+        32,
+        -2100
+      ],
+      "maximum": [
+        500,
+        128,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        500,
+        128,
+        -2100
+      ],
+      "maximum": [
+        516,
+        288,
+        -2084
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        500,
+        128,
+        -1816
+      ],
+      "maximum": [
+        516,
+        288,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        784,
+        128,
+        -2100
+      ],
+      "maximum": [
+        800,
+        288,
+        -2084
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        784,
+        128,
+        -1816
+      ],
+      "maximum": [
+        800,
+        288,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "east_wall",
+      "minimum": [
+        788,
+        128,
+        -2084
+      ],
+      "maximum": [
+        800,
+        272,
+        -1816
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "rear_wall",
+      "minimum": [
+        516,
+        128,
+        -1812
+      ],
+      "maximum": [
+        784,
+        272,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        492,
+        288,
+        -2108
+      ],
+      "maximum": [
+        808,
+        304,
+        -1792
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        524,
+        304,
+        -2096
+      ],
+      "maximum": [
+        776,
+        320,
+        -1804
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        572,
+        320,
+        -2084
+      ],
+      "maximum": [
+        728,
+        336,
+        -1816
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "service_bench",
+      "minimum": [
+        640,
+        128,
+        -1860
+      ],
+      "maximum": [
+        770,
+        176,
+        -1820
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "buried_keel",
+      "minimum": [
+        -810,
+        -288,
+        -3250
+      ],
+      "maximum": [
+        -540,
+        -224,
+        -2850
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -825,
+        -224,
+        -3240
+      ],
+      "maximum": [
+        -809,
+        -64,
+        -2960
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -541,
+        -224,
+        -3220
+      ],
+      "maximum": [
+        -525,
+        -32,
+        -3060
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -541,
+        -224,
+        -2990
+      ],
+      "maximum": [
+        -525,
+        -80,
+        -2860
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -3200
+      ],
+      "maximum": [
+        -793,
+        -16,
+        -3184
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -3070
+      ],
+      "maximum": [
+        -793,
+        16,
+        -3054
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -2910
+      ],
+      "maximum": [
+        -793,
+        -64,
+        -2894
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_bridge",
+      "minimum": [
+        -793,
+        -32,
+        -3070
+      ],
+      "maximum": [
+        -649,
+        16,
+        -3054
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "signal_mast",
+      "minimum": [
+        -710,
+        -224,
+        -3160
+      ],
+      "maximum": [
+        -694,
+        128,
+        -3144
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_foot",
+      "minimum": [
+        968,
+        -32,
+        -2332
+      ],
+      "maximum": [
+        1032,
+        32,
+        -2268
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_column",
+      "minimum": [
+        988,
+        32,
+        -2312
+      ],
+      "maximum": [
+        1012,
+        176,
+        -2288
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_crown",
+      "minimum": [
+        976,
+        176,
+        -2324
+      ],
+      "maximum": [
+        1024,
+        208,
+        -2276
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_foot",
+      "minimum": [
+        -882,
+        -64,
+        -2132
+      ],
+      "maximum": [
+        -818,
+        0,
+        -2068
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_column",
+      "minimum": [
+        -862,
+        0,
+        -2112
+      ],
+      "maximum": [
+        -838,
+        144,
+        -2088
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_crown",
+      "minimum": [
+        -874,
+        144,
+        -2124
+      ],
+      "maximum": [
+        -826,
+        176,
+        -2076
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        868,
+        80,
+        -1932
+      ],
+      "maximum": [
+        932,
+        112,
+        -1868
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        876,
+        112,
+        -1924
+      ],
+      "maximum": [
+        924,
+        144,
+        -1876
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        968,
+        112,
+        -1832
+      ],
+      "maximum": [
+        1032,
+        144,
+        -1768
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        976,
+        144,
+        -1824
+      ],
+      "maximum": [
+        1024,
+        176,
+        -1776
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        1068,
+        80,
+        -1982
+      ],
+      "maximum": [
+        1132,
+        112,
+        -1918
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        1076,
+        112,
+        -1974
+      ],
+      "maximum": [
+        1124,
+        144,
+        -1926
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        -65,
+        16,
+        -2016
+      ],
+      "maximum": [
+        15,
+        48,
+        -1984
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        35,
+        32,
+        -1966
+      ],
+      "maximum": [
+        115,
+        64,
+        -1934
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        135,
+        48,
+        -1916
+      ],
+      "maximum": [
+        215,
+        80,
+        -1884
+      ]
+    }
+  ],
+  "gantry_collision": [
+    {
+      "minimum": [
+        -210,
+        0,
+        -210
+      ],
+      "maximum": [
+        -190,
+        352,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        0,
+        -210
+      ],
+      "maximum": [
+        210,
+        352,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        0,
+        190
+      ],
+      "maximum": [
+        -190,
+        352,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        0,
+        190
+      ],
+      "maximum": [
+        210,
+        352,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        -210
+      ],
+      "maximum": [
+        210,
+        372,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        190
+      ],
+      "maximum": [
+        210,
+        372,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        -190
+      ],
+      "maximum": [
+        -190,
+        372,
+        190
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        352,
+        -190
+      ],
+      "maximum": [
+        210,
+        372,
+        190
+      ]
+    },
+    {
+      "minimum": [
+        -190,
+        352,
+        -43
+      ],
+      "maximum": [
+        190,
+        368,
+        -27
+      ]
+    },
+    {
+      "minimum": [
+        -190,
+        352,
+        27
+      ],
+      "maximum": [
+        190,
+        368,
+        43
+      ]
+    }
+  ],
+  "lods": [
+    {
+      "kind": "scenery",
+      "lod": 0,
+      "asset_id": "voxys-cove-environment-r01-scenery-lod0",
+      "filename": "scenery-lod0.vmesh",
+      "sha256": "b03ee2912b4c03e7fead2f1d7b8996060ca57f94636c46696c91cd8f58df7683",
+      "bytes": 378386,
+      "gpu_bytes": 427520,
+      "vertices": 4480,
+      "indices": 25920,
+      "nodes": 5,
+      "meshes": 5,
+      "draws": 20,
+      "materials": 20,
+      "source_sha256": "b0045912156185f65694e28666e6746966680c3d6d3993d2665ca29ec2f4fb1b",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 378386 bytes (v=4480 i=25920 s=20 m=20 n=5 sk=0 a=0)\n"
+    },
+    {
+      "kind": "scenery",
+      "lod": 1,
+      "asset_id": "voxys-cove-environment-r01-scenery-lod1",
+      "filename": "scenery-lod1.vmesh",
+      "sha256": "cd24cad5ad8ed4f19d5f014b3ea5446710a574813b806318a56a5b5cbd8039c1",
+      "bytes": 163346,
+      "gpu_bytes": 181760,
+      "vertices": 1920,
+      "indices": 10560,
+      "nodes": 5,
+      "meshes": 5,
+      "draws": 20,
+      "materials": 20,
+      "source_sha256": "0e6ed5ef871d31a2cfaef8c5202bb11103cfbcf5f97fa88c366c74cabc3eba16",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 163346 bytes (v=1920 i=10560 s=20 m=20 n=5 sk=0 a=0)\n"
+    },
+    {
+      "kind": "scenery",
+      "lod": 2,
+      "asset_id": "voxys-cove-environment-r01-scenery-lod2",
+      "filename": "scenery-lod2.vmesh",
+      "sha256": "6f85b12496825ada41c0d0f73543589e1b3c7816959efe3ad001d5491083e3dd",
+      "bytes": 119015,
+      "gpu_bytes": 121024,
+      "vertices": 1536,
+      "indices": 2304,
+      "nodes": 5,
+      "meshes": 5,
+      "draws": 19,
+      "materials": 19,
+      "source_sha256": "bbec3adcd618a9bc3f63a6e16c70271257d5f53d320a667aeaeaa668b3a67576",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 119015 bytes (v=1536 i=2304 s=19 m=19 n=5 sk=0 a=0)\n"
+    },
+    {
+      "kind": "gantry",
+      "lod": 0,
+      "asset_id": "voxys-cove-environment-r01-gantry-lod0",
+      "filename": "gantry-lod0.vmesh",
+      "sha256": "e76ba826a995389ebbc74f118ba6078880f472137a4cd4202897a71d50710b80",
+      "bytes": 263080,
+      "gpu_bytes": 298624,
+      "vertices": 3136,
+      "indices": 18144,
+      "nodes": 1,
+      "meshes": 1,
+      "draws": 4,
+      "materials": 4,
+      "source_sha256": "6b8726e4eaef85bde110eb40d35404d75f6d5e830492230df9d5a9bf64be5354",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 263080 bytes (v=3136 i=18144 s=4 m=4 n=1 sk=0 a=0)\n"
+    },
+    {
+      "kind": "gantry",
+      "lod": 1,
+      "asset_id": "voxys-cove-environment-r01-gantry-lod1",
+      "filename": "gantry-lod1.vmesh",
+      "sha256": "59864372836c9e4f09f98f471e3c43695d9903ba900078f7659302691ea6c5ae",
+      "bytes": 112552,
+      "gpu_bytes": 126592,
+      "vertices": 1344,
+      "indices": 7392,
+      "nodes": 1,
+      "meshes": 1,
+      "draws": 4,
+      "materials": 4,
+      "source_sha256": "af9d3a91e444357debd38e97d587bd99501cab27ecf3cd530272e2b782ad8c98",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 112552 bytes (v=1344 i=7392 s=4 m=4 n=1 sk=0 a=0)\n"
+    },
+    {
+      "kind": "gantry",
+      "lod": 2,
+      "asset_id": "voxys-cove-environment-r01-gantry-lod2",
+      "filename": "gantry-lod2.vmesh",
+      "sha256": "a27cb9cd0c14f52af724ff7cbf4e62d640c066913ff51444f06ae756ba746b83",
+      "bytes": 83800,
+      "gpu_bytes": 86368,
+      "vertices": 1104,
+      "indices": 1656,
+      "nodes": 1,
+      "meshes": 1,
+      "draws": 4,
+      "materials": 4,
+      "source_sha256": "2c9dc7c215e9674c3a67627ca1d221bea9c7c9a0e1fb63d0bb3fdff94f40dec1",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 83800 bytes (v=1104 i=1656 s=4 m=4 n=1 sk=0 a=0)\n"
+    }
+  ],
+  "scene_origin": [
+    -19,
+    -200,
+    -37
+  ],
+  "gpu_bytes": 1241888,
+  "provenance_sha256": "fc643038addcdc4fb77d0e7a58d5deabe7f0fc954d006420812e4ff9afc9c31a",
+  "cooker_sha256": "8bd2e7eb6922f9839ba63d2e051a29377c559571c278a10b3d05e855ec1f8dc0",
+  "cook_recipe_sha256": "3b4cbb641d53c1645a8b1c63962a008a0219836ee2333a8d047491a1843063eb",
+  "checker_sha256": "bc29dd3418b276c14d30ac9d8e4a0db1ad6a5cde052a7549135dd58fa34dacf5"
+}

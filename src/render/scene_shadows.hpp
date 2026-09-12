@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gpu/resources.hpp"
+#include "render/environment_lighting.hpp"
 #include <array>
 #include <glm/glm.hpp>
 
@@ -29,6 +30,13 @@ inline auto sceneShadowLayoutEntries() {
 struct SceneShadowConsumer {
     void* context = nullptr;
     bool (*encode)(void*, WGPUCommandEncoder, WGPUBindGroup) = nullptr;
+    // Called after the same owner's environment bake is encoded, before color.
+    // These views are borrowed for this encoding; a consumer may retain GPU
+    // references only through an explicitly owned, bounded bind group.
+    bool (*bindEnvironment)(void*, const FilteredEnvironmentViews&) = nullptr;
+    [[nodiscard]] bool environment(const FilteredEnvironmentViews& views) const {
+        return !bindEnvironment || bindEnvironment(context, views);
+    }
     [[nodiscard]] bool operator()(WGPUCommandEncoder commands, WGPUBindGroup shadows) const {
         return !encode || encode(context, commands, shadows);
     }

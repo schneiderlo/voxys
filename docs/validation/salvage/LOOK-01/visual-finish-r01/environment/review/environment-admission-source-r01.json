@@ -1,0 +1,15 @@
+{
+  "kind": "source-only environment admission boundary correction",
+  "runtimeVerified": false,
+  "gpuRun": false,
+  "applicationSha256": "ec5bec9b2c7c5285bea4f4bcfec97e43b8b86393c36197f2868bafd12e212312",
+  "lineReferences": {
+    "uint64_t environmentAdmissionTick=0,environmentRemovalTick=0;": 363,
+    "asset->environmentRemovalTick=physicsWorld_->tickFrontier().scheduled+1;": 8016,
+    "asset.environmentAdmissionTick=physicsWorld_->tickFrontier().scheduled+1;": 9311,
+    "if(snapshot->tick<asset.environmentAdmissionTick)continue;": 9501
+  },
+  "failedRuntimeLog": "build-cove-visual-r01/checks/assembled-native-r04.log",
+  "failedRuntimeObservation": "build-cove-visual-r01/preview-observation-r02/state.json",
+  "limits": "The failed runtime had no per-branch tick diagnostic. Source proves the branch can reject an ordinary pre-admission snapshot; runtime confirmation remains pending."
+}

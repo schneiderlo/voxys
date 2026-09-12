@@ -1,0 +1,147 @@
+{
+  "status": "passed",
+  "scope": "10 focused CPU cases; no GPU or app runtime",
+  "targets": [
+    {
+      "target": "cove_environment",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0,
+      "cases": [
+        {
+          "suite": "CoveEnvironment",
+          "name": "InstalledThreeLodPairsKeepCollisionEntryAndExactResidentCapacity",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.249"
+        },
+        {
+          "suite": "CoveEnvironment",
+          "name": "InvalidManifestRefusesBeforeAnyPayloadOrFallbackRequest",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.453"
+        },
+        {
+          "suite": "CoveEnvironment",
+          "name": "CorruptOversizedAndRehashedDisplacedModelsCannotBecomeScenery",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.241"
+        },
+        {
+          "suite": "CoveEnvironment",
+          "name": "RehashedCollisionCannotAddInvisibleWallsOrLoseTheGantryOpening",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.172"
+        },
+        {
+          "suite": "CoveEnvironment",
+          "name": "OwnerReadmissionRecountsActualMeshesAndPreservesPriorOutputOnRefusal",
+          "status": "run",
+          "result": "completed",
+          "seconds": "1.041"
+        }
+      ]
+    },
+    {
+      "target": "cove_environment_collision",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0,
+      "cases": [
+        {
+          "suite": "CoveEnvironmentCollision",
+          "name": "RealSceneryKeepsSceneFrameOpenApproachAndSharedContactSolids",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.26"
+        },
+        {
+          "suite": "CoveEnvironmentCollision",
+          "name": "ExactUnionRemovesInternalFacesWithoutFillingDoorSpace",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0."
+        }
+      ]
+    },
+    {
+      "target": "cove_player",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0,
+      "cases": [
+        {
+          "suite": "CoveMovement",
+          "name": "OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.354"
+        },
+        {
+          "suite": "CoveMovement",
+          "name": "HarborPostsBlockWalkingAndSavedPlayerOccupancy",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.308"
+        },
+        {
+          "suite": "CoveMovement",
+          "name": "EnvironmentAndHarborObstacleReplacementPreserveEachOtherTransactionally",
+          "status": "run",
+          "result": "completed",
+          "seconds": "0.328"
+        }
+      ]
+    }
+  ],
+  "historicalFailure": "cpu-r01: two player cases omitted required terrain-sweep callback; restore/count assertions passed. Test-only known-clear query corrected in cpu-r02; no production correction or relaxed assertions.",
+  "sources": [
+    {
+      "path": "src/game/assets/cove_environment.hpp",
+      "sha256": "94fbe170958b7f27f0995492cf2a65d307cf3d1d67fe6ba2b157867a7b83812a"
+    },
+    {
+      "path": "src/game/assets/cove_environment.cpp",
+      "sha256": "2a9611cb0179e770c0923a56a66e2f4cd3e9ef1838d2212844d8daf6fff5fe0e"
+    },
+    {
+      "path": "src/game/expedition/cove_environment_collision.hpp",
+      "sha256": "f2bfa0298e60d5b42fccd852617d0c6647bb38410694f35c67ee6fa780258749"
+    },
+    {
+      "path": "src/game/expedition/cove_environment_collision.cpp",
+      "sha256": "6977c3cfd9e8e074978650ce07739ea6ec373725802142316aa882fe1b060f42"
+    },
+    {
+      "path": "src/game/expedition/cove_player.hpp",
+      "sha256": "4d8a7d33aef25dcadc03c0c807a048fbc5dd783bf3003503833eaebb71109834"
+    },
+    {
+      "path": "src/game/expedition/cove_player.cpp",
+      "sha256": "252807216b091d695a43983df47dbd7fd2ac0c04fd27ee97af4eb316fc196c4f"
+    },
+    {
+      "path": "src/game/expedition/cove_restore.hpp",
+      "sha256": "d8560567c713412822795e9c69b65706b665ffd65af5dcacc9e69137bb62e0e3"
+    },
+    {
+      "path": "src/game/expedition/cove_restore.cpp",
+      "sha256": "22ff40bde7dd00099feb1f4b09e90b822042feccbe66f520faebe9c55c28c8e2"
+    },
+    {
+      "path": "tests/test_cove_environment.cpp",
+      "sha256": "0037c1233ba608d88278f0c8de540d7ffa58eef4437304c252a030cdfdc2cbf6"
+    },
+    {
+      "path": "tests/test_cove_environment_collision.cpp",
+      "sha256": "17e22e0b472e6a53ebbc3085fbb07feeee02b8f79b33615215ccc2714da5f4f4"
+    },
+    {
+      "path": "tests/test_cove_player.cpp",
+      "sha256": "42987c2d7832f1fcdfe2f1158db4a253080c66a63be5db22ae44009ec7ab1418"
+    }
+  ]
+}

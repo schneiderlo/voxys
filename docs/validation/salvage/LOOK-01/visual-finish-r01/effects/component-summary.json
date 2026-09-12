@@ -1,0 +1,138 @@
+{
+  "scope": "Cove accepted-tick effects component and App adapter. No actual application/runtime or final visual acceptance is inferred.",
+  "cpu": {
+    "distinctCoveredCases": 10,
+    "runs": [
+      {
+        "path": "checks/cpu-r01-test.xml",
+        "sha256": "200353dd4faec7240e74daffb25277e85b99225e1b31b360ffd8783f8f458fe5",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "disabled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "checks/cpu-crossing-r03-test.xml",
+        "sha256": "a6ca718be42e527e83e2302d99fbad901af001ce41269b303d29194294805197",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "disabled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "checks/cpu-attribution-r04-test.xml",
+        "sha256": "26477c8539185ad90eb598aa1244ab9662331341faad8b78c7369b778ceac93d",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "disabled": 0,
+        "skipped": 0
+      }
+    ],
+    "interpretation": "Nine original cases passed together. One new endpoint-crossing case then passed; that same case passed again after player-only emission attribution was added. A complete final-source ten-case run has not been performed by this agent."
+  },
+  "gpu": {
+    "runs": [
+      {
+        "path": "checks/gpu-r01-test.xml",
+        "sha256": "58ee158252ecf552d3c70d597b0a7f3b41155c9de407a3b3c77f67da77c12cf6",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "disabled": 0,
+        "skipped": 0
+      }
+    ],
+    "numeric": {
+      "cases": 1,
+      "failed": 0,
+      "skipped": 0,
+      "bazelSeconds": 3.517,
+      "properties": {
+        "visiblePixels": "534",
+        "surfacePixels": "301",
+        "surfaceShiftPixels": "17.36621224271585",
+        "ownerBytes": "33328"
+      },
+      "imagesWritten": 0
+    },
+    "interpretation": "One numeric GPU case passed. Later pointer-count casts and encoded-observation clearing do not alter shaders; no GPU case repeated by this agent."
+  },
+  "preflight": [
+    {
+      "path": "checks/cpu-crossing-r02.log",
+      "outcome": "Sandbox could not connect to Nix daemon; no compilation or test executed. Host retry passed."
+    }
+  ],
+  "observations": {
+    "playerEntrySplashes": "Saturating count of sprites actually admitted from Player water-entry crossings only; excludes boat/cargo/impact splashes and capacity-dropped sprites.",
+    "gpuOwnerBytes": 33328,
+    "capacity": 512,
+    "emissionClock": "Exact accepted coherent physics packet. Ages/emissions frozen during pause/workshop/held presentation; reset on Rescue/epoch/build replacement."
+  },
+  "review": {
+    "pool": "Independent native_cove_hud source review: no actionable finding.",
+    "application": "Independent native_cove_hud source review: no actionable finding.",
+    "browserDriver": "Independent native_cove_hud and presentation_review findings resolved; both verified final attribution/scenery/completion delta. No browser run by reviewers."
+  },
+  "pending": [
+    "Root-owned final builds and actual browser journey",
+    "Final visual captures and independent review",
+    "Required full suite and publication"
+  ],
+  "files": [
+    {
+      "path": "src/game/expedition/cove_effects.hpp",
+      "bytes": 4171,
+      "sha256": "53ece09254a20b39bb8ea82b5b63632f1c3aefa6835a87de15012da06105449b"
+    },
+    {
+      "path": "src/game/expedition/cove_effects.cpp",
+      "bytes": 11374,
+      "sha256": "1b20c4c95b5dfef067bf26eeee2dec2c492d758be45bda015c864d70f673b769"
+    },
+    {
+      "path": "src/render/cove_effects_path.hpp",
+      "bytes": 2904,
+      "sha256": "bc1054bbeb7bea55e63cf9156b58d23f7d2af6fe7d3e585d3a84e124a31867a8"
+    },
+    {
+      "path": "src/render/cove_effects_path.cpp",
+      "bytes": 7243,
+      "sha256": "7de3927427013fed08c73e26bd99dbe23c646a1792090bc390c238f345954626"
+    },
+    {
+      "path": "shaders/cove_effects.wgsl",
+      "bytes": 9111,
+      "sha256": "bf6d2998d02113c6620890fbf5eb29b3c3c0dfd1e9bd8ac396102c1dbcdbd7bf"
+    },
+    {
+      "path": "tests/test_cove_effects.cpp",
+      "bytes": 9919,
+      "sha256": "af9bbb6ca45794f819a4fd2989a9012adf7f96b248cb27740ccaa526ff391b69"
+    },
+    {
+      "path": "tests/test_cove_effects_path.cpp",
+      "bytes": 10176,
+      "sha256": "b7e3372b36967b2bb0126a2e80afbeb9e11fb233137835c30975d8ddd3f707e2"
+    },
+    {
+      "path": "src/app/application.cpp",
+      "bytes": 532172,
+      "sha256": "23e8891341f0075b038fe792644be60e8ed3c0f68be811a5c447375ee1bfef72"
+    },
+    {
+      "path": "scripts/validate_cove_effects.mjs",
+      "bytes": 14278,
+      "sha256": "db1e996a3608dffb62df6376d4c3555ae58a8a542af894176020c285688fc9c7"
+    },
+    {
+      "path": "scripts/smoke_integrated_wasm.mjs",
+      "bytes": 44408,
+      "sha256": "97df4cd0e3965c2aebc6b7ad3fbea6b1faaf20c25f7c4f3c353ad49ab707c40d"
+    }
+  ],
+  "sourceSnapshotNote": "Snapshot when effects documentation was prepared. Application/smoke are shared integration files and may change under the root owner before final package freeze; root checkpoint manifest identifies actual shipped bytes."
+}

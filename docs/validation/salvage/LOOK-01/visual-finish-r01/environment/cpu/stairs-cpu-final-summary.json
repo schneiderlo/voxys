@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "scope": "Two final stair CPU cases, plus four affected existing CPU movement cases passed in r02/r03 on the identical production correction. Runtime pending.",
+  "cases": [
+    {
+      "suite": "CoveMovement",
+      "name": "WorkshopStairEdgesKeepRealCapsuleContactWithoutHorizontalBoost",
+      "seconds": "0.339",
+      "failed": false,
+      "skipped": false
+    },
+    {
+      "suite": "CoveMovement",
+      "name": "WorkshopStairFaceSupportRefusesHighRisersCeilingsAndSteepFaces",
+      "seconds": "0.391",
+      "failed": false,
+      "skipped": false
+    }
+  ],
+  "sourceHashes": {
+    "src/game/expedition/cove_player.cpp": "28dd7f523070e17990a22d21a5862c14c939d4140c8974daff84c09bfe0e57e8",
+    "src/game/expedition/cove_player.hpp": "a18ecac85edea941c21980403708a3e791024a22ca382784f407d23f0186651b",
+    "tests/test_cove_player.cpp": "2eccf0f6961d7b1e7b787cba6b66d1d90035ba9c5d7fb8822f8908c0c011f413",
+    "scripts/validate_native_cove_environment.py": "7c149433b58852b860c2c716aaa9bac5d1074e59a2cccfaef3806ad8f0ba8d46"
+  },
+  "historicalAttempts": {
+    "r01": "Exact installed stairs reproduce x8.195/y1.605 stall before production fix. Later descent assertions also failed because ascent had failed.",
+    "r02": "Five of six pass; ceiling oracle incorrectly expected no rounded-corner travel.",
+    "r03": "Five of six pass; ceiling oracle incorrectly expected a held-input corner contact to be stationary after40 ticks.",
+    "r04": "Both final stair cases pass;120 ticks of ceiling pressure remain below roof and off upper tread, each checked via strict restore on a separate controller copy."
+  },
+  "independentReview": "builder_usability source review: no actionable finding; no tests or runtime from reviewer."
+}

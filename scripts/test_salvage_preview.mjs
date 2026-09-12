@@ -13,7 +13,7 @@ function fixture(asset = false, workshop = false, cove = false, cameraController
         setAttribute(name, value) { this.attributes.set(name, value); }
     }
     const elements = Object.fromEntries(['salvage-preview', 'salvage-status', 'salvage-reset', 'salvage-pause', 'salvage-leave', 'salvage-interact','salvage-towing','salvage-tow-status','salvage-hook','salvage-reel','salvage-payout','salvage-hold','salvage-job','salvage-job-status','salvage-job-accept','salvage-job-deliver','salvage-harbor','salvage-harbor-status',...['install','attach','raise','lower','stop','release'].map(n=>'salvage-harbor-'+n)].map(id => [id, new Element()]));
-    for(const id of ['salvage-objective','salvage-objective-title','salvage-objective-detail','salvage-objective-action','salvage-field-tools'])elements[id]=new Element();
+    for(const id of ['salvage-objective','salvage-objective-title','salvage-objective-detail','salvage-objective-action','salvage-field-tools','salvage-more-controls'])elements[id]=new Element();
     elements['salvage-field-tools'].hidden=false;
     if(cove)elements['salvage-preview'].dataset.scene='cove';
     for(const [id,label] of Object.entries({'salvage-job-accept':'Recover the generator · J','salvage-job-deliver':'Deliver generator · H',
@@ -52,7 +52,11 @@ function fixture(asset = false, workshop = false, cove = false, cameraController
     };
     const priorCameraMenu=()=> 'prior',cameraOpened=[];
     environment['voxyCoveCameraMenu']=priorCameraMenu;
-    if(cameraController)environment.VoxyControllerMenu={install:()=>({tick(){},cleanup(){},openSection(element){cameraOpened.push(element);return true;}})};
+    if(cameraController)environment.VoxyControllerMenu={install:()=>({tick(){},cleanup(){},openSection(element){
+        assert(elements['salvage-more-controls'].open,'camera ancestor must be disclosed before focus ownership');
+        if(environment.refuseCamera)return false;
+        cameraOpened.push(element);return true;
+    }})};
     const engine = {
         _voxy_is_initialized: () => 1,
         _voxy_salvage_preview_action: action => { actions.push(action); return 1; },
@@ -536,6 +540,7 @@ const next=f=>f.elements['salvage-objective-action'];
     f.state({tow:{...s.tow,operable:true,attached:true,ropeLength:4}});f.tick();
     assert.equal(card(f).dataset.step,'return');assert.equal(next(f).textContent,'Open winch controls');
     next(f).click();assert.equal(f.elements['salvage-field-tools'].open,true);
+    assert.equal(f.elements['salvage-more-controls'].open,true,'promoted winch action reveals its enclosing controls');
     assert.equal(f.elements['salvage-reel'].focused,1);assert.deepEqual(f.actions,[40],'revealing controls must not start the winch');
     f.state({tow:{...s.tow,operable:true,attached:true,confirmed:false,ropeLength:4}});f.tick();
     assert(next(f).hidden);next(f).click();assert.deepEqual(f.actions,[40]);f.cleanup();
@@ -638,6 +643,11 @@ console.log('Browser next objective: permissions, focus, stale clicks, forwardin
     const camera={available:true,mode:'chase',distance:4.8,reducedMotion:false,frameLoad:false};
     f.state({player:{mode:'walking'},characterCamera:camera,pause:{phase:'paused'}});f.tick();
     assert(!panel.hidden&&f.cameraButtons.every(button=>!button.disabled),'paused camera controls remain available');
+    assert.equal(f.elements['salvage-more-controls'].open,false,'camera is initially behind More controls');
+    f.environment.refuseCamera=true;
+    assert(!f.environment['voxyCoveCameraMenu']());
+    assert.equal(f.elements['salvage-more-controls'].open,false,'refused modal handoff does not expand the HUD');
+    f.environment.refuseCamera=false;
     assert(f.environment['voxyCoveCameraMenu']());assert.deepEqual(f.cameraOpened,[panel]);
     for(const button of f.cameraButtons)button.click();assert.deepEqual(f.actions,[320,321,322,323,324,325]);
     f.state({characterCamera:{...camera,mode:'orbit',distance:1.5,reducedMotion:true,frameLoad:true}});f.tick();
@@ -646,8 +656,10 @@ console.log('Browser next objective: permissions, focus, stale clicks, forwardin
     f.state({characterCamera:{...camera,distance:12}});f.tick();assert(!f.cameraButtons[4].disabled&&f.cameraButtons[5].disabled);
     for(const update of [{characterCamera:{...camera,available:false}},{characterCamera:camera,session:{admissionOpen:false}},
         {session:{admissionOpen:true},workshop:{open:true}},{workshop:{open:false},characterCamera:undefined}]){
+        f.elements['salvage-more-controls'].open=false;
         f.state(update);f.cameraButtons[0].click();assert.equal(f.actions.length,6,'stale click must re-read permissions');
         assert(!f.environment['voxyCoveCameraMenu']());
+        assert(!f.elements['salvage-more-controls'].open,'unavailable camera cannot reveal extra controls');
     }
     f.state({characterCamera:camera,workshop:{open:false}});f.tick();
     let swallowed=0;panel.listeners.get('keydown')({type:'keydown',key:'ArrowUp',stopPropagation(){++swallowed;}});
@@ -655,6 +667,22 @@ console.log('Browser next objective: permissions, focus, stale clicks, forwardin
     assert.equal(swallowed,1,'mouse-opened drawer lets old held keys release');
     const opener=f.environment['voxyCoveCameraMenu'];f.cleanup();assert.equal(f.environment['voxyCoveCameraMenu'],f.priorCameraMenu);
     assert(!opener()&&panel.hidden&&!panel.open);assert(f.cameraButtons.every(button=>button.listeners.size===0));
+    assert(!f.elements['salvage-more-controls'].open);
     assert.equal(panel.listeners.size,0);
     console.log('Outside camera actions, paused permissions, bounds, stale events and global cleanup: 1 case passed');
+}
+{
+    const f=fixture(true,true,true),more=f.elements['salvage-more-controls'];
+    assert.equal(more.open,false,'Cove starts compact');
+    more.open=true;f.tick();f.tick();assert.equal(more.open,true,'unchanged refresh preserves the user disclosure choice');
+    f.state({workshop:{open:true,canOpen:true,name:'Brick 2 x 4',selected:0,parts:11,massKg:1035}});f.tick();
+    assert(!more.open);assert(!f.elements['salvage-workshop'].hidden);
+    more.open=true;f.tick();assert(more.open,'extra controls can still be reached from the workshop');
+    f.state({workshop:{open:false,canOpen:true}});f.tick();assert(!more.open);
+    assert.equal(f.elements['salvage-preview'].dataset.workshop,'false');
+    f.elements['salvage-workshop-toggle'].click();assert.equal(f.actions.at(-1),60,'compact Workshop keeps its real handler');
+    f.cleanup();
+    const inspection=fixture(true);assert(inspection.elements['salvage-more-controls'].open,'inspection controls remain directly available');
+    inspection.cleanup();
+    console.log('Compact Cove disclosure, workshop transitions and unchanged inspection controls: 1 case passed');
 }

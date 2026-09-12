@@ -658,6 +658,26 @@ TEST_F(CoveMovement, OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPub
     EXPECT_FLOAT_EQ(restored->tow.targetLength,6);EXPECT_FLOAT_EQ(restored->tow.motorSpeed,0);
     EXPECT_GT(restored->tow.breakForce,0);EXPECT_FALSE(restored->tow.bodyA.valid());EXPECT_FALSE(restored->tow.bodyB.valid());
     EXPECT_EQ(adapter.calls,0u);
+    // Newly installed environment is part of load preflight before harbor
+    // overlays are applied; it may not be dropped by the harbor setter.
+    const auto pose=restored->player->feet();
+    const CovePlayer::StaticObstacle blocked{pose-glm::dvec3(.4,0,.4),pose+glm::dvec3(.4,1.8,.4)};
+    const CovePlayer::StaticObstacle distant{{100,0,100},{101,3,101}};
+    for(uint32_t harbor:{0u,1u}) {
+        physical.harborLift.profile=harbor;
+        const auto environmentBytes=encode();ASSERT_FALSE(environmentBytes.empty());
+        EXPECT_FALSE(CoveRestoreCandidate::prepare(environmentBytes,context,*scene,seed->catalog,seed->placements,
+            [](double,double){return -5.;},error,nullptr,{},std::span(&blocked,1)));
+        EXPECT_EQ(error,"Saved player position is blocked or unsupported.");
+        const auto clear=CoveRestoreCandidate::prepare(environmentBytes,context,*scene,seed->catalog,seed->placements,
+            [](double,double){return -5.;},error,nullptr,{},std::span(&distant,1));
+        ASSERT_TRUE(clear)<<error;EXPECT_EQ(clear->archive->physical,physical);
+        clear->player->setTerrainSweep([](glm::dvec3 a,glm::dvec3 b,double){
+            return CovePlayer::SweepResult{true,false,false,glm::length(b-a),{0,0,0}};});
+        const auto hit=clear->player->sweepSphere({99,2,100.5},{102,2,100.5},.1);
+        EXPECT_TRUE(hit.complete);EXPECT_TRUE(hit.hit);EXPECT_EQ(adapter.calls,0u);
+    }
+    physical.harborLift.profile=0;
     // Load preflight must reject a saved capsule inside the independent cargo
     // even before a harbor exists, without publishing any physics resources.
     const auto savedPlayer=physical.player;const auto savedHarbor=physical.harborLift;
@@ -723,6 +743,91 @@ TEST_F(CoveMovement, HarborPostsBlockWalkingAndSavedPlayerOccupancy) {
     const auto preserved=player.state();state.feet=center+glm::dvec3(4,2,-4);
     EXPECT_FALSE(player.restore(state));EXPECT_EQ(player.state().feet,preserved.feet);
     ASSERT_TRUE(player.setStaticObstacles({}));EXPECT_TRUE(player.restore(state));
+}
+
+TEST_F(CoveMovement, EnvironmentAndHarborObstacleReplacementPreserveEachOtherTransactionally) {
+    player.setTerrainSweep([](glm::dvec3 a,glm::dvec3 b,double){
+        return CovePlayer::SweepResult{true,false,false,glm::length(b-a),{0,0,0}};});
+    const auto original=player.collisionBoxes();
+    const CovePlayer::StaticObstacle environment{{100,0,100},{101,3,101}};
+    const CovePlayer::StaticObstacle harbor{{110,0,100},{111,3,101}};
+    ASSERT_TRUE(player.setEnvironmentObstacles(std::span(&environment,1)));
+    ASSERT_TRUE(player.setStaticObstacles(std::span(&harbor,1)));
+    EXPECT_EQ(player.collisionBoxes(),original+2);
+    const auto hit=[&](double x){return player.sweepSphere({x-1,2,100.5},{x+2,2,100.5},.1);};
+    EXPECT_TRUE(hit(100).hit);EXPECT_TRUE(hit(110).hit);
+    CovePlayer::State state;state.mode=CovePlayer::Mode::Airborne;state.feet={100.5,1,100.5};
+    EXPECT_FALSE(player.restore(state));
+    ASSERT_TRUE(player.setStaticObstacles({}));EXPECT_EQ(player.collisionBoxes(),original+1);
+    EXPECT_TRUE(hit(100).hit);EXPECT_FALSE(hit(110).hit);EXPECT_FALSE(player.restore(state));
+    ASSERT_TRUE(player.setStaticObstacles(std::span(&harbor,1)));
+    const CovePlayer::StaticObstacle invalid{{100,0,100},{100,3,101}};
+    EXPECT_FALSE(player.setEnvironmentObstacles(std::span(&invalid,1)));
+    EXPECT_FALSE(player.setStaticObstacles(std::span(&invalid,1)));
+    std::vector<CovePlayer::StaticObstacle> base(12,harbor),scenery(49,environment);
+    EXPECT_FALSE(player.setStaticObstacles(base));EXPECT_FALSE(player.setEnvironmentObstacles(scenery));
+    EXPECT_EQ(player.collisionBoxes(),original+2);EXPECT_TRUE(hit(100).hit);EXPECT_TRUE(hit(110).hit);
+    base.resize(11);scenery.resize(48);
+    ASSERT_TRUE(player.setEnvironmentObstacles(scenery));ASSERT_TRUE(player.setStaticObstacles(base));
+    EXPECT_EQ(player.collisionBoxes(),original+59);
+    ASSERT_TRUE(player.setEnvironmentObstacles({}));EXPECT_EQ(player.collisionBoxes(),original+11);
+    EXPECT_FALSE(hit(100).hit);EXPECT_TRUE(hit(110).hit);EXPECT_TRUE(player.restore(state));
+}
+
+TEST_F(CoveMovement, WorkshopStairEdgesKeepRealCapsuleContactWithoutHorizontalBoost) {
+    // Exact installed four 0.32m risers/0.50m treads and workshop foundation.
+    const std::array<CovePlayer::StaticObstacle,5> stairs{{
+        {{8,.64,-42},{8.5,1.60,-40}},{{8.5,.64,-42},{9,1.92,-40}},
+        {{9,.64,-42},{9.5,2.24,-40}},{{9.5,.64,-42},{10,2.56,-40}},
+        {{10,.64,-42},{16,2.56,-36}}}};
+    ASSERT_TRUE(player.setEnvironmentObstacles(stairs));
+    CovePlayer::State saved;saved.feet={8.05,1.605,-41};ASSERT_TRUE(player.restore(saved));
+    for(int i=0;i<50;++i) {
+        const auto before=player.feet();player.advance(CovePlayer::fixedStep,{{1,0},false});
+        ASSERT_EQ(player.mode(),CovePlayer::Mode::Walking);
+        EXPECT_LE(glm::length(glm::dvec2(player.feet().x-before.x,player.feet().z-before.z)),.060001);
+        EXPECT_GE(player.feet().y,before.y-1e-6);
+    }
+    ASSERT_GT(player.feet().x,10.7);EXPECT_NEAR(player.feet().y,2.565,1e-6);
+    const auto stopped=player.feet();move({0,0},10);EXPECT_NEAR(glm::length(player.feet()-stopped),0,1e-7);
+    const auto settled=player.state();EXPECT_TRUE(player.restore(settled));
+    move({-1,0},50);EXPECT_LT(player.feet().x,8.3);EXPECT_NEAR(player.feet().y,1.605,1e-6);
+}
+
+TEST_F(CoveMovement, WorkshopStairFaceSupportRefusesHighRisersCeilingsAndSteepFaces) {
+    for(bool ceiling:{false,true}) {
+        SCOPED_TRACE(ceiling);
+        CovePlayer blocked=player;
+        std::vector<CovePlayer::StaticObstacle> obstacles{
+            {{8,.64,-42},{8.5,1.60,-40}},{{8.5,.64,-42},{10,ceiling?1.92:2.00,-40}}};
+        if(ceiling)obstacles.push_back({{7.8,3.45,-42},{10,3.65,-40}});
+        ASSERT_TRUE(blocked.setEnvironmentObstacles(obstacles));
+        CovePlayer::State saved;saved.feet={8.05,1.605,-41};ASSERT_TRUE(blocked.restore(saved));
+        for(int i=0;i<40;++i)blocked.advance(CovePlayer::fixedStep,{{1,0},false});
+        if(ceiling) {
+            // A rounded capsule may advance along the edge until its head
+            // meets the ceiling; it must not reach the tread or overlap it.
+            EXPECT_LT(blocked.feet().x,8.3);EXPECT_LT(blocked.feet().y,1.925);
+            EXPECT_LT(blocked.feet().y+CovePlayer::height,3.45);
+            for(int i=0;i<80;++i) {
+                blocked.advance(CovePlayer::fixedStep,{{1,0},false});
+                EXPECT_LT(blocked.feet().x,8.3);EXPECT_LT(blocked.feet().y,1.925);
+                EXPECT_LT(blocked.feet().y+CovePlayer::height,3.45);
+                CovePlayer checked=blocked;EXPECT_TRUE(checked.restore(blocked.state()));
+            }
+        } else {
+            EXPECT_NEAR(blocked.feet().x,8.195,1e-6);EXPECT_NEAR(blocked.feet().y,1.605,1e-6);
+        }
+        EXPECT_EQ(blocked.mode(),CovePlayer::Mode::Walking);
+    }
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(30,2,-41))
+        *glm::rotate(glm::dmat4(1),.95,glm::dvec3(0,0,1));
+    const CovePlayer::SceneObstacle slope{{-2,-.08,-1},{2,.08,1},pose};
+    ASSERT_TRUE(player.setSceneObstacles(std::span(&slope,1),0));
+    CovePlayer::State saved;
+    const auto normal=glm::dmat3(pose)*glm::dvec3(0,1,0);
+    saved.feet=glm::dvec3(pose*glm::dvec4(0,.08,0,1))+normal*.305-glm::dvec3(0,.3,0);
+    EXPECT_FALSE(player.restore(saved)); // A real 54-degree face is still not walkable.
 }
 
 TEST_F(CoveMovement, CanonicalStarterBuildOwnsActualPartsWeldsAndLoanIdentity) {

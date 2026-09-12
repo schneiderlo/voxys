@@ -12,6 +12,9 @@
         const reset = document.getElementById('salvage-reset');
         const pause = document.getElementById('salvage-pause');
         const leave = document.getElementById('salvage-leave');
+        const moreControls=document.getElementById('salvage-more-controls');
+        if(moreControls)moreControls.open=!cove;
+        let wasWorkshop=false;
         if (cove) leave.textContent = 'Leave Cove';
         else document.getElementById('salvage-field-tools')?.setAttribute('open','');
         const interact = document.getElementById('salvage-interact');
@@ -81,6 +84,7 @@
             for(const [button,handler] of cameraHandlers)button.removeEventListener('click',handler);
             if(environment['voxyCoveCameraMenu']===openCameraMenu)environment['voxyCoveCameraMenu']=priorCameraMenu;
             if(cameraPanel){cameraPanel.hidden=true;cameraPanel.open=false;}cameraAvailable=false;
+            if(moreControls)moreControls.open=false;
             for(const [button,handler] of workshopHandlers)button.removeEventListener('click',handler);
             for (const [button, handler] of jobHandlers) button.removeEventListener('click', handler);
             for (const [button, handler] of towHandlers) button.removeEventListener('click', handler);
@@ -183,7 +187,14 @@
         };
         const openCameraMenu=()=>{
             tick();
-            return Boolean(!stopped&&cameraAvailable&&controllerMenu?.openSection(cameraPanel));
+            if(stopped||!cameraAvailable)return false;
+            const expanded=moreControls?.open;
+            if(moreControls)moreControls.open=true;
+            const opened=Boolean(controllerMenu?.openSection(cameraPanel));
+            // A modal may already own focus. Do not expand the panel on a
+            // refused handoff or change that owner's focus.
+            if(!opened&&moreControls)moreControls.open=Boolean(expanded);
+            return opened;
         };
         const onWorkshop=()=>{if(!pending && workshopToggle && !workshopToggle.disabled && act(60))tick();};
         const available=(button,owner)=>Boolean(button&&!button.hidden&&!button.disabled&&(!owner||!owner.hidden));
@@ -252,7 +263,10 @@
             const current=objectiveAction;
             if(stopped||objectivePanel.hidden||!current||current.step!==requested.step
                 ||current.target!==requested.target||!available(current.target,current.owner))return;
-            if(current.drawer){current.drawer.open=true;current.target.focus();}
+            if(current.drawer){
+                if(moreControls)moreControls.open=true;
+                current.drawer.open=true;current.target.focus();
+            }
             else current.target.click(); // Exactly the established handler, once.
         };
         const tick = () => {
@@ -261,6 +275,9 @@
             try {
                 state = JSON.parse(engine.UTF8ToString(engine._voxy_get_salvage_preview_json()));
             } catch { fail(); return; }
+            const workshopOpen=Boolean(state.workshop?.open);
+            if(cove&&moreControls&&workshopOpen!==wasWorkshop)moreControls.open=false;
+            wasWorkshop=workshopOpen;
             pausePhase=state.pause?.phase||'running';
             const paused=pausePhase!=='running';
             if(pause) {

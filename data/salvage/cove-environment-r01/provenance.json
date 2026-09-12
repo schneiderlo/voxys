@@ -1,0 +1,4105 @@
+{
+  "schema": 1,
+  "profile": "salvage-rigid-v1",
+  "asset_id": "voxys-cove-environment-r01",
+  "render_to_canonical": 12,
+  "blender_version": "5.2.1 LTS",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A",
+    "stone": "75878B",
+    "green": "466F57"
+  },
+  "lods": [
+    {
+      "kind": "scenery",
+      "lod": 0,
+      "glb_sha256": "b0045912156185f65694e28666e6746966680c3d6d3993d2665ca29ec2f4fb1b",
+      "blend_sha256": "beb58bcfffd9c91643f8049b2410e3b77a42df88257f42eb90e3b5f2d9c72704",
+      "vertices": 4480,
+      "triangles": 8640,
+      "meshes": 5,
+      "nodes": 5,
+      "draws": 20,
+      "bounds": {
+        "minimum": [
+          -17.639999389648438,
+          -5.760000228881836,
+          -65.0
+        ],
+        "maximum": [
+          22.639999389648438,
+          6.728000164031982,
+          -35.36000061035156
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 113.3523138672566,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "workshop_foundation",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577711846892271,
+              "maximum_unit_length_error": 1.2182738862165365e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577811470140659,
+              "maximum_unit_length_error": 1.2156813244956766e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577671013381405,
+              "maximum_unit_length_error": 1.202475121697688e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577684352712822,
+              "maximum_unit_length_error": 1.2299145746297313e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577775713474693,
+              "maximum_unit_length_error": 1.24043832983034e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577824740823417,
+              "maximum_unit_length_error": 1.2244553526663537e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577796515501177,
+              "maximum_unit_length_error": 1.202674977385243e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857790896872757,
+              "maximum_unit_length_error": 1.224420285161898e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577780624855222,
+              "maximum_unit_length_error": 1.2221457734717944e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "east_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577862761521828,
+              "maximum_unit_length_error": 1.4797816061395963e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577596065642865,
+              "maximum_unit_length_error": 1.216041614071628e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577913209473991,
+              "maximum_unit_length_error": 1.5162176647542935e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577394681806254,
+              "maximum_unit_length_error": 1.2260653980966651e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577764080819179,
+              "maximum_unit_length_error": 1.2261478588015962e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "service_bench",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577601549704923,
+              "maximum_unit_length_error": 1.21374913675254e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_front_fascia",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575687727220611,
+              "maximum_unit_length_error": 1.319980331704329e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_roof_ridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576710420420568,
+              "maximum_unit_length_error": 1.6377735700956464e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857501035585301,
+              "maximum_unit_length_error": 1.0603334721359658e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574818209317527,
+              "maximum_unit_length_error": 1.21759650140163e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575269270750141,
+              "maximum_unit_length_error": 1.7039941702101657e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575716239884059,
+              "maximum_unit_length_error": 1.1970944480133028e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857565672893088,
+              "maximum_unit_length_error": 1.2107254976356785e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573500104312188,
+              "maximum_unit_length_error": 1.341104418628447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573713551286346,
+              "maximum_unit_length_error": 1.209931481671589e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573406507721302,
+              "maximum_unit_length_error": 1.2129528115245591e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573404892285907,
+              "maximum_unit_length_error": 1.2176353370030313e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573552245179599,
+              "maximum_unit_length_error": 1.212209088663485e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8572305860216147,
+              "maximum_unit_length_error": 1.2034107710334752e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8571680934492178,
+              "maximum_unit_length_error": 1.2018166217764303e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8571663999409793,
+              "maximum_unit_length_error": 1.2426046025471038e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8571750827795768,
+              "maximum_unit_length_error": 1.2347742872620415e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577200562722282,
+              "maximum_unit_length_error": 1.2171943808425567e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8571340380058246,
+              "maximum_unit_length_error": 1.2157122464273584e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577201605839946,
+              "maximum_unit_length_error": 1.2166854213013778e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8571236909710933,
+              "maximum_unit_length_error": 1.2082862999029942e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577176255503218,
+              "maximum_unit_length_error": 1.0430812302786308e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8569268897308575,
+              "maximum_unit_length_error": 1.490116230407068e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 70.20899395843105,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "buried_keel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577455624936192,
+              "maximum_unit_length_error": 1.315487569986118e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577735947619658,
+              "maximum_unit_length_error": 1.2182169983887547e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577653828670009,
+              "maximum_unit_length_error": 1.1981216885281754e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577913185208672,
+              "maximum_unit_length_error": 1.2041325936351654e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577421945137758,
+              "maximum_unit_length_error": 1.324053167106598e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577392191691615,
+              "maximum_unit_length_error": 1.6405412062159286e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576886844020919,
+              "maximum_unit_length_error": 1.2367425217263417e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_bridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577323424196948,
+              "maximum_unit_length_error": 1.2529029458363539e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "signal_mast",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576572081929044,
+              "maximum_unit_length_error": 1.2807352400834304e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574633513485423,
+              "maximum_unit_length_error": 1.2044243424824685e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574705978953716,
+              "maximum_unit_length_error": 1.206322435276519e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857464453250941,
+              "maximum_unit_length_error": 1.197036927358397e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "starboard_identification",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576122139502331,
+              "maximum_unit_length_error": 1.2265312698822584e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573363187597351,
+              "maximum_unit_length_error": 1.477916423686665e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573155604126441,
+              "maximum_unit_length_error": 1.1920928244535389e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8573155604126441,
+              "maximum_unit_length_error": 1.1920928244535389e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.3561199789779215,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577568282107677,
+              "maximum_unit_length_error": 5.885164755525807e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577680019534455,
+              "maximum_unit_length_error": 1.201539474582347e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577718635633573,
+              "maximum_unit_length_error": 1.2189167497567155e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574763595270269,
+              "maximum_unit_length_error": 1.6161393623370657e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574875401995996,
+              "maximum_unit_length_error": 1.5407996278860026e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575216441499833,
+              "maximum_unit_length_error": 1.2356362133481014e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.3561197599811816,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577478017195972,
+              "maximum_unit_length_error": 1.4613743459790385e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577683925086603,
+              "maximum_unit_length_error": 1.206452457935825e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577931438521773,
+              "maximum_unit_length_error": 1.2125601478452097e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575011634306975,
+              "maximum_unit_length_error": 1.4901160083624632e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857497009974395,
+              "maximum_unit_length_error": 1.2121367620743229e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575316597016354,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.889651634705432,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "stone_planter",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857763546417118,
+              "maximum_unit_length_error": 1.218263174784795e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857798011936211,
+              "maximum_unit_length_error": 1.1855964276996644e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576475137233501,
+              "maximum_unit_length_error": 1.1992492665591215e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857749617911395,
+              "maximum_unit_length_error": 1.226966181988587e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577994053193834,
+              "maximum_unit_length_error": 1.0266707994865953e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576436548196398,
+              "maximum_unit_length_error": 1.188836207255406e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577539203124616,
+              "maximum_unit_length_error": 1.2141182637037673e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577937014142663,
+              "maximum_unit_length_error": 1.1756844620069984e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8574567778823621,
+              "maximum_unit_length_error": 1.2168884544472292e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577820945838539,
+              "maximum_unit_length_error": 1.2104590529915527e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575465213398274,
+              "maximum_unit_length_error": 1.341104418628447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577894319114421,
+              "maximum_unit_length_error": 1.2048932229724585e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575190114133875,
+              "maximum_unit_length_error": 1.3623111705385327e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577849264474935,
+              "maximum_unit_length_error": 1.1770123897747453e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857517540542176,
+              "maximum_unit_length_error": 1.647531095994026e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "kind": "scenery",
+      "lod": 1,
+      "glb_sha256": "0e6ed5ef871d31a2cfaef8c5202bb11103cfbcf5f97fa88c366c74cabc3eba16",
+      "blend_sha256": "4d187e8825d1e8fac267cfbe3d0d340e55c143cef6a83566481f60483c8c558b",
+      "vertices": 1920,
+      "triangles": 3520,
+      "meshes": 5,
+      "nodes": 5,
+      "draws": 20,
+      "bounds": {
+        "minimum": [
+          -17.639999389648438,
+          -5.760000228881836,
+          -65.0
+        ],
+        "maximum": [
+          22.639999389648438,
+          6.728000164031982,
+          -35.36000061035156
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 113.32570509723398,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "workshop_foundation",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577305156741204,
+              "maximum_unit_length_error": 1.2039021068943612e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773049120775795,
+              "maximum_unit_length_error": 5.7877143300189005e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773051486698932,
+              "maximum_unit_length_error": 1.208362077065317e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773513746248682,
+              "maximum_unit_length_error": 5.915299927661266e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773058579570716,
+              "maximum_unit_length_error": 5.926751345253223e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773149560909587,
+              "maximum_unit_length_error": 5.927110779957445e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773149560909587,
+              "maximum_unit_length_error": 5.927110779957445e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773189092446955,
+              "maximum_unit_length_error": 5.927110779957445e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773189092446955,
+              "maximum_unit_length_error": 5.927110779957445e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "east_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773348684815574,
+              "maximum_unit_length_error": 1.1975095270955194e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773168316254669,
+              "maximum_unit_length_error": 1.22515462885886e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773202387492802,
+              "maximum_unit_length_error": 1.1976486535836273e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773274095363377,
+              "maximum_unit_length_error": 1.204413446753705e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773201657646041,
+              "maximum_unit_length_error": 1.1904977748056211e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "service_bench",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773028205994706,
+              "maximum_unit_length_error": 1.1952031631068394e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_front_fascia",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773700806494162,
+              "maximum_unit_length_error": 5.943837777522276e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_roof_ridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773942059222463,
+              "maximum_unit_length_error": 9.519368682209262e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772508740860758,
+              "maximum_unit_length_error": 8.371002824247853e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772515443281918,
+              "maximum_unit_length_error": 6.662106011301461e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772569907628053,
+              "maximum_unit_length_error": 1.1929948251498956e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772476042271819,
+              "maximum_unit_length_error": 1.19473611448484e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772797290277367,
+              "maximum_unit_length_error": 1.1727748094880752e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772714324575645,
+              "maximum_unit_length_error": 5.936020530672437e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577276929448999,
+              "maximum_unit_length_error": 5.957523341315607e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772640491159109,
+              "maximum_unit_length_error": 1.2090328915803639e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772708075915034,
+              "maximum_unit_length_error": 1.195576544432697e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772634852237388,
+              "maximum_unit_length_error": 5.9539976282607654e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772454961706899,
+              "maximum_unit_length_error": 2.96751778705584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772215954684725,
+              "maximum_unit_length_error": 8.456758038288825e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772371325945471,
+              "maximum_unit_length_error": 1.2080398681391102e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_panel_joint.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772537972065948,
+              "maximum_unit_length_error": 7.988573680339783e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772704354312737,
+              "maximum_unit_length_error": 6.54958574042297e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5770915869707096,
+              "maximum_unit_length_error": 8.806171414299513e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772704354312737,
+              "maximum_unit_length_error": 6.54958574042297e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5770915869707096,
+              "maximum_unit_length_error": 8.806171414299513e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_drawer.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772759012206734,
+              "maximum_unit_length_error": 2.5366204692289784e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "bench_pull.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5770969512068405,
+              "maximum_unit_length_error": 1.2115378500432428e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 70.1921973894011,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "buried_keel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773222944735608,
+              "maximum_unit_length_error": 5.95384184176595e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577318531633864,
+              "maximum_unit_length_error": 1.1923838827421207e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773311141856539,
+              "maximum_unit_length_error": 5.931167412764893e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773356725325698,
+              "maximum_unit_length_error": 1.202267632116616e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773032987640363,
+              "maximum_unit_length_error": 1.2048631470307214e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773124013858251,
+              "maximum_unit_length_error": 1.2112161451582892e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773201581596368,
+              "maximum_unit_length_error": 1.1969074842355099e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_bridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773145348712205,
+              "maximum_unit_length_error": 1.1925936105328105e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "signal_mast",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773122457944737,
+              "maximum_unit_length_error": 1.191838052694294e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773980340700291,
+              "maximum_unit_length_error": 6.334353286341354e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5774003556362004,
+              "maximum_unit_length_error": 6.965595700236804e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577400867162396,
+              "maximum_unit_length_error": 6.425042253788149e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "starboard_identification",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772784956559462,
+              "maximum_unit_length_error": 1.2214551214917435e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5774988615812617,
+              "maximum_unit_length_error": 8.2148163604856e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5775133310899037,
+              "maximum_unit_length_error": 7.706101112781027e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hull_mold_seam.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5775133310899037,
+              "maximum_unit_length_error": 7.706101112781027e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.3534011116266695,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772990701284471,
+              "maximum_unit_length_error": 5.937930847021988e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773105211310394,
+              "maximum_unit_length_error": 5.9341340286067634e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773282832419682,
+              "maximum_unit_length_error": 5.937908609254805e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773026738738736,
+              "maximum_unit_length_error": 1.1965045088047077e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773053163375153,
+              "maximum_unit_length_error": 8.601116630035932e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773295214983136,
+              "maximum_unit_length_error": 1.2418644823597447e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.353401152376496,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772988722460468,
+              "maximum_unit_length_error": 5.92221838235929e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773046966119182,
+              "maximum_unit_length_error": 1.1914955566627583e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773274609821328,
+              "maximum_unit_length_error": 5.937908609254805e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773401062638186,
+              "maximum_unit_length_error": 1.1969558100233257e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773401062638186,
+              "maximum_unit_length_error": 1.1969558100233257e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773091765713616,
+              "maximum_unit_length_error": 5.855324125558781e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.882809532183342,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "stone_planter",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773020297419862,
+              "maximum_unit_length_error": 1.1926606835466202e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773267211211532,
+              "maximum_unit_length_error": 9.742362472309196e-10,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773287880192584,
+              "maximum_unit_length_error": 1.1830554835778884e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773139063091861,
+              "maximum_unit_length_error": 1.1926606835466202e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773274609821328,
+              "maximum_unit_length_error": 5.937908609254805e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773176755801614,
+              "maximum_unit_length_error": 5.878643682954987e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773020297419862,
+              "maximum_unit_length_error": 1.1926606835466202e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773267211211532,
+              "maximum_unit_length_error": 9.742362472309196e-10,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773076743469119,
+              "maximum_unit_length_error": 5.958482374168739e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773213343286443,
+              "maximum_unit_length_error": 1.1969184576798853e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772822433982583,
+              "maximum_unit_length_error": 1.203023896056976e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773082308714947,
+              "maximum_unit_length_error": 1.197779437855928e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772810676771769,
+              "maximum_unit_length_error": 5.946082870522673e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773085326136425,
+              "maximum_unit_length_error": 5.9410943720195064e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_join.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5772907596519872,
+              "maximum_unit_length_error": 1.192692913321025e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "kind": "scenery",
+      "lod": 2,
+      "glb_sha256": "bbec3adcd618a9bc3f63a6e16c70271257d5f53d320a667aeaeaa668b3a67576",
+      "blend_sha256": "8bd7d28b62d98556a34190414708730e8691cfd5a8a83e81fc6e264d8ae7c63c",
+      "vertices": 1536,
+      "triangles": 768,
+      "meshes": 5,
+      "nodes": 5,
+      "draws": 19,
+      "bounds": {
+        "minimum": [
+          -17.639999389648438,
+          -5.760000228881836,
+          -65.0
+        ],
+        "maximum": [
+          22.639999389648438,
+          6.728000164031982,
+          -35.36000061035156
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 113.37345974026896,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "workshop_foundation",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "entry_step_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "portal_post.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "east_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_wall",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stepped_roof.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "service_bench",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_front_fascia",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_roof_ridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_join.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 70.23042974428765,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "buried_keel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_hull_side.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_rib.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "broken_bridge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "signal_mast",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "starboard_identification",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.3599989962744843,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 3.3599990286233257,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "beacon_foot",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_column",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "beacon_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "crown_orange_face.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "column_cream_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.898548767171031,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "stone_planter",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "stone_planter.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_crown.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "green_top_panel.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shore_edge.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "kind": "gantry",
+      "lod": 0,
+      "glb_sha256": "6b8726e4eaef85bde110eb40d35404d75f6d5e830492230df9d5a9bf64be5354",
+      "blend_sha256": "c4443fb40cba7aed1efce085d02c8a2c4566ff2669aba7ace90605d131c760ef",
+      "vertices": 3136,
+      "triangles": 6048,
+      "meshes": 1,
+      "nodes": 1,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -4.199999809265137,
+          0.0,
+          -4.211999893188477
+        ],
+        "maximum": [
+          4.199999809265137,
+          7.440000057220459,
+          4.211999893188477
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 11.21647452211005,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gantry_structural_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857812703046875,
+              "maximum_unit_length_error": 7.532174217672605e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577610627944523,
+              "maximum_unit_length_error": 1.233655932963984e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577830408939917,
+              "maximum_unit_length_error": 1.2995184750508315e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577651766063354,
+              "maximum_unit_length_error": 1.337223149988631e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577843401690188,
+              "maximum_unit_length_error": 1.1227104756983408e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577507288491688,
+              "maximum_unit_length_error": 1.2476587585297239e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577628124521652,
+              "maximum_unit_length_error": 1.245229541702031e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577622384450478,
+              "maximum_unit_length_error": 1.2926101145005475e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577608894588593,
+              "maximum_unit_length_error": 1.3270791421327033e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577837466791607,
+              "maximum_unit_length_error": 1.1699296043055085e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857725123983073,
+              "maximum_unit_length_error": 1.2421540529494735e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577385321341353,
+              "maximum_unit_length_error": 1.2995184750508315e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577240430558959,
+              "maximum_unit_length_error": 1.1930468013510165e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577478541810706,
+              "maximum_unit_length_error": 1.241905573934332e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577400492504239,
+              "maximum_unit_length_error": 1.2398216453490818e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577646060284678,
+              "maximum_unit_length_error": 1.1907299413138617e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577789524324544,
+              "maximum_unit_length_error": 1.1951117429020996e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857776383264536,
+              "maximum_unit_length_error": 1.3652185937296224e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577837466791607,
+              "maximum_unit_length_error": 1.1699296043055085e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577711776806609,
+              "maximum_unit_length_error": 1.248060474967616e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577811895320337,
+              "maximum_unit_length_error": 1.2519790115739227e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.012",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577665846937634,
+              "maximum_unit_length_error": 1.2161090334750213e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.013",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577774269087968,
+              "maximum_unit_length_error": 9.019583968594702e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.014",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577425737739759,
+              "maximum_unit_length_error": 1.1223504048363253e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577745592465362,
+              "maximum_unit_length_error": 1.2072806154783677e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577710877616482,
+              "maximum_unit_length_error": 1.2970610674400973e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577790107610781,
+              "maximum_unit_length_error": 1.2005682803462037e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857812703046875,
+              "maximum_unit_length_error": 1.0317552456839962e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.015",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577584448116795,
+              "maximum_unit_length_error": 1.2155536821545354e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.016",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577723824046188,
+              "maximum_unit_length_error": 1.0808409511842143e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.017",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577631777516217,
+              "maximum_unit_length_error": 1.274902581283044e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.018",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577706681016934,
+              "maximum_unit_length_error": 1.2037084240468232e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.019",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577324385787506,
+              "maximum_unit_length_error": 1.2690174477913985e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577321392112935,
+              "maximum_unit_length_error": 1.250283658826845e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577321084303549,
+              "maximum_unit_length_error": 1.245402891925096e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577208680499098,
+              "maximum_unit_length_error": 1.1361336249571252e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_4",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578056726646537,
+              "maximum_unit_length_error": 1.2172029340007384e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577615378944756,
+              "maximum_unit_length_error": 1.317378699461358e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575819450220479,
+              "maximum_unit_length_error": 1.3355173333895465e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576375369630114,
+              "maximum_unit_length_error": 1.188090461567981e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576315115396937,
+              "maximum_unit_length_error": 1.4046655061328295e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857631904263144,
+              "maximum_unit_length_error": 1.2153015815918877e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8575808089135535,
+              "maximum_unit_length_error": 1.4655098468097094e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_5",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578056726646537,
+              "maximum_unit_length_error": 1.2172029340007384e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577310398691225,
+              "maximum_unit_length_error": 1.7952576158997147e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576502051510033,
+              "maximum_unit_length_error": 1.0653851623132482e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576752137851145,
+              "maximum_unit_length_error": 1.2001080440526835e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576717855967217,
+              "maximum_unit_length_error": 9.84398496051142e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576667990496389,
+              "maximum_unit_length_error": 1.2108133295996026e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8576397075376008,
+              "maximum_unit_length_error": 1.506829747643934e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_6",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577976371243494,
+              "maximum_unit_length_error": 1.2120110803870432e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_7",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578102952433255,
+              "maximum_unit_length_error": 1.2120110803870432e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_8",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578123721417796,
+              "maximum_unit_length_error": 1.2174086139182805e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577353075484098,
+              "maximum_unit_length_error": 1.3457841041564222e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_9",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578126023930963,
+              "maximum_unit_length_error": 1.2109898173129352e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577317391400356,
+              "maximum_unit_length_error": 1.3457841041564222e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "kind": "gantry",
+      "lod": 1,
+      "glb_sha256": "af9d3a91e444357debd38e97d587bd99501cab27ecf3cd530272e2b782ad8c98",
+      "blend_sha256": "afdcce8cc4d1aea2432f751885304144030fe5eb03ab2128df62811667b95973",
+      "vertices": 1344,
+      "triangles": 2464,
+      "meshes": 1,
+      "nodes": 1,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -4.199999809265137,
+          0.0,
+          -4.211999893188477
+        ],
+        "maximum": [
+          4.199999809265137,
+          7.440000057220459,
+          4.211999893188477
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 11.194139677388563,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gantry_structural_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577342314453972,
+              "maximum_unit_length_error": 1.1935989707723138e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773514990723925,
+              "maximum_unit_length_error": 5.8416736226085675e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.811573278169391e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.5874443960490794e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773787052730768,
+              "maximum_unit_length_error": 1.2184747855137346e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577376786761306,
+              "maximum_unit_length_error": 1.1979388214733433e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773517118972222,
+              "maximum_unit_length_error": 1.2405683258442934e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773284980871267,
+              "maximum_unit_length_error": 1.1759719709125704e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773250689909322,
+              "maximum_unit_length_error": 1.3080903316087245e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773422679308169,
+              "maximum_unit_length_error": 1.1940891275763477e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773514990723925,
+              "maximum_unit_length_error": 5.8416736226085675e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.811573278169391e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.5874443960490794e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773787052730768,
+              "maximum_unit_length_error": 1.2184747855137346e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577376786761306,
+              "maximum_unit_length_error": 1.1979388214733433e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773517118972222,
+              "maximum_unit_length_error": 1.2405683258442934e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773284974698072,
+              "maximum_unit_length_error": 1.1759719709125704e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.57732502597446,
+              "maximum_unit_length_error": 1.3080903316087245e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773422679308169,
+              "maximum_unit_length_error": 1.1940891275763477e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577322337433543,
+              "maximum_unit_length_error": 1.1912953601367349e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.926739410355708e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.012",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 4.988132340510987e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.013",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773841086938774,
+              "maximum_unit_length_error": 5.8586606788146867e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.014",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773785633191437,
+              "maximum_unit_length_error": 5.122285440251062e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577361279156321,
+              "maximum_unit_length_error": 1.1963375001755594e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773464676831281,
+              "maximum_unit_length_error": 1.2639317503726488e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773478737039568,
+              "maximum_unit_length_error": 1.3080903316087245e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577342314453972,
+              "maximum_unit_length_error": 1.1935989707723138e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.015",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773222341933888,
+              "maximum_unit_length_error": 1.1912953601367349e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.016",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 5.926739410355708e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.017",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773420083696692,
+              "maximum_unit_length_error": 1.1994717663554866e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.018",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773841086938774,
+              "maximum_unit_length_error": 5.8586606788146867e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.019",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773785633191437,
+              "maximum_unit_length_error": 5.122285440251062e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577361279156321,
+              "maximum_unit_length_error": 1.1963375001755594e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773464676831281,
+              "maximum_unit_length_error": 1.2639317503726488e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773478737039568,
+              "maximum_unit_length_error": 1.3080903316087245e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_4",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773452847270164,
+              "maximum_unit_length_error": 5.951330961373458e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773715351324427,
+              "maximum_unit_length_error": 1.177308176503189e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773013636671749,
+              "maximum_unit_length_error": 9.969265724052434e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773043030994813,
+              "maximum_unit_length_error": 1.0051071308581072e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773082588557372,
+              "maximum_unit_length_error": 9.564770664383104e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773043030994813,
+              "maximum_unit_length_error": 5.9418668207911196e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577301321370669,
+              "maximum_unit_length_error": 1.1978678315927027e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_5",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773452847270164,
+              "maximum_unit_length_error": 5.951330961373458e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773441591659321,
+              "maximum_unit_length_error": 5.889745036125049e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773688494633689,
+              "maximum_unit_length_error": 9.073453999253189e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773680843849434,
+              "maximum_unit_length_error": 1.2039499441840462e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773986132344362,
+              "maximum_unit_length_error": 8.704416931681891e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773681089649472,
+              "maximum_unit_length_error": 9.073453999253189e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "header_seam.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773688230310654,
+              "maximum_unit_length_error": 9.073453999253189e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_6",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439082232699,
+              "maximum_unit_length_error": 1.1927904375319542e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_7",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439082232699,
+              "maximum_unit_length_error": 1.1927904375319542e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_8",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439448594218,
+              "maximum_unit_length_error": 1.193732477311471e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773831424744458,
+              "maximum_unit_length_error": 1.2627829137912272e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_9",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439448594218,
+              "maximum_unit_length_error": 1.193732477311471e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773831424744458,
+              "maximum_unit_length_error": 1.2627829137912272e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "kind": "gantry",
+      "lod": 2,
+      "glb_sha256": "2c9dc7c215e9674c3a67627ca1d221bea9c7c9a0e1fb63d0bb3fdff94f40dec1",
+      "blend_sha256": "3476a9e997383d9574d899da85a28bf03db243397832246e5c8b5bee9e274f43",
+      "vertices": 1104,
+      "triangles": 552,
+      "meshes": 1,
+      "nodes": 1,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -4.199999809265137,
+          0.0,
+          -4.211999893188477
+        ],
+        "maximum": [
+          4.199999809265137,
+          7.440000057220459,
+          4.211999893188477
+        ]
+      },
+      "geometry": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 11.247601655900766,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gantry_structural_0",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_1",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.003",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.004",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.005",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_2",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.012",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.013",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.014",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.006",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.007",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.008",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_3",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.015",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.016",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.017",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.018",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "post_segment.019",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.009",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.010",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "safety_band.011",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_4",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_5",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cream_orange_header.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_6",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_7",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_8",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "gantry_structural_9",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "exposed_trolley_track.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    }
+  ],
+  "collision": [
+    {
+      "group": "workshop",
+      "name": "workshop_foundation",
+      "minimum": [
+        500,
+        32,
+        -2100
+      ],
+      "maximum": [
+        800,
+        128,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_0",
+      "minimum": [
+        400,
+        32,
+        -2100
+      ],
+      "maximum": [
+        425,
+        80,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_1",
+      "minimum": [
+        425,
+        32,
+        -2100
+      ],
+      "maximum": [
+        450,
+        96,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_2",
+      "minimum": [
+        450,
+        32,
+        -2100
+      ],
+      "maximum": [
+        475,
+        112,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "entry_step_3",
+      "minimum": [
+        475,
+        32,
+        -2100
+      ],
+      "maximum": [
+        500,
+        128,
+        -2000
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        500,
+        128,
+        -2100
+      ],
+      "maximum": [
+        516,
+        288,
+        -2084
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        500,
+        128,
+        -1816
+      ],
+      "maximum": [
+        516,
+        288,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        784,
+        128,
+        -2100
+      ],
+      "maximum": [
+        800,
+        288,
+        -2084
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "portal_post",
+      "minimum": [
+        784,
+        128,
+        -1816
+      ],
+      "maximum": [
+        800,
+        288,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "east_wall",
+      "minimum": [
+        788,
+        128,
+        -2084
+      ],
+      "maximum": [
+        800,
+        272,
+        -1816
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "rear_wall",
+      "minimum": [
+        516,
+        128,
+        -1812
+      ],
+      "maximum": [
+        784,
+        272,
+        -1800
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        492,
+        288,
+        -2108
+      ],
+      "maximum": [
+        808,
+        304,
+        -1792
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        524,
+        304,
+        -2096
+      ],
+      "maximum": [
+        776,
+        320,
+        -1804
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "stepped_roof",
+      "minimum": [
+        572,
+        320,
+        -2084
+      ],
+      "maximum": [
+        728,
+        336,
+        -1816
+      ]
+    },
+    {
+      "group": "workshop",
+      "name": "service_bench",
+      "minimum": [
+        640,
+        128,
+        -1860
+      ],
+      "maximum": [
+        770,
+        176,
+        -1820
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "buried_keel",
+      "minimum": [
+        -810,
+        -288,
+        -3250
+      ],
+      "maximum": [
+        -540,
+        -224,
+        -2850
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -825,
+        -224,
+        -3240
+      ],
+      "maximum": [
+        -809,
+        -64,
+        -2960
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -541,
+        -224,
+        -3220
+      ],
+      "maximum": [
+        -525,
+        -32,
+        -3060
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_hull_side",
+      "minimum": [
+        -541,
+        -224,
+        -2990
+      ],
+      "maximum": [
+        -525,
+        -80,
+        -2860
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -3200
+      ],
+      "maximum": [
+        -793,
+        -16,
+        -3184
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -3070
+      ],
+      "maximum": [
+        -793,
+        16,
+        -3054
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "exposed_rib",
+      "minimum": [
+        -809,
+        -224,
+        -2910
+      ],
+      "maximum": [
+        -793,
+        -64,
+        -2894
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "broken_bridge",
+      "minimum": [
+        -793,
+        -32,
+        -3070
+      ],
+      "maximum": [
+        -649,
+        16,
+        -3054
+      ]
+    },
+    {
+      "group": "wreck",
+      "name": "signal_mast",
+      "minimum": [
+        -710,
+        -224,
+        -3160
+      ],
+      "maximum": [
+        -694,
+        128,
+        -3144
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_foot",
+      "minimum": [
+        968,
+        -32,
+        -2332
+      ],
+      "maximum": [
+        1032,
+        32,
+        -2268
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_column",
+      "minimum": [
+        988,
+        32,
+        -2312
+      ],
+      "maximum": [
+        1012,
+        176,
+        -2288
+      ]
+    },
+    {
+      "group": "east_beacon",
+      "name": "beacon_crown",
+      "minimum": [
+        976,
+        176,
+        -2324
+      ],
+      "maximum": [
+        1024,
+        208,
+        -2276
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_foot",
+      "minimum": [
+        -882,
+        -64,
+        -2132
+      ],
+      "maximum": [
+        -818,
+        0,
+        -2068
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_column",
+      "minimum": [
+        -862,
+        0,
+        -2112
+      ],
+      "maximum": [
+        -838,
+        144,
+        -2088
+      ]
+    },
+    {
+      "group": "west_beacon",
+      "name": "beacon_crown",
+      "minimum": [
+        -874,
+        144,
+        -2124
+      ],
+      "maximum": [
+        -826,
+        176,
+        -2076
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        868,
+        80,
+        -1932
+      ],
+      "maximum": [
+        932,
+        112,
+        -1868
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        876,
+        112,
+        -1924
+      ],
+      "maximum": [
+        924,
+        144,
+        -1876
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        968,
+        112,
+        -1832
+      ],
+      "maximum": [
+        1032,
+        144,
+        -1768
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        976,
+        144,
+        -1824
+      ],
+      "maximum": [
+        1024,
+        176,
+        -1776
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "stone_planter",
+      "minimum": [
+        1068,
+        80,
+        -1982
+      ],
+      "maximum": [
+        1132,
+        112,
+        -1918
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "green_crown",
+      "minimum": [
+        1076,
+        112,
+        -1974
+      ],
+      "maximum": [
+        1124,
+        144,
+        -1926
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        -65,
+        16,
+        -2016
+      ],
+      "maximum": [
+        15,
+        48,
+        -1984
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        35,
+        32,
+        -1966
+      ],
+      "maximum": [
+        115,
+        64,
+        -1934
+      ]
+    },
+    {
+      "group": "shore",
+      "name": "shore_edge",
+      "minimum": [
+        135,
+        48,
+        -1916
+      ],
+      "maximum": [
+        215,
+        80,
+        -1884
+      ]
+    }
+  ],
+  "gantry_collision": [
+    {
+      "minimum": [
+        -210,
+        0,
+        -210
+      ],
+      "maximum": [
+        -190,
+        352,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        0,
+        -210
+      ],
+      "maximum": [
+        210,
+        352,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        0,
+        190
+      ],
+      "maximum": [
+        -190,
+        352,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        0,
+        190
+      ],
+      "maximum": [
+        210,
+        352,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        -210
+      ],
+      "maximum": [
+        210,
+        372,
+        -190
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        190
+      ],
+      "maximum": [
+        210,
+        372,
+        210
+      ]
+    },
+    {
+      "minimum": [
+        -210,
+        352,
+        -190
+      ],
+      "maximum": [
+        -190,
+        372,
+        190
+      ]
+    },
+    {
+      "minimum": [
+        190,
+        352,
+        -190
+      ],
+      "maximum": [
+        210,
+        372,
+        190
+      ]
+    },
+    {
+      "minimum": [
+        -190,
+        352,
+        -43
+      ],
+      "maximum": [
+        190,
+        368,
+        -27
+      ]
+    },
+    {
+      "minimum": [
+        -190,
+        352,
+        27
+      ],
+      "maximum": [
+        190,
+        368,
+        43
+      ]
+    }
+  ],
+  "scene_origin": [
+    -19,
+    -200,
+    -37
+  ],
+  "protected_berth": {
+    "minimum": [
+      -9,
+      -77
+    ],
+    "maximum": [
+      8,
+      -47
+    ]
+  },
+  "fixed_inputs": {
+    "data/lego_shore.ldh": "04bce5c62ba31b1f8f5040579992efe003e184ea7d26dc6b9e3386018cb9428f",
+    "data/salvage/fixture-cove-r01.json": "30a63af1b77a32725a1eedab1e412a430401172bdc2799a2f7748caac6adbf96",
+    "src/game/expedition/cove_harbor_lift.cpp": "c5f331dbb73858f7b06f896ada843f98b3ace9d6fcf5d287ff77a4ce95cb80f2"
+  },
+  "inputs": {
+    "tools/salvage_assets/author_cove_harbor_art.py": "d1c5f75daf181e22b027a9733b5be4f797835a8889881241307be34670688f5b",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b"
+  },
+  "provenance": "Original solid-color molded geometry; no external assets, generated textures or preview images; explicit inert wreck scenery and actual powered-gantry presentation only."
+}

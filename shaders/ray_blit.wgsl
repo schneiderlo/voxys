@@ -1,3 +1,6 @@
+// Opt-in playable Cove profile; all other scenes preserve their reference appearance.
+override COVE_VISUALS : bool = false;
+
 // BEGIN GENERATED SCENE SUN SHADOW
 struct SunShadowUniforms {
     viewProj: mat4x4<f32>,
@@ -22,11 +25,28 @@ fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f3
     }
     let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
     let reference = clip.z - 0.003 * sunShadow.params.z;
+    // A constant reference at every PCF tap compares a sloped receiver against
+    // a different point on itself. Project its geometric plane into light clip
+    // coordinates; the orthographic projection has mutually orthogonal rows.
+    // Normal/raster bias still covers the bilinear half-texel footprint. Moving
+    // the reference with each tap avoids increasing global contact separation.
+    let rowX = vec3<f32>(sunShadow.viewProj[0].x, sunShadow.viewProj[1].x, sunShadow.viewProj[2].x);
+    let rowY = vec3<f32>(sunShadow.viewProj[0].y, sunShadow.viewProj[1].y, sunShadow.viewProj[2].y);
+    let rowZ = vec3<f32>(sunShadow.viewProj[0].z, sunShadow.viewProj[1].z, sunShadow.viewProj[2].z);
+    let plane = vec3<f32>(dot(geometricNormal, rowX) / dot(rowX, rowX),
+        dot(geometricNormal, rowY) / dot(rowY, rowY),
+        dot(geometricNormal, rowZ) / dot(rowZ, rowZ));
+    var depthGradient = vec2<f32>(0.0);
+    if (abs(plane.z) > 1.0e-5) {
+        // UV X is half clip X; UV Y is inverted half clip Y.
+        depthGradient = vec2<f32>(-2.0 * plane.x, 2.0 * plane.y) / plane.z;
+    }
     var visibility = 0.0;
     for (var y = -1; y <= 1; y += 1) {
         for (var x = -1; x <= 1; x += 1) {
             visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+                uv + vec2<f32>(f32(x), f32(y)) * texel,
+                reference + dot(depthGradient, vec2<f32>(f32(x), f32(y)) * texel));
         }
     }
     // A local map fades at its border instead of following the camera as a hard edge.
@@ -240,7 +260,10 @@ const SKY_LUT_WIDTH : f32 = 1774.0;
 const SKY_LUT_HEIGHT : f32 = 887.0;
 
 fn oceanAbsorption() -> vec3<f32> {
-    return OCEAN_BASE_ABSORPTION * camera.waterOptics.z;
+    // Metre-based Beer-Lambert coefficients for the shallow coastal preset.
+    // Geometry, wave forces and the water clock are unchanged.
+    return select(OCEAN_BASE_ABSORPTION, vec3<f32>(0.24, 0.075, 0.045), COVE_VISUALS)
+        * camera.waterOptics.z;
 }
 fn oceanSurfaceColor() -> vec3<f32> { return camera.waterColorA.rgb; }
 fn oceanScatterColor() -> vec3<f32> {
@@ -1972,6 +1995,7 @@ fn shadeCoveProp(
 
 fn applyPostEffects(colorIn : vec3<f32>, uv : vec2<f32>,
                        dims : vec2<u32>) -> vec3<f32> {
+    if (COVE_VISUALS) { return colorIn; }
     let pixel = uv * vec2<f32>(f32(max(dims.x, 1u)),
                                f32(max(dims.y, 1u)));
     let grain = fract(52.9829189 *
@@ -2553,6 +2577,206 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     return mix(lit, oceanFogColor(), fog);
 }
 
+// Shared immutable lighting views from the current mesh fixture generation.
+@group(2) @binding(0) var coveSpecular : texture_cube<f32>;
+@group(2) @binding(1) var coveDiffuse : texture_cube<f32>;
+@group(2) @binding(2) var coveBrdf : texture_2d<f32>;
+@group(2) @binding(3) var coveEnvironmentSampler : sampler;
+
+fn backgroundCoveTerrain(pixel : vec2<i32>, dims : vec2<u32>,
+                     depthCenter : f32, objectSunVisibility : f32) -> vec3<f32> {
+    let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
+    let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
+    let ndcCenter = ndcFromPixel(pixel, dimsF);
+    let posCenterView = viewPosFromDepth(
+        camera.invProjParams.xy, ndcCenter, depthCenter);
+    let posCenterWorld = viewToWorld(camera.invView, posCenterView);
+    let propRay = normalize(
+        posCenterWorld - camera.cameraPos.xyz);
+    let coveProp = authoredCovePropHit(
+        camera.cameraPos.xyz, propRay, depthCenter);
+    if (coveProp.distance > 0.0) {
+        return shadeCoveProp(coveProp, propRay);
+    }
+
+    let negativeX = sampleDepth(pixel - vec2<i32>(1, 0), maxCoord);
+    let positiveX = sampleDepth(pixel + vec2<i32>(1, 0), maxCoord);
+    let negativeY = sampleDepth(pixel - vec2<i32>(0, 1), maxCoord);
+    let positiveY = sampleDepth(pixel + vec2<i32>(0, 1), maxCoord);
+    let useNegativeX = pixel.x > 0 &&
+        (pixel.x >= i32(dims.x) - 1 ||
+         abs(negativeX - depthCenter) < abs(positiveX - depthCenter));
+    let useNegativeY = pixel.y > 0 &&
+        (pixel.y >= i32(dims.y) - 1 ||
+         abs(negativeY - depthCenter) < abs(positiveY - depthCenter));
+    let depthX = select(positiveX, negativeX, useNegativeX);
+    let depthY = select(positiveY, negativeY, useNegativeY);
+    let pixelX = select(pixel + vec2<i32>(1, 0),
+                        pixel - vec2<i32>(1, 0), useNegativeX);
+    let pixelY = select(pixel + vec2<i32>(0, 1),
+                        pixel - vec2<i32>(0, 1), useNegativeY);
+    let posX = viewPosFromDepth(camera.invProjParams.xy,
+                                ndcFromPixel(pixelX, dimsF), depthX);
+    let posY = viewPosFromDepth(camera.invProjParams.xy,
+                                ndcFromPixel(pixelY, dimsF), depthY);
+    var tangentX = posX - posCenterView;
+    var tangentY = posY - posCenterView;
+    if (useNegativeX) { tangentX = -tangentX; }
+    if (useNegativeY) { tangentY = -tangentY; }
+    var normal = cross(tangentX, tangentY);
+    if (dot(normal, normal) > 1.0e-12) {
+        normal = normalize(normal);
+    } else {
+        normal = vec3<f32>(0.0, 1.0, 0.0);
+    }
+    var geometryNormal = normalize(
+        (camera.invView * vec4<f32>(normal, 0.0)).xyz);
+    let terrainMaterial = textureLoad(materialTex, pixel, 0);
+    let exactTerrainNormal = terrainMaterial.xyz;
+    if (dot(exactTerrainNormal, exactTerrainNormal) > 0.5) {
+        geometryNormal = normalize(exactTerrainNormal);
+    }
+
+    let terrainUv = terrainUV(posCenterWorld);
+    let posXWorld = viewToWorld(camera.invView, posX);
+    let posYWorld = viewToWorld(camera.invView, posY);
+    let terrainUvX = terrainUV(posXWorld);
+    let terrainUvY = terrainUV(posYWorld);
+    let terrainUvDx = select(
+        terrainUvX - terrainUv, terrainUv - terrainUvX, useNegativeX);
+    let terrainUvDy = select(
+        terrainUvY - terrainUv, terrainUv - terrainUvY, useNegativeY);
+    let materialWorldX = select(
+        posXWorld, posCenterWorld * 2.0 - posXWorld, useNegativeX);
+    let materialWorldY = select(
+        posYWorld, posCenterWorld * 2.0 - posYWorld, useNegativeY);
+    let underwaterTerrain = camera.waterParams.y > 0.5 &&
+        camera.waterMotion.z > 0.5 &&
+        posCenterWorld.y <= camera.waterParams.x + 0.5;
+    var surface = TerrainSurface(
+        vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
+    if (camera.invProjParams.z > 0.5) {
+        surface = sampleLegoSurface(
+            posCenterWorld, materialWorldX, materialWorldY, geometryNormal, terrainMaterial.w);
+    } else {
+        surface = sampleTerrainSurface(
+            posCenterWorld, materialWorldX, materialWorldY,
+            geometryNormal);
+    }
+    var immersion=0.0;
+    if (camera.waterParams.y > 0.5) {
+        // A narrow waterline transition prevents a second air/water interface
+        // on submerged receivers. The ocean pass owns that interface.
+        immersion=1.0-smoothstep(camera.waterParams.x-0.08,camera.waterParams.x,posCenterWorld.y);
+    }
+    if (camera.invProjParams.z > 0.5 && camera.waterParams.y > 0.5) {
+        let wet = 1.0-smoothstep(camera.waterParams.x-0.08,camera.waterParams.x+0.24,posCenterWorld.y);
+        surface.wetness = wet;
+    }
+    normal = worldNormalToView(surface.normal);
+    let lightVisibility = textureSampleLevel(
+        lightmapTex, terrainSampler, terrainUv, 0.0).x;
+    let terrainSunVisibility = textureLoad(shadowTex, pixel, 0).x;
+    let shadow = terrainSunVisibility * objectSunVisibility;
+    let light = camera.lightDirVS.xyz;
+    let baseDiffuse = max(dot(normal, light), 0.0) * terrainSunVisibility;
+    let diffuse = baseDiffuse * objectSunVisibility;
+    // Same linear palette, normalized diffuse and filtered IBL as MeshPath.
+    // This entry alone reads group2, so legacy shader resource layouts stay exact.
+    let view = normalize(-posCenterView);
+    let worldView = normalize(camera.cameraPos.xyz-posCenterWorld);
+    var halfVector=normal;
+    if(dot(view+light,view+light)>1e-12){halfVector=normalize(view+light);}
+    let noV = max(dot(normal,view),0.0001);
+    let noL = max(dot(normal,light),0.0);
+    let noH = max(dot(normal,halfVector),0.0);
+    let voH = max(dot(view,halfVector),0.0);
+    // Explicit geometric-neighbor variance avoids derivative operations inside
+    // the depth-dependent fragment path. Invalid old producer normals contribute
+    // zero variance; current LEGO material normals include actual stud faces.
+    var normalX=geometryNormal;var normalY=geometryNormal;
+    let suppliedX=textureLoad(materialTex,clamp(pixelX,vec2<i32>(0),maxCoord),0).xyz;
+    let suppliedY=textureLoad(materialTex,clamp(pixelY,vec2<i32>(0),maxCoord),0).xyz;
+    if(dot(suppliedX,suppliedX)>0.5){normalX=normalize(suppliedX);}
+    if(dot(suppliedY,suppliedY)>0.5){normalY=normalize(suppliedY);}
+    let dx=normalX-geometryNormal;let dy=normalY-geometryNormal;
+    let normalVariance=min(0.25,0.5*(dot(dx,dx)+dot(dy,dy)));
+    let roughness=sqrt(sqrt(min(1.0,pow(clamp(surface.roughness,0.045,1.0),4.0)+normalVariance)));
+    let alpha = roughness*roughness;
+    let alpha2 = alpha*alpha;
+    let denominator = noH*noH*(alpha2-1.0)+1.0;
+    let distribution = alpha2/max(3.141592653589793*denominator*denominator,1e-12);
+    let k = (roughness+1.0)*(roughness+1.0)*0.125;
+    let geometry = noV/(noV*(1.0-k)+k)*noL/max(noL*(1.0-k)+k,0.00001);
+    let f0 = 0.04;
+    let fresnel = f0+(1.0-f0)*pow(1.0-voH,5.0);
+    let specular = distribution*geometry*fresnel/max(4.0*noV*noL,0.00001);
+    var direct = ((1.0-fresnel)*surface.albedo*0.3183098861837907+vec3<f32>(specular))
+        *sunRadiance()*noL*lightVisibility*shadow;
+    let irradiance = textureSampleLevel(coveDiffuse,coveEnvironmentSampler,surface.normal,0.0).rgb;
+    let reflected = textureSampleLevel(coveSpecular,coveEnvironmentSampler,
+        reflect(-worldView,surface.normal),roughness*f32(textureNumLevels(coveSpecular)-1u)).rgb;
+    let brdf = textureSampleLevel(coveBrdf,coveEnvironmentSampler,vec2<f32>(noV,roughness),0.0).rg;
+    let specularEnergy = clamp(f0*brdf.x+brdf.y,0.0,1.0);
+    var ambient = ((1.0-specularEnergy)*surface.albedo*irradiance+specularEnergy*reflected)
+        *camera.ambientExposure.rgb*max(camera.lightDirVS.w,0.0);
+    if(surface.wetness>0.0 || immersion>0.0) {
+        // Same thin IOR1.333 film as MeshPath. Plastic substrate remains its
+        // linear pigment; the film adds its own lobe and attenuates incoming
+        // and outgoing substrate energy instead of altering base RGB.
+        let waterF0=0.0203731878;
+        let wetF0=0.003474438;
+        let filmRoughness=sqrt(sqrt(min(1.0,pow(mix(0.10,0.28,roughness),4.0)+normalVariance)));
+        let filmView=waterF0+(1.0-waterF0)*pow(clamp(1.0-noV,0.0,1.0),5.0);
+        let filmLight=waterF0+(1.0-waterF0)*pow(clamp(1.0-noL,0.0,1.0),5.0);
+        let filmHalf=waterF0+(1.0-waterF0)*pow(clamp(1.0-voH,0.0,1.0),5.0);
+        let wetFresnel=wetF0+(1.0-wetF0)*pow(clamp(1.0-voH,0.0,1.0),5.0);
+        let filmAlpha=filmRoughness*filmRoughness;
+        let filmAlpha2=filmAlpha*filmAlpha;
+        let filmDenominator=noH*noH*(filmAlpha2-1.0)+1.0;
+        let filmDistribution=filmAlpha2/max(3.141592653589793*filmDenominator*filmDenominator,1e-12);
+        let filmK=(filmRoughness+1.0)*(filmRoughness+1.0)*0.125;
+        let filmGeometry=noV/(noV*(1.0-filmK)+filmK)*noL/max(noL*(1.0-filmK)+filmK,0.00001);
+        let substrateSpecular=distribution*geometry*wetFresnel/max(4.0*noV*noL,0.00001);
+        let filmSpecular=filmDistribution*filmGeometry*filmHalf/max(4.0*noV*noL,0.00001);
+        let substrateDirect=((1.0-wetFresnel)*surface.albedo*0.3183098861837907+vec3<f32>(substrateSpecular))
+            *sunRadiance()*noL*lightVisibility*shadow;
+        let wetDirect=substrateDirect*(1.0-filmView)*(1.0-filmLight)
+            +vec3<f32>(filmSpecular)*sunRadiance()*noL*lightVisibility*shadow;
+        let meanFilmFresnel=waterF0+(1.0-waterF0)/21.0;
+        let environmentTransmission=(1.0-filmView)*(1.0-meanFilmFresnel);
+        let filmBrdf=textureSampleLevel(coveBrdf,coveEnvironmentSampler,vec2<f32>(noV,filmRoughness),0.0).rg;
+        let substrateEnergy=clamp(wetF0*brdf.x+brdf.y,0.0,1.0);
+        let filmEnergy=clamp(waterF0*filmBrdf.x+filmBrdf.y,0.0,1.0);
+        let filmReflected=textureSampleLevel(coveSpecular,coveEnvironmentSampler,
+            reflect(-worldView,surface.normal),filmRoughness*f32(textureNumLevels(coveSpecular)-1u)).rgb;
+        let substrateAmbient=((1.0-substrateEnergy)*surface.albedo*irradiance+substrateEnergy*reflected)
+            *camera.ambientExposure.rgb*max(camera.lightDirVS.w,0.0);
+        let wetAmbient=substrateAmbient*environmentTransmission
+            +filmEnergy*filmReflected*camera.ambientExposure.rgb*max(camera.lightDirVS.w,0.0);
+        direct=mix(mix(direct,wetDirect,surface.wetness),substrateDirect,immersion);
+        ambient=mix(mix(ambient,wetAmbient,surface.wetness),substrateAmbient,immersion);
+    }
+    let lit = direct+ambient;
+    let distanceToCamera = length(posCenterView);
+    if (underwaterTerrain) {
+        // The settled-camera path owns review captures and normal play most of
+        // the time. Keep its submerged receiver lighting identical to the
+        // direct path instead of dropping caustics after the cache refresh.
+        let caustic = underwaterTerrainCaustic(
+            posCenterWorld, geometryNormal, distanceToCamera);
+        let submergedLit = lit *
+            (1.0 + caustic * 0.62) +
+            vec3<f32>(0.018, 0.045, 0.035) * caustic;
+        return applyUnderwaterMedium(
+            submergedLit,
+            posCenterWorld - camera.cameraPos.xyz,
+            distanceToCamera);
+    }
+    let fog = atmosphericFog(distanceToCamera);
+    return mix(lit, oceanFogColor(), fog);
+}
+
 // Linear-HDR opaque scene used by the water pass for exact
 // screen-space refraction. Presentation is intentionally deferred.
 @fragment
@@ -2594,6 +2818,26 @@ fn fsSceneTerrain(i : VSOut) -> SceneTerrainOutput {
         if (visibility < 1.0) {
             output.color = vec4<f32>(backgroundTerrain(pixel, dims, depth, visibility), 1.0);
         }
+    }
+    return output;
+}
+
+@fragment
+fn fsSceneTerrainCove(i : VSOut) -> SceneTerrainOutput {
+    let dims = textureDimensions(depthTex, 0);
+    let pixel = clamp(vec2<i32>(floor(i.uv * vec2<f32>(dims))), vec2<i32>(0), vec2<i32>(dims) - 1);
+    let depth = textureLoad(depthTex, pixel, 0).x;
+    var output = SceneTerrainOutput(textureLoad(backgroundTex, pixel, 0), depth);
+    if (depth > 0.0) {
+        let posView = viewPosFromDepth(camera.invProjParams.xy, ndcFromPixel(pixel, vec2<f32>(dims)), depth);
+        let position = viewToWorld(camera.invView, posView);
+        // The ray material stores the exact terrain/stud normal. Up is the
+        // conservative bias fallback for older producers lacking that normal.
+        let supplied = textureLoad(materialTex, pixel, 0).xyz;
+        var normal = vec3<f32>(0, 1, 0);
+        if (dot(supplied, supplied) > 0.5) { normal = normalize(supplied); }
+        let visibility = sceneSunVisibility(position, normal, normalize(camera.lightDirWS.xyz));
+        output.color = vec4<f32>(backgroundCoveTerrain(pixel, dims, depth, visibility), 1.0);
     }
     return output;
 }

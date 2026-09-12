@@ -1,0 +1,7 @@
+# Bounded stair correction
+
+Actual native r02 stopped at feet (8.195,1.605,-40.9414), matching the next riser faceX8.5 minus capsule radius0.3 and skin0.005. The exact four installed32cm risers reproduce that stall in CPU. A normal6cm tick cannot reach the next rounded corner's45-degree separation normal even though its actual top face is horizontal.
+
+The correction preserves the exact swept capsule position and sceneClear check. For positive-upward contacts, the lower-sphere center determines the closest box point. Only a contacted actual OBB face meeting the existing45-degree walkable threshold can classify a rounded top edge as support. Step attempts additionally cap the actual contact height at the original feet plus36cm, so a40cm riser cannot bypass the limit through rounding. No horizontal probe extension, speed increase, collider/art/save changes or extra player state.
+
+Final tests prove the full exact stairs, standing/resume/descent, per-tick horizontal travel no greater than0.060001m,40cm refusal, low-ceiling clearance for120 continued-input ticks, and54-degree OBB refusal. Four prior affected movement cases also passed: rolling deck, thin wall, deck seams/boarding and LEGO terrain steps. See stairs-cpu-final-summary.json for exact runs and honest test-oracle correction history. Independent source review found no actionable defect. Integrated native route remains pending.

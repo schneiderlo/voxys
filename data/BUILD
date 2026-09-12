@@ -127,3 +127,15 @@ filegroup(
     name = "salvage_robot",
     srcs = glob(["salvage/robot-r01/*.vmesh", "salvage/robot-r01/manifest.json"]),
 )
+
+filegroup(
+    name = "salvage_environment",
+    srcs = glob(["salvage/cove-environment-r01/**"], allow_empty = False),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ocean_environment",
+    srcs = ["generated/ocean_environment.png"],
+    visibility = ["//visibility:public"],
+)

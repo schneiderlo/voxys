@@ -40,6 +40,7 @@ struct CoveHudContent {
     CoveHudTone tone=CoveHudTone::Neutral;
     std::optional<CoveHudMenu> menu{};
     std::string objective{}; // Read-only formatter step; never gameplay state.
+    bool rightAligned=false; // Play view; workshop keeps its reserved left column.
     bool operator==(const CoveHudContent&) const = default;
 };
 // Normalized camera rectangle, leaving the left HUD and bottom 3D palette free.

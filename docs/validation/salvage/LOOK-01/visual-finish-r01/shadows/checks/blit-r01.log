@@ -1,0 +1,21 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:blit_path (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:blit_path (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:blit_path (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:blit_path (1 packages loaded, 152 targets configured).
+[593 / 594] Testing //tests:blit_path; 1s linux-sandbox
+[593 / 594] 1 / 1 tests; Testing //tests:blit_path; 8s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:blit_path up-to-date:
+  bazel-bin/tests/blit_path
+INFO: Elapsed time: 10.612s, Critical Path: 8.86s
+INFO: 3 processes: 591 action cache hit, 1 internal, 2 linux-sandbox.
+INFO: Build completed successfully, 3 total actions
+//tests:blit_path                                                        PASSED in 8.7s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

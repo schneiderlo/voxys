@@ -62,6 +62,8 @@ protected:
         }
     }
     
+    void movingCasterScene(bool coveVisuals);
+
     render::BlitPathConfig getConfig() {
         render::BlitPathConfig config = render::BlitPathConfig::defaults();
         if (!shaderPath_.empty()) {
@@ -673,10 +675,22 @@ TEST_F(BlitPathTest, CustomConfig) {
 
 
 TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth) {
+    movingCasterScene(false);
+}
+
+TEST_F(BlitPathTest, CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment) {
+    movingCasterScene(true);
+}
+
+void BlitPathTest::movingCasterScene(bool coveVisuals) {
     ASSERT_TRUE(gpuContextInitialized_);
     gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) { ADD_FAILURE() << message; });
     auto device=gpuContext_.getDevice();auto queue=gpuContext_.getQueue();
-    auto config=getConfig();config.enableOpaqueScene=true;
+    auto config=getConfig();config.enableOpaqueScene=true;config.coveVisuals=coveVisuals;
+    // These numeric composition oracles use the shipped environment, matching
+    // the aggregate suite and game. A missing standalone runfile must fail
+    // explicitly instead of silently substituting the procedural sky.
+    ASSERT_TRUE(std::filesystem::is_regular_file(config.environmentPath));
     ASSERT_TRUE(blitPath_.init(device,queue,config));ASSERT_TRUE(createTestTextures());
     ASSERT_TRUE(blitPath_.resize(320,240));
     struct Owned {
@@ -703,7 +717,7 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
     auto depthDesc=gpu::TextureDesc::depth(320,240,WGPUTextureFormat_Depth32Float);
     auto objectDepth=gpu::createTexture(device,depthDesc);owned.textures.push_back(objectDepth);auto objectDepthView=viewOf(objectDepth);
     owned.sampler=gpu::createSampler(device,gpu::SamplerDesc{});
-    owned.readback=gpu::createBuffer(device,gpu::BufferDesc{.label="scene_shadow_numeric_samples",.size=768,
+    owned.readback=gpu::createBuffer(device,gpu::BufferDesc{.label="scene_shadow_numeric_samples",.size=1024,
         .usage=WGPUBufferUsage_CopyDst|WGPUBufferUsage_MapRead});
     ASSERT_NE(owned.readback,nullptr);
     std::vector<float> visibility(320u*240u,1);ASSERT_TRUE(upload(shadowTexture_,visibility,320,240));
@@ -738,7 +752,7 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
     uniforms.waterParams={0,0,0,.2f};uniforms.waterColorA={.1f,.2f,.3f,1};uniforms.waterColorB={.03f,.09f,.12f,1};
     uniforms.waterOptics={1.333f,0,1,1};uniforms.waterFoam={1,0,0,500};uniforms.waterSpectrum={128,16,0,0};
     render::MeshPath mesh;render::MeshPathConfig meshConfig;meshConfig.colorFormat=WGPUTextureFormat_RGBA16Float;
-    meshConfig.linearHdrOutput=true;meshConfig.sunShadows=true;
+    meshConfig.linearHdrOutput=true;meshConfig.sunShadows=true;meshConfig.filteredEnvironment=coveVisuals;
     ASSERT_TRUE(mesh.init(device,queue,meshConfig));ASSERT_TRUE(mesh.loadMeshData(render::inspectionGuideMesh()));
     ASSERT_TRUE(mesh.setSceneTextures(nullptr,staticDepthView));
     render::PrimitiveLighting lighting;lighting.direction=direction;lighting.fogDensity=0;
@@ -746,8 +760,11 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
         render::PrimitiveLighting light;glm::vec3 worldOrigin{0};};
     Draw draw{&mesh,objectDepthView,view,projection,eye,lighting};
     render::OpaqueSceneDraw objects{&draw,[](void* value,WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,render::SceneShadowConsumer background){
-        auto& d=*static_cast<Draw*>(value);return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin);}};
+        auto& d=*static_cast<Draw*>(value);
+        if(!d.mesh->encodeEnvironmentLighting(encoder)||!background.environment(d.mesh->filteredEnvironmentViews()))return false;
+        return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin);}};
     float expectedDepth=0, finalDepth=0;
+    glm::vec3 opaqueRadiance{0};
     const auto sample=[&](bool caster,bool discard=false,float overrideX=0){
         mesh.clearInstances();
         // The control caster must miss both the water point and the refracted
@@ -760,17 +777,19 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
         auto pass=wgpuCommandEncoderBeginRenderPass(encoder,&descriptor);wgpuRenderPassEncoderEnd(pass);wgpuRenderPassEncoderRelease(pass);
         const bool rendered=blitPath_.render(encoder,colorView_,nullptr,WGPU_QUERY_SET_INDEX_UNDEFINED,WGPU_QUERY_SET_INDEX_UNDEFINED,objects);
         if(!rendered){wgpuCommandEncoderRelease(encoder);return -1;}
-        if(discard){wgpuCommandEncoderRelease(encoder);blitPath_.discardEncoding();return 0;}
+        if(discard){wgpuCommandEncoderRelease(encoder);blitPath_.discardEncoding();mesh.discardEnvironmentEncoding();return 0;}
         gpu::CompatImageCopyTexture source{};source.texture=colorTexture_;source.origin={160,120,0};source.aspect=WGPUTextureAspect_All;
         WGPUImageCopyBuffer destination{};destination.buffer=owned.readback;destination.layout.bytesPerRow=256;destination.layout.rowsPerImage=1;
         const WGPUExtent3D extent{1,1,1};wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
         source.texture=staticDepth;destination.layout.offset=256;wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
         source.texture=depthTexture_;destination.layout.offset=512;wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
+        source.texture=blitPath_.opaqueSceneColorTexture();destination.layout.offset=768;
+        wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
         auto commands=wgpuCommandEncoderFinish(encoder,nullptr);wgpuCommandEncoderRelease(encoder);
-        wgpuQueueSubmit(queue,1,&commands);wgpuCommandBufferRelease(commands);
+        wgpuQueueSubmit(queue,1,&commands);wgpuCommandBufferRelease(commands);mesh.acknowledgeEnvironmentSubmission();
         auto done=std::make_shared<std::atomic<int>>(0);
         using Completion=std::shared_ptr<std::atomic<int>>;
-        wgpuBufferMapAsync(owned.readback,WGPUMapMode_Read,0,768,
+        wgpuBufferMapAsync(owned.readback,WGPUMapMode_Read,0,1024,
             [](WGPUBufferMapAsyncStatus status,void* context){
                 std::unique_ptr<Completion> completion(static_cast<Completion*>(context));
                 (*completion)->store(status==WGPUBufferMapAsyncStatus_Success?1:2);
@@ -778,7 +797,9 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
         const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(10);
         while(!done->load()&&std::chrono::steady_clock::now()<until){gpuContext_.tick();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
         if(done->load()!=1)return -2;
-        const auto* bytes=static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(owned.readback,0,768));
+        const auto* bytes=static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(owned.readback,0,1024));
+        std::array<uint16_t,4> hdr{};std::memcpy(hdr.data(),bytes+768,sizeof(hdr));
+        for(int c=0;c<3;++c)opaqueRadiance[c]=glm::unpackHalf1x16(hdr[static_cast<size_t>(c)]);
         const int red=bytes[2]; // BGRA8 output.
         std::memcpy(&finalDepth,bytes+512,sizeof(float));
         std::printf("  caster=%d rgba=%u,%u,%u finalDepth=%g staticDepth=%g water=%g scene=%d\n",caster,bytes[2],bytes[1],bytes[0],double(finalDepth),double(expectedDepth),double(blitPath_.getUniforms().waterParams.y),blitPath_.didUseSceneSunShadows());
@@ -798,19 +819,61 @@ TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrSt
         std::vector<uint32_t> field(256,static_cast<uint32_t>(std::round((plane/10.f+1.f)*.5f*65535.f)));
         ASSERT_TRUE(upload(heights,field,16,16));
         uniforms.waterParams.y=float(water);blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
-        const int clear=sample(false);blitPath_.setStaticCacheState(true,false);const int shadowed=sample(true);
+        const int clear=sample(false);const auto clearRadiance=opaqueRadiance;
+        blitPath_.setStaticCacheState(true,false);const int shadowed=sample(true);
         const int moved=sample(false);ASSERT_GE(clear,0);ASSERT_GE(shadowed,0);
         std::printf("Scene receiver water=%d clear=%d shadow=%d moved=%d\n",water,clear,shadowed,moved);
         EXPECT_LT(shadowed,clear-5);EXPECT_NEAR(moved,clear,2);
         EXPECT_EQ(sample(true,true),0);EXPECT_NEAR(sample(false),clear,2);
+        glm::vec3 shadedBedRadiance{0};
         if(water) {
-            const int shadedBed=sample(false,false,5);
-            EXPECT_LT(shadedBed,clear-20); // Shadowed seabed remains visible through refraction.
+            const int shadedBed=sample(false,false,5);shadedBedRadiance=opaqueRadiance;
+            if(coveVisuals) {
+                // Immersed Cove material has no duplicate air/water film. The
+                // composite must retain a quantized change above one code value;
+                // the separate HDR oracle below checks removal of direct energy.
+                EXPECT_LT(shadedBed,clear-1);
+                RecordProperty("coveWaterClear",clear);RecordProperty("coveWaterBedShadow",shadedBed);
+            } else {
+                EXPECT_LT(shadedBed,clear-20); // Preserve the original legacy oracle.
+            }
             EXPECT_LT(finalDepth,expectedDepth-1); // Surface depth still belongs to the ocean.
         }
         uniforms.lightingColor.w=0;blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
-        const int ambient=sample(false);blitPath_.setStaticCacheState(true,false);
-        EXPECT_NEAR(sample(true),ambient,2);uniforms.lightingColor.w=1;
+        const int ambient=sample(false);const auto ambientRadiance=opaqueRadiance;
+        blitPath_.setStaticCacheState(true,false);
+        EXPECT_NEAR(sample(true),ambient,2);
+        if(coveVisuals&&water) {
+            for(int c=0;c<3;++c) {
+                EXPECT_TRUE(std::isfinite(clearRadiance[c]));EXPECT_GE(shadedBedRadiance[c],0);
+                EXPECT_GT(clearRadiance[c]-shadedBedRadiance[c],.01f);
+                // With the direct light blocked, only the shared filtered IBL
+                // remains. Tolerance covers RGBA16F quantization, not film glare.
+                EXPECT_NEAR(shadedBedRadiance[c],ambientRadiance[c],.001f);
+            }
+            RecordProperty("coveBedClearLinearRed",clearRadiance.r);
+            RecordProperty("coveBedShadowLinearRed",shadedBedRadiance.r);
+            RecordProperty("coveBedAmbientLinearRed",ambientRadiance.r);
+        }
+        if(coveVisuals&&!water) {
+            // Replace only the fixture-owned filtered source while terrain
+            // depth remains cached. The actual callback must expose its newly
+            // encoded bake to terrain in this same frame, not stale ambient.
+            auto black=texture(1,1,WGPUTextureFormat_RGBA8Unorm);auto blackView=viewOf(black);
+            const std::array<glm::u8vec4,1> blackPixel{glm::u8vec4(0,0,0,255)};
+            ASSERT_TRUE(upload(black,blackPixel,1,1));ASSERT_TRUE(mesh.setSceneTextures(blackView,staticDepthView));
+            const int darkEnvironment=sample(false);ASSERT_GE(darkEnvironment,0);
+            EXPECT_LT(darkEnvironment,ambient-5);EXPECT_FLOAT_EQ(finalDepth,expectedDepth);
+            ASSERT_TRUE(mesh.setSceneTextures(nullptr,staticDepthView));
+            // Transfer a populated environment binding, not only an empty path.
+            render::BlitPath transferred(std::move(blitPath_));blitPath_=std::move(transferred);
+            EXPECT_NEAR(sample(false),ambient,2);
+            EXPECT_EQ(mesh.environmentBakeCount(),3u);
+            RecordProperty("coveSharedEnvironmentAmbient",ambient);
+            RecordProperty("coveSharedEnvironmentBlack",darkEnvironment);
+            RecordProperty("coveFilteredEnvironmentBytes",std::to_string(mesh.environmentLightingBytes()));
+        }
+        uniforms.lightingColor.w=1;
         blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
         // Re-express the identical absolute world in independent caster
         // frames. Terrain/water uniforms deliberately remain absolute. The

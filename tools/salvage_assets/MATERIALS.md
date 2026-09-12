@@ -4,6 +4,22 @@ Status: ASSET-06 preparation, 2026-09-08. No material or visual gate has passed.
 The game and acceptance requirements remain in GAME_IMPLEMENTATION_TODO.md.
 The installed pontoon v2-rc01 and kit r09 remain historical inspection inputs.
 
+## Playable Cove update — 2026-09-12
+
+The Cove now opts into the shared filtered environment, bounded wet-film and
+immersion response, normal-variance roughness, and accepted-condition wear.
+Its original cream/teal/coral structural and machinery presentation revisions
+remain separate from canonical gameplay/save identities. New scenery uses
+solid palette materials and authored bevel/stud geometry without texture
+memory. The fixed weather is a clear coastal afternoon.
+
+See the [Cove material contract and executed checks](../../docs/validation/salvage/LOOK-01/visual-finish-r01/materials.md)
+and [playable validation record](../../docs/validation/salvage/LOOK-01/visual-finish-r01/README.md)
+for exact opt-in fields, response, budgets, actual runtime status and limits.
+These supersede no historical candidate bytes. Glass, general fracture
+interiors and temporal reconstruction remain unimplemented. Agent visual
+review and owner approval are recorded separately.
+
 ## Appearance and material families
 
 Use broad warm craft colors, restrained coral safety accents, cool dark grip

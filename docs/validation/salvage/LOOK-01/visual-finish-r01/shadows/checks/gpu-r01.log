@@ -1,0 +1,72 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:scene_sun_shadows (1 packages loaded, 3669 targets configured).
+[591 / 593] Compiling tests/test_scene_sun_shadows.cpp; 1s linux-sandbox
+FAIL: //tests:scene_sun_shadows (Aborted) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/scene_sun_shadows/test.log)
+INFO: From Testing //tests:scene_sun_shadows:
+==================== Test output for //tests:scene_sun_shadows:
+Running main() from gmock_main.cc
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SceneSunShadowsGPU
+[ RUN      ] SceneSunShadowsGPU.ReceiverPlanePcfRemovesFlatDeckAcneWithoutLosingNearContact
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [14:41:33.379] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [14:41:33.379] [GPU]   Vendor: radv
+[INFO ] [14:41:33.379] [GPU]   Backend: Vulkan
+[INFO ] [14:41:33.379] [GPU]   Type: Integrated GPU
+[INFO ] [14:41:33.381] [GPU] Headless GPU context initialized successfully
+thread '<unnamed>' panicked at src/conv.rs:968:33:
+invalid compare function for front stencil face state
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+thread '<unnamed>' panicked at library/core/src/panicking.rs:221:5:
+panic in a function that cannot unwind
+stack backtrace:
+   0:     0x755451724e75 - <std::sys::backtrace::BacktraceLock::print::DisplayBacktrace as core::fmt::Display>::fmt::h1b9dad2a88e955ff
+   1:     0x75545174772b - core::fmt::write::h4b5a1270214bc4a7
+   2:     0x755451722ebf - std::io::Write::write_fmt::hd04af345a50c312d
+   3:     0x755451725fc1 - std::panicking::default_hook::{{closure}}::h96ab15e9936be7ed
+   4:     0x755451725c9c - std::panicking::default_hook::h3cacb9c27561ad33
+   5:     0x755451726621 - std::panicking::rust_panic_with_hook::hfe205f6954b2c97b
+   6:     0x755451726453 - std::panicking::begin_panic_handler::{{closure}}::h6cb44b3a50f28c44
+   7:     0x755451725339 - std::sys::backtrace::__rust_end_short_backtrace::hf1c1f2a92799bb0e
+   8:     0x755451726114 - rust_begin_unwind
+   9:     0x755451279955 - core::panicking::panic_nounwind_fmt::h4c4dc67d0bbc166c
+  10:     0x7554512799e2 - core::panicking::panic_nounwind::hb98133c151c787e4
+  11:     0x755451279ac6 - core::panicking::panic_cannot_unwind::he9511e6e72319a3e
+  12:     0x75545130e529 - wgpuDeviceCreateRenderPipeline
+  13:     0x58f90e535acc - _ZN4voxy6render83SceneSunShadowsGPU_ReceiverPlanePcfRemovesFlatDeckAcneWithoutLosingNearContact_Test8TestBodyEv
+  14:     0x7554511aee34 - _ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+  15:     0x7554511a8ab1 - _ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+  16:     0x755451189e0f - _ZN7testing4Test3RunEv
+  17:     0x75545118a89f - _ZN7testing8TestInfo3RunEv
+  18:     0x75545118b1ed - _ZN7testing9TestSuite3RunEv
+  19:     0x75545119a3cd - _ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+  20:     0x7554511b0290 - _ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
+  21:     0x7554511a9de9 - _ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
+  22:     0x75545119896c - _ZN7testing8UnitTest3RunEv
+  23:     0x755452709a7d - _Z13RUN_ALL_TESTSv
+  24:     0x755452709a69 - main
+  25:     0x75545082b285 - __libc_start_call_main
+  26:     0x75545082b338 - __libc_start_main_alias_2
+  27:     0x58f90e532375 - _start
+  28:                0x0 - <unknown>
+thread caused non-unwinding panic. aborting.
+================================================================================
+INFO: Found 1 test target...
+Target //tests:scene_sun_shadows up-to-date:
+  bazel-bin/tests/scene_sun_shadows
+INFO: Elapsed time: 3.671s, Critical Path: 1.92s
+INFO: 4 processes: 590 action cache hit, 4 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 4 total actions
+//tests:scene_sun_shadows                                                FAILED in 0.3s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/scene_sun_shadows/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

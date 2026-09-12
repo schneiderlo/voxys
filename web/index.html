@@ -219,19 +219,13 @@
     <div id="lego-crosshair" aria-hidden="true"></div>
     <section id="salvage-preview" hidden data-voxy-ui aria-label="Cove preview controls">
         <h2 id="salvage-title">Salvage Cove</h2>
-        <p id="salvage-controller-help" class="salvage-note" hidden>View opens the workshop. Menu opens its controls. Directions choose · Confirm uses · Back closes · Menu returns to building. Right stick orbits · hold R3 to pan · hold L3 to zoom.</p>
         <p id="salvage-status" role="status" aria-live="polite">Explore the dock and wreck.</p>
-        <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
-        <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
-        <p class="salvage-note">Build a boat, explore the coast and bring salvage home.</p>
-        </details>
         <div id="salvage-lods" hidden aria-label="Model detail level">
             <button type="button" data-salvage-lod="0">Auto · 0</button>
             <button type="button" data-salvage-lod="1">Near · 1</button>
             <button type="button" data-salvage-lod="2">Middle · 2</button>
             <button type="button" data-salvage-lod="3">Far · 3</button>
         </div>
-        <p class="salvage-note" id="salvage-scope">Work in progress</p>
         <div id="salvage-guides" hidden aria-label="Inspection guides">
             <button type="button" data-salvage-guide="0">Clean view</button>
             <button type="button" data-salvage-guide="1">Rulers</button>
@@ -244,19 +238,10 @@
             <p id="salvage-objective-detail" aria-live="polite"></p>
             <button id="salvage-objective-action" type="button" hidden disabled></button>
         </section>
-        <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
-        <details id="salvage-camera" class="workshop-section" hidden>
-            <summary>Camera · F2</summary>
-            <div class="workshop-grid">
-                <button type="button" data-camera-action="320" disabled>View: Chase</button>
-                <button type="button" data-camera-action="321" disabled>Recenter behind robot</button>
-                <button type="button" data-camera-action="322" disabled>Frame load: Off</button>
-                <button type="button" data-camera-action="323" disabled>Reduced motion: Off</button>
-                <button type="button" data-camera-action="324" disabled>Move camera closer</button>
-                <button type="button" data-camera-action="325" disabled>Move camera farther</button>
-            </div>
-            <p class="salvage-note">Click the view to orbit. Wheel: zoom. V: view. G: recenter. Settings work while paused.</p>
-        </details>
+        <div class="salvage-primary-actions">
+            <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
+            <button id="salvage-interact" type="button" hidden disabled>Interact · E</button>
+        </div>
         <div id="salvage-workshop" hidden aria-label="Starter craft workshop">
             <p id="salvage-workshop-stock"></p>
             <div class="workshop-bricks" aria-label="Build with bricks">
@@ -385,7 +370,32 @@
             </details>
             <p class="salvage-note">Keep your changes, then Launch to sail the rebuilt boat. Changes last until you leave this scene.</p>
         </div>
-        <button id="salvage-interact" type="button" hidden disabled>Interact · E</button>
+        <div class="salvage-session-actions">
+        <button id="salvage-pause" type="button" hidden disabled>Pause · P</button>
+        <button id="salvage-save" type="button" title="Save expedition" aria-label="Save expedition" hidden disabled>Save</button>
+        <button id="salvage-reset" type="button">Reset · R</button>
+        </div>
+        <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
+        <details id="salvage-more-controls">
+            <summary>More controls</summary>
+        <p id="salvage-controller-help" class="salvage-note" hidden>View opens the workshop. Menu opens its controls. Directions choose · Confirm uses · Back closes · Menu returns to building. Right stick orbits · hold R3 to pan · hold L3 to zoom.</p>
+        <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
+        <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
+        <p class="salvage-note">Build a boat, explore the coast and bring salvage home.</p>
+        </details>
+        <p class="salvage-note" id="salvage-scope">Work in progress</p>
+        <details id="salvage-camera" class="workshop-section" hidden>
+            <summary>Camera · F2</summary>
+            <div class="workshop-grid">
+                <button type="button" data-camera-action="320" disabled>View: Chase</button>
+                <button type="button" data-camera-action="321" disabled>Recenter behind robot</button>
+                <button type="button" data-camera-action="322" disabled>Frame load: Off</button>
+                <button type="button" data-camera-action="323" disabled>Reduced motion: Off</button>
+                <button type="button" data-camera-action="324" disabled>Move camera closer</button>
+                <button type="button" data-camera-action="325" disabled>Move camera farther</button>
+            </div>
+            <p class="salvage-note">Click the view to orbit. Wheel: zoom. V: view. G: recenter. Settings work while paused.</p>
+        </details>
         <details id="salvage-job" hidden aria-label="Recovery job"><summary>Recovery job</summary>
             <p id="salvage-job-status" role="status" aria-live="polite"></p>
             <button id="salvage-job-accept" type="button" disabled>Recover the generator · J</button>
@@ -410,14 +420,9 @@
             <button id="salvage-hold" type="button" disabled>Stop winch</button>
         </div>
         </details>
-        <div class="salvage-session-actions">
-        <button id="salvage-reset" type="button">Reset · R</button>
-        <button id="salvage-pause" type="button" hidden disabled>Pause · P</button>
-        <button id="salvage-save" type="button" hidden disabled>Save expedition</button>
-        </div>
-        <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
         <p id="salvage-save-help" class="salvage-note" hidden>Save before leaving. Use Continue saved Cove on the LEGO page, or bookmark this saved address.</p>
         <button id="salvage-leave" type="button">Leave preview</button>
+        </details>
     </section>
     <script src="expedition_store.js"></script>
     <script src="cove_saves.js"></script>

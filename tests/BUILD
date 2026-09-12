@@ -42,6 +42,7 @@ TEST_SRCS = [
     "test_triangle_path.cpp",
     "test_raycast_path.cpp",
     "test_blit_path.cpp",
+    "test_scene_sun_shadows.cpp",
     "test_cove_hud.cpp",
     "test_benchmark.cpp",
     "test_debug_visualizer.cpp",
@@ -311,7 +312,7 @@ cc_test(
         "//:asan_suppressions",
         "//:tsan_suppressions",
         "//:msan_suppressions",
-    ],
+    ] + (["//data:ocean_environment"] if src == "test_blit_path.cpp" else []),
 ) for src in TEST_SRCS]
 
 cc_test(
@@ -476,12 +477,13 @@ cc_test(
         "//src/render:salvage_asset_fixture",
         "//src/game:fixture_registry",
         "//src/game:robot_asset",
+        "//src/game:cove_environment",
         "//src/core:sha256",
         "//src/gpu:gpu",
         "//third_party:tinygltf",
         "@googletest//:gtest_main",
     ],
-    data = ["//data:salvage_runtime_probe", "//data:salvage_material_metric", "//data:salvage_robot", "//shaders:shaders"],
+    data = ["//data:salvage_runtime_probe", "//data:salvage_material_metric", "//data:salvage_robot", "//data:salvage_environment", "//shaders:shaders"],
 )
 
 cc_test(
@@ -925,6 +927,10 @@ cc_test(
         "test_fixture_registry.cpp",
         "test_cove_player.cpp",
         "test_cove_camera.cpp",
+        "test_cove_environment.cpp",
+        "test_cove_environment_collision.cpp",
+        "test_cove_effects.cpp",
+        "test_cove_effects_path.cpp",
         "test_cove_character.cpp",
         "test_rigid_animation.cpp",
         "test_robot_asset.cpp",
@@ -1003,6 +1009,10 @@ cc_test(
         "//src/game:workshop_camera",
         "//src/game:cove_player",
         "//src/game:cove_camera",
+        "//src/game:cove_environment",
+        "//src/game:cove_environment_collision",
+        "//src/game:cove_effects",
+        "//src/render:cove_effects_path",
         "//src/game:cove_character",
         "//src/game:rigid_animation",
         "//src/game:robot_asset",
@@ -1026,7 +1036,7 @@ cc_test(
         "//data:salvage_runtime_probe",
         "//data:salvage_asset_fixture",
         "//data:salvage_functional_kit",
-        "//data:salvage_robot",
+        "//data:salvage_robot", "//data:salvage_environment",
         "//data:salvage_hierarchy_probe",
         "//data:salvage_material_metric",
         "//:asan_suppressions",
@@ -1280,4 +1290,35 @@ cc_test(
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = ["//src/render:render", "//src/gpu:gpu", "@googletest//:gtest_main"],
     data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "cove_environment",
+    srcs = ["test_cove_environment.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_environment", "//src/core:sha256", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    data = ["//data:salvage_environment"],
+)
+
+cc_test(
+    name = "cove_effects",
+    srcs = ["test_cove_effects.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_effects", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_effects_path",
+    srcs = ["test_cove_effects_path.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/render:cove_effects_path", "//src/game:cove_effects", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "cove_environment_collision",
+    srcs = ["test_cove_environment_collision.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_environment_collision", "//src/game:cove_environment", "@googletest//:gtest_main"],
+    data = ["//data:salvage_environment"],
 )

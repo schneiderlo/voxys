@@ -1,0 +1,155 @@
+{
+  "native": {
+    "imageName": "assembled-native-r03.png",
+    "imageSha256": "8ac8e58417bb26fb452b78b7d2cdda77fccc07205062e404cf85776e55d0651c",
+    "observationName": "preview-observation-r06/state.json",
+    "observationSha256": "078a3ed41a38364e47d0639d61aaf6d4e9a1a15d792a50b6157a77d426f073fa",
+    "width": 1280,
+    "height": 720,
+    "verticalFovDegrees": 78,
+    "yaw": -1.4,
+    "elevation": 0.6,
+    "distanceMetres": 12,
+    "completedTick": "199",
+    "presentedTick": "199",
+    "cameraHeld": false,
+    "boatPosition": [
+      -0.505075,
+      -1.53686,
+      -53.9901
+    ],
+    "boatSpeed": 0.116275,
+    "nativeHud": {
+      "enabled": true,
+      "lastEncodedQuads": 122,
+      "uploads": 2,
+      "bodyPixels": 20,
+      "truncated": false,
+      "panel": [
+        866,
+        14,
+        400,
+        245
+      ],
+      "objective": "accept",
+      "title": "Recover generator",
+      "selected": "Walk beside the boat",
+      "status": "First job: sunken generator",
+      "hints": [
+        "WASD: Walk  Space: Jump",
+        "J: Accept job",
+        "B: Build  F2: Camera  P: Pause"
+      ]
+    },
+    "imagePath": "images/native-arrival.png",
+    "observationPath": "checks/native-observation.json"
+  },
+  "browser": {
+    "firstDecodedCanvasFrame": {
+      "path": "images/browser-canvas-first.png",
+      "originalName": "browser-canvas-first.png",
+      "sha256": "ad7deba48b6a911125c299680181098838f136ed6fcb7889c6eb85298e7b3c73",
+      "bytes": 808592
+    },
+    "preflight": {
+      "path": "checks/browser-preflight.json",
+      "originalName": "preflight.json",
+      "sha256": "6cc5eca5e9c3bceae9f50be2abaee3ab15b282c0d73b405a503a8dce333f5157",
+      "bytes": 9514
+    },
+    "width": 1280,
+    "height": 720,
+    "viewProjection": [
+      -0.118065,
+      0.687131,
+      0.81338,
+      0.813326,
+      8.07361e-07,
+      1.0192,
+      -0.564681,
+      -0.564644,
+      -0.684522,
+      -0.118514,
+      -0.140291,
+      -0.140282,
+      -60.4038,
+      -60.8676,
+      43.4351,
+      43.5322
+    ],
+    "camera": {
+      "available": true,
+      "mode": "chase",
+      "distance": 12,
+      "actualDistance": 12,
+      "reducedMotion": false,
+      "frameLoad": false,
+      "valid": true,
+      "held": false,
+      "geometryTick": "185",
+      "presentedTick": "185",
+      "yaw": -1.4,
+      "elevation": 0.6,
+      "eye": [
+        -3.75992,
+        9.26071,
+        -47.3166
+      ]
+    },
+    "hud": {
+      "x": 904,
+      "y": 24,
+      "width": 352,
+      "height": 346.0703125,
+      "bottom": 370.0703125,
+      "scrollHeight": 344,
+      "clientHeight": 344,
+      "moreControlsOpen": false
+    },
+    "scope": "Actual canvas renderer frame only; DOM HUD is absent from canvas media. DOM bounds are separately recorded, not composited by reviewer."
+  },
+  "motion": {
+    "video": {
+      "path": "media/playable-motion.webm",
+      "originalName": "playable-motion.webm",
+      "sha256": "c04d78317da2bd9c9f899287b348e635033e155597473b4677b08b025d00171b",
+      "bytes": 7292836
+    },
+    "samples": {
+      "path": "images/motion-samples.png",
+      "originalName": "decoded-motion-r01.png",
+      "sha256": "27953c7633895aec836be576649a603e23c153bf64e869bcdfe325ed0715d005",
+      "bytes": 1098187
+    },
+    "decoderReport": {
+      "path": "checks/decoded-video.json",
+      "originalName": "decoded-video.json",
+      "sha256": "2d465b6a8c7920e5deadf6b2235aaf154e611ea6f580bba0a76631f9a478ec64",
+      "bytes": 2231
+    },
+    "captureReport": {
+      "path": "checks/browser-capture.json",
+      "originalName": "capture.json",
+      "sha256": "6782e490d45d7a5e3598f1af2082c0a2f47dd1d256926de82237eadb555ea391",
+      "bytes": 10743
+    },
+    "requestedSeconds": 12,
+    "targetCaptureFps": 30,
+    "decodedFrames": 336,
+    "codec": "VP9",
+    "width": 1280,
+    "height": 720,
+    "reviewed": "First decoded frame plus four supplied sampled frames in one contact sheet; not continuous playback or every-frame review",
+    "performanceClaim": false
+  },
+  "reviewLimit": "Visual/source observation review only. No new capture, app, GPU process, test or owner approval.",
+  "rejectedPageScreenshot": {
+    "path": "images/rejected-browser-page.png",
+    "originalName": "browser-start.png",
+    "sha256": "b372cf6c8bb3ca3824b6e0cecd2791233b52e45423e406837354c76db43733d8",
+    "bytes": 37324,
+    "accepted": false,
+    "reason": "Page.captureScreenshot returned a black canvas behind the DOM HUD; the actual canvas recording contains the rendered scene. Rejected as composed scene evidence; not repaired or substituted silently."
+  },
+  "assessment": "Native arrival plus actual browser canvas arrival and sampled short motion support the bounded early visual direction component. Continuous temporal behavior, composed browser HUD visual parity, full prerequisites/gates and owner approval are not certified."
+}

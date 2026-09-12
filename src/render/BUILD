@@ -8,7 +8,7 @@ cc_library(
     hdrs = ["salvage_asset_fixture.hpp", "inspection_guides.hpp", "cove_dock_markings.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//src/game:fixture_registry", "//src/game:rigid_animation", "//third_party:glm"],
+    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//src/game:fixture_registry", "//src/game:rigid_animation", "//src/game:cove_environment", "//third_party:glm"],
 )
 
 cc_library(
@@ -131,4 +131,13 @@ cc_library(
     hdrs = ["primitive_material.hpp"],
     includes = [".."],
     deps = ["//third_party:glm"],
+)
+
+cc_library(
+    name = "cove_effects_path",
+    srcs = ["cove_effects_path.cpp"],
+    hdrs = ["cove_effects_path.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":render", ":water_simulation", "//src/game:cove_effects", "//src/gpu:gpu"],
 )

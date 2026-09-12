@@ -1,0 +1,23 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:scene_sun_shadows (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:scene_sun_shadows (1 packages loaded, 3669 targets configured).
+[588 / 593] Compiling tests/test_scene_sun_shadows.cpp; 1s linux-sandbox ... (2 actions running)
+[589 / 593] Compiling src/app/application.cpp; 3s linux-sandbox
+[590 / 593] [Prepa] Linking src/app/libapp.so
+INFO: Found 1 test target...
+Target //tests:scene_sun_shadows up-to-date:
+  bazel-bin/tests/scene_sun_shadows
+INFO: Elapsed time: 11.862s, Critical Path: 10.10s
+INFO: 7 processes: 587 action cache hit, 2 internal, 5 linux-sandbox.
+INFO: Build completed successfully, 7 total actions
+//tests:scene_sun_shadows                                                PASSED in 0.2s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

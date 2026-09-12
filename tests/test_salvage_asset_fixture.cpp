@@ -49,6 +49,18 @@ std::shared_ptr<const game::assets::RigidAnimationAsset> installedRobot(std::str
         return data;
     },error);
 }
+std::shared_ptr<const game::assets::CoveEnvironmentAsset> installedEnvironment(std::string& error) {
+    // Same bounded declared-runfile adapter as robot; production keeps no-follow.
+    return game::assets::loadCoveEnvironment([](std::string_view name,size_t cap,std::string&)->std::optional<Bytes> {
+        std::ifstream input(std::filesystem::path("data/salvage/cove-environment-r01")/name,std::ios::binary|std::ios::ate);
+        if(!input)return {};
+        const auto size=input.tellg();if(size<=0||uint64_t(size)>cap)return {};
+        Bytes data(static_cast<size_t>(size));input.seekg(0);
+        if(!input.read(reinterpret_cast<char*>(data.data()),static_cast<std::streamsize>(data.size())))return {};
+        return data;
+    },error);
+}
+
 #endif
 
 struct Package {
@@ -295,23 +307,28 @@ TEST(InspectionGuides, ExplicitConnectedSocketSelectionIsCompleteOrRejected) {
     EXPECT_TRUE(guides.empty());
 }
 
-TEST(SalvageFixtureAccounting, PaintFitsBothFullDrawPathsWithinUnchangedReservation) {
-    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+TEST(SalvageFixtureAccounting, SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps) {
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
     EXPECT_EQ(SalvageAssetFixture::maximumExpandedDraws,512u);
     EXPECT_EQ(SalvageAssetFixture::maximumMeshInstances,256u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuReservationBytes,128u*1024u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuReservationBytes,144u*1024u);
     // The ABI assertion in MeshPath ties this value to the allocation stride.
     // Account for both model and X-ray buffers, including all 512 entries in
     // each, rather than charging only visible or currently painted instances.
-    EXPECT_EQ(2u * SalvageAssetFixture::maximumExpandedDraws * (MeshPath::gpuInstanceBytes-96u),16384u);
+    EXPECT_EQ(2u * SalvageAssetFixture::maximumExpandedDraws * (MeshPath::gpuInstanceBytes-112u),16384u);
     // Each path loads its own helper mesh (vertices, indices and material),
     // even though both uploads originate from the same CPU data.
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,102952u+16384u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u+16384u+2896u);
     EXPECT_LE(SalvageAssetFixture::fixedGpuRequestedBytes,SalvageAssetFixture::fixedGpuReservationBytes);
     EXPECT_EQ(SalvageFixtureConfig{}.maximumOwnerGpuBytes,16u*1024u*1024u);
     EXPECT_EQ(SalvageFixtureConfig{}.maximumResidentGpuBytes,48u*1024u*1024u);
     EXPECT_EQ(SalvageFixturePlacement{}.baseColorOverride,glm::vec4(0));
+    EXPECT_EQ(SalvageFixturePlacement{}.surface,glm::vec4(0));
+    EXPECT_EQ(SalvageFixtureFrame{}.robotSurface,glm::vec4(0));
+    EXPECT_EQ(SalvageFixtureFrame{}.environmentSurface,glm::vec4(0));
+    EXPECT_EQ(SalvageFixtureFrame{}.ropeSurface,glm::vec4(0));
+    EXPECT_EQ(SalvageAssetFixture::ropeGpuRequestedBytes,34u*sizeof(moto::VmeshVertex)+96u*sizeof(uint32_t)+64u);
 }
 
 TEST(CoveDockMarkings, InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear) {
@@ -423,8 +440,8 @@ TEST(CoveDockMarkings, AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentity
     ASSERT_TRUE(game::assets::placeRigidPrefab(marks.prefab,root,{},1,placed,error))<<error;
     ASSERT_EQ(placed.size(),1u);
     EXPECT_EQ(glm::vec3(placed[0].modelMatrix[3]),glm::vec3(3,0,2));
-    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
 }
 
 #if !defined(VOXY_WASM)
@@ -572,6 +589,88 @@ struct FixtureGPU : testing::Test {
         if (!temporary.empty()) std::filesystem::remove_all(temporary);
     }
 };
+
+TEST_F(FixtureGPU, CoveRoundRopeUsesLitDepthExactBoundsAndSharedOwnerTicket) {
+    begin();const auto owned=fixture.stats().active.reservedGpuBytes;
+    EXPECT_EQ(owned,bundle->requestedGpuBytes()+SalvageAssetFixture::fixedGpuReservationBytes);
+    auto value=frame();value.cameraPosition={0,0,-.25f};
+    value.view=glm::lookAtLH(value.cameraPosition,glm::vec3(0),glm::vec3(0,1,0));
+    value.projection=glm::orthoLH_ZO(-.05f,.05f,-.05f,.05f,.01f,1.f);
+    value.lighting.fogDensity=0;value.lighting.ambientIntensity=0;value.lighting.sunIntensity=1;
+    value.lighting.direction={0,0,-1};value.lighting.sunColor={1,1,1};
+    SalvageFixtureTicket ticket;NumericFrame empty,legacy,round,dark,wet,immersed,hidden;
+    const auto capture=[&](NumericFrame& pixels) {
+        startFrame(true);
+        if(!fixture.encode(encoder,colorView,depthView,{},value,ticket,error))return false;
+        return submitNumeric(ticket,pixels);
+    };
+    ASSERT_TRUE(capture(empty))<<error;
+    value.towCable=std::array{glm::vec3(0,-.04f,0),glm::vec3(0,.04f,0)};
+    ASSERT_TRUE(capture(legacy))<<error;EXPECT_EQ(fixture.stats().lastSubmittedDraws,1u);
+    value.ropeSurface={0,0,1,0};ASSERT_TRUE(capture(round))<<error;
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,1u);EXPECT_EQ(fixture.stats().active.reservedGpuBytes,owned);
+    value.lighting.direction={0,0,1};ASSERT_TRUE(capture(dark))<<error;
+    value.lighting.direction={0,0,-1};value.ropeSurface={1,0,1,0};ASSERT_TRUE(capture(wet))<<error;
+    value.ropeSurface.w=1;ASSERT_TRUE(capture(immersed))<<error;
+    EXPECT_EQ(immersed.depth,wet.depth);EXPECT_EQ(fixture.stats().lastSubmittedDraws,1u);
+    EXPECT_EQ(fixture.stats().active.reservedGpuBytes,owned);
+    size_t lit=0,depthCurved=0,wetChanged=0,immersionChanged=0,stable=0;
+    for(size_t pixel=0;pixel<round.depth.size();++pixel) {
+        const auto offset=pixel*4;
+        if(round.depth[pixel]<1) {
+            ++lit;EXPECT_LT(round.depth[pixel],empty.depth[pixel]);
+            EXPECT_GT(int(round.rgba[offset])+int(round.rgba[offset+1])+int(round.rgba[offset+2]),
+                int(dark.rgba[offset])+int(dark.rgba[offset+1])+int(dark.rgba[offset+2]));
+            // An eight-sided tube recedes from the square helper's front face.
+            depthCurved+=round.depth[pixel]>legacy.depth[pixel]+1e-5f;
+            for(size_t c=0;c<3;++c) {
+                wetChanged+=round.rgba[offset+c]!=wet.rgba[offset+c];
+                immersionChanged+=immersed.rgba[offset+c]!=wet.rgba[offset+c];
+            }
+            EXPECT_EQ(round.depth[pixel],wet.depth[pixel]);
+            // Actual endpoints and 14 mm radius bound every rasterized center.
+            const float x=(float(pixel%64)+.5f)/64*.1f-.05f;
+            const float y=.05f-(float(pixel/64)+.5f)/64*.1f;
+            EXPECT_LE(std::abs(x),.01401f);EXPECT_LE(std::abs(y),.04001f);
+        } else if(legacy.depth[pixel]==1) {
+            ++stable;EXPECT_EQ(round.rgba[offset],empty.rgba[offset]);
+            EXPECT_EQ(round.depth[pixel],empty.depth[pixel]);
+        }
+    }
+    EXPECT_GT(lit,400u);EXPECT_GT(depthCurved,200u);EXPECT_GT(wetChanged,100u);EXPECT_GT(stable,2000u);
+    EXPECT_GT(immersionChanged,100u);
+    RecordProperty("roundRopePixels",std::to_string(lit));RecordProperty("roundDepthDifferentPixels",std::to_string(depthCurved));
+    RecordProperty("wetRopeChangedBytes",std::to_string(wetChanged));
+    RecordProperty("immersedRopeChangedBytes",std::to_string(immersionChanged));
+    value.towCable.reset();ASSERT_TRUE(capture(hidden))<<error;
+    EXPECT_EQ(hidden.rgba,empty.rgba);EXPECT_EQ(hidden.depth,empty.depth);
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,0u);
+    // Bad surface facts refuse before creating a ticket or changing submitted state.
+    const std::array bad{glm::vec4(-.01f,0,1,0),glm::vec4(0,1.01f,1,0),glm::vec4(0,0,.5f,0),
+        glm::vec4(0,0,1,1.01f),glm::vec4(0,0,1,-.01f),glm::vec4(1,0,0,0),glm::vec4(0,0,0,1),
+        glm::vec4(std::numeric_limits<float>::quiet_NaN(),0,1,0)};
+    for(const auto invalid:bad) {
+        value.ropeSurface=invalid;startFrame();ticket={};
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,{},value,ticket,error));
+        EXPECT_EQ(ticket.serial,0u);releaseCommands();
+        value.ropeSurface={};value.robotSurface=invalid;startFrame();ticket={};
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,{},value,ticket,error));
+        EXPECT_EQ(ticket.serial,0u);releaseCommands();value.robotSurface={};
+        value.environmentSurface=invalid;startFrame();ticket={};
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,{},value,ticket,error));
+        EXPECT_EQ(ticket.serial,0u);releaseCommands();value.environmentSurface={};
+        SalvageFixturePlacement placement{0,bundle->lods().front().id};placement.surface=invalid;
+        startFrame();ticket={};
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,std::span(&placement,1),value,ticket,error));
+        EXPECT_EQ(ticket.serial,0u);releaseCommands();
+    }
+    value.towCable=std::array{glm::vec3(0,-.04f,0),glm::vec3(0,.04f,0)};value.ropeSurface={0,0,1,0};
+    startFrame();ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,{},value,ticket,error))<<error;
+    EXPECT_FALSE(fixture.requestLeave(error));releaseCommands();ASSERT_TRUE(fixture.discarded(ticket,error))<<error;
+    ASSERT_TRUE(fixture.requestLeave(error))<<error;
+    ASSERT_EQ(await([](Status s){return s==Status::Drained;}),Status::Drained)<<fixture.lastError();
+    EXPECT_EQ(fixture.stats().active.reservedGpuBytes,0u);
+}
 
 TEST_F(FixtureGPU, DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement) {
     const auto source=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
@@ -849,9 +948,13 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     const auto scene=game::assets::appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r06.json"),error);
     ASSERT_TRUE(scene)<<error;
     const auto robot=installedRobot(error);ASSERT_TRUE(robot)<<error;
+    const auto environment=installedEnvironment(error);
+    ASSERT_TRUE(environment)<<error;
+    EXPECT_EQ(environment->gpuBytes,1241888u);
     CoveDockMarkings marks;ASSERT_TRUE(makeCoveDockMarkings(*base,marks,error))<<error;
     SalvageFixtureConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
     config.filteredEnvironment=true;config.sunShadows=true;
+    config.reservedExternalGpuBytes=33328u; // One scene effect allocation, conservatively reserved per owner.
     uint64_t requested=SalvageAssetFixture::fixedGpuReservationBytes
         +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes;
     for(size_t i=0;i<scene->renderBundles().size();++i) {
@@ -860,18 +963,30 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
         requested+=bytes;
         RecordProperty("bundleGpuBytes"+std::to_string(i),std::to_string(bytes));
     }
-    EXPECT_EQ(requested,9724200u); // Previous nine-presentation owner, independently audited.
-    requested+=robot->prefab.counts.gpuBytes+marks.prefab.counts.gpuBytes;
+    EXPECT_EQ(requested,9740584u); // Existing nine-presentation owner + exact 16 KiB fixed reservation growth.
+    requested+=robot->prefab.counts.gpuBytes+marks.prefab.counts.gpuBytes
+        +environment->gpuBytes+config.reservedExternalGpuBytes;
     RecordProperty("requestedOwnerGpuBytes",std::to_string(requested));
     ASSERT_LE(requested,config.maximumOwnerGpuBytes);
+    auto small=config;small.maximumOwnerGpuBytes=requested-1u;
+    ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),small,error))<<error;
+    EXPECT_FALSE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot,environment));
+    EXPECT_EQ(fixture.stats().candidate.generation,0u);fixture.shutdown();
     ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error))<<error;
-    ASSERT_TRUE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot))<<error;
+    // Admission must rebuild every caller-populated cache and own the bytes.
+    auto forged=std::make_shared<game::assets::CoveEnvironmentAsset>(*environment);
+    forged->gpuBytes=0;for(auto& lod:forged->scenery)lod.prefab={};for(auto& lod:forged->gantry)lod.prefab={};
+    ASSERT_TRUE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot,forged))<<error;
+    for(auto& lod:forged->scenery)lod.mesh.vertices.clear();
+    for(auto& lod:forged->gantry)lod.mesh.vertices.clear();
     ASSERT_EQ(await([](Status s){return s==Status::CandidateReady;}),Status::CandidateReady)<<fixture.lastError();
     ASSERT_TRUE(fixture.publishCandidate(error))<<error;
     const auto reserved=fixture.stats().active.reservedGpuBytes;
     EXPECT_LE(reserved,16ull*1024ull*1024ull);
     EXPECT_EQ(reserved,requested);
-    EXPECT_EQ(reserved,9731960u+robot->prefab.counts.gpuBytes);
+    EXPECT_EQ(reserved,9748344u+robot->prefab.counts.gpuBytes+environment->gpuBytes+33328u);
+    EXPECT_EQ(fixture.stats().active.sceneryGpuBytes,1241888u);
+    EXPECT_EQ(fixture.stats().active.reservedExternalGpuBytes,33328u);
     EXPECT_EQ(fixture.stats().active.robotGpuBytes,robot->prefab.counts.gpuBytes);
     EXPECT_EQ(fixture.stats().active.uniqueUploads,36u);
     RecordProperty("ownerGpuBytes",std::to_string(reserved));
@@ -883,11 +998,18 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     ASSERT_TRUE(game::assets::sampleRigidAnimation(*robot,robot->clips[1],.2,true,{},
         glm::translate(glm::dmat4(1),glm::dvec3(5,1.28,-49)),robotPose,error))<<error;
     value.robot=&robotPose;value.dockMarkingsRoot=glm::dmat4(1);
+    value.sceneryRoot=glm::dmat4(1);value.gantryRoot=glm::translate(glm::dmat4(1),glm::dvec3(0,0,-60));
+    value.environmentSurface={0,0,1,0};
+    // Superseded gantry boxes must not be drawn on top of the admitted gantry.
+    const std::array<SalvageFixtureSolid,10> legacyGantry{};value.harborStructure=legacyGantry;
     startFrame();SalvageFixtureTicket ticket;
     ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
     submit(ticket);
     EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
     EXPECT_EQ(fixture.stats().lastSubmittedRobotDraws,robot->prefab.counts.expandedDraws);
+    EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,24u);
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,24u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,153u); //129 existing +24 scenery, no ten duplicate boxes.
     RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
 
     releaseCommands();
@@ -901,6 +1023,7 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
         placements.push_back({11,1,glm::dmat4(1),{{(i%8)*250,100+(i/8)*48,-3000},{}}});
     for(uint32_t i=9;i<12;++i)placements.push_back({i,1,glm::dmat4(1),{{0,500,-3000},{}}});
     ASSERT_LE(placements.size(),SalvageAssetFixture::maximumPlacements);
+    value.sceneryLod=value.gantryLod=2;
     startFrame();ticket={};
     ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
     submit(ticket);
@@ -910,20 +1033,48 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     RecordProperty("with64BricksColorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
     RecordProperty("with64BricksPlacements",std::to_string(placements.size()));
     EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,219u); //196 existing +23 coarsest environment.
+    const auto generation=fixture.stats().active.generation;
+    EXPECT_FALSE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot,forged));
+    EXPECT_EQ(fixture.stats().active.generation,generation);EXPECT_EQ(fixture.stats().candidate.generation,0u);
+    EXPECT_EQ(fixture.stats().active.sceneryGpuBytes,1241888u);
+    // Both invalid LOD and nonrigid roots refuse before opening a draw ticket.
+    value.sceneryLod=3;startFrame();ticket={};
+    EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error));
+    EXPECT_EQ(ticket.serial,0u);releaseCommands();value.sceneryLod=2;
+    value.sceneryRoot=glm::scale(glm::dmat4(1),glm::dvec3(2));startFrame();ticket={};
+    EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error));
+    EXPECT_EQ(ticket.serial,0u);releaseCommands();
+    value.sceneryRoot.reset();value.gantryRoot.reset();value.harborStructure={};
+    startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,0u);
+    EXPECT_FALSE(fixture.requestLeave(error));releaseCommands();ASSERT_TRUE(fixture.discarded(ticket,error))<<error;
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u); // Discard never publishes hidden state.
+    startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    submit(ticket);EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,0u);
+    value.sceneryRoot=glm::dmat4(1);value.gantryRoot=glm::translate(glm::dmat4(1),glm::dvec3(0,0,-60));
+    startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    submit(ticket);EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u);
     // Publication starts a new observational owner. The successor has neither
     // optional renderer and must not inherit the previous owner's draw counts.
     releaseCommands();
     ASSERT_TRUE(fixture.beginCandidate(scene->renderBundles(),error))<<error;
     ASSERT_EQ(await([](Status s){return s==Status::CandidateReady;}),Status::CandidateReady)<<fixture.lastError();
     ASSERT_TRUE(fixture.publishCandidate(error))<<error;
+    EXPECT_EQ(fixture.stats().active.sceneryGpuBytes,0u);
+    EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,0u);
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,0u);
     EXPECT_EQ(fixture.stats().active.robotGpuBytes,0u);
     EXPECT_EQ(fixture.stats().active.dockMarkingGpuBytes,0u);
     EXPECT_EQ(fixture.stats().lastEncodedDraws,0u);
     EXPECT_EQ(fixture.stats().lastSubmittedRobotDraws,0u);
     EXPECT_EQ(fixture.stats().lastEncodedDockMarkingDraws,0u);
     EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,0u);
+    ASSERT_TRUE(fixture.requestLeave(error))<<error;
+    ASSERT_EQ(await([](Status status){return status==Status::Drained;}),Status::Drained)<<fixture.lastError();
+    EXPECT_EQ(fixture.stats().active.reservedGpuBytes,0u);EXPECT_EQ(fixture.stats().retiring.reservedGpuBytes,0u);
 }
-
 TEST_F(FixtureGPU, DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection) {
     const std::array duplicate{bundle,bundle};
     ASSERT_TRUE(fixture.beginCandidate(duplicate, error)) << error;
@@ -1230,8 +1381,8 @@ TEST_F(FixtureGPU, NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReserva
         EXPECT_EQ(fixture.stats().active.reservedGpuBytes,reserved);
     }
     releaseCommands();
-    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
     EXPECT_EQ(SalvageAssetFixture::maximumExpandedDraws,512u);
     EXPECT_EQ(SalvageAssetFixture::maximumMeshInstances,256u);
 }

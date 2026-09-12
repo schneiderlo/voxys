@@ -151,6 +151,54 @@ bool rigidDockRoot(const glm::dmat4& root) {
     return true;
 }
 
+bool validSurface(const glm::vec4& surface) {
+    for (int i=0;i<4;++i)
+        if (!std::isfinite(surface[i]) || surface[i]<0 || surface[i]>1) return false;
+    return surface.z==1 || surface==glm::vec4(0);
+}
+
+// Presentation geometry only: unit-height, unit-diameter smooth octagonal
+// tube, with separate flat cap vertices. Scaling follows actual endpoints.
+// No catalogue, collision or save identity is created for this shared helper.
+moto::VmeshData ropeMesh() {
+    moto::VmeshData mesh;
+    std::array<moto::VmeshVertex,34> vertices{};
+    std::array<uint16_t,96> indices{};
+    size_t next=0;
+    const auto vertex=[&](size_t index,glm::vec3 position,glm::vec3 normal,glm::vec3 tangent) {
+        auto& v=vertices[index];
+        for(int c=0;c<3;++c){v.position[c]=position[c];v.normal[c]=normal[c];v.tangent[c]=tangent[c];}
+        v.tangent[3]=1;
+    };
+    for(uint16_t i=0;i<8;++i) {
+        const float angle=float(i)*0.7853981633974483f;
+        const glm::vec3 normal{std::cos(angle),0,std::sin(angle)};
+        const glm::vec3 tangent{-normal.z,0,normal.x};
+        vertex(2*i,normal*.5f+glm::vec3(0,-.5f,0),normal,tangent);
+        vertex(2u*i+1u,normal*.5f+glm::vec3(0,.5f,0),normal,tangent);
+        const auto j=static_cast<uint16_t>((i+1)%8);
+        for(const auto index:std::array<uint16_t,6>{uint16_t(2*i),uint16_t(2*i+1),uint16_t(2*j+1),
+            uint16_t(2*i),uint16_t(2*j+1),uint16_t(2*j)})indices[next++]=index;
+        vertex(17+i,normal*.5f+glm::vec3(0,-.5f,0),{0,-1,0},{1,0,0});
+        vertex(26+i,normal*.5f+glm::vec3(0,.5f,0),{0,1,0},{1,0,0});
+    }
+    vertex(16,{0,-.5f,0},{0,-1,0},{1,0,0});
+    vertex(25,{0,.5f,0},{0,1,0},{1,0,0});
+    for(uint16_t i=0;i<8;++i) {
+        const auto j=static_cast<uint16_t>((i+1)%8);
+        for(const auto index:std::array<uint16_t,6>{16,uint16_t(17+i),uint16_t(17+j),25,uint16_t(26+j),uint16_t(26+i)})
+            indices[next++]=index;
+    }
+    mesh.header.vertexCount=34;mesh.header.indexCount=96;mesh.header.indexStride=2;
+    mesh.header.submeshCount=mesh.header.materialCount=mesh.header.meshCount=mesh.header.nodeCount=1;
+    mesh.vertices.resize(sizeof(vertices));std::memcpy(mesh.vertices.data(),vertices.data(),sizeof(vertices));
+    mesh.indices.resize(sizeof(indices));std::memcpy(mesh.indices.data(),indices.data(),sizeof(indices));
+    mesh.submeshes.push_back({0,96,0,0});mesh.materials.emplace_back();
+    mesh.materials[0].metallicFactor=0;mesh.materials[0].roughnessFactor=.78f;
+    mesh.nodes.emplace_back();mesh.nodes[0].meshIndex=0;
+    return mesh;
+}
+
 bool validFrame(const SalvageFixtureFrame& frame) {
     const auto& light = frame.lighting;
     const float length = glm::dot(light.direction, light.direction);
@@ -159,6 +207,8 @@ bool validFrame(const SalvageFixtureFrame& frame) {
         && frame.width > 0 && frame.height > 0 && frame.width <= 8192 && frame.height <= 8192
         && finite(frame.view) && finite(frame.projection) && finite(frame.projection * frame.view)
         && finite(frame.cameraPosition) && finite(frame.shadowFrameWorldOrigin)
+        && frame.sceneryLod<game::assets::kCoveEnvironmentLods && frame.gantryLod<game::assets::kCoveEnvironmentLods
+        && validSurface(frame.robotSurface) && validSurface(frame.environmentSurface) && validSurface(frame.ropeSurface)
         && finite(light.direction) && std::isfinite(length)
         && length > std::numeric_limits<float>::min()
         && finite(light.sunColor) && std::isfinite(light.sunIntensity)
@@ -169,6 +219,7 @@ bool validFrame(const SalvageFixtureFrame& frame) {
 struct Owner {
     uint64_t generation = 0;
     uint64_t assetBytes = 0;
+    uint64_t externalReservation = 0;
     uint64_t reservedBytes = SalvageAssetFixture::fixedGpuReservationBytes;
     std::vector<std::shared_ptr<const Bundle>> bundles{};
     struct Mapping { uint32_t bundle = 0; uint64_t lod = 0; uint32_t upload = 0; const Lod* source = nullptr; };
@@ -182,6 +233,7 @@ struct Owner {
     std::vector<Prototype> prototypes{};
     std::optional<CoveDockMarkings> dockMarkings{};
     std::shared_ptr<const game::assets::RigidAnimationAsset> robot;
+    std::shared_ptr<const game::assets::CoveEnvironmentAsset> scenery;
     MeshPath path{};
     MeshPath guidePath{}; // Same owner/fences; separate buffers prevent queued-write aliasing.
     ScopeRecords scopes{};
@@ -213,7 +265,9 @@ struct Owner {
             .environmentBakeCount = path.environmentBakeCount(),
             .environmentReady = path.environmentLightingReady(),
             .dockMarkingGpuBytes = dockMarkings ? dockMarkings->prefab.counts.gpuBytes : 0u,
-            .robotGpuBytes = robot ? robot->prefab.counts.gpuBytes : 0u};
+            .robotGpuBytes = robot ? robot->prefab.counts.gpuBytes : 0u,
+            .sceneryGpuBytes = scenery ? scenery->gpuBytes : 0u,
+            .reservedExternalGpuBytes = externalReservation};
     }
 };
 } // namespace
@@ -240,6 +294,7 @@ struct SalvageAssetFixture::Impl {
     uint32_t encodedDockMarkingDraws = 0;
     uint32_t submittedDockMarkingDraws = 0;
     uint32_t encodedRobotDraws=0,submittedRobotDraws=0;
+    uint32_t encodedSceneryDraws=0,submittedSceneryDraws=0;
 
     ~Impl() {
         candidate.reset(); retiring.reset(); active.reset();
@@ -294,7 +349,10 @@ SalvageAssetFixture::~SalvageAssetFixture() = default;
 bool SalvageAssetFixture::init(WGPUDevice device, WGPUQueue queue,
     const SalvageFixtureConfig& config, std::string& error) {
     if (impl_) { error = "fixture already initialized; drain/shutdown before re-entry"; return false; }
-    const uint64_t fixed = fixedGpuReservationBytes
+    if(config.reservedExternalGpuBytes>16ull*1024ull*1024ull) {
+        error="external GPU reservation exceeds fixture owner ceiling";return false;
+    }
+    const uint64_t fixed = fixedGpuReservationBytes + config.reservedExternalGpuBytes
         + (config.filteredEnvironment ? MeshPath::filteredEnvironmentReservationBytes : 0u)
         + (config.sunShadows ? MeshPath::sunShadowReservationBytes : 0u);
     if (!device || !queue || config.maximumOwnerGpuBytes <= fixed
@@ -319,7 +377,8 @@ bool SalvageAssetFixture::beginCandidate(
     std::span<const std::shared_ptr<const Bundle>> bundles, std::string& error,
     std::span<const game::construction::PartDefinition> prototypes,
     const CoveDockMarkings* dockMarkings,
-    std::shared_ptr<const game::assets::RigidAnimationAsset> robot) {
+    std::shared_ptr<const game::assets::RigidAnimationAsset> robot,
+    std::shared_ptr<const game::assets::CoveEnvironmentAsset> environment) {
     if (!impl_) { error = "fixture is not initialized"; return false; }
     auto& state = *impl_;
     if (!state.boundary(error)) return false;
@@ -329,6 +388,8 @@ bool SalvageAssetFixture::beginCandidate(
     if (state.nextGeneration == std::numeric_limits<uint64_t>::max())
         return state.fail(error, "fixture generation counter exhausted");
     auto owner = std::make_unique<Owner>();
+    owner->externalReservation=state.config.reservedExternalGpuBytes;
+    owner->reservedBytes+=owner->externalReservation;
     if (state.config.filteredEnvironment) owner->reservedBytes += MeshPath::filteredEnvironmentReservationBytes;
     if (state.config.sunShadows) owner->reservedBytes += MeshPath::sunShadowReservationBytes;
     if (prototypes.size() > maximumPrototypes) return state.fail(error,"prototype definition ceiling exceeded");
@@ -406,6 +467,14 @@ bool SalvageAssetFixture::beginCandidate(
         owner->assetBytes+=owner->dockMarkings->prefab.counts.gpuBytes;
         owner->reservedBytes+=owner->dockMarkings->prefab.counts.gpuBytes;
     }
+    if(environment) {
+        auto admitted=std::make_shared<game::assets::CoveEnvironmentAsset>();
+        if(!game::assets::prepareCoveEnvironment(*environment,*admitted,error))return false;
+        if(admitted->gpuBytes>state.config.maximumOwnerGpuBytes-owner->reservedBytes)
+            return state.fail(error,"per-owner scenery GPU reservation exceeded");
+        owner->assetBytes+=admitted->gpuBytes;owner->reservedBytes+=admitted->gpuBytes;
+        owner->scenery=std::move(admitted);
+    }
     const uint64_t resident = (state.active ? state.active->reservedBytes : 0)
         + (state.retiring ? state.retiring->reservedBytes : 0);
     if (owner->reservedBytes > state.config.maximumResidentGpuBytes - resident)
@@ -417,6 +486,11 @@ bool SalvageAssetFixture::beginCandidate(
     if (!game::assets::prepareRigidPrefab(guideMesh, {}, {}, guidePrefab, error)) return false;
     if (guidePrefab.counts.gpuBytes != inspectionGuideGpuBytes)
         return state.fail(error, "guide mesh exceeds its fixed GPU reservation");
+    const auto cableMesh=ropeMesh();
+    game::assets::RigidPrefab cablePrefab;
+    if (!game::assets::prepareRigidPrefab(cableMesh, {}, {}, cablePrefab, error)) return false;
+    if (cablePrefab.counts.gpuBytes != ropeGpuRequestedBytes)
+        return state.fail(error, "rope mesh exceeds its fixed GPU reservation");
     owner->generation = state.nextGeneration++;
     auto payload = std::make_unique<CallbackPayload>(CallbackPayload{owner->fence});
     Scopes scopes(state.device);
@@ -439,11 +513,16 @@ bool SalvageAssetFixture::beginCandidate(
     if (valid) for (const auto& prototype : owner->prototypes) {
         if (!owner->path.loadMeshData(prototype.mesh)) {valid=false;break;}
     }
-    // Opaque cable shares the small helper cube, with ordinary model depth.
+    // Keep helper indices stable; the new tube follows the legacy guide.
     if(valid) valid=owner->path.loadMeshData(guideMesh);
-    // Append after the helper so existing helper/prototype indices stay stable.
+    if(valid) valid=owner->path.loadMeshData(cableMesh);
+    // Optional presentation meshes follow both fixed helpers.
     if(valid && owner->dockMarkings) valid=owner->path.loadMeshData(owner->dockMarkings->mesh);
     if(valid && owner->robot) valid=owner->path.loadMeshData(owner->robot->mesh);
+    if(valid && owner->scenery) {
+        for(const auto& lod:owner->scenery->scenery) if(!owner->path.loadMeshData(lod.mesh)){valid=false;break;}
+        if(valid)for(const auto& lod:owner->scenery->gantry) if(!owner->path.loadMeshData(lod.mesh)){valid=false;break;}
+    }
     config.depthOverlay = true;
     config.filteredEnvironment = false;
     config.sunShadows = false;
@@ -512,6 +591,7 @@ bool SalvageAssetFixture::publishCandidate(std::string& error) {
     state.active = std::move(state.candidate);
     state.encodedDraws = 0; state.submittedDraws = 0;
     state.encodedRobotDraws = 0; state.submittedRobotDraws = 0;
+    state.encodedSceneryDraws = 0; state.submittedSceneryDraws = 0;
     state.encodedDockMarkingDraws = 0; state.submittedDockMarkingDraws = 0;
     state.guideBoxes = 0;
     error.clear();
@@ -584,6 +664,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         }
         if (placement.baseColorOverride.w != 0 && placement.baseColorOverride.w != 1)
             return state.fail(error, "invalid placement base color override enable flag");
+        if (!validSurface(placement.surface)) return state.fail(error,"invalid placement surface response");
         const game::assets::RigidPrefab* selectedPrefab=nullptr;
         const game::construction::PartDefinition* definition=nullptr;
         uint32_t upload=0;
@@ -613,7 +694,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         for (const auto& draw : placed) instances.push_back({.assetIndex = upload,
             .meshIndex = draw.meshIndex, .modelMatrix = draw.modelMatrix, .tintColor = placement.tint,
             .physicsBody = placement.physicsBody, .castsSunShadow = placement.castsSunShadow,
-            .baseColorOverride = placement.baseColorOverride});
+            .baseColorOverride = placement.baseColorOverride, .surface=placement.surface});
         // One ruler stand avoids duplicating labels/scales. Socket inspection
         // covers every placement; reject the whole frame if its budget cannot
         // represent every socket instead of silently dropping late guides.
@@ -634,7 +715,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     if(frame.harborStructure.size()>10||frame.harborCables.size()>4)
         return state.fail(error,"harbor presentation capacity exceeded");
     const auto helperAsset=static_cast<uint32_t>(owner.uploads.size()+owner.prototypes.size());
-    for(const auto& solid:frame.harborStructure){
+    if(!frame.gantryRoot)for(const auto& solid:frame.harborStructure){
         for(int column=0;column<4;++column)for(int row=0;row<4;++row)
             if(!std::isfinite(solid.model[column][row]))return state.fail(error,"invalid harbor transform");
         for(int channel=0;channel<4;++channel)if(!std::isfinite(solid.color[channel])||solid.color[channel]<0||solid.color[channel]>1)
@@ -642,7 +723,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         if(solid.color.a!=1||expandedDraws>=maximumExpandedDraws||instances.size()>=maximumExpandedDraws)
             return state.fail(error,"harbor opaque draw capacity exceeded");
         ++expandedDraws;
-        instances.push_back({.assetIndex=helperAsset,.meshIndex=0,.modelMatrix=solid.model,.tintColor=solid.color});
+        instances.push_back({.assetIndex=helperAsset,.meshIndex=0,.modelMatrix=solid.model,.tintColor=solid.color,.surface=frame.environmentSurface});
     }
     const auto addCable=[&](const std::array<glm::vec3,2>& endpoints){
         const auto a=endpoints[0],b=endpoints[1];const auto delta=b-a;const float length=glm::length(delta);
@@ -653,7 +734,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
             const auto model=glm::translate(glm::mat4(1),(a+b)*.5f)
                 *glm::mat4_cast(glm::rotation(glm::vec3(0,1,0),delta/length))
                 *glm::scale(glm::mat4(1),glm::vec3(.028f,length,.028f));
-            instances.push_back({.assetIndex=helperAsset,.meshIndex=0,.modelMatrix=model,.tintColor={.32f,.17f,.045f,1}});
+            instances.push_back({.assetIndex=helperAsset+(frame.ropeSurface.z==1 ? 1u : 0u),
+                .meshIndex=0,.modelMatrix=model,.tintColor={.32f,.17f,.045f,1},.surface=frame.ropeSurface});
             ++expandedDraws;
         }
         return true;
@@ -669,8 +751,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
             return state.fail(error,"dock marking shared draw capacity exceeded");
         if (!game::assets::placeRigidPrefab(prefab,*frame.dockMarkingsRoot,{},
             maximumMeshInstances-authoredInstances,placed,error)) return false;
-        for (const auto& draw:placed) instances.push_back({.assetIndex=helperAsset+1u,
-            .meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.castsSunShadow=false});
+        for (const auto& draw:placed) instances.push_back({.assetIndex=helperAsset+2u,
+            .meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.castsSunShadow=false,.surface=frame.environmentSurface});
         expandedDraws+=prefab.counts.expandedDraws;
         authoredInstances+=prefab.counts.meshInstances;
     }
@@ -681,27 +763,46 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         if(counts.expandedDraws>maximumExpandedDraws-expandedDraws
             ||counts.meshInstances>maximumMeshInstances-authoredInstances)
             return state.fail(error,"robot shared draw capacity exceeded");
-        const uint32_t upload=helperAsset+1u+(owner.dockMarkings?1u:0u);
+        const uint32_t upload=helperAsset+2u+(owner.dockMarkings?1u:0u);
         for(size_t i=0;i<frame.robot->drawCount;++i) {
             const auto& draw=frame.robot->draws[i];
             const auto& expected=owner.robot->prefab.meshNodes[i];
             if(draw.nodeIndex!=expected.nodeIndex||draw.meshIndex!=expected.meshIndex||!finite(draw.modelMatrix)
                 ||std::abs(glm::determinant(glm::mat3(draw.modelMatrix))-1.f)>.001f)
                 return state.fail(error,"invalid robot pose or mesh binding");
-            instances.push_back({.assetIndex=upload,.meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.physicsBody=frame.robotBody});
+            instances.push_back({.assetIndex=upload,.meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.physicsBody=frame.robotBody,.surface=frame.robotSurface});
         }
         expandedDraws+=counts.expandedDraws;authoredInstances+=counts.meshInstances;robotDraws=counts.expandedDraws;
     }
+    const uint32_t sceneryAsset=helperAsset+2u+(owner.dockMarkings?1u:0u)+(owner.robot?1u:0u);
+    const auto addScenery=[&](const std::optional<glm::dmat4>& root,uint32_t lod,bool gantry) {
+        if(!root)return true;
+        if(!owner.scenery||!rigidDockRoot(*root))
+            return state.fail(error,"scenery frame lacks admitted geometry or a rigid root");
+        const auto& prefab=(gantry?owner.scenery->gantry[lod]:owner.scenery->scenery[lod]).prefab;
+        if(prefab.counts.expandedDraws>maximumExpandedDraws-expandedDraws
+            ||prefab.counts.meshInstances>maximumMeshInstances-authoredInstances)
+            return state.fail(error,"scenery shared draw capacity exceeded");
+        if(!game::assets::placeRigidPrefab(prefab,*root,{},maximumMeshInstances-authoredInstances,placed,error))return false;
+        for(const auto& draw:placed)instances.push_back({.assetIndex=sceneryAsset+lod+(gantry?3u:0u),
+            .meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.surface=frame.environmentSurface});
+        expandedDraws+=prefab.counts.expandedDraws;authoredInstances+=prefab.counts.meshInstances;
+        return true;
+    };
+    if(!addScenery(frame.sceneryRoot,frame.sceneryLod,false)||!addScenery(frame.gantryRoot,frame.gantryLod,true))return false;
     state.unresolved = {owner.generation, state.nextSerial++};
     output = state.unresolved;
     owner.encoded = true;
     state.encodedDraws = 0;
     state.encodedDockMarkingDraws = 0;
     state.encodedRobotDraws=0;
+    state.encodedSceneryDraws=0;
     if (!owner.path.setAuthoredBodyView(frame.physics,frame.worldCamera))
         return state.fail(error,"authored body render binding failed");
     if (!owner.path.encodeEnvironmentLighting(encoder))
         return state.fail(error, "environment filter encoding failed; discard the open frame ticket");
+    if (!frame.beforeColor.environment(owner.path.filteredEnvironmentViews()))
+        return state.fail(error, "scene environment binding failed; discard the open frame ticket");
     owner.path.clearInstances();
     for (const auto& instance : instances) owner.path.addInstance(instance);
     if (!owner.path.render(encoder, color, depth, frame.view, frame.projection,
@@ -719,6 +820,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     state.guideBoxes = guideBoxes;
     state.encodedDockMarkingDraws = frame.dockMarkingsRoot ? owner.dockMarkings->prefab.counts.expandedDraws : 0u;
     state.encodedRobotDraws=robotDraws;
+    if(frame.sceneryRoot)state.encodedSceneryDraws+=owner.path.lastEncodedDrawCountForAsset(sceneryAsset+frame.sceneryLod);
+    if(frame.gantryRoot)state.encodedSceneryDraws+=owner.path.lastEncodedDrawCountForAsset(sceneryAsset+3u+frame.gantryLod);
     error.clear();
     return true;
 }
@@ -737,6 +840,7 @@ bool SalvageAssetFixture::submitted(SalvageFixtureTicket ticket, std::string& er
     state.submittedDraws = state.encodedDraws;
     state.submittedDockMarkingDraws = state.encodedDockMarkingDraws;
     state.submittedRobotDraws=state.encodedRobotDraws;
+    state.submittedSceneryDraws=state.encodedSceneryDraws;
     error.clear();
     return true; // poll registers a bounded fence; acknowledgment cannot allocate.
 }
@@ -757,6 +861,7 @@ bool SalvageAssetFixture::discarded(SalvageFixtureTicket ticket, std::string& er
     state.unresolved = {};
     state.encodedDraws = 0;
     state.encodedDockMarkingDraws = 0;
+    state.encodedSceneryDraws = 0;
     state.guideBoxes = 0;
     error.clear();
     return true;
@@ -768,6 +873,7 @@ bool SalvageAssetFixture::resetInstances(std::string& error) {
     if (impl_->active) {impl_->active->path.clearInstances();impl_->active->guidePath.clearInstances();}
     impl_->encodedDraws = 0;
     impl_->encodedDockMarkingDraws = 0;
+    impl_->encodedSceneryDraws = 0;
     impl_->guideBoxes = 0;
     error.clear();
     return true;
@@ -782,6 +888,7 @@ bool SalvageAssetFixture::requestLeave(std::string& error) {
     if (state.active) {state.active->path.clearInstances();state.active->guidePath.clearInstances();}
     state.encodedDraws = 0;
     state.encodedDockMarkingDraws = 0;
+    state.encodedSceneryDraws = 0;
     state.guideBoxes = 0;
     error.clear();
     return true;
@@ -809,6 +916,8 @@ SalvageFixtureStats SalvageAssetFixture::stats() const {
     result.lastEncodedDockMarkingDraws = impl_->encodedDockMarkingDraws;
     result.lastSubmittedDockMarkingDraws = impl_->submittedDockMarkingDraws;
     result.lastSubmittedRobotDraws=impl_->submittedRobotDraws;
+    result.lastEncodedSceneryDraws=impl_->encodedSceneryDraws;
+    result.lastSubmittedSceneryDraws=impl_->submittedSceneryDraws;
     result.lastSubmittedDraws = impl_->submittedDraws;
     result.pendingViewCallbacks = pendingScopes(impl_->viewScopes);
     return result;

@@ -24,9 +24,13 @@
 #include "game/expedition/cove_player.hpp"
 #include "game/expedition/cove_water_clock.hpp"
 #include "game/expedition/cove_mechanisms.hpp"
+#include "game/expedition/cove_effects.hpp"
+#include "render/cove_effects_path.hpp"
 #include "game/expedition/cove_camera.hpp"
 #include "game/expedition/cove_character.hpp"
 #include "game/assets/robot_asset.hpp"
+#include "game/assets/cove_environment.hpp"
+#include "game/expedition/cove_environment_collision.hpp"
 #include "game/expedition/cove_boat.hpp"
 #include "game/expedition/cove_rigid_roots.hpp"
 #include "game/construction/assembly_fracture.hpp"
@@ -258,6 +262,9 @@ struct SalvageLocalSessionState {
             std::array<std::array<glm::vec3,2>,4> cables{};
             std::optional<std::array<glm::vec3,2>> tow;
             std::optional<glm::dmat4> dock;
+            std::optional<glm::dmat4> scenery,gantry;
+            uint32_t sceneryLod=0,gantryLod=0;
+            glm::vec4 robotSurface{},environmentSurface{},ropeSurface{};
             uint64_t tick=0;
         } characterPresentation;
         std::unique_ptr<game::expedition::CoveBoatAssembly> boat;
@@ -312,6 +319,19 @@ struct SalvageLocalSessionState {
         double waterTime=0,pauseWaitSeconds=0;
         game::expedition::CoveWaterClock waterClock;
         game::expedition::CoveMechanisms mechanisms;
+        game::expedition::CoveEffects effects;
+        render::CoveEffectsPath effectsPath;
+        struct EffectsDrive {
+            uint64_t epoch=0,tick=0;
+            physics::BodyHandle body{};
+            double drive=0;
+            float waterPhase=0;
+        };
+        std::array<EffectsDrive,32> effectsDrives{};
+        std::array<game::expedition::CoveEffects::Impact,game::expedition::CoveEffects::maximumImpacts> effectsImpacts{};
+        size_t effectsImpactCount=0;
+        uint64_t effectsImpactTick=0,effectsSkippedContacts=0,effectsBuildRevision=0;
+        bool effectsRescuing=false;
         physics::BodyHandle rotorCommandBody{};
         double rotorCommandDrive=0;
         uint32_t mechanismPlacements=0;
@@ -333,6 +353,19 @@ struct SalvageLocalSessionState {
         physics::ShapeHandle sceneryShape{};
         physics::BodyHandle sceneryBody{};
         bool sceneryRetired=false;
+        std::shared_ptr<const game::assets::CoveEnvironmentAsset> environment;
+        std::unique_ptr<game::expedition::CoveEnvironmentCollision> environmentCollision;
+        std::array<game::expedition::CovePlayer::StaticObstacle,game::assets::kCoveEnvironmentMaximumCollisionBoxes> environmentObstacles{};
+        size_t environmentObstacleCount=0;
+        auto environmentObstacleSpan() const noexcept { return std::span(environmentObstacles).first(environmentObstacleCount); }
+        physics::ShapeHandle environmentShape{};
+        physics::BodyHandle environmentBody{};
+        uint64_t environmentAdmissionTick=0,environmentRemovalTick=0;
+        bool environmentRetired=true,environmentObserved=false;
+        struct SurfaceState { game::construction::DurableId part{}; float wet=0; };
+        std::array<SurfaceState,render::SalvageAssetFixture::maximumPlacements> surfaceStates{};
+        uint64_t surfaceTick=0;
+        float robotWet=0;
         std::unique_ptr<game::expedition::CoveBoatAssembly> cargo;
         physics::ShapeHandle cargoShape{};
         physics::BodyHandle cargoBody{};
@@ -401,6 +434,94 @@ struct SalvageLocalSessionState {
 };
 
 namespace {
+void countCoveEffectSkip(uint64_t& counter,uint64_t count=1) noexcept {
+    counter+=std::min(count,std::numeric_limits<uint64_t>::max()-counter);
+}
+
+bool coveEffectsRunning(const SalvageLocalSessionState& local) noexcept {
+    const auto& asset=*local.asset;
+    return !asset.leaving&&!asset.workshopOpen&&!asset.checkpointPending
+        &&asset.pause==SalvageLocalSessionState::AssetPreview::Pause::Running
+        &&asset.rescue==SalvageLocalSessionState::AssetPreview::Rescue::None
+        &&!local.storageRevoked&&!local.pendingControl&&!local.launchRequest;
+}
+
+// This publication runs after the player and camera have accepted the same
+// root/cargo packet. Earlier updateCoveBoat only pairs copied contact facts.
+bool observeCoveEffects(SalvageLocalSessionState& local,const render::WaterSimulation& water,
+    uint64_t epoch,float baseWaterHeight,float waveStrength,float currentPhase) {
+    using Effects=game::expedition::CoveEffects;
+    auto& asset=*local.asset;const auto tick=asset.characterPresentation.tick;
+    if(!asset.effectsPath.initialized()||!asset.player||!asset.boatRoots||!asset.characterViewReady
+        ||!asset.characterPresentation.valid||tick!=asset.player->collisionTick()
+        ||tick!=asset.boatRoots->joinedTick()||(asset.cargo&&asset.cargoObservedTick!=tick)
+        ||asset.boatEventsThrough<tick)return true;
+    if(asset.effects.stats().epoch!=epoch)return true; // updateCoveBoat binds/reset this owner first.
+    if(tick<=asset.effects.stats().tick)return true;
+    const auto& drive=asset.effectsDrives[tick%asset.effectsDrives.size()];
+    const bool driveKnown=drive.epoch==epoch&&drive.tick==tick;
+    const float phase=driveKnown?drive.waterPhase:currentPhase;
+    const auto height=[&](glm::dvec3 point){
+        const auto absolute=asset.origin+point;
+        return double(baseWaterHeight)+double(water.sampleSurface(glm::vec2(absolute.x,absolute.z),phase,waveStrength).heightOffset)-asset.origin.y;
+    };
+    std::array<Effects::MotionSource,Effects::maximumSources> sources{};size_t count=0;
+    const auto add=[&](Effects::SourceId id,const physics::AuthoredShape& shape,
+        const physics::AuthoredRootMotion& motion,const game::expedition::CoveBoatAssembly::Root* boatRoot){
+        if(count==sources.size())return false;
+        auto& source=sources[count++];source.id=id;
+        const auto bounds=shape.rootBounds();
+        const auto a=glm::dvec3(bounds.minimum.x,bounds.minimum.y,bounds.minimum.z)*.02;
+        const auto b=glm::dvec3(bounds.maximum.x,bounds.maximum.y,bounds.maximum.z)*.02;
+        const auto origin=physics::worldPositionToAbsolute(motion.position)-asset.origin;
+        const auto rotation=glm::normalize(glm::dquat(motion.orientation));
+        const auto point=glm::dvec3((a.x+b.x)*.5,a.y,(a.z+b.z)*.5);
+        const auto offset=rotation*point;source.point=origin+offset;
+        source.pointVelocity=glm::dvec3(motion.originVelocity)+glm::cross(glm::dvec3(motion.angularVelocity),offset);
+        source.footprintRadius=std::clamp(glm::length(glm::dvec2(b.x-a.x,b.z-a.z))*.25,.15,16.);
+        source.waterHeight=height(source.point);
+        double low=std::numeric_limits<double>::infinity(),high=-low;
+        for(unsigned corner=0;corner<8;++corner){
+            const auto p=origin+rotation*glm::dvec3((corner&1)?b.x:a.x,(corner&2)?b.y:a.y,(corner&4)?b.z:a.z);
+            low=std::min(low,p.y);high=std::max(high,p.y);
+        }
+        // Cosmetic surface crossing of the physical envelope. This bounded
+        // CPU wave approximation is not an authoritative submerged volume.
+        source.waterContact=source.waterHeight>=low-.03&&source.waterHeight<=high+.03;
+        if(boatRoot) {
+            source.hasPropeller=boatRoot->propeller.has_value()&&boatRoot->maximumThrustNewtons>0;
+            if(boatRoot->cells.empty())source.waterContact=false;
+            if(source.hasPropeller){
+                const auto propellerOffset=rotation*glm::dvec3(boatRoot->propellerPoint);
+                source.propellerPoint=origin+propellerOffset;
+                source.propellerVelocity=glm::dvec3(motion.originVelocity)
+                    +glm::cross(glm::dvec3(motion.angularVelocity),propellerOffset);
+                source.propellerWaterHeight=height(source.propellerPoint);
+                source.effectiveDrive=driveKnown&&drive.body==id.body?drive.drive:0;
+            }
+        }
+        return true;
+    };
+    for(size_t i=0;i<asset.boatRoots->roots().size();++i){
+        const auto& owned=asset.boatRoots->roots()[i];const auto& root=asset.boat->roots()[i];
+        if(owned.observedTick!=tick||!owned.body.valid())return true;
+        if(!add({owned.key,owned.body,Effects::SourceKind::Boat},root.shape,owned.observed,&root))return false;
+    }
+    if(asset.cargo&&asset.cargoBody.valid())
+        if(!add({local.cargoId,asset.cargoBody,Effects::SourceKind::Cargo},asset.cargo->shape(),asset.cargoObserved,nullptr))return false;
+    if(count==sources.size())return false;
+    auto& player=sources[count++];player.id={local.caller.participant,{},Effects::SourceKind::Player};
+    player.point=asset.player->feet();player.pointVelocity=asset.player->worldVelocity();
+    player.waterHeight=height(player.point);player.footprintRadius=game::expedition::CovePlayer::radius;
+    player.waterContact=asset.player->mode()==game::expedition::CovePlayer::Mode::Swimming;
+    std::span<const Effects::Impact> impacts;
+    if(asset.effectsImpactTick==tick)impacts={asset.effectsImpacts.data(),asset.effectsImpactCount};
+    else if(asset.effectsImpactCount)countCoveEffectSkip(asset.effectsSkippedContacts,asset.effectsImpactCount);
+    const bool accepted=asset.effects.observe({epoch,tick,coveEffectsRunning(local),std::span(sources).first(count),impacts});
+    asset.effectsImpactCount=0;asset.effectsImpactTick=0;
+    return accepted;
+}
+
 struct RenderFrameGuard {
     WGPUCommandEncoder encoder = nullptr;
     WGPUCommandBuffer command = nullptr;
@@ -2274,6 +2395,7 @@ void Application::render() {
         && salvageLocalSession_->asset->boat
         && salvageLocalSession_->asset->leaving && salvageLocalSession_->asset->boatRoots->allRetired()
         && salvageLocalSession_->asset->sceneryRetired
+        && salvageLocalSession_->asset->environmentRetired
         && (!salvageLocalSession_->asset->harbor||salvageLocalSession_->asset->harbor->stage()==game::expedition::CoveHarborRuntime::Stage::Drained)
         && (!salvageLocalSession_->asset->cargo || salvageLocalSession_->asset->cargoRetired);
     if (physicsWorld_ && physicsWorld_->authoredShapeResources() && !retiredBoat) {
@@ -2618,6 +2740,11 @@ void Application::render() {
 
     frameGuard.submitted = true;
     if (coveWaterFrame) cove->waterClock = *coveWaterFrame;
+    if(coveWaterFrame&&cove&&cove->effectsPath.initialized()&&cove->boatRoots) {
+        const auto tick=cove->mechanisms.tick();
+        cove->effectsDrives[tick%cove->effectsDrives.size()]={cove->mechanisms.incarnation(),tick,
+            cove->boatRoot().body,cove->mechanisms.effectiveDrive(),waterPhaseSeconds()};
+    }
     if (frameGuard.fixture && frameGuard.ticket.serial != 0) {
         std::string error;
         if (!frameGuard.fixture->submitted(frameGuard.ticket, error)) {
@@ -4734,6 +4861,9 @@ bool Application::initRenderers() {
         blitConfig.heightScale = config_.heightScale;
         blitConfig.cellScale = config_.cellScale;
         blitConfig.enableOpaqueScene = config_.salvageAssetFixtureWaterAnchor;
+        blitConfig.coveVisuals = config_.salvageAssetFixtureWaterAnchor
+            && config_.salvageAssetFixtureRegistry
+            && std::filesystem::path(*config_.salvageAssetFixtureRegistry).filename()=="fixture-cove-r01.json";
 
         blitPath_ = std::make_unique<render::BlitPath>();
         if (!blitPath_->init(device, queue, blitConfig)) {
@@ -5149,6 +5279,11 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     std::array<std::array<glm::vec3,2>,4> harborCables;
     size_t cableCount=0;
     if(!hold) {
+    const auto visualTick=asset.player?asset.player->collisionTick():0;
+    const double surfaceSeconds=visualTick>asset.surfaceTick && asset.pause==SalvageLocalSessionState::AssetPreview::Pause::Running
+        && !asset.workshopOpen?std::min(1.0,double(visualTick-asset.surfaceTick)/60.0):0.0;
+    std::array<SalvageLocalSessionState::AssetPreview::SurfaceState,render::SalvageAssetFixture::maximumPlacements> nextSurfaces{};
+    size_t nextSurfaceCount=0;
     asset.mechanismPlacements=0;
     const auto& visibleScene=asset.workshopOpen?asset.workshop->preview():asset.acceptedScene();
     for (size_t i = 0; i < visibleScene.registry.placements.size(); ++i) {
@@ -5163,20 +5298,9 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         }
         const auto& source=scene.registry.placements[i];
         auto& rendered=placements[placementCount++];
-        std::optional<uint64_t> lod{0};
-        if (!source.prototype) {
-            const auto& bundle = *asset.content->renderBundles()[source.bundleIndex];
-            lod = asset.forcedLod != 0 ? std::optional<uint64_t>(asset.forcedLod)
-                : game::assets::selectFixtureLod(bundle, root, source.placement, viewProjection,
-                                               gpuContext_->getSwapchainHeight());
-        }
-        if (!lod) {
-            LOG_ERROR("Asset fixture could not project its bounded LOD envelope");
-            salvagePreviewFailed_ = true; requestExit(); return false;
-        }
-        if(i<asset.selectedLods.size())asset.selectedLods[i]=*lod;
-        rendered = {.bundleIndex = source.bundleIndex, .lodId = *lod,
+        rendered = {.bundleIndex = source.bundleIndex, .lodId = 0,
             .cameraRelativeRoot = root, .placement = source.placement, .prototype = source.prototype};
+        if(asset.player)rendered.surface={0,0,1,0};
         if(!source.prototype && game::expedition::isPaintableBrick(scene.bundles[source.bundleIndex]->sidecar().part.nameKey)) {
             const auto paint=source.paint.value_or(game::expedition::kOriginalBrickPaint);
             if(paint!=game::expedition::kOriginalBrickPaint)rendered.baseColorOverride=render::opaqueSrgbPaintOverride(paint);
@@ -5230,9 +5354,50 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
                 rendered.cameraRelativeRoot=glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(motion->position)-cameraSectorOrigin)
                     *glm::mat4_cast(glm::normalize(glm::dquat(motion->orientation)));
                 rendered.placement=member->rootFromPart;
+                if(asset.player && !source.prototype) {
+                    const auto& prior=asset.surfaceStates;
+                    const auto old=std::find_if(prior.begin(),prior.end(),[&](const auto& s){return s.part==part.id;});
+                    float wet=old==prior.end()?0.f:std::max(0.f,old->wet-float(surfaceSeconds/8.0));
+                    const auto& bounds=asset.content->renderBundles()[source.bundleIndex]->lods().front().prefab.canonicalBounds;
+                    const auto rotation=game::construction::rotationMatrix(member->rootFromPart.rotation);
+                    const auto p=member->rootFromPart.translation;
+                    glm::dmat4 grid(1);grid[3]={double(p.x)*.02,double(p.y)*.02,double(p.z)*.02,1};
+                    if(!rotation)return false;
+                    for(int c=0;c<3;++c)for(int r=0;r<3;++r)grid[c][r]=rotation->elements[size_t(r*3+c)];
+                    const auto world=glm::translate(glm::dmat4(1),cameraSectorOrigin)*rendered.cameraRelativeRoot*grid;
+                    double lo=std::numeric_limits<double>::infinity(),hi=-lo;
+                    for(unsigned corner=0;corner<8;++corner){
+                        const auto point=world*glm::dvec4(corner&1?bounds.maximum.x:bounds.minimum.x,
+                            corner&2?bounds.maximum.y:bounds.minimum.y,corner&4?bounds.maximum.z:bounds.minimum.z,1);
+                        lo=std::min(lo,point.y);hi=std::max(hi,point.y);
+                    }
+                    const auto center=world*glm::dvec4((bounds.minimum+bounds.maximum)*.5,1);
+                    // Cosmetic coverage uses the bounded wave approximation;
+                    // physical buoyancy and water pixels retain the GPU field.
+                    const auto water=double(rendererSettings_.waterHeight)+double(waterSimulation_?waterSimulation_->sampleSurface(
+                        glm::vec2(center.x,center.z),waterPhaseSeconds(),rendererSettings_.waterWaveStrength).heightOffset:0.0f);
+                    const auto contact=std::clamp((water-lo)/std::max(.02,hi-lo),0.0,1.0);
+                    wet=std::max(wet,float(contact));
+                    const auto& parts=assembly->build().parts;
+                    const auto condition=std::find_if(parts.begin(),parts.end(),[&](const auto& value){return value.id==part.id;});
+                    const float wear=condition==parts.end()?0.f:1.f-float(condition->health)/float(game::construction::kFullHealth);
+                    rendered.surface={wet,wear,1,float(contact)};
+                    if(nextSurfaceCount>=nextSurfaces.size())return false;
+                    nextSurfaces[nextSurfaceCount++]={part.id,wet};
+                }
             }
         }
+        // Select against the accepted pose, including moved/cut roots and the
+        // raised workbench. Durable LOD identities remain unchanged.
+        std::optional<uint64_t> lod{0};
+        if(!source.prototype)lod=asset.forcedLod?std::optional<uint64_t>(asset.forcedLod)
+            :game::assets::selectFixtureLod(*asset.content->renderBundles()[source.bundleIndex],rendered.cameraRelativeRoot,
+                rendered.placement,viewProjection,gpuContext_->getSwapchainHeight());
+        if(!lod){LOG_ERROR("Asset fixture could not project its bounded LOD envelope");return false;}
+        rendered.lodId=*lod;
+        if(i<asset.selectedLods.size())asset.selectedLods[i]=*lod;
     }
+    if(asset.player&&!asset.workshopOpen){asset.surfaceStates=nextSurfaces;asset.surfaceTick=visualTick;}
 #if defined(VOXY_NATIVE)
     if(asset.workshopOpen) {
         uint32_t thumb=0;
@@ -5262,6 +5427,27 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         }
         frame.robot=&robotPose;
     }
+    if(asset.player) {
+        asset.robotWet=std::max(0.f,asset.robotWet-float(surfaceSeconds/8.0));
+        if(asset.player->mode()==game::expedition::CovePlayer::Mode::Swimming)asset.robotWet=1;
+        frame.robotSurface={asset.robotWet,0,1,asset.player->mode()==game::expedition::CovePlayer::Mode::Swimming?1.f:0.f};
+        frame.environmentSurface={0,0,1,0};frame.ropeSurface={0,0,1,0};
+    }
+    const auto environmentLod=[&](const auto& lods,const glm::dmat4& model) {
+        const auto& b=lods.front().prefab.canonicalBounds;
+        double low=std::numeric_limits<double>::infinity(),high=-low;
+        for(unsigned corner=0;corner<8;++corner) {
+            const auto clip=viewProjection*model*glm::dvec4(corner&1?b.maximum.x:b.minimum.x,
+                corner&2?b.maximum.y:b.minimum.y,corner&4?b.maximum.z:b.minimum.z,1);
+            if(clip.w<=1e-8)return 0u;
+            low=std::min(low,clip.y/clip.w);high=std::max(high,clip.y/clip.w);
+        }
+        const auto pixels=(high-low)*.5*gpuContext_->getSwapchainHeight();
+        return pixels>=320?0u:pixels>=110?1u:2u;
+    };
+    if(asset.environment&&asset.environmentObserved&&!asset.workshopOpen) {
+        frame.sceneryRoot=root;frame.sceneryLod=environmentLod(asset.environment->scenery,root);
+    }
     if(asset.dockMarkings && !asset.workshopOpen)frame.dockMarkingsRoot=root;
     if(!asset.workshopOpen && asset.towRope.valid() && !asset.towBroken && asset.towRoot().observedTick>=asset.towChangedTick) {
         const auto a=physics::worldPositionToAbsolute(asset.towRoot().observed.position)
@@ -5272,6 +5458,10 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     }
     if(!asset.workshopOpen&&asset.harbor&&asset.harbor->durable()&&asset.harbor->body().valid()){
         const auto fixed=physics::worldPositionToAbsolute(asset.harbor->motion().position)-cameraSectorOrigin;
+        if(asset.environment) {
+            frame.gantryRoot=glm::translate(glm::dmat4(1),fixed);
+            frame.gantryLod=environmentLod(asset.environment->gantry,*frame.gantryRoot);
+        }
         size_t solidIndex=0;
         for(const auto& solid:asset.harbor->structure().structure()){
             const auto a=solid.bounds.minimum,b=solid.bounds.maximum;
@@ -5279,7 +5469,7 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             harborSolids[solidIndex++]={glm::translate(glm::mat4(1),glm::vec3(fixed+(lo+hi)*.5))
                 *glm::scale(glm::mat4(1),glm::vec3(hi-lo)),{.95f,.56f,.035f,1}};
         }
-        frame.harborStructure=harborSolids;
+        if(!frame.gantryRoot)frame.harborStructure=harborSolids;
         if(const auto* rig=asset.harbor->rig())for(size_t i=0;i<asset.harbor->ropes().size();++i){
             if(!asset.harbor->ropes()[i].valid()||!asset.harbor->observedRopes()[i].alive
                 ||asset.harbor->observedRopes()[i].broken)continue;
@@ -5295,6 +5485,9 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         frame.harborStructure=std::span(presentation.solids).first(presentation.solidCount);
         frame.harborCables=std::span(presentation.cables).first(presentation.cableCount);
         frame.towCable=presentation.tow;frame.dockMarkingsRoot=presentation.dock;
+        frame.sceneryRoot=presentation.scenery;frame.gantryRoot=presentation.gantry;
+        frame.sceneryLod=presentation.sceneryLod;frame.gantryLod=presentation.gantryLod;
+        frame.robotSurface=presentation.robotSurface;frame.environmentSurface=presentation.environmentSurface;frame.ropeSurface=presentation.ropeSurface;
     }
     frame.view = camera_->viewMatrix(); frame.projection = camera_->projectionMatrix();
     frame.cameraPosition = camera_->position();
@@ -5326,6 +5519,9 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         std::copy(frame.harborStructure.begin(),frame.harborStructure.end(),presentation.solids.begin());
         std::copy(frame.harborCables.begin(),frame.harborCables.end(),presentation.cables.begin());
         presentation.tow=frame.towCable;presentation.dock=frame.dockMarkingsRoot;
+        presentation.scenery=frame.sceneryRoot;presentation.gantry=frame.gantryRoot;
+        presentation.sceneryLod=frame.sceneryLod;presentation.gantryLod=frame.gantryLod;
+        presentation.robotSurface=frame.robotSurface;presentation.environmentSurface=frame.environmentSurface;presentation.ropeSurface=frame.ropeSurface;
         presentation.tick=asset.player->collisionTick();presentation.valid=true;
     }
     return true;
@@ -5451,6 +5647,27 @@ bool Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         salvagePreviewFailed_ = true;
         requestExit();
         return false;
+    }
+    if(salvageLocalSession_&&salvageLocalSession_->asset) {
+        auto& local=*salvageLocalSession_;auto& asset=*local.asset;
+        asset.effectsPath.clearEncodedObservation();
+        if(asset.effectsPath.initialized()&&waterSimulation_&&waterSimulation_->isInitialized()
+            &&!asset.leaving&&!asset.workshopOpen&&asset.status==render::SalvageFixtureStatus::Active
+            &&asset.characterPresentation.valid) {
+            const auto& camera=blitPath_->getUniforms();
+            if(!observeCoveEffects(local,*waterSimulation_,physicsWorld_->tickFrontier().incarnation,
+                camera.waterParams.x,camera.waterParams.z,camera.waterMotion.x)) {
+                // A cosmetic packet refusal never submits a partial effect or
+                // changes physical ownership; the previous accepted pool stays.
+                if(asset.effects.stats().rejected<=1)LOG_WARN("Cove effects refused an incoherent or out-of-bounds visual packet");
+            }
+            if(asset.effects.stats().tick==asset.characterPresentation.tick) {
+                const render::CoveEffectsFrame frame{&camera,asset.origin,
+                    {waterSimulation_->getOutputView(),waterSimulation_->getSampler(),camera.waterParams.z,
+                        camera.waterSpectrum.x,camera.waterSpectrum.y}};
+                if(!asset.effectsPath.render(encoder,colorView,blitPath_->finalLinearDepthView(),frame,asset.effects.instances()))return false;
+            }
+        }
     }
     if (blitPath_->didUseGeometryWaterPath()) {
         ++stats_.geometryWaterFrames;
@@ -5883,6 +6100,10 @@ bool Application::initSalvagePreview() {
                 return false;
             }
         }
+        if(asset->player&&!asset->effectsPath.init(gpuContext_->getDevice(),gpuContext_->getQueue(),
+            config_.colorFormat,config_.shaderDir/"cove_effects.wgsl")) {
+            LOG_ERROR("Cove effects GPU preparation failed");return false;
+        }
         asset->forcedLod = config_.salvageAssetFixtureLod;
         if (asset->forcedLod != 0) for (const auto& bundle : asset->content->renderBundles()) {
             if (std::none_of(bundle->lods().begin(), bundle->lods().end(),
@@ -5900,6 +6121,7 @@ bool Application::initSalvagePreview() {
         fixtureConfig.colorFormat = fixtureConfig.linearHdrOutput ? WGPUTextureFormat_RGBA16Float : config_.colorFormat;
         fixtureConfig.filteredEnvironment = config_.salvageAssetFixtureFilteredLighting;
         fixtureConfig.sunShadows = config_.salvageAssetFixtureWaterAnchor;
+        fixtureConfig.reservedExternalGpuBytes=asset->player?render::CoveEffectsPath::residentBytes:0;
         if(asset->player) {
             std::filesystem::path robotDirectory="data/salvage/robot-r01";
 #if defined(VOXY_NATIVE)
@@ -5908,6 +6130,16 @@ bool Application::initSalvagePreview() {
 #endif
             asset->robot=game::assets::loadRobotAsset(robotDirectory,error);
             if(!asset->robot){LOG_ERROR("Cove robot preparation failed: {}",error);return false;}
+            asset->environment=game::assets::loadCoveEnvironment(robotDirectory.parent_path()/"cove-environment-r01",error);
+            if(!asset->environment){LOG_ERROR("Cove environment preparation failed: {}",error);return false;}
+            asset->environmentCollision=game::expedition::CoveEnvironmentCollision::compile(asset->environment->collision,error);
+            if(!asset->environmentCollision){LOG_ERROR("Cove environment collision failed: {}",error);return false;}
+            for(const auto& box:asset->environment->collision) {
+                const auto a=box.minimum,b=box.maximum;
+                asset->environmentObstacles[asset->environmentObstacleCount++]={glm::dvec3(a.x,a.y,a.z)*.02,glm::dvec3(b.x,b.y,b.z)*.02};
+            }
+            if(!asset->player->setEnvironmentObstacles(asset->environmentObstacleSpan()))return false;
+            asset->environmentRetired=false;
             asset->dockMarkings.emplace();
             if(!render::makeCoveDockMarkings(*asset->content,*asset->dockMarkings,error)) {
                 LOG_ERROR("Cove dock marking preparation failed: {}",error);return false;
@@ -5915,7 +6147,7 @@ bool Application::initSalvagePreview() {
         }
         if (!asset->fixture.init(gpuContext_->getDevice(), gpuContext_->getQueue(), fixtureConfig, error)
             || !asset->fixture.beginCandidate(asset->content->renderBundles(), error, asset->content->prototypes,
-                asset->dockMarkings?&*asset->dockMarkings:nullptr,asset->robot)) {
+                asset->dockMarkings?&*asset->dockMarkings:nullptr,asset->robot,asset->environment)) {
             LOG_ERROR("Asset fixture initialization failed: {}", error);
             return false;
         }
@@ -6045,7 +6277,7 @@ bool Application::initSalvagePreview() {
         auto candidate=game::expedition::CoveRestoreCandidate::prepare(coveResume_->source,*local.saveContext,
             *asset->content,*local.catalog,asset->initialBindings,[this,loadOrigin](double x,double z){
                 return double(sampleTerrainHeight(float(x+loadOrigin.x),float(z+loadOrigin.z)))-loadOrigin.y;
-            },error,&asset->initialStarterKit,coveGroundSupport(loadOrigin));
+            },error,&asset->initialStarterKit,coveGroundSupport(loadOrigin),asset->environmentObstacleSpan());
         if(!candidate || candidate->archive->physical.tick.value()!=coveResume_->tick){LOG_ERROR("Cove load: {}",error);return false;}
         game::expedition::RecoveryIssue issue;
         auto recovered=game::expedition::SessionRecovery::restore(candidate->archive->current,observer,local.preparation,issue);
@@ -6163,6 +6395,7 @@ void Application::configureCoveLaunch() {
         }
         if(asset->harbor&&asset->harbor->installed()
             &&!asset->harbor->structure().applyPlayerCollision(*candidate->player))return State::Rejected;
+        if(!candidate->player->setEnvironmentObstacles(asset->environmentObstacleSpan()))return State::Rejected;
         candidate->workshop=game::expedition::CoveWorkshop::create(design->scene,error,static_cast<uint32_t>(asset->content->registry.placements.size()),asset->content->registry.navigation->boatPlacements,request.cut!=nullptr);
         if(!candidate->workshop){asset->launchMessage=error;return State::Rejected;}
         candidate->scene=std::make_unique<const game::assets::LoadedAssetFixture>(std::move(design->scene));
@@ -6381,7 +6614,13 @@ void Application::resetSalvagePreviewView() {
                 glm::vec3(asset.origin + asset.content->registry.navigation->lookTarget));
             const auto forward=camera_->forward();
             asset.characterCamera.reset();
-            (void)asset.characterCamera.restoreOrbit(std::atan2(-double(forward.x),-double(forward.z)),.32,5.5);
+            // New/reset Cove view looks across the berth toward the workshop.
+            // Keep the boat, brick shore and walkable entrance in one readable
+            // view. Loaded expeditions restore their own saved orbit above.
+            if(asset.environment)
+                (void)asset.characterCamera.restoreOrbit(-1.4,.60,12.0);
+            else
+                (void)asset.characterCamera.restoreOrbit(std::atan2(-double(forward.x),-double(forward.z)),.32,5.5);
             return;
         }
         setCameraWorldPose(*camera_, glm::vec3(asset.origin + asset.content->registry.cameraEye),
@@ -6512,7 +6751,7 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
             auto candidate=CoveRestoreCandidate::prepare(bytes,*local.saveContext,*asset.content,*local.catalog,
                 asset.initialBindings,[this,origin](double x,double z){
                     return double(sampleTerrainHeight(float(x+origin.x),float(z+origin.z)))-origin.y;
-                },error,&asset.initialStarterKit,coveGroundSupport(origin));
+                },error,&asset.initialStarterKit,coveGroundSupport(origin),asset.environmentObstacleSpan());
             return candidate?"ok":"";
         }
         if(action!=1 || !text.empty() || !waterSimulation_)return {};
@@ -7160,8 +7399,11 @@ bool Application::renderNativeCoveHud(WGPUCommandEncoder encoder,WGPUTextureView
     // Status is a read-only sample; bound the snapshot/quote work to 10 Hz.
     // Overlay geometry uploads only when text, colors or viewport actually change.
     const bool interactive=nativeWorkshopMenu_&&nativeWorkshopMenu_->active();
-    if(interactive||nativeCoveHud_->content().menu||nativeCoveHud_->needsContentUpdate())
-        nativeCoveHud_->setContent(nativeCoveHudContent());
+    if(interactive||nativeCoveHud_->content().menu||nativeCoveHud_->needsContentUpdate()) {
+        auto content=nativeCoveHudContent();
+        content.rightAligned=!asset->workshopOpen;
+        nativeCoveHud_->setContent(std::move(content));
+    }
     return nativeCoveHud_->render(encoder,target,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
 }
 #endif
@@ -7173,7 +7415,7 @@ std::string Application::salvagePreviewJson() const {
     const auto* asset = salvageLocalSession_ ? salvageLocalSession_->asset.get() : nullptr;
     const auto* shapeResources=physicsWorld_?physicsWorld_->authoredShapeResources():nullptr;
     const bool boatDraining=asset && asset->boat && asset->leaving
-        && (!asset->boatRoots->allRetired() || !asset->sceneryRetired
+        && (!asset->boatRoots->allRetired() || !asset->sceneryRetired || !asset->environmentRetired
             || (asset->harbor&&asset->harbor->stage()!=game::expedition::CoveHarborRuntime::Stage::Drained)
             || (asset->cargo && !asset->cargoRetired) || (shapeResources && shapeResources->stats().pendingOperations!=0)
             || asset->boatEventsThrough<physicsWorld_->tickFrontier().submitted);
@@ -7456,6 +7698,8 @@ std::string Application::salvagePreviewJson() const {
              << "\",\"maximumInFlight\":" << ticks.maximumInFlightTicks << '}'
              << ",\"sceneryCollision\":" << (asset->sceneryBody.valid()?"true":"false")
              << ",\"sceneryProxies\":" << (asset->scenery?asset->scenery->sources().size():0)
+             << ",\"environmentCollision\":" << (asset->environmentObserved?"true":"false")
+             << ",\"environmentProxies\":" << asset->environmentObstacleCount
              << ",\"thrustLimitNewtons\":"<<asset->thrustLimit<<",\"steeringLimitRadians\":"<<asset->steeringLimit
              << ",\"thrustDirection\":["<<asset->thrustDirection.x<<','<<asset->thrustDirection.y<<','<<asset->thrustDirection.z<<']'
              << std::setprecision(17) << ",\"mechanisms\":{\"tick\":\""<<asset->mechanisms.tick()<<"\",\"incarnation\":\""<<asset->mechanisms.incarnation()
@@ -7466,6 +7710,15 @@ std::string Application::salvagePreviewJson() const {
              <<"\",\"ropeIndex\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->handle.index:0)
              <<",\"ropeGeneration\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->handle.generation:0)
              <<",\"ropeLength\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->length:0)<<'}'<<std::setprecision(6)
+             <<",\"effects\":{\"epoch\":\""<<asset->effects.stats().epoch<<"\",\"tick\":\""<<asset->effects.stats().tick
+             <<"\",\"active\":"<<asset->effects.stats().active<<",\"highWater\":"<<asset->effects.stats().highWater
+             <<",\"emitted\":\""<<asset->effects.stats().emitted<<"\",\"dropped\":\""<<asset->effects.stats().dropped
+             <<"\",\"rejected\":\""<<asset->effects.stats().rejected<<"\",\"skippedContacts\":\""<<asset->effectsSkippedContacts
+             <<"\",\"wake\":\""<<asset->effects.stats().emittedByKind[0]<<"\",\"foam\":\""<<asset->effects.stats().emittedByKind[1]
+             <<"\",\"splash\":\""<<asset->effects.stats().emittedByKind[2]<<"\",\"runoff\":\""<<asset->effects.stats().emittedByKind[3]
+             <<"\",\"playerEntrySplashes\":\""<<asset->effects.stats().playerEntrySplashes
+             <<"\",\"dust\":\""<<asset->effects.stats().emittedByKind[4]<<"\",\"encoded\":"<<asset->effectsPath.lastEncodedInstances()
+             <<",\"ownerBytes\":"<<(asset->effectsPath.initialized()?render::CoveEffectsPath::residentBytes:0)<<'}'
              << ",\"massKg\":" << asset->boat->massKg()
              << ",\"displacementM3\":" << asset->boat->displacementCubicMetres()
              << ",\"paidPartIds\":[";
@@ -7635,6 +7888,9 @@ std::string Application::salvagePreviewJson() const {
              << ",\"prototypeUploads\":" << stats.active.prototypeUploads
              << ",\"dockMarkingGpuBytes\":\"" << stats.active.dockMarkingGpuBytes << '"'
              << ",\"dockMarkingDraws\":" << stats.lastSubmittedDockMarkingDraws
+             << ",\"sceneryDraws\":" << stats.lastSubmittedSceneryDraws
+             << ",\"sceneryGpuBytes\":" << stats.active.sceneryGpuBytes
+             << ",\"externalGpuReserve\":" << stats.active.reservedExternalGpuBytes
              << ",\"environmentGpuBytes\":\"" << stats.active.environmentGpuBytes
              << "\",\"environmentBakeCount\":" << stats.active.environmentBakeCount
              << ",\"environmentReady\":" << (stats.active.environmentReady ? "true" : "false")
@@ -7761,6 +8017,12 @@ void Application::updateSalvagePreview(float frameDeltaTime) {
                     }
                 if (asset->sceneryBody.valid() && !physicsWorld_->destroyBody(asset->sceneryBody)) {
                     LOG_ERROR("Could not remove cove scenery collision"); salvagePreviewFailed_=true; requestExit(); return;
+                }
+                if (asset->environmentBody.valid()) {
+                    if(!physicsWorld_->destroyBody(asset->environmentBody)) {
+                        LOG_ERROR("Could not remove harbor environment collision"); salvagePreviewFailed_=true; requestExit(); return;
+                    }
+                    asset->environmentRemovalTick=physicsWorld_->tickFrontier().scheduled+1;
                 }
             }
             else { asset->forcedLod = 0; asset->guides = render::InspectionGuides::Off; }
@@ -8987,6 +9249,20 @@ bool Application::updateCoveBoat() {
     if(coveResume_ && coveResume_->awaitingCommit)return true;
     auto& asset=*salvageLocalSession_->asset;
     if(!asset.boatRoots || !asset.boatRoots->matches(*asset.boat))return false;
+    if(asset.effectsPath.initialized()) {
+        const auto frontier=physicsWorld_->tickFrontier();
+        const bool rescuing=asset.rescue!=SalvageLocalSessionState::AssetPreview::Rescue::None;
+        const auto revision=asset.boat->build().revision.value();
+        if(frontier.incarnation&&(asset.effects.stats().epoch!=frontier.incarnation
+            ||asset.effectsBuildRevision!=revision||(!asset.effectsRescuing&&rescuing)
+            ||(asset.leaving&&!asset.effects.instances().empty()))) {
+            const auto tick=asset.boatRoots->joinedTick();
+            if(!asset.effects.reset(frontier.incarnation,tick?tick:frontier.baseTick))return false;
+            asset.effectsImpactCount=0;asset.effectsImpactTick=0;
+            asset.effectsBuildRevision=revision;
+        }
+        asset.effectsRescuing=rescuing;
+    }
     auto* resources=physicsWorld_->authoredShapeResources();
     if (!resources) { LOG_ERROR("Cove physics stopped"); return false; }
     resources->poll();
@@ -8997,14 +9273,31 @@ bool Application::updateCoveBoat() {
         if (!asset.sceneryShape.valid()) {
             auto shape=asset.scenery->shape(); physics::ShapeResourceError error;
             asset.sceneryShape=resources->upload(std::move(shape),error);
-            if (!asset.sceneryShape.valid()) { LOG_ERROR("Cove scenery upload failed: {}",static_cast<int>(error)); return false; }
+            if (!asset.sceneryShape.valid()) {
+                if(error==physics::ShapeResourceError::Busy||error==physics::ShapeResourceError::NotReady)return true;
+                LOG_ERROR("Cove scenery upload failed: {}",static_cast<int>(error)); return false;
+            }
+        }
+        if(asset.environmentCollision && !asset.environmentShape.valid()) {
+            auto shape=asset.environmentCollision->shape();physics::ShapeResourceError error;
+            asset.environmentShape=resources->upload(std::move(shape),error);
+            if(!asset.environmentShape.valid()){
+                if(error==physics::ShapeResourceError::Busy||error==physics::ShapeResourceError::NotReady)return true;
+                LOG_ERROR("Cove environment upload failed: {}",static_cast<int>(error));return false;
+            }
         }
         for(size_t i=0;i<asset.boatRoots->roots().size();++i) {
             auto& root=asset.boatRoots->roots()[i];
             if(root.shape.valid())continue;
             auto shape=asset.boat->roots()[i].shape;physics::ShapeResourceError error;
             root.shape=resources->upload(std::move(shape),error);
-            if(!root.shape.valid()){LOG_ERROR("Cove section upload failed: {}",static_cast<int>(error));return false;}
+            if(!root.shape.valid()){
+                // Restored split boats plus both static scenery owners can
+                // exceed one upload batch. Keep accepted handles and retry
+                // the remaining shapes after the normal callback poll.
+                if(error==physics::ShapeResourceError::Busy||error==physics::ShapeResourceError::NotReady)return true;
+                LOG_ERROR("Cove section upload failed: {}",static_cast<int>(error));return false;
+            }
         }
         if (!asset.sceneryBody.valid() && resources->state(asset.sceneryShape)==physics::ShapeResourceState::Ready
             && asset.status==render::SalvageFixtureStatus::Active) {
@@ -9015,7 +9308,20 @@ bool Application::updateCoveBoat() {
             if(!fixed) { LOG_ERROR("Cove scenery admission failed: {}",static_cast<int>(fixed.error)); return false; }
             asset.sceneryBody=fixed.body;
         }
+        if(asset.environmentCollision && !asset.environmentBody.valid()
+            && resources->state(asset.environmentShape)==physics::ShapeResourceState::Ready
+            && asset.status==render::SalvageFixtureStatus::Active) {
+            physics::AuthoredBodySpawnDesc desc;desc.shape=asset.environmentShape;
+            desc.motionType=physics::AuthoredBodyMotionType::Static;
+            desc.motion.position=physics::worldPositionFromAbsolute(asset.origin);
+            const auto fixed=physicsWorld_->spawnAuthoredBody(desc);
+            if(!fixed){LOG_ERROR("Cove environment admission failed: {}",static_cast<int>(fixed.error));return false;}
+            asset.environmentBody=fixed.body;
+            asset.environmentAdmissionTick=physicsWorld_->tickFrontier().scheduled+1;
+            asset.environmentRemovalTick=0;
+        }
         if(!asset.boatRoots->allAdmitted() && asset.sceneryBody.valid()
+            && (!asset.environmentCollision || asset.environmentBody.valid())
             && asset.status==render::SalvageFixtureStatus::Active
             && std::all_of(asset.boatRoots->roots().begin(),asset.boatRoots->roots().end(),
                 [&](const auto& root){return resources->state(root.shape)==physics::ShapeResourceState::Ready;})) {
@@ -9054,7 +9360,10 @@ bool Application::updateCoveBoat() {
         if(!asset.cargoShape.valid()) {
             auto shape=asset.cargo->shape();physics::ShapeResourceError error;
             asset.cargoShape=resources->upload(std::move(shape),error);
-            if(!asset.cargoShape.valid()) return false;
+            if(!asset.cargoShape.valid()) {
+                if(error==physics::ShapeResourceError::Busy||error==physics::ShapeResourceError::NotReady)return true;
+                return false;
+            }
         }
         if(!asset.cargoBody.valid() && asset.boatRoots->allAdmitted()
             && resources->state(asset.cargoShape)==physics::ShapeResourceState::Ready) {
@@ -9194,6 +9503,28 @@ bool Application::updateCoveBoat() {
                 } else if(body.alive && (body.handle!=asset.sceneryBody || body.authoredShape!=asset.sceneryShape)) return false;
                 continue;
             }
+            if(asset.environmentBody.valid() && body.handle.index==asset.environmentBody.index) {
+                // Spawn is queued for scheduled+1; a completed packet from
+                // before that tick still describes the previous empty slot.
+                // Leave likewise needs post-removal evidence before retiring.
+                if(snapshot->tick<asset.environmentAdmissionTick)continue;
+                const bool removalDue=asset.environmentRemovalTick
+                    &&snapshot->tick>=asset.environmentRemovalTick;
+                if(!body.alive && asset.leaving && removalDue) {
+                    asset.environmentBody={};asset.environmentRetired=true;asset.environmentObserved=false;
+                    asset.environmentAdmissionTick=0;asset.environmentRemovalTick=0;
+                    if(resources->retire(asset.environmentShape)!=physics::ShapeResourceError::None)return false;
+                } else if(body.alive) {
+                    if(removalDue || body.handle!=asset.environmentBody || body.authoredShape!=asset.environmentShape) {
+                        LOG_ERROR("Cove environment identity/removal mismatch at tick {}",snapshot->tick);return false;
+                    }
+                    asset.environmentObserved=true;
+                } else {
+                    LOG_ERROR("Cove environment missing at tick {}, admitted for {}",snapshot->tick,asset.environmentAdmissionTick);
+                    return false;
+                }
+                continue;
+            }
             if(asset.cargoReplacedBody.valid() && body.handle.index==asset.cargoReplacedBody.index) {
                 if(!body.alive) {asset.cargoReplacementDeadTick=snapshot->tick;asset.cargoReplacedBody={};}
                 else if(body.handle!=asset.cargoReplacedBody) return false;
@@ -9268,9 +9599,61 @@ bool Application::updateCoveBoat() {
             || events->tick!=asset.boatEventsThrough+1 || events->tick>frontier.completed) return false;
         asset.boatEventsThrough=events->tick;
         if(asset.harbor&&!asset.harbor->observe(*events)){LOG_ERROR("Harbor events: {}",asset.harbor->message());return false;}
-        for(const auto& event:events->events) if(event.type==physics::PhysicsEventType::AttachmentBreak) {
-            ++asset.boatAttachmentBreaks;
-            if(event.attachmentHandle()==asset.towRope) {asset.towBroken=true;asset.towMotor=0;}
+        for(const auto& event:events->events) {
+            if(event.type==physics::PhysicsEventType::AttachmentBreak) {
+                ++asset.boatAttachmentBreaks;
+                if(event.attachmentHandle()==asset.towRope) {asset.towBroken=true;asset.towMotor=0;}
+            }
+            if(event.type!=physics::PhysicsEventType::ContactHit||!asset.effectsPath.initialized())continue;
+            using Effects=game::expedition::CoveEffects;
+            const physics::AuthoredShape* shape=nullptr;const physics::AuthoredRootMotion* motion=nullptr;
+            Effects::SourceId source{};bool sourceA=true;
+            for(const bool side:{true,false}) {
+                const auto body=side?event.bodyHandleA():event.bodyHandleB();
+                for(size_t i=0;i<asset.boatRoots->roots().size();++i) {
+                    const auto& owned=asset.boatRoots->roots()[i];
+                    if(owned.body==body&&body.valid()&&owned.observedTick==event.tick){
+                        source={owned.key,body,Effects::SourceKind::Boat};shape=&asset.boat->roots()[i].shape;
+                        motion=&owned.observed;sourceA=side;break;
+                    }
+                }
+                if(!shape&&asset.cargo&&body.valid()&&body==asset.cargoBody&&asset.cargoObservedTick==event.tick){
+                    source={salvageLocalSession_->cargoId,body,Effects::SourceKind::Cargo};
+                    shape=&asset.cargo->shape();motion=&asset.cargoObserved;sourceA=side;
+                }
+                if(shape)break;
+            }
+            if(!shape||!motion||!coveEffectsRunning(*salvageLocalSession_)
+                ||event.tick!=asset.boatRoots->joinedTick()||event.tick!=asset.player->collisionTick()
+                ||(asset.cargo&&asset.cargoObservedTick!=event.tick)
+                ||!std::isfinite(event.impactSpeed)||event.impactSpeed<1||event.impactSpeed>300
+                ||!std::isfinite(event.impulse)||event.impulse<.1f||event.impulse>1e12f
+                ||!waterSimulation_||!waterSimulation_->isInitialized()) {
+                countCoveEffectSkip(asset.effectsSkippedContacts);continue;
+            }
+            physics::AuthoredFrameError anchorError;
+            const auto localPoint=physics::AuthoredBodyFrame(*shape).rootPoint(sourceA?event.localAnchorA:event.localAnchorB,anchorError);
+            const auto normal=glm::dvec3(sourceA?-event.normalAtoB:event.normalAtoB);
+            if(!localPoint||!std::isfinite(glm::length(normal))||std::abs(glm::length(normal)-1)>.001){
+                countCoveEffectSkip(asset.effectsSkippedContacts);continue;
+            }
+            if(asset.effectsImpactTick!=event.tick) {
+                countCoveEffectSkip(asset.effectsSkippedContacts,asset.effectsImpactCount);
+                asset.effectsImpactCount=0;asset.effectsImpactTick=event.tick;
+            }
+            if(asset.effectsImpactCount==asset.effectsImpacts.size()){
+                countCoveEffectSkip(asset.effectsSkippedContacts);continue;
+            }
+            const auto absolute=physics::worldPositionToAbsolute(motion->position)
+                +glm::dquat(motion->orientation)*glm::dvec3(*localPoint);
+            const auto& drive=asset.effectsDrives[event.tick%asset.effectsDrives.size()];
+            const float phase=drive.epoch==events->confirmedIncarnation&&drive.tick==event.tick?drive.waterPhase:waterPhaseSeconds();
+            const double waterHeight=double(rendererSettings_.waterHeight)+double(waterSimulation_->sampleSurface(
+                glm::vec2(absolute.x,absolute.z),phase,rendererSettings_.waterWaveStrength).heightOffset)-asset.origin.y;
+            asset.effectsImpacts[asset.effectsImpactCount++]={source,event.tick,
+                sourceA?event.bodyHandleB():event.bodyHandleA(),sourceA?event.featureId:event.otherFeatureId,
+                sourceA?event.otherFeatureId:event.featureId,absolute-asset.origin,normal,
+                static_cast<double>(event.impactSpeed),static_cast<double>(event.impulse),waterHeight};
         }
     }
     if(physicsWorld_->tickFrontier().failed) return false;
@@ -9493,7 +9876,7 @@ bool Application::updateCoveBoat() {
     }
     uint32_t first=UINT32_MAX,last=0;
     asset.boatRoots->includeBodyRange(first,last);
-    for(const auto body:{asset.sceneryBody,asset.cargoBody,asset.cargoReplacedBody,
+    for(const auto body:{asset.sceneryBody,asset.environmentBody,asset.cargoBody,asset.cargoReplacedBody,
         asset.harbor?asset.harbor->body():physics::BodyHandle{}}) if(body.valid()) {
         first=std::min(first,body.index); last=std::max(last,body.index);
     }
@@ -9527,6 +9910,20 @@ bool Application::updateCoveBoat() {
     if (asset.leaving && !asset.sceneryBody.valid() && !asset.sceneryRetired) {
         if(asset.sceneryShape.valid() && resources->retire(asset.sceneryShape)!=physics::ShapeResourceError::None) return false;
         asset.sceneryRetired=true;
+    }
+    if(asset.leaving && !asset.environmentBody.valid() && !asset.environmentRetired) {
+        if(asset.environmentShape.valid() && resources->retire(asset.environmentShape)!=physics::ShapeResourceError::None)return false;
+        asset.environmentRetired=true;asset.environmentObserved=false;
+    }
+    if(asset.effectsPath.initialized()&&!coveEffectsRunning(*salvageLocalSession_)) {
+        const auto tick=asset.boatRoots->joinedTick();
+        if(tick&&(!asset.cargo||asset.cargoObservedTick==tick)&&asset.effects.stats().epoch) {
+            // Freeze at service/paused ticks. Clearing source baselines means
+            // neither hidden workshop motion nor Rescue becomes a fake splash.
+            if(!asset.effects.observe({asset.effects.stats().epoch,tick,false,{},{}}))return false;
+            countCoveEffectSkip(asset.effectsSkippedContacts,asset.effectsImpactCount);
+            asset.effectsImpactCount=0;asset.effectsImpactTick=0;
+        }
     }
     return true;
 }

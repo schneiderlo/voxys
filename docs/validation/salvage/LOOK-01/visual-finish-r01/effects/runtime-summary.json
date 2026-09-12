@@ -1,0 +1,196 @@
+{
+  "status": "passed",
+  "scope": "VIS-04 browser component acceptance; final joint suite and publication remain root-owned",
+  "actualRun": {
+    "stages": 8,
+    "seconds": 8.63,
+    "processExit": 0,
+    "browserErrors": [],
+    "sampleErrors": [],
+    "package": "web-r02",
+    "viewport": [
+      1280,
+      720
+    ],
+    "port": 43874,
+    "images": false,
+    "recording": false,
+    "summary": "browser/accepted-r02/summary.json",
+    "outer": "browser/accepted-r02/startup.json",
+    "runner": "browser/accepted-r02/runner.log",
+    "profileLifetime": "Runner-reported retained profile lived under a temporary nix-shell directory and no longer existed after outer exit; no reusable saved browser storage is claimed."
+  },
+  "measured": {
+    "horizontalTravelMetres": 0.3556297226048437,
+    "movingEffects": {
+      "epoch": "1",
+      "tick": "265",
+      "active": 10,
+      "highWater": 10,
+      "emitted": "10",
+      "dropped": "0",
+      "rejected": "0",
+      "skippedContacts": "0",
+      "wake": "1",
+      "foam": "9",
+      "splash": "0",
+      "runoff": "0",
+      "playerEntrySplashes": "0",
+      "dust": "0",
+      "encoded": 10,
+      "ownerBytes": 33328
+    },
+    "pausedTick": "271",
+    "playerEntrySplashes": "12",
+    "rescueEffects": {
+      "epoch": "1",
+      "tick": "388",
+      "active": 0,
+      "highWater": 0,
+      "emitted": "0",
+      "dropped": "0",
+      "rejected": "0",
+      "skippedContacts": "0",
+      "wake": "0",
+      "foam": "0",
+      "splash": "0",
+      "runoff": "0",
+      "playerEntrySplashes": "0",
+      "dust": "0",
+      "encoded": 0,
+      "ownerBytes": 33328
+    },
+    "parts": 11,
+    "massKg": 1035,
+    "material": "48",
+    "machinery": "0",
+    "paidPartIds": [],
+    "exactBlueprint": true
+  },
+  "retainedFailure": {
+    "seconds": 11.513,
+    "stages": 2,
+    "summary": "browser/failed-r01/summary.json",
+    "outer": "browser/failed-r01/startup.json",
+    "runner": "browser/failed-r01/runner.log",
+    "correction": "browser/travel-correction-r01.json",
+    "cause": "Driver waited for speed/drive/wake/foam before separately asserting distance. The corrected wait also requires horizontal XZ travel greater than 0.35 m, excluding wave-driven Y motion. No product change."
+  },
+  "command": {
+    "program": "node scripts/smoke_integrated_wasm.mjs build-cove-visual-r01/web-r02 salvage-cove",
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/.mutter-Xwaylandauth.8NQFV3",
+      "VOXY_TEST_CHROME": "/opt/google/chrome/chrome",
+      "VOXY_SMOKE_GPU": "gaming-x11",
+      "VOXY_SMOKE_NO_SCREENSHOT": "1",
+      "VOXY_SMOKE_KEEP_PROFILE": "1",
+      "VOXY_SMOKE_WIDTH": "1280",
+      "VOXY_SMOKE_HEIGHT": "720",
+      "VOXY_SMOKE_PORT": "43874",
+      "VOXY_SMOKE_TIMEOUT_MS": "300000",
+      "VOXY_SMOKE_COVE_EFFECTS": "build-cove-visual-r01/browser-effects-r02",
+      "VOXY_SMOKE_REPORT": "build-cove-visual-r01/checks/browser-startup-r02.json"
+    },
+    "unset": [
+      "VOXY_SMOKE_VISUAL_CAPTURE",
+      "VOXY_SMOKE_PROFILE",
+      "VOXY_SMOKE_RESUME_WORLD"
+    ],
+    "hostNote": "Run through nix-shell with the available Node22+ runtime and valid current desktop X authority; the exact run used /home/modkin/.nix-profile/bin/node."
+  },
+  "archiveFiles": [
+    {
+      "path": "browser/failed-r01/summary.json",
+      "sha256": "5b979698bc3c12300fd4e9144734202a5180797b29b55520695dd568f07da27e",
+      "bytes": 69345,
+      "originalPath": "build-cove-visual-r01/browser-effects-r01/summary.json"
+    },
+    {
+      "path": "browser/failed-r01/startup.json",
+      "sha256": "44a2482ad9925b6fae5da0714d752f8c8c16a3b729995d59fab62a5f4de7f6ca",
+      "bytes": 309462,
+      "originalPath": "build-cove-visual-r01/checks/browser-startup-r01.json"
+    },
+    {
+      "path": "browser/failed-r01/runner.log",
+      "sha256": "ba4c337afd364256836c7c83d4ac930c5ee20c931e40c24d64b6c1594f868acf",
+      "bytes": 673,
+      "originalPath": "build-cove-visual-r01/checks/browser-effects-r01.log"
+    },
+    {
+      "path": "browser/accepted-r02/summary.json",
+      "sha256": "b6aea747c5995f1473bc181887eb83cba5c9845943ecece41391e316cb96fda8",
+      "bytes": 252793,
+      "originalPath": "build-cove-visual-r01/browser-effects-r02/summary.json"
+    },
+    {
+      "path": "browser/accepted-r02/startup.json",
+      "sha256": "512ec4cd6f570e8a35564f44c493eb1ae523924ecf8cdaf1cdc9a6bed57b1a7f",
+      "bytes": 569353,
+      "originalPath": "build-cove-visual-r01/checks/browser-startup-r02.json"
+    },
+    {
+      "path": "browser/accepted-r02/runner.log",
+      "sha256": "512ec4cd6f570e8a35564f44c493eb1ae523924ecf8cdaf1cdc9a6bed57b1a7f",
+      "bytes": 569353,
+      "originalPath": "build-cove-visual-r01/checks/browser-effects-r02.log"
+    },
+    {
+      "path": "browser/travel-correction-r01.json",
+      "sha256": "ec6e209aab2dfbef8441bff1dff8153be5459e3b457e5862d37bf2c0732374a5",
+      "bytes": 2257,
+      "originalPath": "build-cove-visual-r01/checks/browser-effects-travel-review-r01.json"
+    },
+    {
+      "path": "browser/original-final-manifest-r02.json",
+      "sha256": "caeb1cb805a44e8f0c28c88651509a32fb365c3760304f10adba93b263cbab5b",
+      "bytes": 1998,
+      "originalPath": "build-cove-visual-r01/checks/browser-effects-final-r02.json"
+    },
+    {
+      "path": "browser/web-r02-hashes.json",
+      "sha256": "753d75d69e531eb2367cb431f5e9df10db863021c3a64ad8f2f65e1dbe4b387a",
+      "bytes": 2343,
+      "originalPath": "build-cove-visual-r01/checks/web-r02-hashes.json"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "scripts/validate_cove_effects.mjs",
+      "sha256": "f65fc0ad6b9ed39206572498bffad268bce343f7e6515111fc0ad2233c966d9e",
+      "bytes": 14620
+    },
+    {
+      "path": "scripts/smoke_integrated_wasm.mjs",
+      "sha256": "4dbb91472e587aafbc2a36d89b2e7fb6b9821fa767d54fe865edb68d386d2c01",
+      "bytes": 44456
+    },
+    {
+      "path": "src/game/expedition/cove_effects.hpp",
+      "sha256": "53ece09254a20b39bb8ea82b5b63632f1c3aefa6835a87de15012da06105449b",
+      "bytes": 4171
+    },
+    {
+      "path": "src/game/expedition/cove_effects.cpp",
+      "sha256": "1b20c4c95b5dfef067bf26eeee2dec2c492d758be45bda015c864d70f673b769",
+      "bytes": 11374
+    },
+    {
+      "path": "src/render/cove_effects_path.hpp",
+      "sha256": "bc1054bbeb7bea55e63cf9156b58d23f7d2af6fe7d3e585d3a84e124a31867a8",
+      "bytes": 2904
+    },
+    {
+      "path": "src/render/cove_effects_path.cpp",
+      "sha256": "7de3927427013fed08c73e26bd99dbe23c646a1792090bc390c238f345954626",
+      "bytes": 7243
+    },
+    {
+      "path": "shaders/cove_effects.wgsl",
+      "sha256": "bf6d2998d02113c6620890fbf5eb29b3c3c0dfd1e9bd8ac396102c1dbcdbd7bf",
+      "bytes": 9111
+    }
+  ],
+  "sourceScope": "Component source and final driver snapshots. Shared Application and full shipped package hashes remain in the containing checkpoint; historical component-summary.json is not rewritten."
+}

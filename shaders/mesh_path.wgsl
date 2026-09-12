@@ -22,11 +22,28 @@ fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f3
     }
     let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
     let reference = clip.z - 0.003 * sunShadow.params.z;
+    // A constant reference at every PCF tap compares a sloped receiver against
+    // a different point on itself. Project its geometric plane into light clip
+    // coordinates; the orthographic projection has mutually orthogonal rows.
+    // Normal/raster bias still covers the bilinear half-texel footprint. Moving
+    // the reference with each tap avoids increasing global contact separation.
+    let rowX = vec3<f32>(sunShadow.viewProj[0].x, sunShadow.viewProj[1].x, sunShadow.viewProj[2].x);
+    let rowY = vec3<f32>(sunShadow.viewProj[0].y, sunShadow.viewProj[1].y, sunShadow.viewProj[2].y);
+    let rowZ = vec3<f32>(sunShadow.viewProj[0].z, sunShadow.viewProj[1].z, sunShadow.viewProj[2].z);
+    let plane = vec3<f32>(dot(geometricNormal, rowX) / dot(rowX, rowX),
+        dot(geometricNormal, rowY) / dot(rowY, rowY),
+        dot(geometricNormal, rowZ) / dot(rowZ, rowZ));
+    var depthGradient = vec2<f32>(0.0);
+    if (abs(plane.z) > 1.0e-5) {
+        // UV X is half clip X; UV Y is inverted half clip Y.
+        depthGradient = vec2<f32>(-2.0 * plane.x, 2.0 * plane.y) / plane.z;
+    }
     var visibility = 0.0;
     for (var y = -1; y <= 1; y += 1) {
         for (var x = -1; x <= 1; x += 1) {
             visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+                uv + vec2<f32>(f32(x), f32(y)) * texel,
+                reference + dot(depthGradient, vec2<f32>(f32(x), f32(y)) * texel));
         }
     }
     // A local map fades at its border instead of following the camera as a hard edge.
@@ -248,6 +265,7 @@ struct GpuDrawInstance {
     materialIndex : u32,
     padding : vec2<u32>,
     baseColorOverride : vec4<f32>,
+    surface : vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -332,6 +350,7 @@ struct VertexOutput {
     @location(5) texCoord : vec2<f32>,
     @location(6) worldTangent : vec4<f32>,
     @location(7) @interpolate(flat) baseColorOverride : vec4<f32>,
+    @location(8) @interpolate(flat) surface : vec4<f32>,
 };
 
 fn meshVertex(input : VertexInput, shadowPass: bool) -> VertexOutput {
@@ -361,6 +380,7 @@ fn meshVertex(input : VertexInput, shadowPass: bool) -> VertexOutput {
         normalMatrix * input.normal * determinantSign, vec3<f32>(0.0, 1.0, 0.0));
     output.tintColor = instance.tintColor;
     output.baseColorOverride = instance.baseColorOverride;
+    output.surface = instance.surface;
     output.materialIndex = instance.materialIndex;
     output.emissiveBoost = instance.emissiveBoost;
     output.texCoord = input.texCoord;
@@ -404,6 +424,19 @@ fn distributionGGX(normal : vec3<f32>, halfVector : vec3<f32>,
         * (alphaSquared - 1.0) + 1.0;
     return alphaSquared
         / max(3.141592653589793 * denominatorTerm * denominatorTerm, 1.0e-6);
+}
+
+// The legacy clamp is retained above. Cove's r>=.045 guarantees a finite
+// GGX denominator; 1e-12 preserves its narrow normalized peak (including film).
+fn distributionGGXCove(normal : vec3<f32>, halfVector : vec3<f32>,
+                   roughness : f32) -> f32 {
+    let alpha = roughness * roughness;
+    let alphaSquared = alpha * alpha;
+    let normalDotHalf = max(dot(normal, halfVector), 0.0);
+    let denominatorTerm = normalDotHalf * normalDotHalf
+        * (alphaSquared - 1.0) + 1.0;
+    return alphaSquared
+        / max(3.141592653589793 * denominatorTerm * denominatorTerm, 1.0e-12);
 }
 
 fn geometrySchlickGGX(normalDotDirection : f32, roughness : f32) -> f32 {
@@ -477,10 +510,40 @@ fn shadeLinear(input : VertexOutput, frontFacing : bool) -> vec4<f32> {
     let texCoordDx = dpdx(input.texCoord);
     let texCoordDy = dpdy(input.texCoord);
     let material = materials[input.materialIndex];
+    let textureMask = material.flags.w;
+    var normal = safeNormalize(input.worldNormal, vec3<f32>(0.0, 1.0, 0.0));
+    if (!frontFacing && material.flags.y != 0u) {
+        normal = -normal;
+    }
+    let geometricNormal = normal;
+    if ((textureMask & 2u) != 0u) {
+        let tangent = safeNormalize(
+            input.worldTangent.xyz - normal * dot(normal, input.worldTangent.xyz),
+            vec3<f32>(1.0, 0.0, 0.0));
+        let bitangent = safeNormalize(
+            cross(normal, tangent) * input.worldTangent.w,
+            vec3<f32>(0.0, 0.0, 1.0));
+        let encodedNormal = textureSampleGrad(
+            normalTexture, materialSampler, input.texCoord,
+            texCoordDx, texCoordDy).xyz;
+        let tangentNormal = safeNormalize(
+            vec3<f32>((encodedNormal.xy * 2.0 - vec2<f32>(1.0))
+                      * material.metallicRoughnessNormalOcclusion.z,
+                      encodedNormal.z * 2.0 - 1.0),
+            vec3<f32>(0.0, 0.0, 1.0));
+        normal = safeNormalize(
+            mat3x3<f32>(tangent, bitangent, normal) * tangentNormal,
+            normal);
+    }
+    // Sample normal variation before discard/material-dependent exit. Add its
+    // bounded variance to GGX alpha squared, so narrow moving highlights lose
+    // energy into their pixel footprint instead of flickering between samples.
+    let normalDx=dpdx(normal);
+    let normalDy=dpdy(normal);
+    let normalVariance=min(0.25,0.5*(dot(normalDx,normalDx)+dot(normalDy,normalDy)));
     if (!frontFacing && material.flags.y == 0u) {
         discard;
     }
-    let textureMask = material.flags.w;
     var baseColorSample = vec4<f32>(1.0);
     if ((textureMask & 1u) != 0u) {
         baseColorSample = textureSampleGrad(
@@ -512,30 +575,6 @@ fn shadeLinear(input : VertexOutput, frontFacing : bool) -> vec4<f32> {
         }
     }
 
-    var normal = safeNormalize(input.worldNormal, vec3<f32>(0.0, 1.0, 0.0));
-    if (!frontFacing && material.flags.y != 0u) {
-        normal = -normal;
-    }
-    let geometricNormal = normal;
-    if ((textureMask & 2u) != 0u) {
-        let tangent = safeNormalize(
-            input.worldTangent.xyz - normal * dot(normal, input.worldTangent.xyz),
-            vec3<f32>(1.0, 0.0, 0.0));
-        let bitangent = safeNormalize(
-            cross(normal, tangent) * input.worldTangent.w,
-            vec3<f32>(0.0, 0.0, 1.0));
-        let encodedNormal = textureSampleGrad(
-            normalTexture, materialSampler, input.texCoord,
-            texCoordDx, texCoordDy).xyz;
-        let tangentNormal = safeNormalize(
-            vec3<f32>((encodedNormal.xy * 2.0 - vec2<f32>(1.0))
-                      * material.metallicRoughnessNormalOcclusion.z,
-                      encodedNormal.z * 2.0 - 1.0),
-            vec3<f32>(0.0, 0.0, 1.0));
-        normal = safeNormalize(
-            mat3x3<f32>(tangent, bitangent, normal) * tangentNormal,
-            normal);
-    }
     let viewDirection = safeNormalize(
         cameraDelta, vec3<f32>(0.0, 0.0, 1.0));
     let lightDirection = safeNormalize(
@@ -554,18 +593,25 @@ fn shadeLinear(input : VertexOutput, frontFacing : bool) -> vec4<f32> {
     }
     let metallic = clamp(material.metallicRoughnessNormalOcclusion.x
                          * metallicRoughnessSample.b, 0.0, 1.0);
-    let roughness = clamp(material.metallicRoughnessNormalOcclusion.y
+    var roughness = clamp(material.metallicRoughnessNormalOcclusion.y
                           * metallicRoughnessSample.g, 0.045, 1.0);
+    if (input.surface.z > 0.5) {
+        // Accepted damage is abrasion only; it never invents missing geometry,
+        // changes metalness, or darkens the underlying pigment/conductor.
+        roughness=mix(roughness,max(roughness,0.72),input.surface.y);
+        roughness=sqrt(sqrt(min(1.0,pow(roughness,4.0)+normalVariance)));
+    }
     let f0 = mix(vec3<f32>(0.04), albedo, metallic);
     let fresnel = fresnelSchlick(max(dot(halfVector, viewDirection), 0.0), f0);
-    let distribution = distributionGGX(normal, halfVector, roughness);
+    var distribution = distributionGGX(normal, halfVector, roughness);
+    if (input.surface.z > 0.5) { distribution=distributionGGXCove(normal,halfVector,roughness); }
     let geometry = geometrySmith(normal, viewDirection, lightDirection, roughness);
     let specular = distribution * geometry * fresnel
         / max(4.0 * normalDotView * normalDotLight, 1.0e-5);
     let diffuseWeight = (vec3<f32>(1.0) - fresnel) * (1.0 - metallic);
     let sunRadiance = uniforms.sunColorIntensity.rgb
         * max(uniforms.sunColorIntensity.w, 0.0);
-    let direct = (diffuseWeight * albedo * 0.3183098861837907 + specular)
+    var direct = (diffuseWeight * albedo * 0.3183098861837907 + specular)
         * sunRadiance * normalDotLight * sunVisibility(input.worldPosition, geometricNormal, lightDirection);
 
     let reflectionDirection = reflect(-viewDirection, normal);
@@ -596,6 +642,60 @@ fn shadeLinear(input : VertexOutput, frontFacing : bool) -> vec4<f32> {
             * (1.0 - metallic);
         ambient = (environmentDiffuseWeight * albedo * diffuseEnvironment
             + environmentFresnel * specularEnvironment) * ambientScale;
+    }
+
+    if (input.surface.z > 0.5 && (input.surface.x > 0.0 || input.surface.w > 0.0)) {
+        // Thin water film, IOR 1.333. Two-interface transmission attenuates
+        // the substrate; a separate dielectric lobe reflects the same lights.
+        // This bounded layered approximation neglects the tiny film's lateral
+        // displacement. Immersed surfaces omit this air/water interface: the
+        // ocean compositor owns it. Conductor F0 and metallic stay unchanged.
+        let waterF0=vec3<f32>(0.0203731878);
+        let filmRoughness=sqrt(sqrt(min(1.0,
+            pow(mix(0.10,0.28,roughness),4.0)+normalVariance)));
+        let wetF0=mix(vec3<f32>(0.003474438),albedo,metallic); // (1.5-1.333)^2/(1.5+1.333)^2
+        let filmView=fresnelSchlick(normalDotView,waterF0);
+        let filmLight=fresnelSchlick(normalDotLight,waterF0);
+        let filmHalf=fresnelSchlick(max(dot(halfVector,viewDirection),0.0),waterF0);
+        let wetFresnel=fresnelSchlick(max(dot(halfVector,viewDirection),0.0),wetF0);
+        let substrateSpecular=distribution*geometry*wetFresnel
+            /max(4.0*normalDotView*normalDotLight,1.0e-5);
+        let substrateDiffuse=(vec3<f32>(1.0)-wetFresnel)*(1.0-metallic)*albedo*0.3183098861837907;
+        let filmSpecular=distributionGGXCove(normal,halfVector,filmRoughness)
+            *geometrySmith(normal,viewDirection,lightDirection,filmRoughness)*filmHalf
+            /max(4.0*normalDotView*normalDotLight,1.0e-5);
+        let substrateDirect=(substrateDiffuse+substrateSpecular)
+            *sunRadiance*normalDotLight*sunVisibility(input.worldPosition,geometricNormal,lightDirection);
+        let wetDirect=substrateDirect*(vec3<f32>(1.0)-filmView)*(vec3<f32>(1.0)-filmLight)
+            +filmSpecular*sunRadiance*normalDotLight*sunVisibility(input.worldPosition,geometricNormal,lightDirection);
+        var substrateAmbient=vec3<f32>(0.0);
+        var wetAmbient=vec3<f32>(0.0);
+        // Cosine-weighted Schlick average for incoming environment transmission.
+        let meanFilmFresnel=waterF0+(vec3<f32>(1.0)-waterF0)/21.0;
+        let environmentTransmission=(vec3<f32>(1.0)-filmView)*(vec3<f32>(1.0)-meanFilmFresnel);
+        if (uniforms.environmentParams.x > 0.5) {
+            let maxLod=f32(textureNumLevels(filteredSpecular)-1u);
+            let reflected=textureSampleLevel(filteredSpecular,filteredSampler,reflectionDirection,roughness*maxLod).rgb;
+            let filmReflected=textureSampleLevel(filteredSpecular,filteredSampler,reflectionDirection,filmRoughness*maxLod).rgb;
+            let irradiance=textureSampleLevel(filteredDiffuse,filteredSampler,normal,0.0).rgb;
+            let substrateBrdf=textureSampleLevel(environmentBrdf,filteredSampler,vec2<f32>(normalDotView,roughness),0.0).rg;
+            let filmBrdf=textureSampleLevel(environmentBrdf,filteredSampler,vec2<f32>(normalDotView,filmRoughness),0.0).rg;
+            let substrateEnergy=clamp(wetF0*substrateBrdf.x+vec3<f32>(substrateBrdf.y),vec3<f32>(0.0),vec3<f32>(1.0));
+            let filmEnergy=clamp(waterF0*filmBrdf.x+vec3<f32>(filmBrdf.y),vec3<f32>(0.0),vec3<f32>(1.0));
+            substrateAmbient=((vec3<f32>(1.0)-substrateEnergy)*(1.0-metallic)*albedo*irradiance
+                +substrateEnergy*reflected)*ambientScale;
+            wetAmbient=substrateAmbient*environmentTransmission+filmEnergy*filmReflected*ambientScale;
+        } else {
+            let maxLod=f32(max(textureNumLevels(environmentTexture),1u)-1u);
+            let substrateFresnel=fresnelSchlickRoughness(normalDotView,wetF0,roughness);
+            let filmFresnel=fresnelSchlickRoughness(normalDotView,waterF0,filmRoughness);
+            substrateAmbient=((vec3<f32>(1.0)-substrateFresnel)*(1.0-metallic)*albedo*sampleEnvironment(normal,maxLod)
+                +substrateFresnel*sampleEnvironment(reflectionDirection,roughness*maxLod))*ambientScale;
+            wetAmbient=substrateAmbient*environmentTransmission
+                +filmFresnel*sampleEnvironment(reflectionDirection,filmRoughness*maxLod)*ambientScale;
+        }
+        direct=mix(mix(direct,wetDirect,input.surface.x),substrateDirect,input.surface.w);
+        ambient=mix(mix(ambient,wetAmbient,input.surface.x),substrateAmbient,input.surface.w);
     }
 
     var emissiveSample = vec3<f32>(1.0);

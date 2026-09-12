@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "game": {
+    "passed": 2207,
+    "skipped": 3,
+    "disabled": 4,
+    "failed": 0,
+    "executed": 2210,
+    "seconds": 1113.471,
+    "cached": false,
+    "xml": "mandatory-game.xml"
+  },
+  "terrainImport": {
+    "passed": 10,
+    "skipped": 1,
+    "failed": 0,
+    "cached": true,
+    "xml": "mandatory-terrain-import.xml"
+  },
+  "command": "nix-shell --run \"bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test --test_output=errors\"",
+  "outerSeconds": 1115.598,
+  "noSourceChangesSinceFinalBuilds": true
+}

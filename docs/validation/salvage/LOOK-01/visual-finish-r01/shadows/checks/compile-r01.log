@@ -1,0 +1,19 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:scene_sun_shadows (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:scene_sun_shadows (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:scene_sun_shadows (1 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:scene_sun_shadows (2 packages loaded, 3669 targets configured).
+[588 / 593] Compiling tests/test_scene_sun_shadows.cpp; 1s linux-sandbox ... (2 actions running)
+[589 / 593] Compiling src/app/application.cpp; 2s linux-sandbox
+[590 / 593] [Prepa] Linking src/app/libapp.so
+INFO: Found 1 target...
+Target //tests:scene_sun_shadows up-to-date:
+  bazel-bin/tests/scene_sun_shadows
+INFO: Elapsed time: 10.656s, Critical Path: 8.88s
+INFO: 9 processes: 584 action cache hit, 5 internal, 4 linux-sandbox.
+INFO: Build completed successfully, 9 total actions

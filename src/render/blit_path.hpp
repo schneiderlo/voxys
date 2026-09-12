@@ -51,6 +51,7 @@ struct BlitPathConfig {
     WGPUTextureFormat colorFormat;       ///< Output color format (default: BGRA8Unorm)
     float heightScale;                   ///< World-space height range
     float cellScale;                     ///< World-space size per heightmap cell
+    bool coveVisuals = false;             ///< Explicit playable-Cove material/presentation profile
     bool enableOpaqueScene = false;       ///< Authored opaque objects before water
     float fogDensity;                    ///< Exponential fog density
 
@@ -126,6 +127,11 @@ public:
     [[nodiscard]] uint64_t opaqueSceneBytes() const noexcept {
         return opaqueScene_ ? opaqueScene_->requestedBytes() : 0;
     }
+    // Borrowed pre-water linear RGBA16F target; invalid after resize/shutdown.
+    // Existing CopySrc usage permits same-encoder numeric validation.
+    [[nodiscard]] WGPUTexture opaqueSceneColorTexture() const noexcept {
+        return opaqueScene_ ? opaqueScene_->colorTexture() : nullptr;
+    }
     /// Release all GPU resources
     void shutdown();
 
@@ -164,6 +170,8 @@ public:
 
     /// Preserve the combined scene linear-depth target for a later consumer.
     /// Color-only frames use an otherwise identical single-target pipeline.
+    [[nodiscard]] WGPUTextureView finalLinearDepthView() const noexcept { return depthView_; }
+
     void setLinearDepthRequired(bool required) noexcept {
         linearDepthRequired_ = required;
     }
@@ -292,6 +300,11 @@ private:
     WGPUPipelineLayout sceneTerrainLayout_ = nullptr, sceneWaterLayout_ = nullptr;
     WGPURenderPipeline sceneTerrainPipeline_ = nullptr;
     WGPURenderPipeline sceneWaterPipeline_ = nullptr, sceneWaterColorPipeline_ = nullptr;
+    WGPUBindGroupLayout sceneEnvironmentLayout_ = nullptr;
+    WGPUBindGroup sceneEnvironmentBindings_ = nullptr;
+    FilteredEnvironmentViews sceneEnvironmentViews_{}; // Identity only; bind group retains GPU refs.
+    [[nodiscard]] bool bindSceneEnvironment(const FilteredEnvironmentViews&);
+    void clearSceneEnvironment() noexcept;
     WGPUBindGroup sceneTerrainBindings_ = nullptr;
     WGPUBindGroup sceneWaterBindings_ = nullptr;
     WGPUPipelineLayout cachedPipelineLayout_ = nullptr;

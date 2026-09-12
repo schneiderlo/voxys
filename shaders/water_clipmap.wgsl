@@ -1,3 +1,6 @@
+// Opt-in playable Cove profile; all other scenes preserve their reference appearance.
+override COVE_VISUALS : bool = false;
+
 // BEGIN GENERATED SCENE SUN SHADOW
 struct SunShadowUniforms {
     viewProj: mat4x4<f32>,
@@ -22,11 +25,28 @@ fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f3
     }
     let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
     let reference = clip.z - 0.003 * sunShadow.params.z;
+    // A constant reference at every PCF tap compares a sloped receiver against
+    // a different point on itself. Project its geometric plane into light clip
+    // coordinates; the orthographic projection has mutually orthogonal rows.
+    // Normal/raster bias still covers the bilinear half-texel footprint. Moving
+    // the reference with each tap avoids increasing global contact separation.
+    let rowX = vec3<f32>(sunShadow.viewProj[0].x, sunShadow.viewProj[1].x, sunShadow.viewProj[2].x);
+    let rowY = vec3<f32>(sunShadow.viewProj[0].y, sunShadow.viewProj[1].y, sunShadow.viewProj[2].y);
+    let rowZ = vec3<f32>(sunShadow.viewProj[0].z, sunShadow.viewProj[1].z, sunShadow.viewProj[2].z);
+    let plane = vec3<f32>(dot(geometricNormal, rowX) / dot(rowX, rowX),
+        dot(geometricNormal, rowY) / dot(rowY, rowY),
+        dot(geometricNormal, rowZ) / dot(rowZ, rowZ));
+    var depthGradient = vec2<f32>(0.0);
+    if (abs(plane.z) > 1.0e-5) {
+        // UV X is half clip X; UV Y is inverted half clip Y.
+        depthGradient = vec2<f32>(-2.0 * plane.x, 2.0 * plane.y) / plane.z;
+    }
     var visibility = 0.0;
     for (var y = -1; y <= 1; y += 1) {
         for (var x = -1; x <= 1; x += 1) {
             visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+                uv + vec2<f32>(f32(x), f32(y)) * texel,
+                reference + dot(depthGradient, vec2<f32>(f32(x), f32(y)) * texel));
         }
     }
     // A local map fades at its border instead of following the camera as a hard edge.
@@ -118,7 +138,10 @@ const OCEAN_UNDERWATER_SPEED : f32 = 1.2;
 const OCEAN_PROCEDURAL_SEABED_DEPTH : f32 = 100.0;
 
 fn oceanAbsorption() -> vec3<f32> {
-    return OCEAN_BASE_ABSORPTION * camera.waterOptics.z;
+    // Metre-based Beer-Lambert coefficients for the shallow coastal preset.
+    // Geometry, wave forces and the water clock are unchanged.
+    return select(OCEAN_BASE_ABSORPTION, vec3<f32>(0.24, 0.075, 0.045), COVE_VISUALS)
+        * camera.waterOptics.z;
 }
 fn oceanSurfaceColor() -> vec3<f32> { return camera.waterColorA.rgb; }
 fn oceanScatterColor() -> vec3<f32> {
@@ -344,6 +367,7 @@ fn linearToSrgb(linear : vec3<f32>) -> vec3<f32> {
 
 fn presentColor(colorInput : vec3<f32>, uv : vec2<f32>,
                 dimensions : vec2<u32>) -> vec3<f32> {
+    if (COVE_VISUALS) { return linearToSrgb(acesFilmic(colorInput * camera.ambientExposure.w)); }
     let pixel = uv * vec2<f32>(f32(max(dimensions.x, 1u)),
                                f32(max(dimensions.y, 1u)));
     let grain = fract(52.9829189 *

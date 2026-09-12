@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "tests": 6,
+  "skips": 0,
+  "scope": "CPU only:100m source/contact admission;100000m published placement limit; negative/mixed/2km camera placement preserves canonical world;101m vertex refuses",
+  "historical": "cpu-sector-r01 did not execute tests: duplicate same-line SCOPED_TRACE declaration. Corrected test only; retained log.",
+  "cases": [
+    {
+      "suite": "CoveEnvironment",
+      "name": "InstalledThreeLodPairsKeepCollisionEntryAndExactResidentCapacity",
+      "result": "completed",
+      "seconds": "0.22"
+    },
+    {
+      "suite": "CoveEnvironment",
+      "name": "InvalidManifestRefusesBeforeAnyPayloadOrFallbackRequest",
+      "result": "completed",
+      "seconds": "0.437"
+    },
+    {
+      "suite": "CoveEnvironment",
+      "name": "CorruptOversizedAndRehashedDisplacedModelsCannotBecomeScenery",
+      "result": "completed",
+      "seconds": "0.233"
+    },
+    {
+      "suite": "CoveEnvironment",
+      "name": "RehashedCollisionCannotAddInvisibleWallsOrLoseTheGantryOpening",
+      "result": "completed",
+      "seconds": "0.162"
+    },
+    {
+      "suite": "CoveEnvironment",
+      "name": "OwnerReadmissionRecountsActualMeshesAndPreservesPriorOutputOnRefusal",
+      "result": "completed",
+      "seconds": "0.976"
+    },
+    {
+      "suite": "CoveEnvironment",
+      "name": "StrictLocalGeometryPlacesAcrossNegativeMixedAndDistantCameraSectors",
+      "result": "completed",
+      "seconds": "0.351"
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/game/assets/cove_environment.cpp",
+      "sha256": "b7d4813df2d1bd30786635a25cdbcf5d4d4d25794831cb0e457f48a03b94f376"
+    },
+    {
+      "path": "src/game/assets/cove_environment.hpp",
+      "sha256": "94fbe170958b7f27f0995492cf2a65d307cf3d1d67fe6ba2b157867a7b83812a"
+    },
+    {
+      "path": "tests/test_cove_environment.cpp",
+      "sha256": "354706980316c69208e0eacff31c8ebb1b01ecb4f37907ef1600984fc6f21a95"
+    },
+    {
+      "path": "data/salvage/cove-environment-r01/manifest.json",
+      "sha256": "74e62924232e44d7b425f2c02b5aaa2cb5e0eb0243e967a3f3d97a433e73af7c"
+    }
+  ]
+}

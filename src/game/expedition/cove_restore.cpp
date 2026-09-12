@@ -17,7 +17,8 @@ physics::AuthoredRootMotion motion(const CoveSavedMotion& value){
 }
 std::unique_ptr<CoveRestoreCandidate> CoveRestoreCandidate::prepare(std::span<const std::byte> bytes,
     const CoveSaveContext& context,const assets::LoadedAssetFixture& installed,const PartCatalog& catalog,
-    std::span<const CoveBoatAssembly::Part> originalBindings,CovePlayer::Ground ground,std::string& error,const StarterKit* installedStarter,CovePlayer::GroundSupport support){
+    std::span<const CoveBoatAssembly::Part> originalBindings,CovePlayer::Ground ground,std::string& error,const StarterKit* installedStarter,CovePlayer::GroundSupport support,
+    std::span<const CovePlayer::StaticObstacle> environment){
     const auto fail=[&](const char* reason)->std::unique_ptr<CoveRestoreCandidate>{error=reason;return {};};
     try {
         auto result=std::make_unique<CoveRestoreCandidate>();CoveSaveIssue issue;
@@ -110,6 +111,7 @@ std::unique_ptr<CoveRestoreCandidate> CoveRestoreCandidate::prepare(std::span<co
             boatSlots.push_back(static_cast<uint32_t>(i));
         if(!result->player->initialize(*result->scene,std::move(ground),error,boatSlots,std::move(support))
             ||!result->roots->bindPlayer(*result->player,*result->boat,{context.origin.x,context.origin.y,context.origin.z},error))return {};
+        if(!result->player->setEnvironmentObstacles(environment))return fail("Cannot restore Cove environment collision.");
         if(physical.harborLift.profile){
             auto structure=CoveHarborLift::prepareStructure(*installed.registry.navigation,error);
             if(!structure||!structure->applyPlayerCollision(*result->player))return fail("Cannot restore harbor collision.");

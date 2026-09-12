@@ -184,11 +184,14 @@ bool drawDiagnosticPixels(MeshPath& path, DiagnosticContext& context, glm::vec3 
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(resources.encoder, &passDescriptor);
     if (!pass) return false;
     wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
-    path.render(resources.encoder, resources.colorView, resources.depthView,
+    if (!path.render(resources.encoder, resources.colorView, resources.depthView,
         glm::lookAt(camera, glm::vec3(0), glm::vec3(0,1,0)),
         perspective ? glm::perspective(glm::radians(55.0f),1.0f,0.1f,10.0f)
                     : glm::ortho(-1.6f,1.6f,-1.6f,1.6f,0.1f,10.0f),
-        camera, lighting, extent, extent, false);
+        camera, lighting, extent, extent, false)) {
+        path.discardEnvironmentEncoding();
+        return false;
+    }
     gpu::CompatImageCopyTexture source{}; source.texture = resources.color; source.aspect = WGPUTextureAspect_All;
 #if defined(VOXY_WASM)
     WGPUTexelCopyBufferInfo destination{};
@@ -360,7 +363,7 @@ TEST(MeshPathGPUTest, NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeS
             propeller?"rotor":"drum",green,greenDifferences,changed,liveDifferences,staleColor);
         ++assetIndex;
     }
-    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
     path.shutdown();
 }
 
@@ -428,6 +431,20 @@ TEST(MeshPathGPUTest, AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration)
     std::printf("Paint live root static=%d,%d,%d live=%d,%d,%d differingBytes=%zu\n",
         painted.r,painted.g,painted.b,pixelAt(actual,32,32).r,pixelAt(actual,32,32).g,
         pixelAt(actual,32,32).b,differences);
+    auto coatedData=data;coatedData.materials[0].unlit=0;coatedData.materials[0].roughnessFactor=.42f;
+    ASSERT_TRUE(path.loadMeshData(coatedData));
+    lighting.direction={.1f,.2f,-1};lighting.sunIntensity=.6f;
+    const glm::vec4 acceptedSurface{.75f,.3f,1,.5f};
+    path.clearInstances();path.addInstance({.assetIndex=1,
+        .modelMatrix=glm::translate(glm::mat4(1),rootPosition)*glm::mat4_cast(rootRotation),
+        .tintColor=selection,.baseColorOverride=paint,.surface=acceptedSurface});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,reference));
+    path.clearInstances();path.addInstance({.assetIndex=1,.tintColor=selection,.physicsBody={1,3},
+        .baseColorOverride=paint,.surface=acceptedSurface});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
+    differences=0;for(size_t i=0;i<actual.size();++i)differences+=actual[i]!=reference[i];
+    EXPECT_LE(differences,32u);EXPECT_GT(pixelAt(actual,32,32).b,10);
+    RecordProperty("surfaceLiveStaticDifferingBytes",std::to_string(differences));
     poses[2].x+=4;
     ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),bodyView.poseBuffer,0,std::span<const glm::vec4>(poses)));
     ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
@@ -656,6 +673,102 @@ TEST(MeshPathGPUTest, PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndO
                 pixelAt(painted,32,32).b,changedBytes,paintedDifferences);
         }
     }
+}
+
+TEST(MeshPathGPUTest, CoveSurfaceLayersWetReflectionWithoutChangingLegacyAlphaOrMetalHue) {
+    DiagnosticContext context; ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    PrimitiveLighting light;light.fogDensity=0;light.ambientIntensity=0;light.sunIntensity=.3f;
+    light.sunColor={1,1,1};light.exposure=1;
+    const auto draw=[&](uint32_t asset,glm::vec4 surface,glm::vec3 direction,std::vector<uint8_t>& pixels) {
+        light.direction=direction;path.clearInstances();
+        path.addInstance({.assetIndex=asset,.surface=surface});
+        return drawDiagnosticPixels(path,context,{0,0,-3},light,pixels);
+    };
+    for(float metallic:{0.f,1.f}) {
+        auto data=diagnosticQuad();auto& material=data.materials[0];
+        material.baseColorFactor[0]=.45f;material.baseColorFactor[1]=.18f;material.baseColorFactor[2]=.035f;
+        material.metallicFactor=metallic;material.roughnessFactor=.45f;
+        const auto asset=static_cast<uint32_t>(path.assetCount());ASSERT_TRUE(path.loadMeshData(data));
+        std::vector<uint8_t> legacy,disabled,dry,wet,partial,damaged,offDry,offWet,immersed,halfImmersed;
+        ASSERT_TRUE(draw(asset,{0,0,0,0},{0,0,-1},legacy));
+        EXPECT_FALSE(draw(asset,{1,1,0,0},{0,0,-1},disabled));
+        EXPECT_FALSE(draw(asset,{0,0,0,1},{0,0,-1},disabled));
+        ASSERT_TRUE(draw(asset,{0,0,1,0},{0,0,-1},dry));
+        ASSERT_TRUE(draw(asset,{1,0,1,0},{0,0,-1},wet));
+        ASSERT_TRUE(draw(asset,{.5f,0,1,0},{0,0,-1},partial));
+        ASSERT_TRUE(draw(asset,{0,1,1,0},{0,0,-1},damaged));
+        ASSERT_TRUE(draw(asset,{0,0,1,0},{.8f,.3f,-1},offDry));
+        ASSERT_TRUE(draw(asset,{1,0,1,0},{.8f,.3f,-1},offWet));
+        ASSERT_TRUE(draw(asset,{1,0,1,1},{0,0,-1},immersed));
+        ASSERT_TRUE(draw(asset,{1,0,1,.5f},{0,0,-1},halfImmersed));
+        const auto centerDry=pixelAt(dry,32,32),centerWet=pixelAt(wet,32,32);
+        EXPECT_GT(centerWet.r,centerDry.r+10); // Film adds a narrower actual light reflection.
+        EXPECT_LT(pixelAt(offWet,32,32).r,pixelAt(offDry,32,32).r); // Not uniform brightening.
+        EXPECT_GT(pixelAt(offWet,32,32).r,pixelAt(offWet,32,32).b+5); // Substrate hue outside the white film highlight.
+        EXPECT_LT(pixelAt(damaged,32,32).r,centerDry.r); // Abrasion spreads the highlight.
+        // A submerged material retains the water/substrate interface, without
+        // duplicating the ocean's bright air/water film at the same highlight.
+        EXPECT_LT(pixelAt(immersed,32,32).r,centerWet.r-10);
+        EXPECT_GT(pixelAt(immersed,32,32).r,pixelAt(immersed,32,32).b+5);
+        if(metallic==1) { EXPECT_EQ(immersed,dry); } // No arbitrary conductor darkening.
+        size_t changed=0,opaque=0;
+        for(size_t offset=0;offset<wet.size();offset+=4) {
+            EXPECT_EQ(wet[offset+3],dry[offset+3]);
+            EXPECT_EQ(immersed[offset+3],dry[offset+3]);
+            for(size_t c=0;c<3;++c) {
+                changed+=wet[offset+c]!=dry[offset+c];
+                EXPECT_GE(int(partial[offset+c]),std::min(int(wet[offset+c]),int(dry[offset+c]))-1);
+                EXPECT_LE(int(partial[offset+c]),std::max(int(wet[offset+c]),int(dry[offset+c]))+1);
+                EXPECT_GE(int(halfImmersed[offset+c]),std::min(int(wet[offset+c]),int(immersed[offset+c]))-1);
+                EXPECT_LE(int(halfImmersed[offset+c]),std::max(int(wet[offset+c]),int(immersed[offset+c]))+1);
+            }
+            opaque+=wet[offset]!=0||wet[offset+1]!=0||wet[offset+2]!=0;
+        }
+        EXPECT_GT(changed,500u);EXPECT_GT(opaque,500u);
+        RecordProperty(metallic==0 ? "plasticWetChangedBytes" : "metalWetChangedBytes",std::to_string(changed));
+        RecordProperty(metallic==0 ? "plasticWetPeak" : "metalWetPeak",centerWet.r);
+        RecordProperty(metallic==0 ? "plasticImmersedPeak" : "metalImmersedPeak",pixelAt(immersed,32,32).r);
+    }
+    // Explicit opt-in never overrides unlit semantics, cutouts, or authored alpha.
+    auto mask=diagnosticQuad();mask.materials[0].unlit=1;mask.materials[0].alphaMode=moto::VmeshAlphaMask;
+    setDiagnosticTexture(mask,moto::VmeshTextureBaseColor,
+        {{255,128,64,255,128,255,96,255,64,240,255,0,224,64,208,255}});
+    const auto asset=static_cast<uint32_t>(path.assetCount());ASSERT_TRUE(path.loadMeshData(mask));
+    std::vector<uint8_t> original,coated;ASSERT_TRUE(draw(asset,{0,0,0,0},{0,0,-1},original));
+    ASSERT_TRUE(draw(asset,{1,1,1,1},{0,0,-1},coated));EXPECT_EQ(original,coated);
+    EXPECT_EQ(pixelAt(coated,22,42),glm::ivec3(0));EXPECT_GT(pixelAt(coated,22,22).r,10);
+}
+
+TEST(MeshPathGPUTest, CoveNormalVarianceBroadensSubpixelSpecularHighlights) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto data=diagnosticQuad();data.materials[0].roughnessFactor=.045f;data.materials[0].metallicFactor=1;
+    for(size_t i=0;i<4;++i) {
+        moto::VmeshVertex v{};std::memcpy(&v,data.vertices.data()+i*sizeof(v),sizeof(v));
+        const auto n=glm::normalize(glm::vec3(v.position[0]*.6f,v.position[1]*.6f,-1));
+        const auto t=glm::normalize(glm::vec3(1,0,n.x/-n.z));
+        for(int c=0;c<3;++c){v.normal[c]=n[c];v.tangent[c]=t[c];}
+        std::memcpy(data.vertices.data()+i*sizeof(v),&v,sizeof(v));
+    }
+    ASSERT_TRUE(path.loadMeshData(data));
+    PrimitiveLighting light;light.direction={0,0,-1};light.fogDensity=0;light.ambientIntensity=0;
+    light.sunIntensity=.025f;light.sunColor={1,1,1};light.exposure=1;
+    std::vector<uint8_t> legacy,filtered;path.addInstance({});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,legacy));
+    path.clearInstances();path.addInstance({.surface={0,0,1,0}});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,filtered));
+    size_t legacyFootprint=0,filteredFootprint=0,changed=0;
+    for(size_t i=0;i<legacy.size();i+=4) {
+        legacyFootprint+=legacy[i]>20;filteredFootprint+=filtered[i]>20;changed+=legacy[i]!=filtered[i];
+        EXPECT_EQ(legacy[i+3],filtered[i+3]);
+    }
+    EXPECT_GT(filteredFootprint,legacyFootprint);EXPECT_GT(changed,20u);
+    EXPECT_GT(pixelAt(filtered,32,32).r,20);
+    EXPECT_LT(filteredFootprint,200u);EXPECT_LT(pixelAt(filtered,20,20).r,10); // A localized broadened lobe, not uniform brightness.
+    RecordProperty("unfilteredHighlightPixels",std::to_string(legacyFootprint));RecordProperty("filteredHighlightPixels",std::to_string(filteredFootprint));
 }
 
 TEST(MeshPathGPUTest, DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame) {
@@ -988,6 +1101,32 @@ MeshPathConfig filteredConfig() {
 }
 }
 
+TEST(MeshPathGPUTest, CoveSmoothGgxPeakUsesFinitePhysicalDenominatorAndLeavesLegacyUntouched) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto data=diagnosticQuad();data.materials[0].metallicFactor=1;data.materials[0].roughnessFactor=.1f;
+    ASSERT_TRUE(path.loadMeshData(data));
+    // In the declared 3.2 m orthographic frame, pixel32's center is (.025,-.025).
+    // Reflect its actual view about -Z so NoH=1. Keep radiance low enough to
+    // measure the normalized narrow peak without saturating the display target.
+    PrimitiveLighting light;light.direction=glm::normalize(glm::vec3(.025f,-.025f,-3));
+    light.sunColor={1,1,1};light.sunIntensity=.0001f;light.ambientIntensity=0;light.fogDensity=0;light.exposure=1;
+    std::vector<uint8_t> legacy,disabled,cove;
+    path.addInstance({});ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,legacy));
+    path.clearInstances();path.addInstance({.surface={1,1,0,0}});
+    EXPECT_FALSE(drawDiagnosticPixels(path,context,{0,0,-3},light,disabled));
+    path.clearInstances();path.addInstance({.surface={0,0,1,0}});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,cove));
+    const double cosine=3/std::sqrt(9+2*.025*.025),k=1.1*1.1/8;
+    const double masking=cosine/(cosine*(1-k)+k);
+    const double distribution=1/(std::acos(-1.)*.0001);
+    const int expected=expectedGrey(float(distribution*masking*masking*.0001/(4*cosine)));
+    for(int c=0;c<3;++c)EXPECT_NEAR(pixelAt(cove,32,32)[c],expected,3);
+    EXPECT_GT(pixelAt(cove,32,32).r,pixelAt(legacy,32,32).r+20);
+    RecordProperty("smoothPeakExpectedGrey",expected);RecordProperty("smoothPeakActualGrey",pixelAt(cove,32,32).r);
+}
+
 TEST(MeshEnvironmentGPUTest, WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy) {
     DiagnosticContext context; ASSERT_TRUE(context.initHeadless());
     MeshPath path; ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),filteredConfig()));
@@ -1010,6 +1149,37 @@ TEST(MeshEnvironmentGPUTest, WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnerg
         for (int c=0;c<3;++c) EXPECT_NEAR(pixel[c],expected,3);
         EXPECT_TRUE(path.environmentLightingReady());
         EXPECT_EQ(path.environmentBakeCount(),1u);
+    }
+}
+
+TEST(MeshEnvironmentGPUTest, CoveWetFilmKeepsWhiteFurnaceBoundedAndUsesSharedFilteredOwner) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),filteredConfig()));
+    const auto lighting=environmentOnly();
+    for(uint32_t metal=0;metal<2;++metal) {
+        auto data=diagnosticQuad();data.materials[0].metallicFactor=float(metal);data.materials[0].roughnessFactor=.45f;
+        ASSERT_TRUE(path.loadMeshData(data));
+        std::vector<uint8_t> dry,wet,partial,immersed;
+        const auto draw=[&](float coverage,std::vector<uint8_t>& pixels,float immersion=0) {
+            path.clearInstances();path.addInstance({.assetIndex=metal,.surface={coverage,0,1,immersion}});
+            return drawDiagnosticPixels(path,context,{0,0,-3},lighting,pixels);
+        };
+        ASSERT_TRUE(draw(0,dry));ASSERT_TRUE(draw(1,wet));ASSERT_TRUE(draw(.5f,partial));
+        ASSERT_TRUE(draw(1,immersed,1));
+        const auto center=pixelAt(wet,32,32);
+        for(int c=0;c<3;++c) {
+            EXPECT_LE(center[c],expectedGrey(1)+2);EXPECT_GT(center[c],expectedGrey(.15f));
+            EXPECT_GE(pixelAt(partial,32,32)[c],std::min(center[c],pixelAt(dry,32,32)[c])-1);
+            EXPECT_LE(pixelAt(partial,32,32)[c],std::max(center[c],pixelAt(dry,32,32)[c])+1);
+            EXPECT_LE(pixelAt(immersed,32,32)[c],expectedGrey(1)+2);
+            EXPECT_GT(pixelAt(immersed,32,32)[c],expectedGrey(.15f));
+        }
+        if(metal==1) { EXPECT_EQ(immersed,dry); }
+        EXPECT_GT(std::abs(center.r-pixelAt(dry,32,32).r),1);
+        EXPECT_EQ(path.environmentBakeCount(),1u);EXPECT_TRUE(path.environmentLightingReady());
+        EXPECT_EQ(path.environmentLightingBytes(),MeshPath::filteredEnvironmentReservationBytes);
+        RecordProperty(metal==0 ? "plasticWetFurnaceGrey" : "metalWetFurnaceGrey",center.r);
+        RecordProperty(metal==0 ? "plasticImmersedFurnaceGrey" : "metalImmersedFurnaceGrey",pixelAt(immersed,32,32).r);
     }
 }
 

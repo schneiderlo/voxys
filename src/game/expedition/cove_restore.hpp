@@ -28,6 +28,7 @@ struct CoveRestoreCandidate {
         std::span<const std::byte> archiveBytes,const CoveSaveContext&,
         const assets::LoadedAssetFixture& installed,const construction::PartCatalog&,
         std::span<const CoveBoatAssembly::Part> originalBindings,CovePlayer::Ground,
-        std::string& error,const StarterKit* installedStarter = nullptr, CovePlayer::GroundSupport support = {});
+        std::string& error,const StarterKit* installedStarter = nullptr, CovePlayer::GroundSupport support = {},
+        std::span<const CovePlayer::StaticObstacle> environment = {});
 };
 } // namespace voxy::game::expedition

@@ -1,0 +1,27 @@
+{
+  "status": "verified-components-and-mandatory-suite-passed",
+  "baseline": "49e11b45d5df545779e464fbff53de44fd4b45ad",
+  "nativeBuild": {
+    "result": "passed",
+    "log": "checks/builds/native-build-r08.log.gz"
+  },
+  "wasmBuild": {
+    "result": "passed",
+    "log": "checks/builds/wasm-build-r06.log.gz"
+  },
+  "ui": {
+    "previewCaseGroups": 38,
+    "controllerCases": 29,
+    "log": "checks/browser-compact-ui-r01.log"
+  },
+  "nativeControls": "environment/native/final-summary.json",
+  "browserControls": "effects/runtime-summary.json",
+  "review": "visual-review.md",
+  "sourceHashes": "checks/source-hashes.json",
+  "artifactHashes": "checks/build-hashes.json",
+  "webHashes": "checks/web-r02-hashes.json",
+  "ownerApproval": false,
+  "fullParentGatesPassed": false,
+  "mandatorySuite": "checks/mandatory-summary.json",
+  "publication": "Normal-hook checkpoint commit; remote main verification is recorded separately after push."
+}

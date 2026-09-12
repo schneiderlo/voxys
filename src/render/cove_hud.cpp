@@ -79,7 +79,8 @@ CoveHudLayout layoutCoveHud(const CoveHudContent& content,uint32_t width,uint32_
     const float scale=uiScale(height),margin=14*scale,pad=16*scale;
     const bool menu=content.menu.has_value();
     const float panel=menu?std::min(920.f*scale,float(width)-2*margin):panelWidth(width,height);
-    const float panelX=menu?(float(width)-panel)*.5f:margin;
+    const float panelX=menu?(float(width)-panel)*.5f
+        :(content.rightAligned?float(width)-panel-margin:margin);
     const float left=panelX+pad,right=panelX+panel-pad;
     const float bottom=(menu?float(height):float(height)*.75f)-margin;
     const float pitch=29*scale;

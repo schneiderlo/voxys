@@ -93,6 +93,8 @@
    controls remain keyboard-accessible in ordinary native disclosure elements. */
 #salvage-preview:not([data-scene="cove"]) #salvage-field-tools { display: contents; }
 #salvage-preview:not([data-scene="cove"]) #salvage-field-tools > summary { display: none; }
+#salvage-preview:not([data-scene="cove"]) #salvage-more-controls { display: contents; }
+#salvage-preview:not([data-scene="cove"]) #salvage-more-controls > summary { display: none; }
 #salvage-preview[data-scene="cove"] {
     width: 352px; padding: 16px; border-radius: 14px;
     background: #f4f1e8f5; border-color: #ffffffb3;
@@ -128,6 +130,29 @@
 #salvage-preview[data-scene="cove"] .salvage-session-actions button { flex: 1; margin: 0; }
 #salvage-preview[data-scene="cove"] #salvage-leave { background: transparent; border: 0; color: #5c6a63; padding-left: 0; }
 #salvage-preview[data-scene="cove"][data-workshop="true"] { width: 320px; padding: 14px; }
+/* Walking and sailing keep the view open below a compact, top-right panel.
+   Extra controls use a real disclosure: keyboard focus and native open/closed
+   semantics are preserved, and long messages can still grow and scroll. */
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) {
+    top: 24px; right: 24px; bottom: auto; left: auto; padding: 12px; font-size: 13px; line-height: 1.4;
+}
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) h2 { font-size: 19px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-status { margin: 4px 0 6px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective {
+    padding: 7px 9px; margin: 6px 0; line-height: 1.35;
+}
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective h3 { margin: 0 0 2px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective p { margin: 2px 0; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective-title { font-size: 15px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective-detail { font-size: 12px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-objective-action { margin-top: 6px; }
+#salvage-preview[data-scene="cove"] .salvage-primary-actions { display: flex; gap: 6px; }
+#salvage-preview[data-scene="cove"] .salvage-primary-actions button { flex: 1; min-width: 0; margin-right: 0; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) .salvage-session-actions { margin-top: 6px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) button { min-height: 36px; padding: 6px 8px; }
+#salvage-preview[data-scene="cove"]:not([data-workshop="true"]) #salvage-save-status { margin: 4px 0 0; font-size: 12px; }
+#salvage-preview[data-scene="cove"] #salvage-more-controls { margin-top: 6px; }
+#salvage-preview[data-scene="cove"] #salvage-more-controls > summary { padding: 7px 0; }
 #salvage-preview[data-workshop="true"] #salvage-field-tools,
 #salvage-preview[data-workshop="true"] .salvage-help-drawer,
 #salvage-preview[data-workshop="true"] #salvage-scope { display: none; }
@@ -145,4 +170,5 @@
 @media (max-width: 700px) {
     #salvage-preview[data-scene="cove"] { width: min(352px, calc(100vw - 24px)); }
     #salvage-preview[data-scene="cove"][data-workshop="true"] { width: auto; max-height: 45vh; }
+    #salvage-preview[data-scene="cove"]:not([data-workshop="true"]) { top: 12px; right: 12px; left: auto; max-height: calc(100dvh - 24px); }
 }

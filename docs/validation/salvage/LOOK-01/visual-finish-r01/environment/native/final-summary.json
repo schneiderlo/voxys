@@ -1,0 +1,55 @@
+{
+  "status": "accepted-scoped-native-environment-route",
+  "singleUninterruptedPass": false,
+  "runs": [
+    {
+      "path": "build-cove-visual-r01/native-environment-r04/summary.json",
+      "status": "failed",
+      "completedControlStages": 6,
+      "elapsedSeconds": 81.597,
+      "limitation": "All real controls/save passed; second process restored ready but unnecessary focus gate failed."
+    },
+    {
+      "path": "build-cove-visual-r01/native-environment-restore-r01/summary.json",
+      "status": "passed",
+      "readOnlyRestoreStages": 1,
+      "elapsedSeconds": 1.801,
+      "inputActions": 0,
+      "focusRequired": false
+    }
+  ],
+  "feet": [
+    14.8265,
+    2.565,
+    -39.5202
+  ],
+  "settings": {
+    "mode": "orbit",
+    "distance": 5.5,
+    "reducedMotion": true,
+    "frameLoad": true
+  },
+  "ownedExact": true,
+  "environmentProxies": 39,
+  "sceneryGpuBytes": 1241888,
+  "environmentObservedAlive": true,
+  "allOwnedProcessesClosedCleanly": true,
+  "sourceArchivesUnchanged": true,
+  "screenshots": 0,
+  "historicalFailures": [
+    "native-environment-r01: source100m limit incorrectly reused for sector placement; corrected with strict source100/runtime100000 and new CPU regression.",
+    "native-environment-r02: real32cm stair traversal stalled atx8.195; corrected actual capsule support-face classification.",
+    "native-environment-r03: real stairs passed; wall check falsely required34 draws despite intentional near-wall hidden avatar.",
+    "native-environment-r04: all six control/save stages passed; only unnecessary focus gate on otherwise-ready final restart failed."
+  ],
+  "sourceHashes": {
+    "src/game/expedition/cove_player.cpp": "28dd7f523070e17990a22d21a5862c14c939d4140c8974daff84c09bfe0e57e8",
+    "src/game/expedition/cove_player.hpp": "a18ecac85edea941c21980403708a3e791024a22ca382784f407d23f0186651b",
+    "tests/test_cove_player.cpp": "2eccf0f6961d7b1e7b787cba6b66d1d90035ba9c5d7fb8822f8908c0c011f413",
+    "scripts/validate_native_cove_environment.py": "f9f5114d189d508a4896611efdf29e2994aefb6a00bf6c00fbfc2ab2049be78f",
+    "build-cove-visual-r01/native-environment-r04/summary.json": "2571045dbe9ff1ff5b7faec3d7bd2bcda53eff76d946071f9a0faa4650c65997",
+    "build-cove-visual-r01/native-environment-r04/workshop.svce": "854661da4e108c53dd54da1fe8f906b5754d1dd070a3c096f6c7c8e72daf8733",
+    "build-cove-visual-r01/native-environment-restore-r01/summary.json": "2d7485cdacf62299fabdb737e02db8b29f180dea01c3804e94103e39dafc3767"
+  },
+  "limits": "Scoped collision/route/camera/old-save compatibility only. Final matched visual capture, current startup orbit, future PCF correction, browser and mandatory full suite remain root-owned."
+}

@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "processExitCode": 0,
+  "journeySeconds": 8.63,
+  "stages": [
+    "authored-cove-and-original-ownership",
+    "walked-authored-dock-and-boarded",
+    "actual-drive-emits-wake-and-foam",
+    "paused-effects-start",
+    "paused-effects-remain-frozen",
+    "robot-water-entry-emits-splash",
+    "rescue-clears-ephemeral-effects-and-preserves-owned-build",
+    "identical-blueprint-after-movement-water-and-rescue"
+  ],
+  "horizontalTravelMetres": 0.3556297226048437,
+  "playerEntrySplashes": "12",
+  "noImagesOrRecording": true,
+  "package": "build-cove-visual-r01/web-r02",
+  "port": 43874,
+  "browserErrors": [],
+  "sampleErrors": [],
+  "reportedProfile": "/tmp/nix-shell-625090-3702763404/voxys-startup-amFFpw",
+  "profileExistsAfterOuterExit": false,
+  "files": [
+    {
+      "path": "scripts/validate_cove_effects.mjs",
+      "sha256": "f65fc0ad6b9ed39206572498bffad268bce343f7e6515111fc0ad2233c966d9e",
+      "bytes": 14620
+    },
+    {
+      "path": "build-cove-visual-r01/browser-effects-r02/summary.json",
+      "sha256": "b6aea747c5995f1473bc181887eb83cba5c9845943ecece41391e316cb96fda8",
+      "bytes": 252793
+    },
+    {
+      "path": "build-cove-visual-r01/checks/browser-startup-r02.json",
+      "sha256": "512ec4cd6f570e8a35564f44c493eb1ae523924ecf8cdaf1cdc9a6bed57b1a7f",
+      "bytes": 569353
+    },
+    {
+      "path": "build-cove-visual-r01/checks/browser-effects-r02.log",
+      "sha256": "512ec4cd6f570e8a35564f44c493eb1ae523924ecf8cdaf1cdc9a6bed57b1a7f",
+      "bytes": 569353
+    },
+    {
+      "path": "build-cove-visual-r01/checks/web-r02-hashes.json",
+      "sha256": "753d75d69e531eb2367cb431f5e9df10db863021c3a64ad8f2f65e1dbe4b387a",
+      "bytes": 2343
+    }
+  ],
+  "scope": "One coherent actual browser journey on the unchanged frozen product package after a driver-only horizontal-travel wait correction. First failed attempt and its original image/video evidence remain unchanged. Full required suite and final publication are root-owned."
+}

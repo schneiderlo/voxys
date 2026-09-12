@@ -1,0 +1,68 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "name": "SceneSunShadowsGPU.ReceiverPlanePcfRemovesFlatDeckAcneWithoutLosingNearContact",
+      "seconds": 0.069,
+      "failures": 0,
+      "skipped": 0,
+      "properties": {
+        "clearMinimum": "1",
+        "oldMinimum": "0.890625",
+        "oldAcneSamples": "96",
+        "contactMaximum": "0"
+      }
+    },
+    {
+      "name": "BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth",
+      "seconds": 4.357,
+      "failures": 0,
+      "skipped": 0,
+      "properties": {}
+    },
+    {
+      "name": "BlitPathTest.CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment",
+      "seconds": 4.223,
+      "failures": 0,
+      "skipped": 0,
+      "properties": {
+        "coveSharedEnvironmentAmbient": "35",
+        "coveSharedEnvironmentBlack": "0",
+        "coveFilteredEnvironmentBytes": "1228944",
+        "coveWaterClear": "107",
+        "coveWaterBedShadow": "79",
+        "coveBedClearLinearRed": "0.249267578125",
+        "coveBedShadowLinearRed": "0.069580078125",
+        "coveBedAmbientLinearRed": "0.069580078125"
+      }
+    }
+  ],
+  "sourceHashes": {
+    "shaders/scene_sun_shadow.wgsl.in": "d04404a7b9ce0d649e76523bb40e06baf6e6ac22963693ce1789c6405773deca",
+    "shaders/mesh_path.wgsl": "a4a9e3c7f8d45aff0ce914793028ec4bd160d67860cbf764acda81bc40e0c9f0",
+    "shaders/ray_blit.wgsl": "7c2df82544166a54b2557212fc4cb1271f45ce020991dfc7fec518cd04925937",
+    "shaders/water_clipmap.wgsl": "5f614ab243e6f8612e3c6ef6186004816c130fd08e28362ce97c2ec8c15c542a",
+    "scripts/sync_scene_shadows.py": "041299842052d894998fcbf16a61ad4c5fb5f7ccbb68c04bf620a7767b9cc3ba",
+    "src/render/scene_shadows.hpp": "289a776261bfa5ad29b24b52339b5ce9148d9dea8740cdfc5dc4d0f25745464d",
+    "src/render/mesh_path.cpp": "8f590acd4aa14339d232c53b10297fcf675d38bdf8d5ce8e8bda12139d003bdd",
+    "src/render/blit_path.cpp": "6ed4598f252cbe41965bd746ef0c5fe146d8d410e1acd1667ac149d5acb06f07",
+    "tests/test_scene_sun_shadows.cpp": "2cb38224a7a6387a715adc8f738043c520397a8c2b95aa9a80ffcbce0de7a860",
+    "tests/test_blit_path.cpp": "5bccd16a38b3093e7f18161bc8b5eb7ca233b894f13eab76b4eaf158cc2ffdc5",
+    "tests/BUILD": "e756195979d13fefbd4fd9d3f1f1250449494dfdba7b075050b202c542f0fca7",
+    "tests/CMakeLists.txt": "4881a4e88572c60ef63abccbe152fb1b23048b40ce80fecdbe2c9e6f8a9eab23",
+    "shaders/BUILD": "c516fb14a2ba56139b867aff0ead69111a5ee474335fad590a43a800fdc84796",
+    "data/generated/ocean_environment.png": "80fb42cd0e33e0bcf4d4805add270a8542e675e1e8c1e8f01266cd80003bf95b"
+  },
+  "validation": "AMD Radeon 890M Graphics (RADV STRIX1), native Vulkan, numerical readback only",
+  "initialFailure": "gpu-r01 was a new-test descriptor error: unset stencil compare/operations caused wgpu-native conversion abort. Production shader was unchanged between r01 and passing r02. Explicit Always/Keep defaults corrected the test.",
+  "limits": "One new receiver-plane GPU case and the two existing affected Blit cases, 3 passed/0 skipped. No new image, native/browser journey, full suite or publication claim.",
+  "initialRejectedImage": {
+    "name": "assembled-native-r01.png",
+    "sha256": "2941c6c9d1263a7291573c17686d95689138291c1135b474a4fac40884ec8136",
+    "width": 1280,
+    "height": 720,
+    "completedPresentedTick": 6,
+    "accepted": false,
+    "scope": "Previously supplied actual image was reviewed; no capture was made for the PCF test. The image remains in root evidence workspace."
+  }
+}

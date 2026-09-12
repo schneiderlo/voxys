@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "name": "BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth",
+      "seconds": 4.468,
+      "failures": 0,
+      "skipped": 0,
+      "properties": {}
+    },
+    {
+      "name": "BlitPathTest.CoveMovingCasterPreservesSubmergedEnergyAndSharedFilteredEnvironment",
+      "seconds": 4.16,
+      "failures": 0,
+      "skipped": 0,
+      "properties": {
+        "coveSharedEnvironmentAmbient": "35",
+        "coveSharedEnvironmentBlack": "0",
+        "coveFilteredEnvironmentBytes": "1228944",
+        "coveWaterClear": "107",
+        "coveWaterBedShadow": "79",
+        "coveBedClearLinearRed": "0.249267578125",
+        "coveBedShadowLinearRed": "0.069580078125",
+        "coveBedAmbientLinearRed": "0.069580078125"
+      }
+    }
+  ],
+  "limits": "Two focused Blit cases only; five mesh and one rope case passed separately at immersion-r02. No images, gameplay, full-suite or publication claim.",
+  "sourceHashes": {
+    "src/render/mesh_path.hpp": "dcee0f69caec46c88df1efd2ba5b0d2338e6dacfe8c81b0f19ac0ac2937969fe",
+    "src/render/mesh_path.cpp": "8f590acd4aa14339d232c53b10297fcf675d38bdf8d5ce8e8bda12139d003bdd",
+    "src/render/salvage_asset_fixture.hpp": "d0acf167eb36b5c8d2bb1597847b188583c65baf18a4765a1d5b9042f2d781cc",
+    "src/render/salvage_asset_fixture.cpp": "f07d58191bd8cbd33c7ac1b9f1ad3978b4de17a48815aee5b1604ec10053dafa",
+    "src/render/blit_path.hpp": "cccb2988c0931202937f369733b3759f19317142f47bf26ef50dbb1d232daef2",
+    "src/render/blit_path.cpp": "6ed4598f252cbe41965bd746ef0c5fe146d8d410e1acd1667ac149d5acb06f07",
+    "src/render/scene_shadows.hpp": "289a776261bfa5ad29b24b52339b5ce9148d9dea8740cdfc5dc4d0f25745464d",
+    "shaders/mesh_path.wgsl": "007c70b320642440245081fc4d7c8b5efb89d555a77d636b22b1fe47c68a1345",
+    "shaders/ray_blit.wgsl": "5fd06fe1a0322b6207006abccd66d77679dbbb0bce78022c33327ab2cbeddcc2",
+    "shaders/water_clipmap.wgsl": "dddb989225fb811de4330bd7baeecb04c80c94af2f8e5a73888b68b949e0f701",
+    "tests/test_mesh_path.cpp": "0a3518b15a37a0c4b1c0e0ea3a1778f522917210419241642e894b9e36d5f4ad",
+    "tests/test_salvage_asset_fixture.cpp": "6b705c7e9c194a79d42e48cca1ce20d80cec42d8aede1c01a6e69f6eabe995f3",
+    "tests/test_blit_path.cpp": "5bccd16a38b3093e7f18161bc8b5eb7ca233b894f13eab76b4eaf158cc2ffdc5",
+    "tests/BUILD": "13ecb55ebc7c1994ab7f874650bc7a7be857a9dfe570a23ce4606f56b8754710",
+    "data/BUILD": "5cc9fcdeb757c82f7c93ceb83bec7479d1a2dbd5a50e40ae296e31850bc8792c",
+    "data/generated/ocean_environment.png": "80fb42cd0e33e0bcf4d4805add270a8542e675e1e8c1e8f01266cd80003bf95b"
+  }
+}

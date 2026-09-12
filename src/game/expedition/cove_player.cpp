@@ -143,10 +143,25 @@ bool CovePlayer::initialize(const assets::LoadedAssetFixture& scene, Ground grou
 }
 
 bool CovePlayer::setStaticObstacles(std::span<const StaticObstacle> boxes) noexcept {
-    if(boxes.size()>staticObstacles_.size())return false;
+    if(boxes.size()>11)return false;
     for(const auto& b:boxes)if(!finite(b.minimum)||!finite(b.maximum)
         ||glm::any(glm::greaterThanEqual(b.minimum,b.maximum)))return false;
-    std::copy(boxes.begin(),boxes.end(),staticObstacles_.begin());staticObstacleCount_=boxes.size();return true;
+    std::array<StaticObstacle,59> candidate{};
+    std::copy(boxes.begin(),boxes.end(),candidate.begin());
+    const size_t environmentCount=staticObstacleCount_-baseObstacleCount_;
+    for(size_t i=0;i<environmentCount;++i)candidate[boxes.size()+i]=staticObstacles_[baseObstacleCount_+i];
+    staticObstacles_=candidate;baseObstacleCount_=boxes.size();
+    staticObstacleCount_=baseObstacleCount_+environmentCount;return true;
+}
+
+bool CovePlayer::setEnvironmentObstacles(std::span<const StaticObstacle> boxes) noexcept {
+    if(boxes.size()>48)return false;
+    for(const auto& b:boxes)if(!finite(b.minimum)||!finite(b.maximum)
+        ||glm::any(glm::greaterThanEqual(b.minimum,b.maximum)))return false;
+    std::array<StaticObstacle,59> candidate{};
+    for(size_t i=0;i<baseObstacleCount_;++i)candidate[i]=staticObstacles_[i];
+    for(size_t i=0;i<boxes.size();++i)candidate[baseObstacleCount_+i]=boxes[i];
+    staticObstacles_=candidate;staticObstacleCount_=baseObstacleCount_+boxes.size();return true;
 }
 
 namespace {
@@ -435,7 +450,7 @@ bool CovePlayer::boatSupport(glm::dvec3 p) const noexcept {
     return false;
 }
 
-bool CovePlayer::settleSupport(glm::dvec3& point,double distance,bool allowSnap) {
+bool CovePlayer::settleSupport(glm::dvec3& point,double distance,bool allowSnap,double maximumSupportHeight) {
     constexpr double walkable=.7071067811865476;
     const double rise=allowSnap?.025:0;
     const auto start=point+glm::dvec3(0,rise,0),end=point-glm::dvec3(0,distance,0);
@@ -443,6 +458,21 @@ bool CovePlayer::settleSupport(glm::dvec3& point,double distance,bool allowSnap)
     SweepResult nearest{true,false,false,length,{0,1,0}};const Box* support=nullptr;
     const auto consider=[&](const Box* box,glm::dvec3 lo,glm::dvec3 hi,const glm::dmat4& pose) {
         auto hit=castCapsule(start,end,radius,height,lo,hi,pose,skin);
+        if(!hit.complete||!hit.hit||hit.startOverlapped||hit.normal.y<=0)return;
+        // An upward contact uses the capsule's lower sphere. At a tread edge,
+        // its separation normal can be steep although the contacted box face
+        // is horizontal. Keep the exact swept position, but use that real
+        // face for walkability/tangent motion instead of stalling at the edge.
+        const auto rotation=glm::dmat3(pose);
+        const auto center=start+glm::dvec3(0,radius-hit.distance,0);
+        const auto local=glm::transpose(rotation)*(center-glm::dvec3(pose[3]));
+        const auto contact=glm::dvec3(pose*glm::dvec4(glm::clamp(local,lo,hi),1));
+        if(contact.y>maximumSupportHeight+1e-7)return;
+        if(hit.normal.y<walkable)for(int axis=0;axis<3;++axis) {
+            const auto face=local[axis]>=hi[axis]?rotation[axis]
+                :local[axis]<=lo[axis]?-rotation[axis]:glm::dvec3(0);
+            if(face.y>=walkable){hit.normal=face;break;}
+        }
         if(hit.complete&&hit.hit&&!hit.startOverlapped&&hit.normal.y>=walkable
             &&(!nearest.hit||hit.distance<nearest.distance)) {nearest=hit;support=box;}
     };
@@ -453,7 +483,8 @@ bool CovePlayer::settleSupport(glm::dvec3& point,double distance,bool allowSnap)
     for(size_t i=0;i<staticObstacleCount_;++i)consider(nullptr,staticObstacles_[i].minimum,staticObstacles_[i].maximum,glm::dmat4(1));
     for(size_t i=0;i<sceneObstacleCount_;++i)consider(nullptr,sceneObstacles_[i].minimum,sceneObstacles_[i].maximum,sceneObstacles_[i].sceneFromObstacle);
     const double terrain=groundHeight(point)+skin;
-    if(terrain<=start.y+1e-7&&terrain>=end.y-1e-7&&(!nearest.hit||start.y-terrain<nearest.distance)) {
+    if(terrain<=maximumSupportHeight+skin+1e-7&&terrain<=start.y+1e-7&&terrain>=end.y-1e-7
+        &&(!nearest.hit||start.y-terrain<nearest.distance)) {
         nearest={true,true,false,std::max(0.0,start.y-terrain),{0,1,0}};support=nullptr;
     }
     if(!nearest.hit)return false;
@@ -646,7 +677,7 @@ void CovePlayer::step(Input input) {
                 if(raised.y>=point.y+stepHeight-1e-6) {
                     auto across=moveScene(raised,displacement);
                     if(glm::length(glm::dvec2(across.x-point.x,across.z-point.z))>progress+1e-6
-                        &&settleSupport(across,stepHeight+.08,true))moved=across;
+                        &&settleSupport(across,stepHeight+.08,true,point.y+stepHeight))moved=across;
                 }
             }
             const double terrain=groundHeight(moved)+skin;

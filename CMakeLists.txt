@@ -527,6 +527,13 @@ if(VOXY_BUILD_WASM)
             data/salvage/fixture-cove-r01.json
             data/salvage/robot-r01/manifest.json
             data/salvage/robot-r01/robot.vmesh
+            data/salvage/cove-environment-r01/manifest.json
+            data/salvage/cove-environment-r01/gantry-lod0.vmesh
+            data/salvage/cove-environment-r01/gantry-lod1.vmesh
+            data/salvage/cove-environment-r01/gantry-lod2.vmesh
+            data/salvage/cove-environment-r01/scenery-lod0.vmesh
+            data/salvage/cove-environment-r01/scenery-lod1.vmesh
+            data/salvage/cove-environment-r01/scenery-lod2.vmesh
             data/salvage/cove-bricks-r02.json
             data/salvage/cove-workshop-r03.json
             data/salvage/cove-workshop-r05.json

@@ -1,0 +1,83 @@
+{
+  "scope": "Compact Cove HUD and final arrival CPU projection; no application/GPU/image run",
+  "sourceReview": "presentation_review: no actionable disclosure/focus/CSS finding; measured browser layout pending",
+  "checks": {
+    "previewCaseGroups": 38,
+    "controllerMenuCases": 29,
+    "runsPerSuite": 1,
+    "allPriorHtmlIdsPreserved": true,
+    "duplicateHtmlIds": false
+  },
+  "files": [
+    {
+      "path": "web/index.html",
+      "sha256": "9190a7791b50e14e4d93eaab468c8607b192011e45e138aa634f922da84d0da4",
+      "bytes": 89858
+    },
+    {
+      "path": "web/salvage_preview.js",
+      "sha256": "8819a2d19a6de6bf81916e40e52d052f0361e1664ba0b55519ea3887a5dfc87e",
+      "bytes": 43728
+    },
+    {
+      "path": "web/salvage_preview.css",
+      "sha256": "94da4d17f8babc7264c1dc000b60b580eeee7d78ec3d27722ff266d4cbb7ee18",
+      "bytes": 12980
+    },
+    {
+      "path": "scripts/test_salvage_preview.mjs",
+      "sha256": "970103a577fd59e17eab5af42f19c1ba8b847f707bafa74fafa67ed175d112a3",
+      "bytes": 49984
+    },
+    {
+      "path": "build-cove-visual-r01/checks/browser-compact-ui-r01.log",
+      "sha256": "cdd2c4f009a156a3b0e8f9bda7f261686d0728bfb98d93418b9139024879ef3e",
+      "bytes": 1119
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/selected-r01.py",
+      "sha256": "24e9b1d84bf6934e6e39976a9f69626046743ff004d7a249355e69ff3dc0dc90",
+      "bytes": 7117
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/arrival-selected-r01.json",
+      "sha256": "7abf92f5e5d98e577811f510702f89a44b0ff82091a3750b592d830c1c5b9d87",
+      "bytes": 4972
+    },
+    {
+      "path": "build-cove-visual-r01/compact-hud-HANDOFF.md",
+      "sha256": "53f105bd1f7648085069bf96ba191876c2aa9563e38b3a9dd581475ff376ac74",
+      "bytes": 4657
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/engine-projection-r02.py",
+      "sha256": "9366419dbacffe1bea603ca7bc75ed1c04c6131c9bfc55ed3041d034c2d05db8",
+      "bytes": 5952
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/arrival-engine-projection-r02.json",
+      "sha256": "930f9d57ec49963e39b6182038cd7558218f20c0163e608c52ae48b2b6253d87",
+      "bytes": 6037
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/elevation-options-r03.py",
+      "sha256": "dbcfc568f8c22835a8e82fd382ed8e81a71af4a031a2b2d850efd3106cd1db10",
+      "bytes": 2509
+    },
+    {
+      "path": "build-cove-visual-r01/cpu-arrival/elevation-options-r03.json",
+      "sha256": "ee904bdf979338ebe71a7f8bb7da6e63ebfe1dc61e7875561c87bcdc52a4d0b4",
+      "bytes": 2342
+    }
+  ],
+  "finalCamera": {
+    "yawRadians": -1.4,
+    "elevationRadians": 0.6,
+    "distanceMetres": 12,
+    "verticalFovDegrees": 78,
+    "owner": "root",
+    "projectionForFinal78Degrees": "not recomputed; actual verification pending"
+  },
+  "hud": "Top right outside workshop; natural-height browser measurement pending",
+  "projectionCorrection": "Initial r01 analytic X basis was reversed. Retained as rejected evidence; r02 uses actual engine VP, r03 compares exactly two 75-degree alternatives. Neither table is exact final78-degree bounds."
+}

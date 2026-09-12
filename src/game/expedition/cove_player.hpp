@@ -2,6 +2,7 @@
 
 #include "game/assets/fixture_registry.hpp"
 #include <functional>
+#include <limits>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace voxy::game::expedition {
@@ -38,9 +39,12 @@ public:
     [[nodiscard]] bool initialize(const assets::LoadedAssetFixture& scene, Ground ground,
                                    std::string& error, std::span<const uint32_t> boatSlots = {}, GroundSupport support = {});
     struct StaticObstacle {glm::dvec3 minimum{},maximum{};};
-    // Optional installed scenery, in cove coordinates. Replaces the complete
-    // bounded set without allocating or changing boat-local collision.
+    // Optional harbor obstacles, in Cove coordinates. Replaces at most eleven
+    // base solids while preserving the separately admitted environment.
     [[nodiscard]] bool setStaticObstacles(std::span<const StaticObstacle>) noexcept;
+    // Replaces at most forty-eight environment solids and preserves the base
+    // set. Invalid input leaves every movement/camera obstacle unchanged.
+    [[nodiscard]] bool setEnvironmentObstacles(std::span<const StaticObstacle>) noexcept;
     struct SceneObstacle {glm::dvec3 minimum{},maximum{};glm::dmat4 sceneFromObstacle{1};};
     // Complete, stably ordered moving scenery packet (currently recovered cargo).
     // It joins the accepted boat packet; stale geometry is never used by a sweep.
@@ -109,11 +113,12 @@ private:
     [[nodiscard]] glm::dvec3 pointVelocity(uint8_t root,glm::dvec3 worldPoint) const noexcept;
     [[nodiscard]] bool sceneClear(glm::dvec3 worldFeet) const noexcept;
     [[nodiscard]] glm::dvec3 moveScene(glm::dvec3 start,glm::dvec3 displacement) const noexcept;
-    [[nodiscard]] bool settleSupport(glm::dvec3& worldFeet,double distance,bool allowSnap);
+    [[nodiscard]] bool settleSupport(glm::dvec3& worldFeet,double distance,bool allowSnap,
+        double maximumSupportHeight=std::numeric_limits<double>::infinity());
     void leaveSupport(glm::dvec3 worldFeet,glm::dvec3 relativeVelocity={0,0,0}) noexcept;
     std::vector<Box> boxes_;
-    std::array<StaticObstacle,11> staticObstacles_{};
-    size_t staticObstacleCount_=0;
+    std::array<StaticObstacle,59> staticObstacles_{};
+    size_t staticObstacleCount_=0,baseObstacleCount_=0;
     std::array<SceneObstacle,4> sceneObstacles_{},previousSceneObstacles_{};
     size_t sceneObstacleCount_=0,previousSceneObstacleCount_=0;
     uint64_t sceneObstacleTick_=0;
