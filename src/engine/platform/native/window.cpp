@@ -134,6 +134,8 @@ Window::Window(Window&& other) noexcept
     , nativePlatform_(other.nativePlatform_)
     , onResize_(std::move(other.onResize_))
     , onClose_(std::move(other.onClose_))
+    , onFocus_(std::move(other.onFocus_))
+    , onCharacter_(std::move(other.onCharacter_))
     , onKey_(std::move(other.onKey_))
     , onMouseButton_(std::move(other.onMouseButton_))
     , onMouseMove_(std::move(other.onMouseMove_))
@@ -168,6 +170,8 @@ Window& Window::operator=(Window&& other) noexcept {
         nativePlatform_ = other.nativePlatform_;
         onResize_ = std::move(other.onResize_);
         onClose_ = std::move(other.onClose_);
+        onFocus_ = std::move(other.onFocus_);
+        onCharacter_ = std::move(other.onCharacter_);
         onKey_ = std::move(other.onKey_);
         onMouseButton_ = std::move(other.onMouseButton_);
         onMouseMove_ = std::move(other.onMouseMove_);
@@ -239,6 +243,8 @@ bool Window::init(const WindowConfig& config) {
     // Set up callbacks
     glfwSetFramebufferSizeCallback(window_, glfwFramebufferSizeCallback);
     glfwSetWindowCloseCallback(window_, glfwWindowCloseCallback);
+    glfwSetWindowFocusCallback(window_, glfwFocusCallback);
+    glfwSetCharCallback(window_, glfwCharacterCallback);
     glfwSetKeyCallback(window_, glfwKeyCallback);
     glfwSetMouseButtonCallback(window_, glfwMouseButtonCallback);
     glfwSetCursorPosCallback(window_, glfwCursorPosCallback);
@@ -441,6 +447,15 @@ void Window::glfwWindowCloseCallback(GLFWwindow* window) {
     if (self && self->onClose_) {
         self->onClose_();
     }
+}
+
+void Window::glfwFocusCallback(GLFWwindow* window, int focused) {
+    auto* self=static_cast<Window*>(glfwGetWindowUserPointer(window));
+    if(self&&self->onFocus_)self->onFocus_(focused==GLFW_TRUE);
+}
+void Window::glfwCharacterCallback(GLFWwindow* window, unsigned int codepoint) {
+    auto* self=static_cast<Window*>(glfwGetWindowUserPointer(window));
+    if(self&&self->onCharacter_)self->onCharacter_(codepoint);
 }
 
 void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

@@ -1,0 +1,39 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --compilation_mode has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:game_session (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:game_session (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:game_session (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:game_session (1 packages loaded, 1996 targets configured).
+[1 / 40] Compiling src/game/construction/build_model.cpp; 0s linux-sandbox ... (2 actions running)
+[2 / 40] Compiling src/game/construction/build_model.cpp; 1s linux-sandbox ... (2 actions, 1 running)
+[4 / 42] Compiling src/game/construction/build_refit.cpp; 1s linux-sandbox ... (2 actions running)
+[5 / 44] Compiling src/game/expedition/session_save.cpp; 3s linux-sandbox ... (2 actions running)
+[8 / 46] Compiling src/game/expedition/session_events.cpp; 0s linux-sandbox ... (2 actions running)
+[11 / 49] Compiling src/game/expedition/game_session.cpp; 1s linux-sandbox ... (2 actions, 1 running)
+[12 / 49] Compiling src/game/expedition/game_session.cpp; 2s linux-sandbox ... (2 actions, 1 running)
+[12 / 49] Compiling src/game/expedition/game_session.cpp; 3s linux-sandbox ... (2 actions running)
+[13 / 49] Compiling src/game/expedition/game_session.cpp; 4s linux-sandbox ... (2 actions running)
+[35 / 50] Compiling googletest/src/gtest.cc; 0s linux-sandbox ... (2 actions, 1 running)
+[36 / 50] Compiling googletest/src/gtest.cc; 1s linux-sandbox ... (2 actions, 1 running)
+[38 / 50] Compiling googletest/src/gtest.cc; 3s linux-sandbox ... (2 actions, 1 running)
+[39 / 50] Compiling googletest/src/gtest.cc; 4s linux-sandbox ... (2 actions running)
+[42 / 50] Compiling googletest/src/gtest-typed-test.cc; 0s linux-sandbox ... (2 actions, 1 running)
+[45 / 50] Compiling src/game/expedition/session_recovery.cpp; 1s linux-sandbox ... (2 actions running)
+[46 / 50] Compiling tests/test_game_session.cpp; 4s linux-sandbox ... (2 actions, 1 running)
+[48 / 50] Compiling tests/test_game_session.cpp; 6s linux-sandbox
+[48 / 50] Compiling tests/test_game_session.cpp; 16s linux-sandbox
+[49 / 50] [Prepa] Linking tests/game_session
+INFO: Found 1 test target...
+Target //tests:game_session up-to-date:
+  bazel-bin/tests/game_session
+INFO: Elapsed time: 40.371s, Critical Path: 19.66s
+INFO: 41 processes: 10 action cache hit, 4 internal, 37 linux-sandbox.
+INFO: Build completed successfully, 41 total actions
+//tests:game_session                                                     PASSED in 0.4s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

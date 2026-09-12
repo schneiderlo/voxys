@@ -1,0 +1,20 @@
+{
+  "status": "driver-only probe failure; not a game failure",
+  "elapsedSeconds": 5.25,
+  "observed": "The game accepted the first A and opened Select and group. The separate windowless GLFW client reported released buttons; the auxiliary mapping assertion stopped the driver before the previous Keep stage.",
+  "correction": "Remove the auxiliary mapping client entirely. Keep one200ms deliberate press and exact game-state acknowledgment; no product changes and no timing adjustment beyond the originally authorized200ms.",
+  "retained": [
+    {
+      "path": "summary.json",
+      "sha256": "dcbcee878430ab7713b190c37c3d082034fa3a97adda4ba1cc0b4213ef5a8b12"
+    },
+    {
+      "path": "executed-driver.py",
+      "sha256": "cb2cfef18566a0c9dfd228ad03578199d3bce3f1fcc3220f6b1997628dcb7a02"
+    },
+    {
+      "path": "process-1.log",
+      "sha256": "d1a664c0ce3c1e004047c596a7b10b333f8200528317676f1027cdfb92b1e33e"
+    }
+  ]
+}

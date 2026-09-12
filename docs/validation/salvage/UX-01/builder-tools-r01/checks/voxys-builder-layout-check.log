@@ -1,0 +1,25 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_hud_layout (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud_layout (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud_layout (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_hud_layout (2 packages loaded, 64 targets configured).
+[344 / 346] Compiling tests/test_cove_hud.cpp; 1s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:cove_hud_layout up-to-date:
+  bazel-bin/tests/cove_hud_layout
+INFO: Elapsed time: 3.653s, Critical Path: 1.82s
+INFO: 8 processes: 339 action cache hit, 4 internal, 4 linux-sandbox.
+INFO: Build completed successfully, 8 total actions
+//tests:cove_hud_layout                                                  PASSED in 0.1s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

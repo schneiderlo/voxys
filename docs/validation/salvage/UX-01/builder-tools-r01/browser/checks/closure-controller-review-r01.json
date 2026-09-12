@@ -1,0 +1,24 @@
+{
+  "status": "source-supported integration failure; no corrected runtime pass yet",
+  "generatedPackage": "build-workshop-tools-r01/web-r01",
+  "generatedJsSha256": "523cc5035bf62efeefb49f87b757444bf46da98d6cf52478bd3eaed6486ee619",
+  "excerpt": "mPoint(b,c),338639:()=>typeof window.ff===\"function\"&&window.ff(),338736:()=>globalThis.voxyDeviceLost?1:0,338785:()=>typeof window.ff===\"function\"&&window.ff(),338882:(a,b,c,d,e,f,g)=>typeof window.zg!==\"function\"?!1:window.zg({ci:!!a,Lh:!!b,left:!!c,right:!!d,confirm:!!e,back:!!f,Sh:!!g}),339069:()=>typeof window.ff===\"function\"&&window.ff(),339166:()=>{var a=document.getElementById(\"voxy-canvas\").getBoundingClientRect(),\nb=document.getElementById(\"salvage-preview\");return!b||b.hidden?1:(b.getBoundingCl",
+  "finding": "Closure renamed externally supplied controller global names and unquoted event keys. The packaged bridge looks for window.ff/window.zg; the separately loaded controller_menu.js publishes voxyControllerMenuActive/voxyControllerMenuInput. up/down/menu keys were also renamed.",
+  "correction": "Application owns quoted external global property lookup and quoted public event keys before rebuilding. No UI workaround or navigator/game-state injection.",
+  "actualRun": {
+    "summary": "browser-builder-r01/summary.json",
+    "seconds": 22.342,
+    "completedCaptures": 0,
+    "successfulControls": [
+      "View opened workshop",
+      "RB selected Cargo cradle"
+    ],
+    "failedControl": "Menu handoff never became owner",
+    "gpuErrors": [],
+    "controllerExit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "setupFailure": "checks/browser-builder-r01.log preserves denied Nix daemon socket before Chrome launch; actual host run is checks/browser-builder-r01-host.log"
+}

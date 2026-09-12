@@ -9,6 +9,7 @@ TEST_SRCS = [
     "test_config.cpp",
     "test_window.cpp",
     "test_input.cpp",
+    "test_gamepad.cpp",
     "test_heightmap.cpp",
     "test_world.cpp",
     "test_compression.cpp",
@@ -56,6 +57,13 @@ TEST_SRCS = [
 ]
 
 load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
+
+cc_test(
+    name = "gamepad_controls",
+    srcs = ["test_gamepad.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/engine/platform:input", "@googletest//:gtest_main"],
+)
 
 cc_test(
     name = "workshop_camera",
@@ -879,6 +887,8 @@ cc_test(
     size = "large",
     timeout = "eternal",
     srcs = TEST_SRCS + [
+        "test_design_library.cpp",
+        "test_cove_workshop_editing.cpp",
         "test_workshop_camera.cpp",
         "test_environment_lighting.cpp",
         "test_fixture_registry.cpp",
@@ -937,7 +947,7 @@ cc_test(
         "test_wreckwater_client_replication.cpp",
         "test_wreckwater_client_runtime.cpp",
         "test_wreckwater_protocol.cpp",
-    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp"], "//conditions:default": []}),
+    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp"], "//conditions:default": []}),
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/game:cove_rigid_roots",
@@ -947,6 +957,9 @@ cc_test(
         "//src/game:cove_save",
         "//src/game:cove_water_clock",
         "//src/engine/platform:native_save_store",
+        "//src/engine/platform:native_design_library",
+        "//src/engine/platform:native_workshop_menu",
+        "//src/game:design_library",
         "//src/engine/platform:native_save_worker",
         "//src/game:save_generation",
         "//src/core:sha256",
@@ -1191,4 +1204,40 @@ cc_test(
     copts = PROJECT_TEST_COPTS,
     target_compatible_with = ["@platforms//os:linux"],
     deps = ["//src/engine/platform:native_save_store", "//src/engine/platform:native_save_worker", "//src/game:session_save", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "design_library",
+    srcs = ["test_design_library.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:design_library", "//src/game:build_model", "//src/core:sha256", "@googletest//:gtest_main"],
+)
+cc_test(
+    name = "native_design_library",
+    srcs = ["test_native_design_library.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/engine/platform:native_design_library", "//src/game:build_model", "//src/core:sha256", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_workshop_editing",
+    srcs = ["test_cove_workshop_editing.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_workshop", "//src/game:cove_build", "//src/game:cove_save", "//src/game:assembly_fracture", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders", "//data:salvage_asset_fixture", "//data:salvage_functional_kit", "//data:salvage_material_metric"],
+)
+
+cc_test(
+    name = "native_workshop_menu",
+    srcs = ["test_native_workshop_menu.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/engine/platform:native_workshop_menu", "//src/core:sha256", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_hud_layout",
+    srcs = ["test_cove_hud.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/render:render", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders"],
 )

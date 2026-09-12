@@ -1,0 +1,39 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_player
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveWorkshopEditing.HistoryRestoresTrustedSeparatedOwnedStateWithoutRepairingIt:CoveMovement.Brick*:CoveMovement.Workshop*:CoveMovement.SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans:CoveMovement.CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership
+[==========] Running 13 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 13 tests from CoveMovement
+[ RUN      ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign
+[       OK ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign (449 ms)
+[ RUN      ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost
+[       OK ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost (469 ms)
+[ RUN      ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics
+[       OK ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics (426 ms)
+[ RUN      ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview
+[       OK ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview (377 ms)
+[ RUN      ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity
+[       OK ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity (421 ms)
+[ RUN      ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes
+[       OK ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes (468 ms)
+[ RUN      ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition
+[       OK ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition (381 ms)
+[ RUN      ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull
+[       OK ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull (360 ms)
+[ RUN      ] CoveMovement.SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans
+[       OK ] CoveMovement.SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans (349 ms)
+[ RUN      ] CoveMovement.CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership
+[       OK ] CoveMovement.CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership (325 ms)
+[ RUN      ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft
+[       OK ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft (304 ms)
+[ RUN      ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign
+[       OK ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign (314 ms)
+[ RUN      ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections
+[       OK ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections (308 ms)
+[----------] 13 tests from CoveMovement (4957 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (4957 ms total)
+[  PASSED  ] 13 tests.

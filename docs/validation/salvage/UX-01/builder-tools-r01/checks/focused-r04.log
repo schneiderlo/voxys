@@ -1,0 +1,28 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_workshop_editing (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_workshop_editing (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_workshop_editing (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_workshop_editing (1 packages loaded, 81 targets configured).
+[394 / 396] Compiling tests/test_cove_workshop_editing.cpp; 1s linux-sandbox
+[395 / 396] [Prepa] Linking tests/cove_workshop_editing
+[396 / 397] Testing //tests:cove_workshop_editing; 1s linux-sandbox
+[396 / 397] 1 / 1 tests; Testing //tests:cove_workshop_editing; 10s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:cove_workshop_editing up-to-date:
+  bazel-bin/tests/cove_workshop_editing
+INFO: Elapsed time: 15.404s, Critical Path: 13.58s
+INFO: 4 processes: 393 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+//tests:cove_workshop_editing                                            PASSED in 10.7s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

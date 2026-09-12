@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "command": "bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test",
+  "exitCode": 0,
+  "elapsedSeconds": 1145.59,
+  "native": {
+    "passed": 2137,
+    "skipped": 3,
+    "disabled": 4,
+    "executed": 2140,
+    "seconds": 1113.757
+  },
+  "terrainImport": {
+    "passed": 10,
+    "skipped": 1,
+    "executed": 11
+  },
+  "targetsExecuted": 2,
+  "normalCommitHook": "The standard hook remains enabled and runs this same command; only valid Bazel caching may reuse the verified result."
+}

@@ -1,0 +1,72 @@
+[32m[INFO ] [00:00:00.000] Loading config: salvage_cove.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.015] [Application::init] Window created via X11: 960x800 logical, 960x800 framebuffer (2.00x2.00 scale)[0m
+[32m[INFO ] [00:00:00.064] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.064] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.064] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.064] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.067] [Application::init::GPU] Surface configured: 960x800, format=BGRA8Unorm, presentation=Immediate (uncapped)[0m
+[32m[INFO ] [00:00:00.067] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.155] [Application::init] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 32 MiB scratch[0m
+[32m[INFO ] [00:00:00.155] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.156] [Application::init] Decompressed 256x256 heightmap: 25054 -> 131072 bytes (0.29 ms)[0m
+[32m[INFO ] [00:00:00.156] [Application::init] Loaded LDH heightmap: 256x256 (0.12 MB, 0.29 ms)[0m
+[32m[INFO ] [00:00:00.156] [Application::init] Loaded heightmap: data/lego_shore.ldh[0m
+[32m[INFO ] [00:00:00.156] [Application::init] Uploaded heightmap to GPU with mips: 256x256 (9 levels, 0.17 MB total)[0m
+[32m[INFO ] [00:00:00.174] [Application::init] Coastal refraction field initialized: 256x256[0m
+[32m[INFO ] [00:00:00.176] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:00.178] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:00.183] [Application::init::RaycastPath::init] RaycastPath initialized successfully (960x800 output)[0m
+[32m[INFO ] [00:00:00.183] [Application::init] Baked shadow height field: 128x128 (0.2 ms)[0m
+[32m[INFO ] [00:00:00.442] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:00.443] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:00.474] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:00.554] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:01.435] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:01.437] [Application::init] LEGO layout: shore study (131072 bytes)[0m
+[32m[INFO ] [00:00:01.489] [Application::init] Cove boat prepared: 11 welded parts, 1035 kg dry mass, 9.884032000000001 cubic metres displacement[0m
+[32m[INFO ] [00:00:01.498] [Application::init] Pontoon inspection: authored candidate; 0 auto LOD, 1/2/3 fixed LOD, G guides, R reset[0m
+[32m[INFO ] [00:00:01.499] Application initialized successfully[0m
+[32m[INFO ] [00:00:01.499]   Window: 960x800[0m
+[32m[INFO ] [00:00:01.499]   Terrain: 256x256 (mips: 9)[0m
+[32m[INFO ] [00:00:01.499]   Render path: raycast[0m
+[32m[INFO ] [00:00:01.499] [0m
+[32m[INFO ] [00:00:01.499] Controls:[0m
+[32m[INFO ] [00:00:01.499]   WASD      - Move camera[0m
+[32m[INFO ] [00:00:01.499]   Mouse     - Look around (click to capture)[0m
+[32m[INFO ] [00:00:01.499]   Shift     - Speed boost / Run[0m
+[32m[INFO ] [00:00:01.499]   E/Space   - Move up / Jump[0m
+[32m[INFO ] [00:00:01.499]   Q/Ctrl    - Move down[0m
+[32m[INFO ] [00:00:01.499]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:01.499]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:01.499]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:01.499]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:01.499]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:01.499]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:01.499]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:01.499]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:01.499]   R         - Reset cove preview[0m
+[32m[INFO ] [00:00:01.499] [0m
+[32m[INFO ] [00:00:01.499] Expedition save folder: /home/modkin/workspace/schneiderlo/voxys/build-workshop-tools-r01/native-storage-r04/5571c72c07dac225a47bc0bda3c74abc[0m
+[32m[INFO ] [00:00:01.499] To resume: --config salvage_cove.cfg --expedition-root '/home/modkin/workspace/schneiderlo/voxys/build-workshop-tools-r01/native-storage-r04' --expedition-world 5571c72c07dac225a47bc0bda3c74abc[0m
+[32m[INFO ] [00:00:01.499] P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:01.499] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:01.506] Cove machine active: 1 physical sections[0m
+[32m[INFO ] [00:00:01.506] Salvage load active: 420 kg, authored winch and tow eye[0m
+[32m[INFO ] [00:00:01.626] Cove | Walk beside the boat to board | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[33m[WARN ] [00:01:02.018] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:01:02.019] Surface acquisition recovered after a temporary timeout[0m
+[33m[WARN ] [00:01:04.962] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:01:04.963] Surface acquisition recovered after a temporary timeout[0m
+[33m[WARN ] [00:01:10.850] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:01:10.851] Surface acquisition recovered after a temporary timeout[0m
+[33m[WARN ] [00:01:13.794] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:01:13.795] Surface acquisition recovered after a temporary timeout[0m
+[33m[WARN ] [00:01:16.738] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:01:16.738] Surface acquisition recovered after a temporary timeout[0m
+[33m[WARN ] [00:02:05.186] Surface acquisition timed out; skipping this frame[0m
+[32m[INFO ] [00:02:05.187] Surface acquisition recovered after a temporary timeout[0m

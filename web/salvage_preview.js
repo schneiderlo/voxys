@@ -26,7 +26,8 @@
         const workshopToggle=document.getElementById('salvage-workshop-toggle');
         const workshopButtons=workshopPanel ? Array.from(workshopPanel.querySelectorAll('[data-workshop-action]')) : [];
         const workshopHandlers=new Map();
-        const designLibrary=environment.VoxyDesignLibrary?.install(engine,environment);
+        const controllerMenu=cove?environment.VoxyControllerMenu?.install(environment,panel):null;
+        const designLibrary=environment.VoxyDesignLibrary?.install(engine,environment,controllerMenu);
         const expeditionSaves=environment.VoxyCoveSaves?.install(engine,environment);
         const jobPanel=document.getElementById('salvage-job');
         const jobStatus=document.getElementById('salvage-job-status');
@@ -57,6 +58,7 @@
             blurHarbor();
             stopped = true;
             designLibrary?.cleanup();
+            controllerMenu?.cleanup();
             expeditionSaves?.cleanup();
             environment.clearInterval(timer);
             reset.removeEventListener('click', onReset);
@@ -221,6 +223,7 @@
             }
             designLibrary?.tick(state);
             expeditionSaves?.tick(state);
+            controllerMenu?.tick(state);
             if (state.failed) { fail(); return; }
             if (state.assetFixture && lodPanel) {
                 lodPanel.hidden = cove;
@@ -330,6 +333,7 @@
                 if(open) {
                     document.getElementById('salvage-workshop-part').textContent=w.brickTool
                         ? `${w.placedBricks||0} bricks placed · ${w.placedParts} boat parts`
+                        : w.selectedCount>1?`${w.selectedCount} parts selected · Primary: ${w.name} · ${w.parts} parts in design`
                         : `${w.name} · Part ${w.selected+1} · ${w.parts} parts in design`;
                     const tool=document.getElementById('salvage-workshop-tool');
                     if(tool)tool.textContent=w.brickTool
@@ -340,12 +344,17 @@
                     const paintNote=document.getElementById('workshop-paint-note');
                     if(paintNote)paintNote.textContent=!w.canPaint?'Paint is free. Choose a brick to paint.':w.brickTool
                         ?(Array.isArray(w.brushPaint)?'Paint is free. Next bricks use this color.':'Paint is free. Choose a color for new bricks.')
-                        :'Paint is free. Choose a color, then Keep.';
+                        :w.selectedCount>1?'Paint is free. Colors apply to the selected bricks; then Keep.':'Paint is free. Choose a color, then Keep.';
                     const note=document.getElementById('salvage-workshop-status');
                     const noTarget=w.valid&&w.pointerPlacement&&w.pointerTarget===false;
                     note.textContent=(w.launchMessage||(noTarget?(w.brickTool?'Point at a matching stud or socket.':'Point at a part to place, or Keep this position.'):w.message))
                         +(w.valid?` Mass: ${w.massKg.toFixed(0)} kg.`:'');
                     note.dataset.valid=String(w.valid);
+                    note.dataset.problem=w.problemCode||'';
+                    const selectionNote=document.getElementById('workshop-selection-note');
+                    if(selectionNote)selectionNote.textContent=w.brickTool?'Stop the brick tool to select a group.'
+                        :w.changed?'Keep or cancel this preview before changing the selection.'
+                        :`${w.selectedCount||1} selected. Shift-click parts, or use Add next to selection. Group changes are kept and undone together.`;
                     const drawer=document.getElementById('workshop-catalog-name');
                     if(drawer)drawer.textContent=`${w.catalogName||'Parts'} · ${w.partCost||'0'} material${w.partMachinery!=='0'&&w.partMachinery?` + ${w.partMachinery} machinery`:''}`;
                     const stock=document.getElementById('salvage-workshop-stock');
@@ -382,7 +391,7 @@
                         if(action==='86') { button.hidden=!w.hasOutputLimit;button.textContent=`${w.name==='Helm'?'Steering':'Thrust'} limit · L`; }
                         if(action==='87') { button.hidden=!w.canReverse;button.textContent=`${settings.reversed?'Forward':'Reverse'} drive · N`; }
                     }
-                    for(const button of workshopButtons)button.disabled=!state.ready||Boolean(pending)||Boolean(w.pending)
+                    for(const button of workshopButtons)button.disabled=!state.ready||Boolean(pending)||Boolean(w.pending)||state.session?.admissionOpen===false
                         ||(button.dataset.workshopPaint!==undefined&&!w.canPaint)
                         ||(button.dataset.workshopAction==='71'&&(!w.valid||!w.changed))
                         ||(button.dataset.workshopAction==='72'&&!w.undo)
@@ -399,6 +408,13 @@
                         ||(button.dataset.workshopAction==='85'&&!w.configurable)
                         ||(button.dataset.workshopAction==='86'&&!w.hasOutputLimit)
                         ||(button.dataset.workshopAction==='87'&&!w.canReverse);
+                    for(const button of workshopButtons){
+                        const action=Number(button.dataset.workshopAction);
+                        if([300,301,302,303,304,305,309].includes(action))button.disabled||=Boolean(w.changed||w.brickTool);
+                        if(action===301)button.disabled||=!(w.selectedCount>1);
+                        if(action===306)button.disabled||=!(w.redoCount>0)||Boolean(w.changed||w.brickTool);
+                        if([61,62].includes(action))button.disabled||=Boolean(w.changed&&!w.brickTool);
+                    }
                 }
                 reset.hidden=open;
                 const scope=document.getElementById('salvage-scope');if(scope)scope.hidden=open;

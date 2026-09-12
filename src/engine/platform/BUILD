@@ -40,7 +40,7 @@ cc_library(
         ":wasm": ["wasm/input.cpp"],
         "//conditions:default": ["native/input.cpp"],
     }),
-    hdrs = ["input.hpp"],
+    hdrs = ["input.hpp", "gamepad.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = ["../.."],
     deps = [
@@ -75,4 +75,22 @@ cc_library(
     copts = PROJECT_DEFAULT_COPTS,
     includes = ["../.."],
     deps = [":native_save_worker", "//src/app:app", "//src/core:sha256", "//src/game:cove_save", "//third_party:tinygltf"],
+)
+
+cc_library(
+    name = "native_design_library",
+    srcs = ["native/design_library.cpp"],
+    hdrs = ["native/design_library.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = [":native_save_store", "//src/game:design_library", "//src/core:sha256"],
+)
+
+cc_library(
+    name = "native_workshop_menu",
+    srcs = ["native/workshop_menu.cpp"],
+    hdrs = ["native/workshop_menu.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = [":native_design_library", ":input", "//src/render:render", "//src/game:design_library", "//src/game:cove_workshop"],
 )

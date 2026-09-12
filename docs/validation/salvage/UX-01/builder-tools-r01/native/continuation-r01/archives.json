@@ -1,0 +1,52 @@
+{
+  "library": {
+    "sourceDirectory": "/home/modkin/workspace/schneiderlo/voxys/build-workshop-tools-r01/native-storage-r04/Designs/Library",
+    "replicasEqual": true,
+    "generation": 6,
+    "bytes": 11050,
+    "sha256": "c9ac5e728675b470d1730d10f7710e9cef11e423e2bf96854a0fcf52a41972d5",
+    "evidence": "library-current.svsg"
+  },
+  "world": {
+    "sourceDirectory": "/home/modkin/workspace/schneiderlo/voxys/build-workshop-tools-r01/native-storage-r04/b8954187bd400fd6f6ca00946c8793af",
+    "replicasEqual": true,
+    "generation": 3,
+    "bytes": 21155,
+    "sha256": "9ab9a7f5a0f6b35d2be7900e9b0d3fe2431bacf5e88248547c5df23094fa5f9e",
+    "evidence": "world-current.svsg"
+  },
+  "blueprintFiles": [
+    {
+      "path": "HULL-62af4df7d0997af1a5acac53c37dbd22c01549671272acd720d307cc66ae6c98.voxy-design.json",
+      "name": "HULL",
+      "fileSha256": "62af4df7d0997af1a5acac53c37dbd22c01549671272acd720d307cc66ae6c98",
+      "blueprintSha256": "627e475e233ee691d8d5e4211cb49fd48e331965a7dd83940c5024c0b4fe4103",
+      "parts": 10,
+      "connections": 16
+    },
+    {
+      "path": "LOADED-d392f408af993dda0a274f97ed0ca5d95b3a11de6dfcb1a5b4486d8c009cb4c9.voxy-design.json",
+      "name": "LOADED",
+      "fileSha256": "d392f408af993dda0a274f97ed0ca5d95b3a11de6dfcb1a5b4486d8c009cb4c9",
+      "blueprintSha256": "5514d63bb172724496d8e1513bb07cd008a54b64add8cd7c7855f480f7ece0ee",
+      "parts": 12,
+      "connections": 20
+    },
+    {
+      "path": "REOPEN-55cd23af6d3ed9e8b8692b395483172b294bf14e1a5322305cd23be0a254da93.voxy-design.json",
+      "name": "REOPEN",
+      "fileSha256": "55cd23af6d3ed9e8b8692b395483172b294bf14e1a5322305cd23be0a254da93",
+      "blueprintSha256": "5514d63bb172724496d8e1513bb07cd008a54b64add8cd7c7855f480f7ece0ee",
+      "parts": 12,
+      "connections": 20
+    },
+    {
+      "path": "TRANSFER-48ef096b717ec6718db8e0df38c3220456e61eb416acd4ab5356fc857ad16f31.voxy-design.json",
+      "name": "TRANSFER",
+      "fileSha256": "48ef096b717ec6718db8e0df38c3220456e61eb416acd4ab5356fc857ad16f31",
+      "blueprintSha256": "5514d63bb172724496d8e1513bb07cd008a54b64add8cd7c7855f480f7ece0ee",
+      "parts": 12,
+      "connections": 20
+    }
+  ]
+}

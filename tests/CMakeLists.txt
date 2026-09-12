@@ -73,6 +73,9 @@ set(TEST_SOURCES
     test_config.cpp
     test_window.cpp
     test_input.cpp
+    test_gamepad.cpp
+    test_design_library.cpp
+    test_cove_workshop_editing.cpp
     test_heightmap.cpp
     test_world.cpp
     test_compression.cpp
@@ -138,7 +141,7 @@ endif()
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT EMSCRIPTEN)
-    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp)
+    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_design_library.cpp test_native_workshop_menu.cpp)
     add_executable(native_save_store_tests test_native_save_store.cpp test_native_save_worker.cpp test_save_generation.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_store.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_worker.cpp

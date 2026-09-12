@@ -29,6 +29,7 @@ std::unique_ptr<CoveWorkshop> CoveWorkshop::create(const assets::LoadedAssetFixt
     for(uint32_t i=result->fixedPlacements_;i<assets::kMaximumFixturePlacements;++i)result->collisionBoatSlots_.push_back(i);
     result->compiled_=acceptedSeparated?CoveBoatAssembly::compileSeparatedScene(scene,error):CoveBoatAssembly::compile(scene,error);
     if(!result->compiled_)return {};
+    result->designSeparated_=result->compiled_->roots().size()>1;
     for(size_t i=0;i<scene.bundles.size();++i) {
         // The authored cargo bundles are recoverable mission objects, not
         // structural/module choices in the starter's parts drawer.
@@ -38,6 +39,8 @@ std::unique_ptr<CoveWorkshop> CoveWorkshop::create(const assets::LoadedAssetFixt
     result->selected_=scene.registry.navigation->boatPlacements.front();
     for(auto p:scene.registry.navigation->boatPlacements)
         if(std::holds_alternative<WinchModule>(result->definition(p).module))result->selected_=p;
+    result->selection_={result->selected_};result->rememberSelection();
+    if(result->designSeparated_)result->issue_.problem=Problem::NotConnected;
     result->message_=result->valid()?"Select a part. Snap finds a matching socket."
         :"This build has separate sections. Load its protected design or rebuild the starter.";
     error.clear();return result;
@@ -48,7 +51,7 @@ const PartDefinition& CoveWorkshop::definition(uint32_t p) const {
 std::optional<WorkshopBounds> CoveWorkshop::viewBounds(bool wholeBuild) const {
     std::optional<WorkshopBounds> result;
     for(auto slot:preview_.registry.navigation->boatPlacements) {
-        if(!wholeBuild&&slot!=selected_)continue;
+        if(!wholeBuild&&!isSelected(slot))continue;
         const auto& placement=preview_.registry.placements[slot];
         const auto rotation=rotationMatrix(placement.placement.rotation);if(!rotation)return {};
         const auto include=[&](glm::dvec3 lo,glm::dvec3 hi) {
@@ -102,18 +105,52 @@ bool CoveWorkshop::selectCatalogAt(uint32_t index) noexcept {
     if(index>=catalog_.size() || (brickToolActive_&&index!=catalogIndex_))return false;
     catalogIndex_=index;return true;
 }
-bool CoveWorkshop::selectPart(uint32_t placement) {
-    if(brickToolActive_ && !member(design_.registry,placement))return false;
+bool CoveWorkshop::refuse(Problem problem,std::string_view message,std::optional<uint32_t> placement) {
+    issue_={problem,placement};message_=message;return false;
+}
+bool CoveWorkshop::isSelected(uint32_t placement) const noexcept {
+    return std::binary_search(selection_.begin(),selection_.end(),placement);
+}
+void CoveWorkshop::rememberSelection() { keptSelection_=selection_;keptPrimary_=selected_; }
+void CoveWorkshop::normalizeSelection() {
+    std::erase_if(selection_,[&](uint32_t slot){return !member(preview_.registry,slot);});
+    if(selection_.empty())selection_.push_back(preview_.registry.navigation->boatPlacements.front());
+    std::sort(selection_.begin(),selection_.end());
+    selection_.erase(std::unique(selection_.begin(),selection_.end()),selection_.end());
+    if(!isSelected(selected_))selected_=selection_.front();
+}
+bool CoveWorkshop::cleanSelection() {
     if(brickToolActive_)(void)stopBrickTool();
-    if(changed() || !member(design_.registry,placement))return false;
-    selected_=placement;preview_=design_;evaluate();return true;
+    if(changed())return refuse(Problem::PendingEdit,"Keep or cancel this change before selecting parts.");
+    return true;
+}
+bool CoveWorkshop::selectPart(uint32_t placement,SelectionMode mode) {
+    if(!member(design_.registry,placement))return refuse(Problem::InvalidSelection,"Select a part in your boat.");
+    if(mode!=SelectionMode::Replace&&mode!=SelectionMode::Toggle&&mode!=SelectionMode::Add)return false;
+    if(!cleanSelection())return false;
+    auto next=selection_;
+    if(mode==SelectionMode::Replace)next={placement};
+    else if(mode==SelectionMode::Toggle&&isSelected(placement)) {
+        if(next.size()==1)return refuse(Problem::InvalidSelection,"Keep at least one part selected.");
+        std::erase(next,placement);
+    } else if(!isSelected(placement))next.push_back(placement);
+    std::sort(next.begin(),next.end());
+    auto kept=next;
+    selection_=std::move(next);selected_=isSelected(placement)?placement:selection_.front();
+    keptSelection_=std::move(kept);keptPrimary_=selected_;evaluate();return true;
+}
+bool CoveWorkshop::selectAll() {
+    if(!cleanSelection())return false;
+    auto next=design_.registry.navigation->boatPlacements;std::sort(next.begin(),next.end());
+    auto kept=next;selection_=std::move(next);keptSelection_=std::move(kept);keptPrimary_=selected_;
+    evaluate();return true;
 }
 std::optional<CoveWorkshop::Pick> CoveWorkshop::pick(glm::dvec3 origin,glm::dvec3 direction,bool excludeSelected) const {
     for(int axis=0;axis<3;++axis)if(!std::isfinite(origin[axis])||!std::isfinite(direction[axis]))return {};
     const auto length=glm::length(direction);if(length<1e-9)return {};
     direction/=length;double nearest=std::numeric_limits<double>::infinity();std::optional<Pick> result;
     for(auto slot:preview_.registry.navigation->boatPlacements) {
-        if(excludeSelected&&slot==selected_)continue;
+        if(excludeSelected&&isSelected(slot))continue;
         for(const auto& proxy:definition(slot).collision) {
             const auto local=boxBounds(proxy);
             const auto bounds=local?transformBounds(preview_.registry.placements[slot].placement,*local):std::nullopt;
@@ -134,7 +171,7 @@ std::optional<CoveWorkshop::Pick> CoveWorkshop::pick(glm::dvec3 origin,glm::dvec
     return result;
 }
 bool CoveWorkshop::aimAt(const Pick& hit) {
-    if(hit.placement==selected_||!member(preview_.registry,hit.placement)||!member(preview_.registry,selected_))return false;
+    if(isSelected(hit.placement)||!member(preview_.registry,hit.placement)||!member(preview_.registry,selected_))return false;
     for(int axis=0;axis<3;++axis)if(!std::isfinite(hit.point[axis]))return false;
     const auto current=preview_.registry.placements[selected_].placement;
     std::optional<GridTransform> best;double score=std::numeric_limits<double>::infinity();
@@ -155,7 +192,8 @@ bool CoveWorkshop::aimAt(const Pick& hit) {
     }
     if(!best)return false;
     if(*best==current)return true;
-    preview_.registry.placements[selected_].placement=*best;evaluate();return true;
+    const auto delta=checkedSubtract(best->translation,current.translation);
+    return delta&&moveSelection(*delta);
 }
 ContentKey CoveWorkshop::catalogDefinition() const noexcept {
     return catalog_.empty()?ContentKey{}:design_.bundles[catalog_[catalogIndex_].bundleIndex]->sidecar().part.key;
@@ -175,6 +213,125 @@ bool CoveWorkshop::hasFreePartSlot() const noexcept {
             && std::find(design_.registry.navigation->boatPlacements.begin(),design_.registry.navigation->boatPlacements.end(),slot)
                 ==design_.registry.navigation->boatPlacements.end())return true;
     return false;
+}
+std::optional<std::vector<uint32_t>> CoveWorkshop::freeSlots(size_t count) const {
+    std::vector<uint32_t> result;result.reserve(count);
+    for(uint32_t slot=fixedPlacements_;slot<assets::kMaximumFixturePlacements&&result.size()<count;++slot)
+        if(std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)==acceptedSlots_.end()
+            &&!member(design_.registry,slot))result.push_back(slot);
+    if(result.size()!=count)return {};
+    return result;
+}
+bool CoveWorkshop::moveSelection(GridPosition deltaTicks) {
+    auto candidate=preview_;
+    for(auto slot:selection_) {
+        if(!member(candidate.registry,slot))return refuse(Problem::InvalidSelection,"Select a part in your boat.");
+        auto& transform=candidate.registry.placements[slot].placement;
+        const auto position=checkedAdd(transform.translation,deltaTicks);
+        if(!position)return refuse(Problem::OutOfBounds,"That move is outside the building grid.",slot);
+        transform.translation=*position;
+    }
+    preview_=std::move(candidate);evaluate();return true;
+}
+bool CoveWorkshop::rotateSelection(Axis axis,int quarterTurns) {
+    if(axis!=Axis::X&&axis!=Axis::Y&&axis!=Axis::Z)return false;
+    const GridPosition x=axis==Axis::Y?GridPosition{0,0,-1}:axis==Axis::Z?GridPosition{0,1,0}:GridPosition{1,0,0};
+    const GridPosition y=axis==Axis::X?GridPosition{0,0,1}:axis==Axis::Z?GridPosition{-1,0,0}:GridPosition{0,1,0};
+    CubeRotation turn{};
+    for(uint8_t i=0;i<24;++i)if(rotate(CubeRotation{i},{1,0,0})==x&&rotate(CubeRotation{i},{0,1,0})==y){turn=CubeRotation{i};break;}
+    CubeRotation rotation{};
+    const auto turns=(quarterTurns%4+4)%4;
+    for(int i=0;i<turns;++i)rotation=*compose(turn,rotation);
+    auto candidate=preview_;const auto pivot=preview_.registry.placements[selected_].placement.translation;
+    for(auto slot:selection_) {
+        auto& transform=candidate.registry.placements[slot].placement;
+        const auto relative=checkedSubtract(transform.translation,pivot);
+        const auto rotated=relative?rotate(rotation,*relative):std::nullopt;
+        const auto position=rotated?checkedAdd(pivot,*rotated):std::nullopt;
+        const auto orientation=compose(rotation,transform.rotation);
+        if(!position||!orientation)return refuse(Problem::OutOfBounds,"That rotation is outside the building grid.",slot);
+        if(!(definition(slot).permittedRotationMask&(1u<<orientation->value)))
+            return refuse(Problem::UnsupportedRotation,"A selected part cannot use that orientation.",slot);
+        transform={*position,*orientation};
+    }
+    preview_=std::move(candidate);evaluate();return true;
+}
+bool CoveWorkshop::duplicateSelection(GridPosition deltaTicks) { return copySelection(deltaTicks,{},0); }
+bool CoveWorkshop::mirrorSelection(Axis axis,int32_t planeTicks) {
+    if(axis!=Axis::X&&axis!=Axis::Z)return refuse(Problem::UnsupportedOperation,"Mirror across the X or Z plane.");
+    return copySelection({},axis,planeTicks);
+}
+bool CoveWorkshop::copySelection(GridPosition deltaTicks,std::optional<Axis> mirror,int32_t planeTicks) {
+    if(!cleanSelection())return false;
+    if(mirror)for(auto slot:selection_)if(preview_.registry.placements[slot].prototype||!isPaintableBrick(definition(slot).nameKey))
+        return refuse(Problem::UnsupportedOperation,"Mirror supports bricks only. Machinery has no mirrored part.",slot);
+    auto slots=freeSlots(selection_.size());
+    if(!slots)return refuse(Problem::NoFreeSlots,"Not enough free part slots. Launch removals first.");
+    auto candidate=design_;auto primary=selected_;
+    for(size_t i=0;i<selection_.size();++i) {
+        const auto source=selection_[i],destination=(*slots)[i];auto placement=design_.registry.placements[source];
+        if(mirror) {
+            const int axis=*mirror==Axis::X?0:2;
+            auto& t=placement.placement.translation;
+            const int64_t old=axis==0?t.x:t.z;
+            const int64_t reflected=2*int64_t{planeTicks}-old;
+            if(reflected<std::numeric_limits<int32_t>::min()||reflected>std::numeric_limits<int32_t>::max())
+                return refuse(Problem::OutOfBounds,"The mirrored copy is outside the building grid.",source);
+            if(axis==0)t.x=static_cast<int32_t>(reflected);else t.z=static_cast<int32_t>(reflected);
+            if(!isValid(t))return refuse(Problem::OutOfBounds,"The mirrored copy is outside the building grid.",source);
+            const auto original=rotationMatrix(placement.placement.rotation);if(!original)return false;
+            // These brick shells, cavities and stud arrays are symmetric in
+            // local X. Two reflections therefore produce a proper rotation.
+            std::optional<CubeRotation> orientation;
+            for(uint8_t r=0;r<24&&!orientation;++r) {
+                const auto m=rotationMatrix(CubeRotation{r});bool equal=true;
+                for(int row=0;row<3;++row)for(int column=0;column<3;++column) {
+                    const auto at=static_cast<size_t>(row*3+column);
+                    equal&=m->elements[at]==original->elements[at]*(row==axis?-1:1)*(column==0?-1:1);
+                }
+                if(equal)orientation=CubeRotation{r};
+            }
+            if(!orientation||!(definition(source).permittedRotationMask&(1u<<orientation->value)))
+                return refuse(Problem::UnsupportedRotation,"A mirrored brick cannot use that orientation.",source);
+            placement.placement.rotation=*orientation;
+        } else {
+            const auto t=checkedAdd(placement.placement.translation,deltaTicks);
+            if(!t)return refuse(Problem::OutOfBounds,"The copy is outside the building grid.",source);
+            placement.placement.translation=*t;
+        }
+        if(destination==candidate.registry.placements.size())candidate.registry.placements.push_back(placement);
+        else candidate.registry.placements[destination]=placement;
+        candidate.registry.navigation->boatPlacements.push_back(destination);
+        if(source==selected_)primary=destination;
+    }
+    preview_=std::move(candidate);selection_=std::move(*slots);selected_=primary;evaluate();return true;
+}
+bool CoveWorkshop::replaceSelection(uint32_t catalogIndex) {
+    if(catalogIndex>=catalog_.size())return false;
+    if(!cleanSelection())return false;
+    const auto& replacement=design_.bundles[catalog_[catalogIndex].bundleIndex]->sidecar().part;
+    std::vector<uint32_t> replaced;
+    for(auto slot:selection_)if(definition(slot).key!=replacement.key)replaced.push_back(slot);
+    if(replaced.empty()){issue_={};message_="Selection already uses that part.";return false;}
+    auto slots=freeSlots(replaced.size());
+    if(!slots)return refuse(Problem::NoFreeSlots,"Replacement needs free part slots. Launch removals first.");
+    auto candidate=design_;auto selection=selection_;auto primary=selected_;
+    for(size_t i=0;i<replaced.size();++i) {
+        const auto source=replaced[i],destination=(*slots)[i];auto placement=catalog_[catalogIndex];
+        placement.placement=design_.registry.placements[source].placement;
+        if(!(replacement.permittedRotationMask&(1u<<placement.placement.rotation.value)))
+            return refuse(Problem::UnsupportedRotation,"The replacement cannot use this orientation.",source);
+        placement.settings=defaultModuleSettings(replacement);
+        if(isPaintableBrick(replacement.nameKey))placement.paint=design_.registry.placements[source].paint.value_or(kOriginalBrickPaint);
+        if(destination==candidate.registry.placements.size())candidate.registry.placements.push_back(placement);
+        else candidate.registry.placements[destination]=placement;
+        std::erase(candidate.registry.navigation->boatPlacements,source);
+        candidate.registry.navigation->boatPlacements.push_back(destination);
+        std::replace(selection.begin(),selection.end(),source,destination);
+        if(primary==source)primary=destination;
+    }
+    std::sort(selection.begin(),selection.end());
+    preview_=std::move(candidate);selection_=std::move(selection);selected_=primary;catalogIndex_=catalogIndex;evaluate();return true;
 }
 bool CoveWorkshop::addPart(const PartInstance* stored) {
     if(!canAdd()){message_="Keep or cancel the move first. Launch removals to free part slots.";return false;}
@@ -199,7 +356,8 @@ bool CoveWorkshop::addPreview(uint32_t index,const PartInstance* stored,GridTran
     if(slot==candidate.registry.placements.size())candidate.registry.placements.push_back(placed);
     else candidate.registry.placements[slot]=placed;
     candidate.registry.navigation->boatPlacements.push_back(slot);
-    preview_=std::move(candidate);selected_=slot;catalogIndex_=index;evaluate();
+    std::vector<uint32_t> selection{slot};
+    preview_=std::move(candidate);selected_=slot;selection_=std::move(selection);catalogIndex_=index;evaluate();
     // A new part is a visible, editable ghost. Snapping searches the real
     // sockets and full compiler; an unsuccessful search never spends stock.
     (void)snap();return true;
@@ -233,26 +391,32 @@ bool CoveWorkshop::stopBrickTool() {
     if(!brickToolActive_)return false;
     brickToolActive_=false;selected_=brickToolAnchor_;
     if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
-    preview_=design_;evaluate();return true;
+    preview_=design_;selection_={selected_};rememberSelection();evaluate();return true;
 }
 bool CoveWorkshop::canPaint() const noexcept {
-    return selected_<preview_.registry.placements.size()&&member(preview_.registry,selected_)
-        &&!preview_.registry.placements[selected_].prototype&&isPaintableBrick(definition(selected_).nameKey);
+    return !selection_.empty()&&std::all_of(selection_.begin(),selection_.end(),[&](uint32_t slot){
+        return member(preview_.registry,slot)&&!preview_.registry.placements[slot].prototype
+            &&isPaintableBrick(definition(slot).nameKey);
+    });
 }
 BrickPaint CoveWorkshop::currentPaint() const noexcept {
     return selected_<preview_.registry.placements.size()
         ?preview_.registry.placements[selected_].paint.value_or(kOriginalBrickPaint):kOriginalBrickPaint;
 }
 std::optional<uint32_t> CoveWorkshop::paintIndex() const noexcept {
-    return canPaint()?brickPaintIndex(currentPaint()):std::nullopt;
+    if(!canPaint())return {};
+    const auto paint=currentPaint();
+    if(std::any_of(selection_.begin(),selection_.end(),[&](uint32_t p){return preview_.registry.placements[p].paint.value_or(kOriginalBrickPaint)!=paint;}))return {};
+    return brickPaintIndex(paint);
 }
 bool CoveWorkshop::setPaint(uint32_t index) {
-    if(!canPaint()||index>=kBrickPaintPalette.size())return false;
-    brushPaint_=kBrickPaintPalette[index].rgba;
-    preview_.registry.placements[selected_].paint=*brushPaint_;
-    evaluate();
+    if(!canPaint())return refuse(Problem::UnsupportedOperation,"Paint requires a selection of bricks only.");
+    if(index>=kBrickPaintPalette.size())return false;
+    auto candidate=preview_;
+    for(auto slot:selection_)candidate.registry.placements[slot].paint=kBrickPaintPalette[index].rgba;
+    preview_=std::move(candidate);brushPaint_=kBrickPaintPalette[index].rgba;evaluate();
     if(valid())message_=brickToolActive_?"Color ready. Click to place another brick."
-        :changed()?"Color ready. Keep, then Launch to apply.":"This brick already has that color.";
+        :changed()?"Color ready. Keep, then Launch to apply.":"Selection already has that color.";
     return true;
 }
 double CoveWorkshop::massKg() const noexcept {
@@ -262,38 +426,51 @@ ModuleSettings CoveWorkshop::selectedSettings() const noexcept {
     return preview_.registry.placements[selected_].settings.value_or(defaultModuleSettings(definition(selected_)));
 }
 bool CoveWorkshop::configurable() const noexcept {
-    const auto& module=definition(selected_).module;
-    return member(preview_.registry,selected_) && (std::holds_alternative<PropellerModule>(module)
-        || std::holds_alternative<HelmModule>(module) || std::holds_alternative<WinchModule>(module));
+    return !selection_.empty()&&std::all_of(selection_.begin(),selection_.end(),[&](uint32_t slot){
+        if(!member(preview_.registry,slot))return false;
+        const auto& module=definition(slot).module;
+        return std::holds_alternative<PropellerModule>(module)||std::holds_alternative<HelmModule>(module)||std::holds_alternative<WinchModule>(module);
+    });
 }
 bool CoveWorkshop::hasOutputLimit() const noexcept {
-    return configurable() && selectedSettings().kind!=SettingsKind::Winch;
+    return configurable()&&std::all_of(selection_.begin(),selection_.end(),[&](uint32_t slot){
+        return !std::holds_alternative<WinchModule>(definition(slot).module);
+    });
 }
 bool CoveWorkshop::canReverse() const noexcept {
-    return configurable() && std::holds_alternative<PropellerModule>(definition(selected_).module);
+    return configurable()&&std::all_of(selection_.begin(),selection_.end(),[&](uint32_t slot){
+        return std::holds_alternative<PropellerModule>(definition(slot).module);
+    });
 }
 bool CoveWorkshop::configure(SettingAction action) {
-    if(!configurable())return false;
-    auto settings=selectedSettings();
-    switch(action) {
-    case SettingAction::Toggle:settings.enabled=!settings.enabled;break;
-    case SettingAction::CycleLimit:
-        if(!hasOutputLimit())return false;
-        settings.limitPermille=settings.limitPermille==0?1000:static_cast<uint16_t>((settings.limitPermille-1)/250*250);break;
-    case SettingAction::Reverse:
-        if(!canReverse())return false;
-        settings.reversed=!settings.reversed;break;
+    if(!configurable()||(action==SettingAction::CycleLimit&&!hasOutputLimit())||(action==SettingAction::Reverse&&!canReverse()))
+        return refuse(Problem::UnsupportedOperation,"This setting is not supported by every selected part.");
+    if(action!=SettingAction::Toggle&&action!=SettingAction::CycleLimit&&action!=SettingAction::Reverse)return false;
+    const auto primary=selectedSettings();auto candidate=preview_;
+    for(auto slot:selection_) {
+        auto& placement=candidate.registry.placements[slot];
+        auto settings=placement.settings.value_or(defaultModuleSettings(definition(slot)));
+        switch(action) {
+        case SettingAction::Toggle:settings.enabled=!primary.enabled;break;
+        case SettingAction::CycleLimit:settings.limitPermille=primary.limitPermille==0?1000:static_cast<uint16_t>((primary.limitPermille-1)/250*250);break;
+        case SettingAction::Reverse:settings.reversed=!primary.reversed;break;
+        }
+        placement.settings=settings;
     }
-    preview_.registry.placements[selected_].settings=settings;evaluate();
+    preview_=std::move(candidate);evaluate();
     if(valid())message_="Settings ready. Keep, then Launch to apply.";
     return true;
 }
 bool CoveWorkshop::changed() const noexcept {
-    return selected_>=design_.registry.placements.size()
-        || preview_.registry.placements[selected_].placement!=design_.registry.placements[selected_].placement
-        || currentPaint()!=design_.registry.placements[selected_].paint.value_or(kOriginalBrickPaint)
-        || selectedSettings()!=design_.registry.placements[selected_].settings.value_or(defaultModuleSettings(definition(design_,selected_)))
-        || preview_.registry.navigation->boatPlacements!=design_.registry.navigation->boatPlacements;
+    const auto& a=preview_.registry;const auto& b=design_.registry;
+    if(!std::is_permutation(a.navigation->boatPlacements.begin(),a.navigation->boatPlacements.end(),b.navigation->boatPlacements.begin(),b.navigation->boatPlacements.end()))return true;
+    for(auto slot:a.navigation->boatPlacements) {
+        const auto& x=a.placements[slot];const auto& y=b.placements[slot];
+        if(x.placement!=y.placement||x.bundleIndex!=y.bundleIndex||x.prototype!=y.prototype
+            ||x.paint.value_or(kOriginalBrickPaint)!=y.paint.value_or(kOriginalBrickPaint)
+            ||x.settings.value_or(defaultModuleSettings(definition(preview_,slot)))!=y.settings.value_or(defaultModuleSettings(definition(design_,slot))))return true;
+    }
+    return false;
 }
 bool CoveWorkshop::matchesDesign(const assets::LoadedAssetFixture& scene) const noexcept {
     const auto& a=design_.registry;const auto& b=scene.registry;
@@ -311,43 +488,89 @@ bool CoveWorkshop::matchesDesign(const assets::LoadedAssetFixture& scene) const 
     }))return false;
     return true;
 }
+std::vector<uint32_t> CoveWorkshop::affectedParts(const assets::LoadedAssetFixture& candidate) const {
+    std::vector<uint32_t> affected;
+    for(uint32_t slot=0;slot<candidate.registry.placements.size();++slot) {
+        const bool before=member(design_.registry,slot),after=member(candidate.registry,slot);
+        if(before!=after||(after&&(slot>=design_.registry.placements.size()
+            ||candidate.registry.placements[slot].placement!=design_.registry.placements[slot].placement
+            ||candidate.registry.placements[slot].bundleIndex!=design_.registry.placements[slot].bundleIndex
+            ||candidate.registry.placements[slot].prototype!=design_.registry.placements[slot].prototype)))affected.push_back(slot);
+    }
+    return affected;
+}
 bool CoveWorkshop::reconnect(assets::LoadedAssetFixture& candidate) const {
+    return reconnect(candidate,affectedParts(candidate));
+}
+bool CoveWorkshop::reconnect(assets::LoadedAssetFixture& candidate,std::span<const uint32_t> affected) const {
     auto& r=candidate.registry;
-    std::erase_if(r.connections,[&](const auto& c){return c.aPlacement==selected_||c.bPlacement==selected_;});
-    if(!member(r,selected_))return true;
+    // Start with the kept graph each time. Moving back to the kept transform
+    // must restore its bonds after a previously disconnected preview.
+    r.connections=design_.registry.connections;
+    const auto touches=[&](uint32_t slot){return std::find(affected.begin(),affected.end(),slot)!=affected.end();};
+    std::erase_if(r.connections,[&](const auto& c){return touches(c.aPlacement)||touches(c.bPlacement);});
     struct Socket { GridTransform frame;uint32_t placement;const SocketDefinition* definition; };
     std::vector<Socket> sockets;
-    for(auto other:r.navigation->boatPlacements)if(other!=selected_)for(const auto& socket:definition(candidate,other).sockets) {
+    for(auto other:r.navigation->boatPlacements)for(const auto& socket:definition(candidate,other).sockets) {
         if(sockets.size()>=kMaximumBuildSocketRecords)return false;
         const auto frame=compose(r.placements[other].placement,socket.frame);if(!frame)return false;
         sockets.push_back({*frame,other,&socket});
     }
-    std::stable_sort(sockets.begin(),sockets.end(),[](const auto& a,const auto& b){return std::tie(a.frame.translation.x,a.frame.translation.y,a.frame.translation.z)<std::tie(b.frame.translation.x,b.frame.translation.y,b.frame.translation.z);});
-    for(const auto& a:definition(candidate,selected_).sockets) {
-        const auto af=compose(r.placements[selected_].placement,a.frame);if(!af)return false;
-        auto at=std::lower_bound(sockets.begin(),sockets.end(),af->translation,
-            [](const Socket& socket,GridPosition p){return std::tie(socket.frame.translation.x,socket.frame.translation.y,socket.frame.translation.z)<std::tie(p.x,p.y,p.z);});
-        for(;at!=sockets.end()&&at->frame.translation==af->translation;++at) {
-            const auto& b=*at->definition;const auto other=at->placement;
-            if(matchSockets(a,b,ConnectionKind::Weld)!=SocketMatchError::None||compose(af->rotation,mating)!=at->frame.rotation)continue;
-            const auto used=[&](uint32_t part,SocketId socket){return std::count_if(r.connections.begin(),r.connections.end(),
-                [&](const auto& c){return (c.aPlacement==part&&c.aSocket==socket)||(c.bPlacement==part&&c.bSocket==socket);});};
-            if(used(selected_,a.id)>=a.connectionCapacity||used(other,b.id)>=b.connectionCapacity)continue;
-            if(r.connections.size()>=assets::kMaximumFixtureConnections)return false;
-            r.connections.push_back({selected_,other,a.id,b.id});
+    std::stable_sort(sockets.begin(),sockets.end(),[](const auto& a,const auto& b){return std::tie(a.frame.translation.x,a.frame.translation.y,a.frame.translation.z,a.placement,a.definition->id)<std::tie(b.frame.translation.x,b.frame.translation.y,b.frame.translation.z,b.placement,b.definition->id);});
+    for(auto part:affected) {
+        if(!member(r,part))continue;
+        for(const auto& a:definition(candidate,part).sockets) {
+            const auto af=compose(r.placements[part].placement,a.frame);if(!af)return false;
+            auto at=std::lower_bound(sockets.begin(),sockets.end(),af->translation,
+                [](const Socket& socket,GridPosition p){return std::tie(socket.frame.translation.x,socket.frame.translation.y,socket.frame.translation.z)<std::tie(p.x,p.y,p.z);});
+            for(;at!=sockets.end()&&at->frame.translation==af->translation;++at) {
+                const auto& b=*at->definition;const auto other=at->placement;
+                if(other==part||matchSockets(a,b,ConnectionKind::Weld)!=SocketMatchError::None||compose(af->rotation,mating)!=at->frame.rotation)continue;
+                if(std::any_of(r.connections.begin(),r.connections.end(),[&](const auto& c){
+                    return (c.aPlacement==part&&c.aSocket==a.id&&c.bPlacement==other&&c.bSocket==b.id)
+                        ||(c.bPlacement==part&&c.bSocket==a.id&&c.aPlacement==other&&c.aSocket==b.id);
+                }))continue;
+                const auto used=[&](uint32_t slot,SocketId socket){return std::count_if(r.connections.begin(),r.connections.end(),
+                    [&](const auto& c){return (c.aPlacement==slot&&c.aSocket==socket)||(c.bPlacement==slot&&c.bSocket==socket);});};
+                if(used(part,a.id)>=a.connectionCapacity||used(other,b.id)>=b.connectionCapacity)continue;
+                if(r.connections.size()>=assets::kMaximumFixtureConnections)return false;
+                r.connections.push_back({part,other,a.id,b.id});
+            }
         }
     }
     return true;
 }
 void CoveWorkshop::evaluate() {
-    compiled_.reset();
-    if(!reconnect(preview_)) {message_="Too many socket connections.";return;}
-    std::string error;compiled_=CoveBoatAssembly::compile(preview_,error);
-    if(compiled_)message_=changed()?"Fits. Keep this change or try another socket.":"Part is connected.";
-    else if(error.find("solid")!=std::string::npos || error.find("overlap")!=std::string::npos)
-        message_="Blocked by another part. Try another socket.";
-    else if(error.find("clearance")!=std::string::npos)message_="Leave room around the connector.";
-    else message_="Not connected. Snap to a free socket.";
+    compiled_.reset();issue_={};
+    if(!reconnect(preview_)) {(void)refuse(Problem::SocketCapacity,"The selection exceeds the connector limit.");return;}
+    std::string error;CoveBoatAssembly::Diagnostic diagnostic;
+    if(designSeparated_&&!changed()) {
+        compiled_=CoveBoatAssembly::compileSeparatedScene(preview_,error);
+        (void)refuse(Problem::NotConnected,"This build has separate sections. Load its protected design or reconnect the parts.");return;
+    }
+    compiled_=CoveBoatAssembly::compile(preview_,error,&diagnostic);
+    if(compiled_){message_=changed()?"Fits. Keep this change or try another socket.":"Selection is connected.";return;}
+    const auto problem=diagnostic.assembly.buoyancy.collision.assembly.build.error;
+    const auto slot=diagnostic.placement;
+    switch(problem) {
+    case BuildError::SolidOverlap:(void)refuse(Problem::SolidOverlap,"Blocked by another part. Move the selection or choose another socket.",slot);return;
+    case BuildError::ClearanceBlocked:(void)refuse(Problem::ConnectorClearance,"Leave room around the connector.",slot);return;
+    case BuildError::InvalidPlacement:(void)refuse(Problem::UnsupportedRotation,"A part is outside the grid or cannot use this orientation.",slot);return;
+    case BuildError::InvalidSettings:(void)refuse(Problem::InvalidSettings,"A selected part has unsupported settings.",slot);return;
+    case BuildError::Capacity:(void)refuse(Problem::PhysicalLimit,"This design exceeds the part or connector capacity.",slot);return;
+    case BuildError::SocketCapacity:(void)refuse(Problem::SocketCapacity,"A connector has no free attachment slots.",slot);return;
+    case BuildError::IncompatibleSocket:case BuildError::MisalignedWeld:
+        (void)refuse(Problem::IncompatibleSocket,"These connectors do not match. Snap to a compatible socket.",slot);return;
+    default:break;
+    }
+    using Failure=CoveBoatAssembly::Diagnostic::Failure;
+    if(diagnostic.failure==Failure::Disconnected){(void)refuse(Problem::NotConnected,"Not connected. Snap the selection to a free socket.");return;}
+    if(diagnostic.failure==Failure::DuplicateHelm){(void)refuse(Problem::PhysicalLimit,"A connected boat supports one helm.");return;}
+    if(diagnostic.failure==Failure::DuplicatePropeller){(void)refuse(Problem::PhysicalLimit,"A connected boat supports one propeller.");return;}
+    if(diagnostic.assembly.buoyancy.collision.assembly.error==AssemblyError::Extent){
+        (void)refuse(Problem::OutOfBounds,"This design extends beyond the supported boat size.",slot);return;
+    }
+    (void)refuse(Problem::PhysicalLimit,"This design exceeds the supported hull or flotation limits.",slot);
 }
 bool CoveWorkshop::snap() {
     struct Candidate { GridTransform frame; double distance; };
@@ -357,7 +580,7 @@ bool CoveWorkshop::snap() {
     for(const auto& a:definition(selected_).sockets) {
         const auto ai=inverse(a.frame);if(!ai)continue;
         for(auto other:preview_.registry.navigation->boatPlacements) {
-            if(other==selected_)continue;
+            if(isSelected(other))continue;
             for(const auto& b:definition(other).sockets) {
                 if(++visits>kMaximumBuildSocketRecords*kMaximumPartSockets){message_="Build exceeds the socket budget.";return false;}
                 if(matchSockets(b,a,ConnectionKind::Weld)!=SocketMatchError::None)continue;
@@ -379,8 +602,16 @@ bool CoveWorkshop::snap() {
     }
     std::stable_sort(candidates.begin(),candidates.end(),[](const auto& a,const auto& b){return a.distance<b.distance;});
     for(const auto& option:candidates) {
-        auto candidate=preview_;candidate.registry.placements[selected_].placement=option.frame;
-        if(!reconnect(candidate))continue;
+        auto candidate=preview_;
+        const auto oldInverse=inverse(current);const auto delta=oldInverse?compose(option.frame,*oldInverse):std::nullopt;
+        if(!delta)continue;
+        bool supported=true;
+        for(auto slot:selection_) {
+            const auto next=compose(*delta,candidate.registry.placements[slot].placement);
+            if(!next||!(definition(slot).permittedRotationMask&(1u<<next->rotation.value))){supported=false;break;}
+            candidate.registry.placements[slot].placement=*next;
+        }
+        if(!supported||!reconnect(candidate))continue;
         std::string error;auto assembly=CoveBoatAssembly::compile(candidate,error);
         if(!assembly)continue;
         if(!member(design_.registry,selected_)) {
@@ -392,7 +623,7 @@ bool CoveWorkshop::snap() {
                 error,collisionBoatSlots_))continue;
         }
         preview_=std::move(candidate);compiled_=std::move(assembly);
-        message_="Fits. Keep this change or try another socket.";return true;
+        issue_={};message_="Fits. Keep this change or try another socket.";return true;
     }
     message_="No other free socket fits this part.";return false;
 }
@@ -465,67 +696,82 @@ bool CoveWorkshop::loadBlueprint(std::span<const std::byte> bytes,std::string& e
         if(found==compiled->build().connections.end() || std::tie(found->strength.tensionNewtons,found->strength.shearNewtons,found->strength.bendingNewtonMetres,found->strength.torsionNewtonMetres)
                 !=std::tie(link.strength.tensionNewtons,link.strength.shearNewtons,link.strength.bendingNewtonMetres,link.strength.torsionNewtonMetres))return fail("This workshop cannot restore custom weld strength yet.");
     }
-    auto history=history_;if(history.size()==maximumHistory)history.erase(history.begin());history.push_back(design_.registry);
-    auto preview=candidate;design_=std::move(candidate);preview_=std::move(preview);compiled_=std::move(compiled);history_=std::move(history);
-    selected_=design_.registry.navigation->boatPlacements.front();brickToolActive_=false;++revision_;
-    message_="Design loaded. Check the cost, then Launch to build it.";error.clear();return true;
+    auto history=history_;if(history.size()==maximumHistory)history.erase(history.begin());history.push_back(currentHistory());
+    auto preview=candidate;const auto primary=candidate.registry.navigation->boatPlacements.front();
+    std::vector<uint32_t> selection{primary},kept=selection;
+    design_=std::move(candidate);preview_=std::move(preview);compiled_=std::move(compiled);history_=std::move(history);
+    selected_=keptPrimary_=primary;selection_=std::move(selection);keptSelection_=std::move(kept);future_.clear();brickToolActive_=false;designSeparated_=false;++revision_;
+    issue_={};message_="Design loaded. Check the cost, then Launch to build it.";error.clear();return true;
 }
 
 bool CoveWorkshop::command(Action action) {
     if(brickToolActive_ && (action==Action::Previous || action==Action::Next || action==Action::Undo
-        || action==Action::Revert || action==Action::Remove)) {
+        || action==Action::Redo || action==Action::Revert || action==Action::Remove)) {
         (void)stopBrickTool();
         if(action==Action::Revert || action==Action::Remove)return true;
     }
     if(action==Action::Previous || action==Action::Next) {
+        if(!cleanSelection())return false;
         const auto& parts=design_.registry.navigation->boatPlacements;
         const auto found=std::find(parts.begin(),parts.end(),selected_);
         const auto i=found==parts.end()?0u:static_cast<size_t>(found-parts.begin());
-        selected_=parts[(i+parts.size()+(action==Action::Next?1:parts.size()-1))%parts.size()];
-        preview_=design_;evaluate();return true;
+        return selectPart(parts[(i+parts.size()+(action==Action::Next?1:parts.size()-1))%parts.size()]);
     }
-    if(action==Action::Revert){preview_=design_;if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();evaluate();return true;}
-    if(action==Action::Undo) {
-        if(history_.empty() || revision_==std::numeric_limits<uint64_t>::max())return false;
-        auto candidate=design_;candidate.registry=history_.back();std::string error;
-        auto assembly=CoveBoatAssembly::compile(candidate,error);if(!assembly)return false;
-        design_=std::move(candidate);preview_=design_;compiled_=std::move(assembly);history_.pop_back();++revision_;
-        if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
-        message_="Change undone.";return true;
+    if(action==Action::Revert) {
+        auto candidate=design_;auto selection=keptSelection_;
+        preview_=std::move(candidate);selection_=std::move(selection);selected_=keptPrimary_;normalizeSelection();evaluate();return true;
+    }
+    if(action==Action::Undo || action==Action::Redo) {
+        if(changed())return refuse(Problem::PendingEdit,"Keep or cancel this change before using history.");
+        const bool redo=action==Action::Redo;const auto& from=redo?future_:history_;
+        if(from.empty()){issue_={};message_=redo?"Nothing to redo.":"Nothing to undo.";return false;}
+        if(revision_==std::numeric_limits<uint64_t>::max())return refuse(Problem::HistoryLimit,"Design history is full.");
+        auto candidate=design_;candidate.registry=from.back().registry;std::string error;
+        const bool separated=from.back().separated;
+        auto assembly=separated?CoveBoatAssembly::compileSeparatedScene(candidate,error):CoveBoatAssembly::compile(candidate,error);
+        if(!assembly)return refuse(Problem::PhysicalLimit,"This history entry cannot be restored.");
+        auto preview=candidate;auto selection=from.back().selection;auto kept=selection;const auto primary=from.back().primary;
+        auto history=history_,future=future_;
+        if(redo){history.push_back(currentHistory());future.pop_back();}
+        else {future.push_back(currentHistory());history.pop_back();}
+        design_=std::move(candidate);preview_=std::move(preview);compiled_=std::move(assembly);
+        history_=std::move(history);future_=std::move(future);selection_=std::move(selection);keptSelection_=std::move(kept);
+        selected_=keptPrimary_=primary;designSeparated_=separated;++revision_;issue_={};
+        if(separated){issue_.problem=Problem::NotConnected;message_="History restored. This boat still has separate sections.";}
+        else message_=redo?"Change redone.":"Change undone.";
+        return true;
     }
     if(action==Action::Keep) {
-        if(!valid() || !changed() || revision_==std::numeric_limits<uint64_t>::max())return false;
-        auto accepted=preview_;auto history=history_;
+        if(!valid()||!changed())return false;
+        if(revision_==std::numeric_limits<uint64_t>::max())return refuse(Problem::HistoryLimit,"Design history is full.");
+        auto accepted=preview_;auto history=history_;auto kept=selection_;
         if(history.size()==maximumHistory)history.erase(history.begin());
-        history.push_back(design_.registry);design_=std::move(accepted);history_=std::move(history);++revision_;
-        brickToolActive_=false;
-        if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
+        history.push_back(currentHistory());design_=std::move(accepted);history_=std::move(history);future_.clear();++revision_;
+        keptSelection_=std::move(kept);keptPrimary_=selected_;brickToolActive_=false;designSeparated_=false;issue_={};
         message_="Design kept. Launch to sail these changes.";return true;
     }
     if(action==Action::Snap)return snap();
     if(action==Action::Remove) {
-        if(!member(design_.registry,selected_)) {
-            preview_=design_;selected_=design_.registry.navigation->boatPlacements.front();evaluate();return true;
-        }
-        if(design_.registry.navigation->boatPlacements.size()<=1)return false;
-        preview_=design_;std::erase(preview_.registry.navigation->boatPlacements,selected_);evaluate();return true;
+        // Removing an unplaced ordinary Add preview is cancellation. A kept
+        // group removal must leave at least one physical member in the boat.
+        if(std::all_of(selection_.begin(),selection_.end(),[&](uint32_t slot){return !member(design_.registry,slot);}))
+            return command(Action::Revert);
+        if(changed())return refuse(Problem::PendingEdit,"Keep or cancel this change before removing parts.");
+        if(design_.registry.navigation->boatPlacements.size()<=selection_.size())
+            return refuse(Problem::InvalidSelection,"Keep at least one part in the boat.");
+        auto candidate=design_;
+        std::erase_if(candidate.registry.navigation->boatPlacements,[&](uint32_t slot){return isSelected(slot);});
+        auto selection=std::vector<uint32_t>{candidate.registry.navigation->boatPlacements.front()};
+        preview_=std::move(candidate);selection_=std::move(selection);selected_=selection_.front();evaluate();return true;
     }
-    auto& placement=preview_.registry.placements[selected_].placement;
-    if(action==Action::Rotate) {
-        for(uint8_t i=0;i<24;++i) if(rotate(CubeRotation{i},{1,0,0})==GridPosition{0,0,-1}
-            && rotate(CubeRotation{i},{0,1,0})==GridPosition{0,1,0}) {
-            const auto r=compose(CubeRotation{i},placement.rotation);if(!r)return false;placement.rotation=*r;break;
-        }
-    } else {
-        GridPosition offset{};
-        switch(action) {
-            case Action::Left:offset.x=-50;break;case Action::Right:offset.x=50;break;
-            case Action::Forward:offset.z=-50;break;case Action::Back:offset.z=50;break;
-            case Action::Raise:offset.y=16;break;case Action::Lower:offset.y=-16;break;
-            default:return false;
-        }
-        const auto next=checkedAdd(placement.translation,offset);if(!next)return false;placement.translation=*next;
+    if(action==Action::Rotate)return rotateSelection(Axis::Y);
+    GridPosition offset{};
+    switch(action) {
+    case Action::Left:offset.x=-50;break;case Action::Right:offset.x=50;break;
+    case Action::Forward:offset.z=-50;break;case Action::Back:offset.z=50;break;
+    case Action::Raise:offset.y=16;break;case Action::Lower:offset.y=-16;break;
+    default:return false;
     }
-    evaluate();return true;
+    return moveSelection(offset);
 }
 } // namespace voxy::game::expedition

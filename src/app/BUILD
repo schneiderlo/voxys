@@ -48,5 +48,5 @@ cc_library(
         "//src/terrain:terrain",
         "//third_party:glm",
         "//third_party:stb",
-    ],
+    ] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_workshop_menu"]}),
 )

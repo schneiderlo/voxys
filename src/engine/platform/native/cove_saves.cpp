@@ -173,7 +173,7 @@ void NativeCoveSaves::update(Application& app){
         if(!delivery)checkpointAttempted_=false;
         const bool automaticDelivery=delivery&&!checkpointAttempted_;
         if(pending_!=Pending::None || waitingPhysical_ || (!automaticDelivery
-            && (!app.getInput() || !app.getInput()->wasKeyPressed(Key::F10))))return;
+            && (!app.getInput() || !app.getInput()->wasKeyPressed(Key::F10) || app.coveUiOwnsInput())))return;
         if(delivery)checkpointAttempted_=true;
         auto payload=fromHex(app.salvageExpeditionAction(1,""),game::expedition::kMaximumCoveSaveBytes);
         if(payload.empty()){message(app,"Close the workshop and Pause before saving. F10: Save");return;}

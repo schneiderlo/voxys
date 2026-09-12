@@ -45,6 +45,12 @@ private:
 // its owned submission, not CPU compilation, activate the physical assembly.
 class CoveBoatAssembly {
 public:
+    struct Diagnostic {
+        enum class Failure { None, InvalidScene, Compilation, Disconnected, DuplicateHelm, DuplicatePropeller, PhysicalPreparation };
+        Failure failure=Failure::None;
+        construction::AssemblyFunctionIssue assembly{};
+        std::optional<uint32_t> placement;
+    };
     struct Part { uint32_t placement = 0; construction::DurableId id{}; };
     // Indices match every compiled assembly plan. Water cells/points use this
     // root's authored frame, never another fragment's COM or placement anchor.
@@ -59,7 +65,7 @@ public:
         [[nodiscard]] physics::AuthoredWaterBodyDesc water(physics::BodyHandle body) const noexcept;
     };
     [[nodiscard]] static std::unique_ptr<CoveBoatAssembly> compile(
-        const assets::LoadedAssetFixture&, std::string& error);
+        const assets::LoadedAssetFixture&, std::string& error, Diagnostic* diagnostic=nullptr);
     // Inspection copy of an accepted broken design. Requires one explicit helm;
     // live ownership always uses compileFragments with canonical identities.
     [[nodiscard]] static std::unique_ptr<CoveBoatAssembly> compileSeparatedScene(
@@ -93,10 +99,11 @@ public:
     [[nodiscard]] double equilibriumRootHeight(double waterDensity = 1000) const noexcept;
 private:
     [[nodiscard]] static std::unique_ptr<CoveBoatAssembly> compileMembers(
-        const assets::LoadedAssetFixture&, std::span<const uint32_t>, std::string& error, bool separated = false);
+        const assets::LoadedAssetFixture&, std::span<const uint32_t>, std::string& error, bool separated = false,
+        Diagnostic* diagnostic=nullptr);
     [[nodiscard]] static std::unique_ptr<CoveBoatAssembly> compileRoots(
         const construction::BuildSnapshot&,const construction::PartCatalog&,
-        std::span<const Part>,std::optional<construction::DurableId>,std::string& error);
+        std::span<const Part>,std::optional<construction::DurableId>,std::string& error,Diagnostic* diagnostic=nullptr);
     CoveBoatAssembly(construction::CompiledAssembly assembly,std::vector<Root> roots,uint32_t primaryRoot,
                      std::vector<Part> parts,construction::BuildSnapshot build)
         : assembly_(std::move(assembly)),roots_(std::move(roots)),primaryRoot_(primaryRoot),parts_(std::move(parts)),build_(std::move(build)) {}

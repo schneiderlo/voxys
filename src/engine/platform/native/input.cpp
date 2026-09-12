@@ -29,6 +29,7 @@ Input::Input() {
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
@@ -43,12 +44,14 @@ Input::~Input() = default;
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Input::beginFrame() {
+    frameText_=std::move(queuedText_); queuedText_.clear();
     // Copy current state to previous state BEFORE events are processed
     previousKeys_ = currentKeys_;
     previousButtons_ = currentButtons_;
 
     // Clear per-frame press accumulators
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     buttonsPressedThisFrame_.fill(false);
     buttonsReleasedThisFrame_.fill(false);
@@ -72,6 +75,10 @@ void Input::processEvents() {
                 // the whole hold and toggles (F1/F3/...) flicker.
                 if (!currentKeys_[static_cast<size_t>(event.key)]) {
                     keysPressedThisFrame_[static_cast<size_t>(event.key)] = true;
+                    keyModifiers_[static_cast<size_t>(event.key)]=static_cast<uint8_t>(
+                        ((isKeyDown(Key::LeftShift)||isKeyDown(Key::RightShift))?shiftModifier:0)
+                        |((isKeyDown(Key::LeftControl)||isKeyDown(Key::RightControl))?controlModifier:0)
+                        |((isKeyDown(Key::LeftAlt)||isKeyDown(Key::RightAlt))?altModifier:0));
                 }
                 currentKeys_[static_cast<size_t>(event.key)] = true;
             } else {
@@ -106,6 +113,8 @@ void Input::processEvents() {
 }
 
 void Input::computeDeltas() {
+    pollGamepad();
+    frameText_+=queuedText_; queuedText_.clear();
     dragDeltas_=accumulatedDrags_;accumulatedDrags_.fill(glm::vec2(0));
     // GLFW is polled after beginFrame(). Drain events produced by that poll now
     // so buttons and keys are visible in the frame in which they occurred.
@@ -129,11 +138,13 @@ void Input::endFrame() {
 }
 
 void Input::resetState() {
+    gamepad_.disarm(); queuedText_.clear(); frameText_.clear();
     rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
     releaseMouse();
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
@@ -242,7 +253,17 @@ void Input::toggleMouseCapture() {
 // Event Handlers
 // ─────────────────────────────────────────────────────────────────────────────
 
+void Input::onCharacter(uint32_t c) {
+    if(!focused_ || c<32 || (c>=0x7f&&c<=0x9f) || c>0x10ffff
+        || (c>=0xd800&&c<=0xdfff) || queuedText_.size()>252)return;
+    if(c<0x80)queuedText_.push_back(static_cast<char>(c));
+    else if(c<0x800) { queuedText_.push_back(char(0xc0|(c>>6)));queuedText_.push_back(char(0x80|(c&63))); }
+    else if(c<0x10000) { queuedText_.push_back(char(0xe0|(c>>12)));queuedText_.push_back(char(0x80|((c>>6)&63)));queuedText_.push_back(char(0x80|(c&63))); }
+    else { queuedText_.push_back(char(0xf0|(c>>18)));queuedText_.push_back(char(0x80|((c>>12)&63)));queuedText_.push_back(char(0x80|((c>>6)&63)));queuedText_.push_back(char(0x80|(c&63))); }
+}
+
 void Input::onKeyDown(int keyCode) {
+    if(!focused_)return;
     if (isValidKey(keyCode)) {
         if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
             keyQueue_.clear();
@@ -290,6 +311,7 @@ void Input::onMouseMove(float x, float y) {
 }
 
 void Input::onMouseDown(int button) {
+    if(!focused_)return;
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
             rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
@@ -337,10 +359,13 @@ void Input::onScroll(float delta) {
 
 void Input::attachToWindow(Window& window) {
     window_ = &window;
+    focused_=glfwGetWindowAttrib(window.getGLFWHandle(),GLFW_FOCUSED)==GLFW_TRUE;
+    window.setFocusCallback([this](bool focused){onFocusChanged(focused);});
+    window.setCharacterCallback([this](uint32_t codepoint){onCharacter(codepoint);});
 
     // Set up key callback
     window.setKeyCallback([this](int key, int /*scancode*/, int action, int /*mods*/) {
-        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (action == GLFW_PRESS) {
             onKeyDown(key);
         } else if (action == GLFW_RELEASE) {
             onKeyUp(key);
@@ -368,6 +393,27 @@ void Input::attachToWindow(Window& window) {
 
     LOG_DEBUG("Input attached to window");
 }
+void Input::pollGamepad() {
+    GamepadSample sample;
+    if(window_)for(int id=GLFW_JOYSTICK_1;id<=GLFW_JOYSTICK_LAST;++id) {
+        GLFWgamepadstate state{};
+        if(!glfwGetGamepadState(id,&state))continue;
+        sample.connected=true;sample.device=id;
+        sample.axes={state.axes[GLFW_GAMEPAD_AXIS_LEFT_X],state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y],
+            state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X],state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]};
+        constexpr std::array<int,17> buttons{GLFW_GAMEPAD_BUTTON_A,GLFW_GAMEPAD_BUTTON_B,
+            GLFW_GAMEPAD_BUTTON_X,GLFW_GAMEPAD_BUTTON_Y,GLFW_GAMEPAD_BUTTON_LEFT_BUMPER,
+            GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER,-1,-1,GLFW_GAMEPAD_BUTTON_BACK,GLFW_GAMEPAD_BUTTON_START,
+            GLFW_GAMEPAD_BUTTON_LEFT_THUMB,GLFW_GAMEPAD_BUTTON_RIGHT_THUMB,GLFW_GAMEPAD_BUTTON_DPAD_UP,
+            GLFW_GAMEPAD_BUTTON_DPAD_DOWN,GLFW_GAMEPAD_BUTTON_DPAD_LEFT,GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,GLFW_GAMEPAD_BUTTON_GUIDE};
+        for(size_t i=0;i<buttons.size();++i)if(buttons[i]>=0)sample.buttons[i]=state.buttons[buttons[i]]==GLFW_PRESS;
+        sample.buttons[6]=state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]>.1f;
+        sample.buttons[7]=state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]>.1f;
+        break;
+    }
+    gamepad_.update(sample,focused_,window_?glfwGetTime():0);
+}
+
 void Input::setupEmscriptenCallbacks(const char* /*canvasSelector*/) {
     // No-op for native
 }

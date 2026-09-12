@@ -1,0 +1,24 @@
+{
+  "status": "confirmed test-device mapping error; corrected runtime pending",
+  "failureSummary": "../browser-builder-r02/summary.json",
+  "seconds": 27.042,
+  "completedCaptures": 2,
+  "actualControls": [
+    "View and RB",
+    "Menu DOM ownership and navigation",
+    "pan and zoom",
+    "Remove/Keep cradle",
+    "place one 2x2",
+    "copy overlap refusal and cancellation"
+  ],
+  "failure": "Helper label y emitted evdev307; actual copied brick changed rotation0 to21 without translation movement. snap() preserves brick rotation.",
+  "sourceContract": "Linux input-event-codes.h: BTN_X=BTN_NORTH=307; BTN_Y=BTN_WEST=308. Vendored GLFW Xbox360 Linux mapping x:b2,y:b3 agrees.",
+  "fix": "Root corrected only helper x307,y308. Frozen web-r02 application is unchanged. Driver now records and checks actual standard browser button indices during held OS input, using only read-only navigator.getGamepads().",
+  "helperSha256": "a8b57c4e52b5c3254126537f1cb82c943e2afb39f14d97143e53c9c8c4453d26",
+  "driverSha256": "d180274768ca1f610c753a7467a06ca79c52d07fb2c3356e5c28790489b55aa1",
+  "gpuErrors": [],
+  "controllerExit": {
+    "code": 0,
+    "signal": null
+  }
+}

@@ -24,6 +24,24 @@ bool resources(ResourceAmounts& balance, ResourceAmounts debit, ResourceAmounts 
     balance = {reduced.salvageMaterial + credit.salvageMaterial, reduced.specialMachinery + credit.specialMachinery};
     return true;
 }
+// Only for the private, hypothetical history walk. At most 32 entries are
+// traversed twice, so each currency needs at most 64 carry units. Accepted
+// accounts and actual replay still use the checked uint64 resources() above.
+struct HistoryBalance {
+    ResourceAmounts low{}, carry{};
+    bool apply(ResourceAmounts debit, ResourceAmounts credit) {
+        const auto currency=[](uint64_t& value,uint64_t& high,uint64_t spend,uint64_t refund) {
+            if(spend>value) { if(!high)return false;--high; }
+            value-=spend; // Unsigned wrap is the lower limb of the borrow.
+            if(refund>maximum-value) { if(high==maximum)return false;++high; }
+            value+=refund; // Unsigned wrap is the lower limb of the carry.
+            return true;
+        };
+        return currency(low.salvageMaterial,carry.salvageMaterial,debit.salvageMaterial,credit.salvageMaterial)
+            &&currency(low.specialMachinery,carry.specialMachinery,debit.specialMachinery,credit.specialMachinery);
+    }
+    bool equals(ResourceAmounts accepted) const { return carry==ResourceAmounts{}&&low==accepted; }
+};
 BuildHeader headerOf(const BuildSnapshot& build) { return {build.id, build.revision, build.owner, build.editLease, true}; }
 template<class T> bool ordered(const T& values) {
     for (size_t i = 1; i < values.size(); ++i) if (!(values[i - 1].id < values[i].id)) return false;
@@ -371,7 +389,7 @@ private:
         }
         return entry.debit == debit && entry.credit == credit;
     }
-    bool historyStep(const RecoveryHistoryEntry& entry, bool forward, ResourceAmounts& balance) {
+    bool historyStep(const RecoveryHistoryEntry& entry, bool forward, HistoryBalance& balance) {
         const auto& edit = entry.edit;
         auto* build = findBuild(edit.after->id);
         const bool fromActive = forward ? edit.before.has_value() : true;
@@ -405,7 +423,7 @@ private:
             })) return false;
             build->header.materialized = toActive;
         }
-        if (!resources(balance, forward ? entry.debit : entry.credit, forward ? entry.credit : entry.debit)) return false;
+        if (!balance.apply(forward ? entry.debit : entry.credit, forward ? entry.credit : entry.debit)) return false;
         if (toActive) {
             BuildSnapshot draft{build->header.id, build->header.revision, build->header.owner, build->header.editLease, {}, {}};
             for (const auto& p : parts) if (p.active && p.value.owningBuild == draft.id) draft.parts.push_back(p.value);
@@ -441,11 +459,14 @@ private:
         }
         const auto acceptedParts = parts;
         const auto acceptedBuilds = builds;
-        auto balance = boot.inventory;
+        // A later delivery can fill the accepted account while an older refund
+        // remains in Undo or Redo. Permit positive carry only in this hypothetical
+        // walk; preserve its no-underflow and exact accepted-balance checks.
+        HistoryBalance balance{boot.inventory};
         for (size_t i = h.applied; i > 0; --i) if (!historyStep(h.entries[i - 1], false, balance)) return false;
         for (size_t i = 0; i < h.count; ++i) {
             if (!historyStep(h.entries[i], true, balance)) return false;
-            if (i + 1 == h.applied && (balance != boot.inventory || parts != acceptedParts
+            if (i + 1 == h.applied && (!balance.equals(boot.inventory) || parts != acceptedParts
                 || !std::equal(builds.begin(), builds.end(), acceptedBuilds.begin(), [](const auto& a, const auto& b) {
                     return a.header==b.header && a.connections.size()==b.connections.size()
                         && std::equal(a.connections.begin(),a.connections.end(),b.connections.begin(),construction::sameConnection);

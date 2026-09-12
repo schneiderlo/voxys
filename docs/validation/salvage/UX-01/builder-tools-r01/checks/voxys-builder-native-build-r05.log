@@ -1,0 +1,19 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[  2%] Built target miniz
+[  2%] Built target wreckwater_build_content_header
+[  4%] Built target tinygltf
+[ 10%] Built target libzstd_static
+[ 23%] Built target box3d
+[ 23%] Refreshing native shaders and launch configs
+[ 58%] Built target Jolt
+[ 58%] Built target voxy_native_runtime_files
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/render/cove_hud.cpp.o
+[ 58%] Linking CXX static library ../lib/libvoxy_core.a
+[100%] Built target voxy_core
+[100%] Linking CXX executable bin/voxy_native
+Copying data to build output directory
+[100%] Built target voxy_native

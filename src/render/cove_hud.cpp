@@ -2,6 +2,7 @@
 #include "gpu/resources.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <span>
 #include <string_view>
 
@@ -32,7 +33,21 @@ std::string printable(std::string_view input) {
         if(c>=32&&c<=126)result.push_back(input[i]);
         else if(c<32)result.push_back(' ');
         else if(c==0xc3&&i+1<input.size()&&static_cast<unsigned char>(input[i+1])==0x97){result.push_back('x');++i;}
-        else if((c&0xc0)!=0x80)result.push_back('?');
+        else if((c&0xc0)!=0x80) {
+            uint32_t cp=c;size_t extra=0;
+            if((c&0xe0)==0xc0){cp=c&31;extra=1;}
+            else if((c&0xf0)==0xe0){cp=c&15;extra=2;}
+            else if((c&0xf8)==0xf0){cp=c&7;extra=3;}
+            bool valid=extra&&i+extra<input.size();
+            for(size_t j=1;j<=extra&&valid;++j) {
+                const auto next=static_cast<unsigned char>(input[i+j]);
+                if((next&0xc0)!=0x80)valid=false;else cp=(cp<<6)|(next&63);
+            }
+            if(valid){
+                char escaped[16];std::snprintf(escaped,sizeof escaped,"[U+%04X]",cp);
+                result+=escaped;i+=extra;
+            }else result+="[invalid]";
+        }
     }
     return result;
 }
@@ -62,17 +77,20 @@ CoveHudLayout layoutCoveHud(const CoveHudContent& content,uint32_t width,uint32_
     CoveHudLayout layout;
     if(width<160||height<160||content.title.empty())return layout;
     const float scale=uiScale(height),margin=14*scale,pad=16*scale;
-    const float panel=panelWidth(width,height),left=margin+pad,right=margin+panel-pad;
-    const float bottom=float(height)*.75f-margin;
+    const bool menu=content.menu.has_value();
+    const float panel=menu?std::min(920.f*scale,float(width)-2*margin):panelWidth(width,height);
+    const float panelX=menu?(float(width)-panel)*.5f:margin;
+    const float left=panelX+pad,right=panelX+panel-pad;
+    const float bottom=(menu?float(height):float(height)*.75f)-margin;
     const float pitch=29*scale;
     layout.bodyPixels=20*scale;
-    layout.panel={margin,margin,panel,0};
+    layout.panel={panelX,margin,panel,0};
     const auto add=[&](CoveHudQuad q){
         if(layout.count==layout.quads.size()){layout.truncated=true;return;}
         layout.quads[layout.count++]=q;
     };
     add({layout.panel,solidUv,{.035f,.065f,.075f,.97f}});
-    add({{margin,margin,4*scale,0},solidUv,toneColor(content.tone)});
+    add({{panelX,margin,4*scale,0},solidUv,toneColor(content.tone)});
     float y=margin+10*scale;
     const auto text=[&](std::string_view source,float pixels,glm::vec4 color,size_t maxLines){
         const auto value=printable(source);
@@ -104,6 +122,61 @@ CoveHudLayout layoutCoveHud(const CoveHudContent& content,uint32_t width,uint32_
             while(begin<value.size()&&value[begin]==' ')++begin;
         }
     };
+    if(content.menu) {
+        const auto& model=*content.menu;
+        text(model.title,24*scale,ink,1);
+        text(model.subtitle,20*scale,secondary,2);
+        text(model.status,20*scale,toneColor(content.tone),2);
+        y+=5*scale;
+        if(model.naming) {
+            text(model.name.empty()?"Name: _":"Name: "+model.name,20*scale,ink,2);
+            const float keyWidth=(right-left)/10;
+            for(size_t row=0;row<4;++row) {
+                if(y+pitch>bottom){layout.truncated=true;break;}
+                const float rowY=y;
+                for(size_t column=0;column<10;++column) {
+                    const size_t k=row*10+column;
+                    const glm::vec4 bounds{left+float(column)*keyWidth,rowY,keyWidth-3*scale,pitch-2*scale};
+                    if(model.keyboardFocus&&model.key==k)add({bounds,solidUv,{.13f,.34f,.37f,1}});
+                    layout.menuHits.push_back({bounds,-1,static_cast<int>(k)});
+                    const char c=kCoveNameKeys[k];const auto& g=hudGlyphs[size_t(c-32)];
+                    const float gs=20*scale/32;
+                    if(g.width&&g.height)add({{bounds.x+8*scale+float(g.left)*gs,rowY+float(g.top)*gs,float(g.width)*gs,float(g.height)*gs},
+                        {float(g.x)/512,float(g.y)/256,float(g.width)/512,float(g.height)/256},ink});
+                }
+                y+=pitch;
+            }
+            y+=6*scale;
+        }
+        // Reserve two footer lines and their glyph budget before choosing a
+        // scroll window. The selected row must remain visible on short screens.
+        const size_t heightRows=static_cast<size_t>(std::max(0.f,std::floor((bottom-2*pitch-y)/pitch)));
+        const size_t glyphRows=layout.count+100<CoveHudLayout::maximumQuads
+            ?(CoveHudLayout::maximumQuads-layout.count-100)/50:0;
+        const size_t visible=std::min({size_t{8},model.rows.size(),heightRows,glyphRows});
+        const size_t first=model.rows.size()>visible?std::min(model.selected>=visible?model.selected-visible+1:0,model.rows.size()-visible):0;
+        for(size_t row=first;row<first+visible;++row) {
+            if(y+pitch>bottom-2*pitch){layout.truncated=true;break;}
+            const glm::vec4 bounds{left-6*scale,y,right-left+12*scale,pitch};
+            if(row==model.selected&&(!model.naming||!model.keyboardFocus))add({bounds,solidUv,{.13f,.34f,.37f,1}});
+            layout.menuHits.push_back({bounds,static_cast<int>(row),-1});
+            std::string label=printable(model.rows[row].label);
+            float measured=0;size_t count=0;
+            const float dots=3*advance('.',20*scale/32);
+            while(count<label.size()&&count<45&&measured+advance(label[count],20*scale/32)+dots<=right-left) {
+                measured+=advance(label[count],20*scale/32);++count;
+            }
+            if(count<label.size())label=label.substr(0,count)+"...";
+            text(label,20*scale,model.rows[row].enabled?ink:glm::vec4(.5f,.55f,.56f,1),1);
+        }
+        y+=7*scale;
+        text(model.naming?"Arrows: Choose letter   A / Enter: Add   LB / Tab: Buttons"
+            :"Arrows / stick: Choose   A / Enter: Open   B / Esc: Back",20*scale,secondary,1);
+        if(!model.naming)text("F2 / Menu: Close tools   Scroll: More choices",20*scale,secondary,1);
+        layout.panel.w=std::min(y+12*scale,bottom)-margin;
+        layout.quads[0].bounds=layout.panel;layout.quads[1].bounds.w=layout.panel.w;
+        return layout;
+    }
     text(content.title,24*scale,ink,1);
     y+=6*scale;
     text(content.selected,20*scale,ink,2);

@@ -1,0 +1,33 @@
+{
+  "status": "actual HUD path clipping; library refusal passed",
+  "elapsedSeconds": 174.252,
+  "completedStages": 12,
+  "observed": {
+    "truncated": true,
+    "bodyPixels": 20,
+    "panel": [
+      20,
+      14,
+      920,
+      295
+    ],
+    "libraryGeneration": "5",
+    "refusal": "This design file is invalid or incompatible."
+  },
+  "sourceCause": "Menu subtitle is rendered with maxLines1 in src/render/cove_hud.cpp. Designs/Imports path exceeds that line; root path alone fitted. Remaining controls/scene remain active.",
+  "proposedFix": "Allow2 menu subtitle lines and add a meaningful long Imports path layout test. Keep existing dynamic row/height/quad budgets and all journey assertions.",
+  "retained": [
+    {
+      "path": "summary.json",
+      "sha256": "fe69ea3e640019eb845f7078001db1cfd63a8302a2982d4550ce16fb04a550c7"
+    },
+    {
+      "path": "executed-driver.py",
+      "sha256": "b6e90d1e1cc95afa72f3dd258fbf0215ef283131150433aa91708c66ff2cb7b0"
+    },
+    {
+      "path": "process-1.log",
+      "sha256": "63a5562ed754a13b37f213693377d408ae5459246caf26b9892ecdec3b4aaf72"
+    }
+  ]
+}

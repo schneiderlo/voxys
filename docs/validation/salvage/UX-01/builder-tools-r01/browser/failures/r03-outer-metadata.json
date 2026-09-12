@@ -1,0 +1,27 @@
+{
+  "kind": "application startup, no FPS acceptance",
+  "experience": "salvage-cove",
+  "gpuMode": "gaming-x11",
+  "flags": [
+    "--ozone-platform=x11",
+    "--enable-features=Vulkan"
+  ],
+  "timeout_ms": 420000,
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "url": "http://127.0.0.1:35473/index.html?experience=salvage-cove",
+  "retained_profile": "/tmp/nix-shell-442392-1478117943/voxys-startup-v9hxSE",
+  "startupElapsedMs": 34478,
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 8.16913\n- 30.3439\n",
+  "browserErrors": [],
+  "sourceReport": "build-workshop-tools-r01/browser-startup-r03.json",
+  "sourceReportSha256": "201c97bfc1c76b475284d657c54d2c57d1d8be04cc0df920a40a4282102e455f",
+  "sampleErrors": [],
+  "consoleErrors": []
+}

@@ -1,0 +1,15 @@
+{
+  "status": "driver baseline timing error; corrected runtime pending",
+  "failureSummary": "../browser-builder-r03/summary.json",
+  "seconds": 1.828,
+  "completedCaptures": 0,
+  "failure": "Camera baseline was sampled after engine workshopOpen but before the browser panel refresh/usable rectangle had settled. The driver incorrectly required pan distance to remain30.3439 while normal fitting completed at8.16913.",
+  "correction": "Require actual visible browser workshop and unchanged camera/rectangle for200ms before input; retain before/pan/zoom observations before assertions. Still require actual pan/zoom, unchanged yaw/design/owned stock and later GPU completion.",
+  "appPackage": "web-r02 unchanged",
+  "driverSha256": "2c56b0cc929848ec3437deac111d81bce6de7a9a426f703092e155f94529aa98",
+  "controllerExit": {
+    "code": 0,
+    "signal": null
+  },
+  "gpuErrors": []
+}

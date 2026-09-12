@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
+    if(saveOptions->root)appConfig.salvageDesignLibraryRoot=std::filesystem::path(*saveOptions->root)/"Designs";
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;

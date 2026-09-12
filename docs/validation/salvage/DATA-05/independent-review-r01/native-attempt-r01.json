@@ -1,0 +1,316 @@
+{
+  "source_hashes": {
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/build_model.cpp": "ef17438b83b4ba90de724e93cc441b60f6c6ae372efa71480b0603ad98e8a3a5",
+    "src/game/construction/build_refit.cpp": "c84d2009f357cc13a967ff16013ffa9dbe8def44615ad7bc0f0a2998af077ad9",
+    "src/game/expedition/session_transactions.cpp": "b05fd6f5d99259e6286bade984c5865bf1680432420ba35f651d5e35d6eb8afb",
+    "src/game/expedition/session_events.cpp": "14143a347f608f3e1fe2083ed21dc6ff46c631664d0318c72e799afec731a09c",
+    "src/game/expedition/game_session.cpp": "2d04eabacce263e051da34fc07e89269456e10b6b1d931f38405f081a0731b56",
+    "src/game/expedition/session_recovery.cpp": "3e33788778119b405ed05fe2144167600fd3319de30b4d1a5513c43e94ef75dc",
+    "src/game/construction/construction_types.hpp": "fb12f63724c9899f7f6cff2e21ac09f5d86173f4b5fd2af34735138753370ea2",
+    "src/game/construction/part_catalog.hpp": "d68150027f69c4abe47f8f1b57e9532487cd804b9cf97b2e0b2d3c6b1cacd840",
+    "src/game/construction/build_model.hpp": "8230c11ba15f17f1695572076ff716a252265dd21388c206b457bcfad209a392",
+    "src/game/construction/build_refit.hpp": "8054bdb6a0e16c8aaa4f7caa3755a06f982057952a088e7d8b9cd2967012c7d1",
+    "src/game/expedition/session_transactions.hpp": "d100c3c7779e4100575ad41658d6e730f4a3e5f0cdf1cca9e5f25d0e25847be1",
+    "src/game/expedition/session_events.hpp": "5faa1417d6bcbba7bfe78a6898840be1679d7210646a34dd3132a24c73864731",
+    "src/game/expedition/game_session.hpp": "e8b1f561e343b23ecfe0b2db09b7afb39b15bdd59255a98683f30fcf1bc2ac5d",
+    "src/game/expedition/session_recovery.hpp": "377247f2747d19912288e963f0413b7226b6aadfc7ca04ad88d920c6adf999af",
+    "docs/validation/salvage/PLAY-02/refit-r01/no-allocation.cpp": "5ddc6e346d873c20f10c265e6f9dcc80edc6b82e8d6025c8e3b552191bb75f89",
+    "docs/validation/salvage/DATA-06/stage-b1/retirement-guard.cpp": "830a21a427024321f152b53e6720b471f002c5b3c6b2d8ef3e6533733f092286",
+    "docs/validation/salvage/DATA-06/stage-b1/factory-faults.cpp": "03f5aebaac2e5e7fde7756a34e2a0550ebebbc2fb1b0ecca0285a1fc20da3bf3"
+  },
+  "checks": [
+    {
+      "name": "compile-construction_types",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/construction/construction_types.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/construction_types.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.9993734870004118,
+      "log": "build-data05-review-r01/checks/compile-construction_types.log"
+    },
+    {
+      "name": "compile-part_catalog",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/construction/part_catalog.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/part_catalog.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.190094540004793,
+      "log": "build-data05-review-r01/checks/compile-part_catalog.log"
+    },
+    {
+      "name": "compile-build_model",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/construction/build_model.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_model.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.986800223996397,
+      "log": "build-data05-review-r01/checks/compile-build_model.log"
+    },
+    {
+      "name": "compile-build_refit",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/construction/build_refit.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_refit.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.573290492000524,
+      "log": "build-data05-review-r01/checks/compile-build_refit.log"
+    },
+    {
+      "name": "compile-session_transactions",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/session_transactions.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_transactions.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.094012573994405,
+      "log": "build-data05-review-r01/checks/compile-session_transactions.log"
+    },
+    {
+      "name": "compile-session_events",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/session_events.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_events.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.0815617850021226,
+      "log": "build-data05-review-r01/checks/compile-session_events.log"
+    },
+    {
+      "name": "compile-game_session",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/game_session.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/game_session.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.3740720599962515,
+      "log": "build-data05-review-r01/checks/compile-game_session.log"
+    },
+    {
+      "name": "compile-session_recovery",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "-c",
+        "/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/session_recovery.cpp",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_recovery.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.723082890996011,
+      "log": "build-data05-review-r01/checks/compile-session_recovery.log"
+    },
+    {
+      "name": "link-refit-publication",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/PLAY-02/refit-r01/no-allocation.cpp",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/construction_types.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/part_catalog.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_model.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_refit.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_transactions.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_events.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/game_session.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_recovery.o",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/refit-publication"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.7096065740042832,
+      "log": "build-data05-review-r01/checks/link-refit-publication.log"
+    },
+    {
+      "name": "run-refit-publication",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/refit-publication"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.004548419005004689,
+      "log": "build-data05-review-r01/checks/run-refit-publication.log"
+    },
+    {
+      "name": "link-entitlement-retirement",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/DATA-06/stage-b1/retirement-guard.cpp",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/construction_types.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/part_catalog.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_model.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_refit.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_transactions.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_events.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/game_session.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_recovery.o",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/entitlement-retirement"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.813768899999559,
+      "log": "build-data05-review-r01/checks/link-entitlement-retirement.log"
+    },
+    {
+      "name": "run-entitlement-retirement",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/entitlement-retirement"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0037253900009091012,
+      "log": "build-data05-review-r01/checks/run-entitlement-retirement.log"
+    },
+    {
+      "name": "link-recovery-factory",
+      "argv": [
+        "g++",
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-Isrc",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=undefined,float-cast-overflow",
+        "-fno-sanitize-recover=all",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/DATA-06/stage-b1/factory-faults.cpp",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/construction_types.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/part_catalog.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_model.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/build_refit.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_transactions.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_events.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/game_session.o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/session_recovery.o",
+        "-o",
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/recovery-factory"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.214921216997027,
+      "log": "build-data05-review-r01/checks/link-recovery-factory.log"
+    },
+    {
+      "name": "run-recovery-factory",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-data05-review-r01/recovery-factory"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 0.005112827006087173,
+      "log": "build-data05-review-r01/checks/run-recovery-factory.log"
+    }
+  ],
+  "passed": false
+}

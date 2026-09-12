@@ -1,0 +1,36 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_workshop_editing
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 12 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 12 tests from CoveWorkshopEditing
+[ RUN      ] CoveWorkshopEditing.SelectionIsNonemptySortedAndCannotDiscardAnOrdinaryEdit
+[       OK ] CoveWorkshopEditing.SelectionIsNonemptySortedAndCannotDiscardAnOrdinaryEdit (39 ms)
+[ RUN      ] CoveWorkshopEditing.GroupMotionPreservesRelativeFramesAndReturningRestoresExactWelds
+[       OK ] CoveWorkshopEditing.GroupMotionPreservesRelativeFramesAndReturningRestoresExactWelds (46 ms)
+[ RUN      ] CoveWorkshopEditing.GroupAimResolvesPrimaryButMovesEverySelectedPart
+[       OK ] CoveWorkshopEditing.GroupAimResolvesPrimaryButMovesEverySelectedPart (21 ms)
+[ RUN      ] CoveWorkshopEditing.RefusedOverflowAndOverlapNeverPartiallyChangeTheKeptDesign
+[       OK ] CoveWorkshopEditing.RefusedOverflowAndOverlapNeverPartiallyChangeTheKeptDesign (7 ms)
+[ RUN      ] CoveWorkshopEditing.GroupPaintRemoveAndHistoryRestoreExactSelectionAndBlueprint
+[       OK ] CoveWorkshopEditing.GroupPaintRemoveAndHistoryRestoreExactSelectionAndBlueprint (47 ms)
+[ RUN      ] CoveWorkshopEditing.HistoryBoundAppliesAcrossUndoAndRedoAndLoadBranches
+[       OK ] CoveWorkshopEditing.HistoryBoundAppliesAcrossUndoAndRedoAndLoadBranches (110 ms)
+[ RUN      ] CoveWorkshopEditing.MirrorUsesProperRotationsAndARealCompatibleStudPlacement
+[       OK ] CoveWorkshopEditing.MirrorUsesProperRotationsAndARealCompatibleStudPlacement (55 ms)
+[ RUN      ] CoveWorkshopEditing.ReplacementUsesNewSlotsAndKeepsOwnedDefinitionsImmutable
+[       OK ] CoveWorkshopEditing.ReplacementUsesNewSlotsAndKeepsOwnedDefinitionsImmutable (11 ms)
+[ RUN      ] CoveWorkshopEditing.CopyAndReplacementUseActualPaidOrStoredAuthorityWithoutLoanRefunds
+[       OK ] CoveWorkshopEditing.CopyAndReplacementUseActualPaidOrStoredAuthorityWithoutLoanRefunds (8 ms)
+[ RUN      ] CoveWorkshopEditing.MixedConfigurationIsAtomicAndUsesThePrimaryValue
+[       OK ] CoveWorkshopEditing.MixedConfigurationIsAtomicAndUsesThePrimaryValue (10 ms)
+[ RUN      ] CoveWorkshopEditing.SixtyFourBricksRemainEditableAndGroupCapacityRefusesBeforeMutation
+[       OK ] CoveWorkshopEditing.SixtyFourBricksRemainEditableAndGroupCapacityRefusesBeforeMutation (9915 ms)
+[ RUN      ] CoveWorkshopEditing.HistoryRestoresTrustedSeparatedOwnedStateWithoutRepairingIt
+[       OK ] CoveWorkshopEditing.HistoryRestoresTrustedSeparatedOwnedStateWithoutRepairingIt (17 ms)
+[----------] 12 tests from CoveWorkshopEditing (10292 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 1 test suite ran. (10651 ms total)
+[  PASSED  ] 12 tests.

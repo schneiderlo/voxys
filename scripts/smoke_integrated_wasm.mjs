@@ -358,7 +358,7 @@ try{
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
-    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE){
+    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE && !process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS){
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
@@ -470,6 +470,13 @@ try{
         const {validateCoveCargoCompatibility}=await import('./validate_cove_cargo_compatibility.mjs');
         report.cove_cargo_compatibility=await validateCoveCargoCompatibility(call,process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY,
             {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9),baselineReportPath:process.env.VOXY_SMOKE_CARGO_BASELINE});
+    }
+    if(process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS){
+        assert.equal(selected,'salvage-cove');
+        assert.equal(process.env.VOXY_SMOKE_NO_SCREENSHOT,'1','builder tools journey requires no screenshots');
+        const {validateCoveBuilderTools}=await import('./validate_cove_builder_tools.mjs');
+        report.cove_builder_tools=await validateCoveBuilderTools(call,process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9)});
     }
     if(process.env.VOXY_SMOKE_COVE_OBJECTIVES){
         assert.equal(selected,'salvage-cove');

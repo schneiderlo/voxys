@@ -1,0 +1,145 @@
+{
+  "date_utc": "2026-09-12T11:23:08.094811+00:00",
+  "commit_base": "2353dae2bf09d5570ea57c46dc3de055b8b97fd6",
+  "status": "DATA-05 independently accepted after corrected checkpoint/history overflow finding; no broad gate",
+  "production_source_edits": [
+    "src/game/expedition/session_recovery.cpp",
+    "tests/test_game_session.cpp"
+  ],
+  "fresh_existing_probes": [
+    "native UBSan refit publication",
+    "native UBSan entitlement retirement",
+    "native UBSan exhaustive adapted recovery factory",
+    "WASM JS exceptions/Asyncify same three probes"
+  ],
+  "native_corrected_recovery": {
+    "compile_argv": [
+      "g++",
+      "-std=c++20",
+      "-O1",
+      "-g",
+      "-Isrc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-fsanitize=undefined,float-cast-overflow",
+      "-fno-sanitize-recover=all",
+      "build-data05-review-r01/recovery-factory-r02.cpp",
+      "build-data05-review-r01/construction_types.o",
+      "build-data05-review-r01/part_catalog.o",
+      "build-data05-review-r01/build_model.o",
+      "build-data05-review-r01/build_refit.o",
+      "build-data05-review-r01/session_transactions.o",
+      "build-data05-review-r01/session_events.o",
+      "build-data05-review-r01/game_session.o",
+      "build-data05-review-r01/session_recovery.o",
+      "-o",
+      "build-data05-review-r01/recovery-factory-r02"
+    ],
+    "compile_exit_code": 0,
+    "run_exit_code": 0,
+    "rejected_allocation_cuts": 305,
+    "successful_optional_fallbacks": 16,
+    "eventual_uninjected_success": true
+  },
+  "wasm_policy": {
+    "exception_mode": "js",
+    "asyncify": true,
+    "fixed_heap_bytes": 67108864,
+    "fixed_stack_bytes": 1048576
+  },
+  "reused_shared_tests": {
+    "manifest": "docs/validation/salvage/PLAY-06/two-cargo-r01/shared-wasm-manifest.json",
+    "manifest_sha256": "d8e5020a30227e1f5c65c187bb6b4759471a9815d624247850147aa690418c53",
+    "tests": {
+      "passed": 198,
+      "skipped": 0,
+      "disabled": 0
+    },
+    "matching_review_source_hashes": {
+      "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+      "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+      "src/game/construction/build_model.cpp": "ef17438b83b4ba90de724e93cc441b60f6c6ae372efa71480b0603ad98e8a3a5",
+      "src/game/construction/build_refit.cpp": "c84d2009f357cc13a967ff16013ffa9dbe8def44615ad7bc0f0a2998af077ad9",
+      "src/game/expedition/session_transactions.cpp": "b05fd6f5d99259e6286bade984c5865bf1680432420ba35f651d5e35d6eb8afb",
+      "src/game/expedition/session_events.cpp": "14143a347f608f3e1fe2083ed21dc6ff46c631664d0318c72e799afec731a09c",
+      "src/game/expedition/game_session.cpp": "2d04eabacce263e051da34fc07e89269456e10b6b1d931f38405f081a0731b56",
+      "src/game/expedition/session_recovery.cpp": "3e33788778119b405ed05fe2144167600fd3319de30b4d1a5513c43e94ef75dc",
+      "src/game/expedition/session_save.cpp": "5663b7d80bb86bdc8004a5094e8e20f2366f15baf5c72078f07d49761d8b4430",
+      "tests/test_game_session.cpp": "85b5892c4a085b8f94dc36ed8e9793932f5d82bf4c53b05ceb98e715834f7cbc",
+      "tests/test_session_transactions.cpp": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+      "tests/test_session_events.cpp": "8e10287b6616d8fed53219993651b512ff6442557847eb36a3825036e7944854",
+      "src/game/expedition/session_save.hpp": "c5f0373fbc72aa3a6343bbf88959cb4547817395a2566a1a5ce97609bab21ca3",
+      "src/game/construction/construction_types.hpp": "fb12f63724c9899f7f6cff2e21ac09f5d86173f4b5fd2af34735138753370ea2",
+      "src/game/construction/part_catalog.hpp": "d68150027f69c4abe47f8f1b57e9532487cd804b9cf97b2e0b2d3c6b1cacd840",
+      "src/game/construction/build_model.hpp": "8230c11ba15f17f1695572076ff716a252265dd21388c206b457bcfad209a392",
+      "src/game/construction/build_refit.hpp": "8054bdb6a0e16c8aaa4f7caa3755a06f982057952a088e7d8b9cd2967012c7d1",
+      "src/game/expedition/game_session.hpp": "e8b1f561e343b23ecfe0b2db09b7afb39b15bdd59255a98683f30fcf1bc2ac5d",
+      "src/game/expedition/session_transactions.hpp": "d100c3c7779e4100575ad41658d6e730f4a3e5f0cdf1cca9e5f25d0e25847be1",
+      "src/game/expedition/session_recovery.hpp": "377247f2747d19912288e963f0413b7226b6aadfc7ca04ad88d920c6adf999af",
+      "src/game/expedition/session_events.hpp": "5faa1417d6bcbba7bfe78a6898840be1679d7210646a34dd3132a24c73864731"
+    }
+  },
+  "native_prior_session_xml": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-game-session.xml",
+  "native_prior_session_cases": 137,
+  "retained_failures": [
+    "Original historical factory probe stops at first successful optional allocation fallback and assumes that success means no injected allocation; corrected scratch probe checks every later failure point.",
+    "Intermediate printf diagnostic compile used size_t format for uint32_t occupancy; corrected before executing diagnostic. No production changes.",
+    "New scratch regression confirmed three legitimate checkpoint admissions rejected as InvalidHistory before the fix. Its fourth machinery-dismantle case had zero canonical yield and was correctly removed.",
+    "Scratch pre-fix WASM reproduction compile mixed size_t and uint64_t in a single auto declaration; split declarations in archived probe. No pre-fix WASM execution is claimed."
+  ],
+  "evidence_hashes": {
+    "checks/native-refit-publication.log": "6dc17706cb7ecbe68cdf0978da9283d9ded89d8b30463ade2138c67621b1cd36",
+    "checks/native-entitlement-retirement.log": "9987c9727dec1e67bb151e1f1ed8c9976a047e050b87b6541788baf025170379",
+    "checks/native-recovery-factory-r01-failed.log": "a0778854a2c78a042f001a189d4aa82b302945446f77c754a2f4a95631388ecd",
+    "checks/native-recovery-factory-diagnostic.log": "6e9e3146afbfc8d60848b4543ab3021962123a73f5c73bf989ceb030ad500044",
+    "checks/native-recovery-factory-r02.log": "2ab3749aa73b2205f0835927ab3db22bf5b8d13057300ebe1255dafc8401c1b8",
+    "checks/wasm-refit-publication.log": "6dc17706cb7ecbe68cdf0978da9283d9ded89d8b30463ade2138c67621b1cd36",
+    "checks/wasm-entitlement-retirement.log": "177c03ad920d7e78e11b6e041d4256bcc4775d46b13680fd36e232f8fd86db45",
+    "checks/wasm-recovery-factory.log": "419ae166c39816dd5cb8c7b00bcc6b78d382dd412ca7e66f114719c1ffde5023",
+    "recovery-factory.cpp": "1a4784d2a656c7dbb6d4bf32e638083f09404185ebfbf35d06614d3866a6333d",
+    "native-attempt-r01.json": "f86e44af75fc6ff81be2d80068ca618be081bd1099c0a15026df79dca20ad8ea",
+    "wasm-results.json": "4f7384cd342cf8571789fc925949bbcad8f42141fdaa24f17a147bf6e49e654f",
+    "checks/native-overflow-before-fix.log": "a8654b49aa025bdc932f943e33f2a7964f4535ea55c553d0550b51f1f4d538e2",
+    "checks/native-overflow-fixed.log": "0e0d51b238890dd21538390b72802aa5546812e0a5cd827cbc0cb391f7de58f4",
+    "checks/native-factory-fixed.log": "2ab3749aa73b2205f0835927ab3db22bf5b8d13057300ebe1255dafc8401c1b8",
+    "checks/bazel-game-session-fixed.log": "33595e9d5b2d0fc1f743800705d424bc414ca151fe8b7a67b844d541d871112e",
+    "checks/bazel-game-session-fixed-test.log": "106725475b246eaba9310de91bf9c2f32e49d69ca5bd5940b91d8b41fadef59b",
+    "checks/bazel-game-session-fixed.xml": "576640b679a21cd43bf327a073ce23eb0f6f3438e91644140236442da6567646",
+    "checks/shared-wasm-fixed.log": "7a9a60edc46c3aa56faef23f4ec59adf76bdcd8103269dca83426a981ba73496",
+    "wasm-fixed-manifest.json": "dc576d8e348dcd1b5cd0bf2ad359e33b505c0382dcb6ee8e3786b6602475da82",
+    "native-fixed-test-source-hashes.json": "ee75edddb404369f60f0058f392831b98754594bca2547a3a9a07210bb29fb3a",
+    "inverse-credit-after-delivery.cpp": "465f13213556ffc82607f612f318ff9b144e745f386cfb3f29f7d3cc8c26002d"
+  },
+  "new_regression": "GameSessionSave.DeliveryCanBlockInverseCreditWithoutInvalidatingCheckpointOrRecovery (three reachable currency/direction scenarios); existing forged-history case adds compacted below-debit balance",
+  "new_gpu_or_app_journeys": false,
+  "pre_fix_probe_hashes_verified_unchanged_before_fix": true,
+  "final_source_sha256": {
+    "src/game/expedition/session_recovery.cpp": "cdc7a17ac3b7761d8c428296077b26ab355e30be2156912e2d729ee776743577",
+    "tests/test_game_session.cpp": "43756359f60b1a4f90690089265dffd6131273b5db46e5c5b8cf59947bb0c91c"
+  },
+  "final_native": {
+    "cases": 138,
+    "failures": 0,
+    "disabled": 0,
+    "errors": 0,
+    "source_manifest": "native-fixed-test-source-hashes.json",
+    "after_test_delta": "Test-only comment clarification: Removing hypothetical affordability -> Allowing hypothetical positive overflow. Final production hash is identical."
+  },
+  "final_wasm": {
+    "cases": 199,
+    "skipped": 0,
+    "disabled": 0,
+    "source_manifest": "wasm-fixed-manifest.json",
+    "sources_unchanged": true
+  },
+  "final_native_ubsan": {
+    "overflow_cases": 3,
+    "checkpoints_admitted": 3,
+    "factory_rejected_cuts": 305,
+    "factory_successful_fallbacks": 16,
+    "eventual_success": true,
+    "preflight_allocation_attempts": 0
+  },
+  "independent_fix_review": "Root reviewed and approved final carry/borrow, preserved lower-bound/accepted-balance invariants, and unchanged live/replay arithmetic."
+}

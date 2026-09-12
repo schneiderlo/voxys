@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="13" failures="0" disabled="0" errors="0" time="4.957" timestamp="2026-09-12T11:03:29.021" name="AllTests">
+  <testsuite name="CoveMovement" tests="13" failures="0" disabled="0" skipped="0" errors="0" time="4.957" timestamp="2026-09-12T11:03:29.022">
+    <testcase name="BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign" file="tests/test_cove_player.cpp" line="179" status="run" result="completed" time="0.449" timestamp="2026-09-12T11:03:29.022" classname="CoveMovement" />
+    <testcase name="BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost" file="tests/test_cove_player.cpp" line="231" status="run" result="completed" time="0.469" timestamp="2026-09-12T11:03:29.471" classname="CoveMovement" />
+    <testcase name="BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics" file="tests/test_cove_player.cpp" line="274" status="run" result="completed" time="0.426" timestamp="2026-09-12T11:03:29.941" classname="CoveMovement" />
+    <testcase name="BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview" file="tests/test_cove_player.cpp" line="327" status="run" result="completed" time="0.377" timestamp="2026-09-12T11:03:30.367" classname="CoveMovement" />
+    <testcase name="BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity" file="tests/test_cove_player.cpp" line="365" status="run" result="completed" time="0.421" timestamp="2026-09-12T11:03:30.744" classname="CoveMovement" />
+    <testcase name="BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes" file="tests/test_cove_player.cpp" line="429" status="run" result="completed" time="0.468" timestamp="2026-09-12T11:03:31.166" classname="CoveMovement" />
+    <testcase name="BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition" file="tests/test_cove_player.cpp" line="457" status="run" result="completed" time="0.381" timestamp="2026-09-12T11:03:31.635" classname="CoveMovement" />
+    <testcase name="WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull" file="tests/test_cove_player.cpp" line="757" status="run" result="completed" time="0.36" timestamp="2026-09-12T11:03:32.016" classname="CoveMovement" />
+    <testcase name="SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans" file="tests/test_cove_player.cpp" line="918" status="run" result="completed" time="0.349" timestamp="2026-09-12T11:03:32.377" classname="CoveMovement" />
+    <testcase name="CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership" file="tests/test_cove_player.cpp" line="1127" status="run" result="completed" time="0.325" timestamp="2026-09-12T11:03:32.726" classname="CoveMovement" />
+    <testcase name="WorkshopRefusesDisconnectedChangeWithoutEditingCraft" file="tests/test_cove_player.cpp" line="1776" status="run" result="completed" time="0.304" timestamp="2026-09-12T11:03:33.052" classname="CoveMovement" />
+    <testcase name="WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign" file="tests/test_cove_player.cpp" line="1789" status="run" result="completed" time="0.314" timestamp="2026-09-12T11:03:33.356" classname="CoveMovement" />
+    <testcase name="WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections" file="tests/test_cove_player.cpp" line="1804" status="run" result="completed" time="0.308" timestamp="2026-09-12T11:03:33.671" classname="CoveMovement" />
+  </testsuite>
+</testsuites>

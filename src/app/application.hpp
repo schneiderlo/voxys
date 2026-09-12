@@ -57,6 +57,8 @@ struct WreckwaterApplicationClientState;
 struct SalvageLocalSessionState;
 struct CoveResumeSource;
 
+namespace platform { class NativeWorkshopMenu; }
+
 namespace physics {
     class PhysicsWorld;
 }
@@ -261,6 +263,7 @@ struct ApplicationConfig {
     int windowHeight = 720;
     std::string windowTitle = "voxy";
     bool legoTerrainEnabled = false;
+    std::filesystem::path salvageDesignLibraryRoot;
     bool salvagePreviewEnabled = false;
     std::optional<std::string> salvageAssetFixtureRegistry;
     std::optional<std::string> salvageAssetFixtureCatalog;
@@ -709,6 +712,7 @@ public:
     [[nodiscard]] std::string legoHudJson() const;
     bool salvagePreviewAction(int action);
     std::string salvageBlueprintAction(int action,std::string_view text);
+    [[nodiscard]] bool coveUiOwnsInput() const;
     // Trusted storage host API: 1 paused capture, 2 preflight, 3 recovered pair,
     // 4 acknowledge recovery digest, 5 revoke, 6 register host, 7 acknowledge
     // the exact captured delivery, harbor or rescue digest. Returns hex / "ok", or empty.
@@ -913,6 +917,8 @@ private:
     std::unique_ptr<render::MeshPath> meshPath_;
 #if defined(VOXY_NATIVE)
     std::unique_ptr<render::CoveHudPath> nativeCoveHud_;
+    std::unique_ptr<platform::NativeWorkshopMenu> nativeWorkshopMenu_;
+    void updateNativeWorkshopMenu();
     render::CoveHudContent nativeCoveHudContent() const;
     bool renderNativeCoveHud(WGPUCommandEncoder,WGPUTextureView);
 #endif

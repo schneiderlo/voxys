@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --compilation_mode has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:cove_hud_layout (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud_layout (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud_layout (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:cove_hud_layout (1 packages loaded, 3378 targets configured).
+[339 / 346] Compiling src/camera/character_controller.cpp; 1s linux-sandbox ... (3 actions, 2 running)
+INFO: Found 1 test target...
+Target //tests:cove_hud_layout up-to-date:
+  bazel-bin/tests/cove_hud_layout
+INFO: Elapsed time: 3.662s, Critical Path: 1.91s
+INFO: 11 processes: 336 action cache hit, 3 internal, 8 linux-sandbox.
+INFO: Build completed successfully, 11 total actions
+//tests:cove_hud_layout                                                  PASSED in 0.1s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

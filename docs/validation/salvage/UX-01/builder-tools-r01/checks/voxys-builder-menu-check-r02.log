@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:native_workshop_menu (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:native_workshop_menu (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:native_workshop_menu (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:native_workshop_menu (1 packages loaded, 90 targets configured).
+[411 / 418] Compiling src/engine/platform/native/workshop_menu.cpp; 1s linux-sandbox ... (3 actions, 2 running)
+[418 / 419] [Prepa] Testing //tests:native_workshop_menu
+INFO: Found 1 test target...
+Target //tests:native_workshop_menu up-to-date:
+  bazel-bin/tests/native_workshop_menu
+INFO: Elapsed time: 3.874s, Critical Path: 2.46s
+INFO: 10 processes: 409 action cache hit, 3 internal, 7 linux-sandbox.
+INFO: Build completed successfully, 10 total actions
+//tests:native_workshop_menu                                             PASSED in 0.2s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

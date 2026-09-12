@@ -1,0 +1,25 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:gamepad_controls (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:gamepad_controls (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:gamepad_controls (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:gamepad_controls (1 packages loaded, 35 targets configured).
+[33 / 36] [Prepa] Linking src/engine/platform/libinput.so
+INFO: Found 1 test target...
+Target //tests:gamepad_controls up-to-date:
+  bazel-bin/tests/gamepad_controls
+INFO: Elapsed time: 2.845s, Critical Path: 1.24s
+INFO: 7 processes: 30 action cache hit, 2 internal, 5 linux-sandbox.
+INFO: Build completed successfully, 7 total actions
+//tests:gamepad_controls                                                 PASSED in 0.0s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

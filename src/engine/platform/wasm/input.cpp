@@ -38,6 +38,7 @@ Input::Input() {
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
@@ -50,12 +51,14 @@ Input::Input() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Input::beginFrame() {
+    frameText_=std::move(queuedText_); queuedText_.clear();
     // Copy current state to previous state BEFORE events are processed
     previousKeys_ = currentKeys_;
     previousButtons_ = currentButtons_;
     
     // Clear per-frame press accumulators
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     buttonsPressedThisFrame_.fill(false);
     buttonsReleasedThisFrame_.fill(false);
@@ -80,6 +83,10 @@ void Input::processEvents() {
                 // hold and toggles (F1/F3/...) flicker.
                 if (!currentKeys_[key]) {
                     keysPressedThisFrame_[key] = true;
+                    keyModifiers_[static_cast<size_t>(event.key)]=static_cast<uint8_t>(
+                        ((isKeyDown(Key::LeftShift)||isKeyDown(Key::RightShift))?shiftModifier:0)
+                        |((isKeyDown(Key::LeftControl)||isKeyDown(Key::RightControl))?controlModifier:0)
+                        |((isKeyDown(Key::LeftAlt)||isKeyDown(Key::RightAlt))?altModifier:0));
                 }
                 currentKeys_[key] = true;
             } else {
@@ -113,6 +120,8 @@ void Input::processEvents() {
 }
 
 void Input::computeDeltas() {
+    pollGamepad();
+    frameText_+=queuedText_; queuedText_.clear();
     dragDeltas_=accumulatedDrags_;accumulatedDrags_.fill(glm::vec2(0));
     // Events can arrive between beginFrame() and update(). Process them before
     // input is queried so native and web have the same frame semantics.
@@ -135,11 +144,13 @@ void Input::endFrame() {
 }
 
 void Input::resetState() {
+    gamepad_.disarm(); queuedText_.clear(); frameText_.clear();
     rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
     releaseMouse();
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keyModifiers_.fill(0);
     keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
@@ -262,7 +273,17 @@ void Input::toggleMouseCapture() {
 // Event Handlers
 // ─────────────────────────────────────────────────────────────────────────────
 
+void Input::onCharacter(uint32_t c) {
+    if(!focused_ || c<32 || (c>=0x7f&&c<=0x9f) || c>0x10ffff
+        || (c>=0xd800&&c<=0xdfff) || queuedText_.size()>252)return;
+    if(c<0x80)queuedText_.push_back(static_cast<char>(c));
+    else if(c<0x800) { queuedText_.push_back(char(0xc0|(c>>6)));queuedText_.push_back(char(0x80|(c&63))); }
+    else if(c<0x10000) { queuedText_.push_back(char(0xe0|(c>>12)));queuedText_.push_back(char(0x80|((c>>6)&63)));queuedText_.push_back(char(0x80|(c&63))); }
+    else { queuedText_.push_back(char(0xf0|(c>>18)));queuedText_.push_back(char(0x80|((c>>12)&63)));queuedText_.push_back(char(0x80|((c>>6)&63)));queuedText_.push_back(char(0x80|(c&63))); }
+}
+
 void Input::onKeyDown(int keyCode) {
+    if(!focused_)return;
     if (isValidKey(keyCode)) {
         if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
             keyQueue_.clear();
@@ -310,6 +331,7 @@ void Input::onMouseMove(float x, float y) {
 }
 
 void Input::onMouseDown(int button) {
+    if(!focused_)return;
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
             rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
@@ -351,6 +373,26 @@ void Input::onScroll(float delta) {
         -kMaximumAccumulatedScroll, kMaximumAccumulatedScroll));
 }
 
+void Input::pollGamepad() {
+    const bool focused=EM_ASM_INT({return document.hasFocus()&&!document.hidden;})!=0;
+    if(focused!=focused_)onFocusChanged(focused);
+    GamepadSample sample;
+    if(emscripten_sample_gamepad_data()==EMSCRIPTEN_RESULT_SUCCESS) {
+        const int count=std::min(emscripten_get_num_gamepads(),16);
+        for(int id=0;id<count;++id) {
+            EmscriptenGamepadEvent state{};
+            if(emscripten_get_gamepad_status(id,&state)!=EMSCRIPTEN_RESULT_SUCCESS
+                ||!state.connected||std::strcmp(state.mapping,"standard")!=0
+                ||state.numAxes<4||state.numButtons<16)continue;
+            sample.connected=true;sample.device=id;
+            for(size_t i=0;i<4;++i)sample.axes[i]=static_cast<float>(state.axis[i]);
+            for(int i=0;i<std::min(state.numButtons,17);++i)sample.buttons[static_cast<size_t>(i)]=state.digitalButton[i];
+            break;
+        }
+    }
+    gamepad_.update(sample,focused_,emscripten_get_now()*.001);
+}
+
 void Input::attachToWindow(Window& /*window*/) {
     // No-op for WASM
 }
@@ -374,6 +416,7 @@ int browserButtonToVoxyButton(int button) {
 }
 
 EM_BOOL emKeyDownCallback(int /*eventType*/, const EmscriptenKeyboardEvent* e, void* /*userData*/) {
+    if(e->repeat)return EM_FALSE;
     if (g_inputInstance) {
         int code = emscriptenKeyToCode(e->code);
         g_inputInstance->onKeyDown(code);
@@ -446,7 +489,7 @@ EM_BOOL emWheelCallback(int /*eventType*/, const EmscriptenWheelEvent* e, void* 
 EM_BOOL emBlurCallback(int /*eventType*/, const EmscriptenFocusEvent* /*event*/,
                        void* /*userData*/) {
     if (g_inputInstance) {
-        g_inputInstance->resetState();
+        g_inputInstance->onFocusChanged(false);
     }
     return EM_FALSE;
 }

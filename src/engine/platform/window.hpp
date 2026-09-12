@@ -64,6 +64,8 @@ public:
     // Callbacks
     using ResizeCallback = std::function<void(int width, int height)>;
     using CloseCallback = std::function<void()>;
+    using FocusCallback = std::function<void(bool)>;
+    using CharacterCallback = std::function<void(uint32_t)>;
     using KeyCallback = std::function<void(int key, int scancode, int action, int mods)>;
     using MouseButtonCallback = std::function<void(int button, int action, int mods)>;
     using MouseMoveCallback = std::function<void(double x, double y)>;
@@ -169,6 +171,8 @@ public:
     
     void setResizeCallback(ResizeCallback callback) { onResize_ = std::move(callback); }
     void setCloseCallback(CloseCallback callback) { onClose_ = std::move(callback); }
+    void setFocusCallback(FocusCallback callback) { onFocus_ = std::move(callback); }
+    void setCharacterCallback(CharacterCallback callback) { onCharacter_ = std::move(callback); }
     void setKeyCallback(KeyCallback callback) { onKey_ = std::move(callback); }
     void setMouseButtonCallback(MouseButtonCallback callback) { onMouseButton_ = std::move(callback); }
     void setMouseMoveCallback(MouseMoveCallback callback) { onMouseMove_ = std::move(callback); }
@@ -211,6 +215,8 @@ private:
     // Callbacks
     ResizeCallback onResize_;
     CloseCallback onClose_;
+    FocusCallback onFocus_;
+    CharacterCallback onCharacter_;
     KeyCallback onKey_;
     MouseButtonCallback onMouseButton_;
     MouseMoveCallback onMouseMove_;
@@ -220,6 +226,8 @@ private:
     // Internal callback dispatching (GLFW)
     static void glfwFramebufferSizeCallback(GLFWwindow* window, int width, int height);
     static void glfwWindowCloseCallback(GLFWwindow* window);
+    static void glfwFocusCallback(GLFWwindow* window, int focused);
+    static void glfwCharacterCallback(GLFWwindow* window, unsigned int codepoint);
     static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void glfwCursorPosCallback(GLFWwindow* window, double x, double y);

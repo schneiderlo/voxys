@@ -7,15 +7,38 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <string_view>
+#include <optional>
 #include <vector>
 
 namespace voxy::render {
 
 enum class CoveHudTone { Neutral, Ready, Blocked, Waiting };
+struct CoveHudMenuRow {
+    std::string label;
+    bool enabled=true;
+    bool operator==(const CoveHudMenuRow&) const = default;
+};
+struct CoveHudMenu {
+    std::string title,subtitle,status;
+    std::vector<CoveHudMenuRow> rows;
+    size_t selected=0;
+    bool naming=false;
+    std::string name;
+    size_t key=0;
+    bool keyboardFocus=true;
+    bool operator==(const CoveHudMenu&) const = default;
+};
+inline constexpr std::string_view kCoveNameKeys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.";
+struct CoveHudMenuHit {
+    glm::vec4 bounds{};
+    int row=-1,key=-1;
+};
 struct CoveHudContent {
     std::string title, selected, economy, status;
     std::array<std::string,3> hints;
     CoveHudTone tone=CoveHudTone::Neutral;
+    std::optional<CoveHudMenu> menu{};
     std::string objective{}; // Read-only formatter step; never gameplay state.
     bool operator==(const CoveHudContent&) const = default;
 };
@@ -34,6 +57,7 @@ struct CoveHudLayout {
     glm::vec4 panel{};
     float bodyPixels=20;
     bool truncated=false;
+    std::vector<CoveHudMenuHit> menuHits;
 };
 [[nodiscard]] CoveHudLayout layoutCoveHud(const CoveHudContent&,uint32_t width,uint32_t height);
 [[nodiscard]] std::vector<uint8_t> decodeCoveHudAtlas();

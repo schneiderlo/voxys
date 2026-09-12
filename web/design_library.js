@@ -86,63 +86,85 @@
             close(){closed=true;connection?.close();}
         };
     }
-    function install(engine,environment=globalThis){
+    function install(engine,environment=globalThis,controllerMenu=null){
         const document=environment.document,panel=document.getElementById('workshop-designs');if(!panel)return {tick(){},cleanup(){}};
         const list=document.getElementById('design-list'),name=document.getElementById('design-name'),status=document.getElementById('design-status');
         const file=document.getElementById('design-file'),buttons=Array.from(panel.querySelectorAll('button'));
-        let state=null,busy=false,stopped=false,rows=[],selected=null,loaded=false;
+        const loadNote=document.getElementById('design-load-note');
+        let state=null,busy=false,stopped=false,rows=[],selected=null,loaded=false,owner=null,generation=0;
         const call=(action,text='')=>engine.ccall('voxy_salvage_blueprint_action','string',['number','string'],[action,text]);
         const store=createStore(environment,hex=>call(3,hex)==='ok');
         const selectedRow=()=>rows.find(row=>row.id===list.value);
+        const live=token=>!stopped&&token===generation&&state?.ready&&!state.failed&&!state.busy&&state.workshop?.open&&!state.workshop.pending&&state.session?.admissionOpen!==false;
+        const requireLive=token=>{if(!live(token))throw Error('The workshop changed. Open saved designs again before continuing.');};
         const showError=error=>{status.textContent=error?.name==='QuotaExceededError'?'Storage is full. Your previous design is safe; export a file to keep this design.':String(error?.message||error);};
         const render=()=>{
-            const w=state?.workshop,ready=Boolean(state?.ready&&w?.open&&!w.pending&&!state?.busy&&!state?.failed&&!busy&&!stopped);
+            const w=state?.workshop,ready=Boolean(state?.ready&&w?.open&&!w.pending&&!state?.busy&&!state?.failed&&!busy&&!stopped&&state.session?.admissionOpen!==false);
             const clean=ready&&(!w.changed||w.brickTool),has=Boolean(selectedRow());
             for(const b of buttons){
                 const action=b.dataset.designAction;
                 b.disabled=!ready||(action==='save-new'&&!clean)||(action==='update'&&(!clean||!has))
                     ||(['load','rename','duplicate','restore','remove'].includes(action)&&!has)||(action==='export'&&!clean)||(action==='import'&&!clean);
+                if(action==='load')b.disabled||=w?.canLoadBlueprint!==true;
+                if(action==='keyboard')b.disabled||=!controllerMenu;
             }
             name.disabled=list.disabled=!ready;file.disabled=!clean;
             panel.dataset.busy=String(busy);
+            if(loadNote)loadNote.textContent=w?.brickTool?'Select parts stops the unused brick preview before loading a design.'
+                :w?.changed?'Keep or cancel your current preview before loading a design.'
+                :'Loading a design does not spend stock. Check the price before Launch.';
         };
-        const refresh=async()=>{
-            rows=await store.list();if(stopped)return;
+        const refresh=async(token=generation)=>{
+            const nextRows=await store.list();if(!live(token))return;
+            rows=nextRows;
             const old=selected??list.value;list.replaceChildren();
             for(const row of rows){const option=document.createElement('option');option.value=row.id;option.textContent=validName(row.name)?row.name:'Damaged design';list.append(option);}
             list.value=rows.some(row=>row.id===old)?old:(rows[0]?.id||'');selected=list.value;
         };
         const run=async operation=>{
-            if(busy||stopped)return;busy=true;status.textContent="Working…";render();
-            try{await operation();}catch(error){if(!stopped)showError(error);}finally{busy=false;if(!stopped)render();}
+            if(busy||stopped)return;
+            const finishFocus=controllerMenu?.pinFocus?.(document.activeElement)||(()=>{});
+            busy=true;status.textContent="Working…";render();
+            const token=generation;
+            try{await operation(token);}catch(error){if(live(token))showError(error);}finally{busy=false;if(!stopped)render();finishFocus(live(token));}
         };
         const currentBytes=()=>{const value=call(1);if(!value)throw Error('Keep or cancel your changes before saving.');return value;};
         const chosenName=()=>{const value=name.value.trim();if(!validName(value))throw Error('Enter a short name on one line.');return value;};
-        const put=async(rowName,hex,old=null)=>{
-            const saved=await store.write(old?.id||environment.crypto.randomUUID(),rowName,hex,old?.revision??null);selected=saved.id;
-            await refresh();if(!stopped)status.textContent=`Saved “${saved.name}” in this browser.`;
+        const put=async(rowName,hex,old=null,token=generation)=>{
+            requireLive(token);
+            const saved=await store.write(old?.id||environment.crypto.randomUUID(),rowName,hex,old?.revision??null);
+            if(!live(token))return;
+            selected=saved.id;await refresh(token);if(live(token))status.textContent=`Saved “${saved.name}” in this browser.`;
         };
         const handlers=new Map();
         for(const button of buttons){
-            const handler=()=>{if(button.disabled)return;void run(async()=>{
+            const handler=()=>{if(button.disabled)return;
+                if(button.dataset.designAction==='keyboard'){void controllerMenu?.editName(name,validName);return;}
+                void run(async token=>{
+                requireLive(token);
                 const action=button.dataset.designAction,chosen=selectedRow();
-                if(action==='refresh'){await refresh();status.textContent='Saved designs refreshed.';return;}
+                if(action==='refresh'){await refresh(token);if(live(token))status.textContent='Saved designs refreshed.';return;}
                 if(action==='save-new'){await put(chosenName(),currentBytes());return;}
                 if(action==='update'){await put(chosenName(),currentBytes(),chosen);return;}
                 if(action==='load'){
-                    const row=await store.read(chosen.id);if(stopped)return;
+                    const row=await store.read(chosen.id);requireLive(token);
+                    if(state.workshop.canLoadBlueprint!==true)throw Error('Stop the brick tool, or Keep or cancel the current preview before loading.');
                     if(call(2,row.blueprint)!=='ok')throw Error('This design could not be loaded. Check the workshop message.');
                     name.value=row.name;status.textContent=`Loaded “${row.name}”. Check the price, then Launch.`;return;
                 }
                 if(action==='duplicate'||action==='rename'){
-                    const row=await store.read(chosen.id);await put(chosenName(),row.blueprint,action==='rename'?row:null);return;
+                    const row=await store.read(chosen.id);requireLive(token);await put(chosenName(),row.blueprint,action==='rename'?row:null,token);return;
                 }
                 if(action==='restore'){
-                    const restored=await store.write(chosen.id,'','',chosen.revision,true);selected=restored.id;await refresh();status.textContent='Previous saved version restored.';return;
+                    const restored=await store.write(chosen.id,'','',chosen.revision,true);if(!live(token))return;
+                    selected=restored.id;await refresh(token);if(live(token))status.textContent='Previous saved version restored.';return;
                 }
                 if(action==='remove'){
-                    if(!environment.confirm(`Remove saved design “${chosen.name}” and its backup?`))return;
-                    await store.remove(chosen.id,chosen.revision);selected=null;await refresh();status.textContent='Saved design removed.';return;
+                    if(!controllerMenu)throw Error('Design confirmation is unavailable. Reload to continue.');
+                    if(!await controllerMenu.confirm({title:'Remove saved design?',message:`Remove “${chosen.name}” and its backup? Your boat and owned parts stay unchanged.`,confirmLabel:'Remove design'}))return;
+                    requireLive(token);
+                    await store.remove(chosen.id,chosen.revision);if(!live(token))return;
+                    selected=null;await refresh(token);if(live(token))status.textContent='Saved design removed.';return;
                 }
                 if(action==='export'){
                     const value={version:1,name:chosenName(),blueprint:currentBytes()};envelope(value);
@@ -155,16 +177,21 @@
             });};handlers.set(button,handler);button.addEventListener('click',handler);
         }
         const selection=()=>{selected=list.value;const row=selectedRow();if(row&&validName(row.name))name.value=row.name;render();};
-        const imported=()=>{const source=file.files?.[0];if(!source)return;void run(async()=>{
+        const imported=()=>{const source=file.files?.[0];if(!source||file.disabled)return;void run(async token=>{
             if(source.size>maximumBytes*2+1024)throw Error('This design file is too large.');
-            const value=parseFile(await source.text());if(stopped)return;
+            const value=parseFile(await source.text());requireLive(token);
             if(call(3,value.blueprint)!=='ok')throw Error('This design is damaged or needs unavailable parts.');
-            await put(value.name,value.blueprint);name.value=value.name;
+            await put(value.name,value.blueprint,null,token);if(live(token))name.value=value.name;
         }).finally(()=>{file.value='';});};
         list.addEventListener('change',selection);file.addEventListener('change',imported);
         return {
-            tick(next){state=next;if(!loaded&&next.workshop?.open&&next.ready){loaded=true;void run(async()=>{await refresh();status.textContent=rows.length?'Choose a saved design, or name and save this boat.':'No saved designs yet. Name this boat to save it.';});}render();},
-            cleanup(){stopped=true;store.close();for(const [b,h]of handlers)b.removeEventListener('click',h);list.removeEventListener('change',selection);file.removeEventListener('change',imported);}
+            tick(next){
+                const nextOwner=next.observation?`${next.observation.world}/${next.observation.incarnation}/${next.observation.epoch}`:next.world||null;
+                if(owner!==nextOwner||(state?.workshop?.open&&!next.workshop?.open)){++generation;loaded=false;}
+                owner=nextOwner;state=next;
+                if(!loaded&&!busy&&next.workshop?.open&&next.ready&&next.session?.admissionOpen!==false){loaded=true;void run(async token=>{await refresh(token);if(live(token))status.textContent=rows.length?'Choose a saved design, or name and save this boat.':'No saved designs yet. Name this boat to save it.';});}render();
+            },
+            cleanup(){stopped=true;++generation;store.close();for(const [b,h]of handlers)b.removeEventListener('click',h);list.removeEventListener('change',selection);file.removeEventListener('change',imported);}
         };
     }
     return {createStore,parseFile,validName,install};

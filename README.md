@@ -355,7 +355,7 @@ changes from eleven parts / 1,035 kg to ten parts / 945 kg. The winch can then b
 moved onto the freed deck socket. Sail into range before hooking the generator.
 Launch refuses blocked standing space or missing propulsion without changing
 the sailing boat. Use the browser expedition save control to keep accepted edits across reloads.
-Unsaved changes disappear on Leave; controller support remains unfinished.
+Unsaved changes disappear on Leave. The controller building controls are described below.
 The **parts drawer** now adds paid parts: choose a type, **Add / V**, Keep,
 then Launch. **C** cycles types with the canvas focused. Fresh cove worlds start
 with **48 material**; Reset preserves the remaining stock. Pontoons cost 24,
@@ -377,8 +377,7 @@ construction, save/reload, boarding and sailing with exact ownership and costs.
 The audited scene budget supports a tested 64-brick design; complex designs
 still obey collision and connection limits. The native workshop panel shows
 the selected tool, cost and controls with readable text; its camera
-leaves room for the panel and palette. Final art, controller support and the
-remaining workshop tools are unfinished.
+leaves room for the panel and palette. Final art and the wider game gates remain unfinished.
 [Brick-builder controls, capacity and evidence](docs/validation/salvage/LEGO-02/builder-r01/README.md).
 [Continuous tool and current verification](docs/validation/salvage/PLAY-02/continuous-r01/README.md).
 [Native panel implementation and scope](docs/validation/salvage/UX-01/native-hud-r01/README.md).
@@ -398,11 +397,26 @@ Launch now waits when the GPU upload queue is busy, preserving the prepared
 build and finishing automatically when capacity becomes available.
 Undo/redo and Reset preserve settings. Engine drive networks and advanced rope
 settings remain unfinished. [Working settings and gameplay checks](docs/validation/salvage/PLAY-02/settings-r01/README.md).
-In the browser, expand **Saved designs** to name, save, copy, load or update a
-blueprint. Backups and export/import are included. Designs survive browser
-reloads; loading one shows its part cost before Launch. The library saves the
-design. Use the separate expedition save control below to keep boat and mission
-progress. Native storage and named-design controls remain unfinished.
+**Group tools and designs:** Shift-click selects several parts. Move, rotate,
+paint, configure or remove the group, then Keep it as one undoable edit. Copy,
+mirror for symmetric bricks, replacement and draft redo are available. On native,
+**F2** opens the complete tools menu. The browser exposes the same commands in
+its workshop panel.
+
+With a standard controller, **View** opens the workshop and **Menu** focuses its
+tools. D-pad moves parts; A keeps; B cancels; X rotates; Y snaps; LB/RB select
+parts; triggers lower/raise. The right stick orbits; hold R3 to pan or L3 to zoom.
+The menus include an on-screen keyboard for naming designs.
+
+Open **Saved designs** to name, save, copy, load, update or rename a blueprint.
+Backups and export/import are included on Linux native and in the browser.
+Native files use the displayed Designs/Imports and Designs/Exports folders;
+browser files use its file controls. Both use the same exchange format. Designs
+survive restarts; stop or finish the current preview before loading one, then
+check its price before Launch. The library saves the design. Use the separate
+expedition save control below to keep boat and mission progress. Windows durable
+storage and the general 256-part builder remain wider implementation requirements.
+[Complete keyboard, mouse, controller and design-library controls](docs/validation/salvage/UX-01/builder-tools-r01/CONTROLS.md).
 [Persistent designs and the reload-to-sailing check](docs/validation/salvage/PLAY-02/designs-r01/README.md).
 [Live launch, moved-winch towing and verification](docs/validation/salvage/PLAY-02/launch-r01/README.md).
 [Connected edit/session implementation](docs/validation/salvage/PLAY-02/refit-r01/README.md).

@@ -41,6 +41,44 @@ TEST(CoveHud, ReadableBoundsKeepTheBuildAndPaletteClear) {
     }
 }
 
+TEST(CoveHud, MenuKeepsSelectedRowsVisibleWithinViewportAndGlyphBudget) {
+    for(const auto size:std::array<glm::uvec2,3>{{{640,480},{960,540},{1920,1080}}})
+    for(bool naming:{false,true}) {
+        CoveHudContent content;content.title="Workshop tools";content.menu.emplace();
+        auto& menu=*content.menu;menu.title="Saved designs";menu.subtitle="Two bricks";
+        menu.status="Choose a design";menu.naming=naming;menu.name="BOAT";
+        for(size_t i=0;i<(naming?4u:32u);++i)menu.rows.push_back({std::to_string(i)+" "+std::string(96,'W'),true});
+        for(size_t selected=0;selected<menu.rows.size();++selected) {
+            menu.selected=selected;const auto layout=layoutCoveHud(content,size.x,size.y);
+            SCOPED_TRACE(::testing::Message()<<size.x<<"x"<<size.y<<" name="<<naming<<" selection="<<selected);
+            EXPECT_FALSE(layout.truncated);EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+            EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[&](const auto& hit){return hit.row==int(selected);}));
+            for(const auto& hit:layout.menuHits) {
+                EXPECT_GE(hit.bounds.x,0);EXPECT_GE(hit.bounds.y,0);
+                EXPECT_LE(hit.bounds.x+hit.bounds.z,float(size.x));EXPECT_LE(hit.bounds.y+hit.bounds.w,float(size.y));
+            }
+        }
+    }
+}
+
+TEST(CoveHud, ImportFolderAndRefusalRemainReadableTogether) {
+    CoveHudContent content;content.title="Workshop tools";content.menu.emplace();
+    auto& menu=*content.menu;menu.title="Import a design file";
+    menu.subtitle="/home/player/workspace/schneiderlo/voxys/build-workshop-tools-r01/native-storage-r04/Designs/Imports";
+    menu.status="This design file is invalid or incompatible.";
+    menu.rows={{"corrupt.voxy-design.json",true},{"transfer.voxy-design.json",true},{"Refresh list",true},{"Back",true}};
+    for(const auto size:std::array<glm::uvec2,2>{{{960,540},{960,800}}}) {
+        const auto layout=layoutCoveHud(content,size.x,size.y);
+        EXPECT_FALSE(layout.truncated);EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+        EXPECT_GE(layout.bodyPixels,20.f);
+        EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[](const auto& hit){return hit.row==0;}));
+        for(const auto& hit:layout.menuHits) {
+            EXPECT_GE(hit.bounds.x,0);EXPECT_GE(hit.bounds.y,0);
+            EXPECT_LE(hit.bounds.x+hit.bounds.z,float(size.x));EXPECT_LE(hit.bounds.y+hit.bounds.w,float(size.y));
+        }
+    }
+}
+
 TEST(CoveHud, OversizedTextAndTinyWindowsStayBoundedWithoutShrinking) {
     auto content=workshop();
     content.selected=std::string(100000,'W');

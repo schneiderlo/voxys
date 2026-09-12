@@ -26,14 +26,14 @@ function fixture(asset = false, workshop = false, cove = false) {
         elements['salvage-lods'].querySelectorAll = () => lodButtons;
         elements['salvage-guides'].querySelectorAll = () => guideButtons;
     }
-    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,96,97,98]
+    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,96,97,98,300,301,302,303,304,305,306,307,308,309]
         .map(action=>Object.assign(new Element(),{dataset:{workshopAction:String(action)}})):[];
     if(workshop) {
         for(const name of ['Brick 1 x 2','Brick 2 x 2','Brick 2 x 4'])workshopButtons.push(
             Object.assign(new Element(),{dataset:{workshopAction:'-1',workshopBrick:name}}));
         for(let index=0;index<8;++index)workshopButtons.push(
             Object.assign(new Element(),{dataset:{workshopAction:String(200+index),workshopPaint:String(index)}}));
-        for(const id of ['voxy-canvas','salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-workshop-tool','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status','workshop-paint-name','workshop-paint-note'])elements[id]=new Element();
+        for(const id of ['voxy-canvas','salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-workshop-tool','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status','workshop-paint-name','workshop-paint-note','workshop-selection-note'])elements[id]=new Element();
         elements['salvage-workshop'].querySelectorAll=()=>workshopButtons;
     }
     let state = { active: true, ready: true, busy: false, failed: false, resets: 0 };
@@ -56,6 +56,29 @@ function fixture(asset = false, workshop = false, cove = false) {
     const cleanup = install(engine, environment);
     return { elements, lodButtons, guideButtons, workshopButtons, actions, navigations, engine, cleanup, tick: () => tick(),
         state: update => Object.assign(state, update), pagehide: () => events.get('pagehide')?.(), event:name=>events.get(name)?.(), events, cleared: () => cleared };
+}
+{
+    const f=fixture(true,true),button=action=>f.workshopButtons.find(b=>b.dataset.workshopAction===String(action));
+    const w={open:true,canOpen:true,name:'Brick 2 x 4',selected:10,selectedCount:3,selectedParts:[10,12,14],
+        changed:false,valid:true,undo:2,redoCount:1,parts:14,massKg:1060,catalogName:'Brick 2 x 4',canPaint:true,paintName:'Mixed',paintIndex:null};
+    f.state({workshop:w});f.tick();
+    assert.match(f.elements['salvage-workshop-part'].textContent,/3 parts selected.*Primary: Brick 2 x 4/);
+    assert.match(f.elements['workshop-selection-note'].textContent,/Group changes are kept and undone together/);
+    assert.match(f.elements['workshop-paint-note'].textContent,/selected bricks/);
+    assert(!button(305).disabled,'replacement applies atomically to the selection');
+    for(const action of [300,301,302,303,304,305,306,307,308,309]){assert(!button(action).disabled,String(action));button(action).click();}
+    assert.deepEqual(f.actions,[300,301,302,303,304,305,306,307,308,309]);
+    f.state({workshop:{...w,selectedCount:1,redoCount:0}});f.tick();
+    assert(button(301).disabled&&button(306).disabled);button(305).click();assert.equal(f.actions.at(-1),305);
+    f.state({workshop:{...w,changed:true,valid:false,problemCode:'clearance-blocked',message:'Leave room around the connector.'}});f.tick();
+    for(const action of [61,62,300,301,302,303,304,305,306,309])assert(button(action).disabled,String(action));
+    assert(!button(307).disabled&&!button(308).disabled,'invalid preview remains editable');
+    assert.equal(f.elements['salvage-workshop-status'].dataset.problem,'clearance-blocked');
+    assert.match(f.elements['salvage-workshop-status'].textContent,/Leave room around the connector/);
+    for(const update of [{workshop:{...w,pending:true}},{workshop:w,session:{admissionOpen:false}}]){
+        f.state(update);f.tick();for(let action=300;action<=309;++action)assert(button(action).disabled,String(action));
+    }
+    f.cleanup();console.log('Workshop group actions, redo, replacement, typed reason and permission gating: 1 case passed');
 }
 {
     const f=fixture(true,true);

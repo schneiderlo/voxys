@@ -1338,7 +1338,7 @@ TEST(GameSessionRecoveryAdmission, RejectsForgedHistoryAmountsImagesCursorAndDor
         MovePart{{id(3), TopologyRevision{1}}, part.id, {{1000, 0, 0}, {}}}});
     commit(*session, adapter, removeCurrent(*session, part.id));
     const auto source = capture(*session);
-    for (int fault = 0; fault < 13; ++fault) {
+    for (int fault = 0; fault < 14; ++fault) {
         auto bad = *source; RecoveryIssue issue;
         if (fault == 0) bad.history.entries[0].debit.salvageMaterial += 1;
         if (fault == 1) bad.history.entries[2].credit.salvageMaterial += 1;
@@ -1353,6 +1353,12 @@ TEST(GameSessionRecoveryAdmission, RejectsForgedHistoryAmountsImagesCursorAndDor
         if (fault == 10) bad.history.entries[1].edit.afterPart->paint[0] = 17;
         if (fault == 11) bad.history.entries[3] = bad.history.entries[0];
         if (fault == 12) bad.history.parts[0].owningBuild = id(99);
+        if (fault == 13) {
+            // Even without retained journal evidence, the hypothetical history
+            // walk cannot borrow funds below zero to undo this paid dismantle.
+            bad.retainedJournal={};bad.retainedJournalCount=0;
+            bad.modelReleasedThrough=bad.coveredThrough;bad.accepted.inventory={};
+        }
         EXPECT_FALSE(admit(bad, issue)) << fault; EXPECT_TRUE(issue) << fault;
     }
 }
@@ -3280,6 +3286,71 @@ TEST(GameSessionCut, StarterRecoveryAfterCutCollectsPaidPartsOnceAndRetiresEvery
     for(const auto& part:state.builds[0].parts){EXPECT_NE(part.id,id(10));EXPECT_NE(part.id,id(11));EXPECT_EQ(part.provenance,(PartProvenance{PartOrigin::StarterLoan,id(30)}));}
     commit(*session,adapter,rebuildCommand(*session));EXPECT_EQ(session->snapshot().storedParts,state.storedParts);
     EXPECT_EQ(session->snapshot().inventory,ResourceAmounts{});expectReplay(*before,*capture(*session));
+}
+
+TEST(GameSessionSave, DeliveryCanBlockInverseCreditWithoutInvalidatingCheckpointOrRecovery) {
+    const auto key=starterPartKey(StarterPart::Engine);
+    const auto& definition=*catalog().lookup(key).definition;
+    // Engine has both purchase currencies, but only a material dismantle yield.
+    // Exercise the three reachable inverses without inventing catalog economics.
+    for(unsigned scenario=0;scenario<3;++scenario) {
+        SCOPED_TRACE(scenario);
+        const bool redo=scenario==2,machinery=scenario==1;
+        const auto amount=redo?definition.salvageYield:definition.cost;
+        const auto selected=machinery?amount.specialMachinery:amount.salvageMaterial;
+        ASSERT_GT(selected,0u);
+        auto boot=bootstrap();
+        auto& bounded=machinery?boot.inventory.specialMachinery:boot.inventory.salvageMaterial;
+        bounded=std::numeric_limits<uint64_t>::max()-(redo?selected:0);
+        boot.jobs[0].phase=JobPhase::Accepted;boot.jobs[0].acceptedBy=boot.caller.participant;
+        boot.cargoDefinitions[0].value=machinery?ResourceAmounts{0,selected}:ResourceAmounts{selected,0};
+        if(redo) {
+            auto part=seededPart(10);part.definition=key;
+            part.settings=defaultModuleSettings(definition);part.health=3141;part.paint={17,22,90,255};
+            boot.builds[0].parts={part};
+        }
+        FakeAdapter adapter;auto session=create(adapter,boot);
+        if(redo) {
+            commit(*session,adapter,removeCurrent(*session,id(10)));
+            commit(*session,adapter,inverse(*session));
+        } else {
+            commit(*session,adapter,{AuthorityEpoch{1},RequestSequence{1},{},AddPart{{id(3),{}},key,{}}});
+        }
+        const auto beforeDelivery=capture(*session);
+        const Command delivery{AuthorityEpoch{1},RequestSequence{session->admissionState().admittedThrough.value()+1},
+            session->snapshot().revision,DeliverCargo{id(6)}};
+        commit(*session,adapter,delivery);
+        const auto before=session->snapshot();const auto history=session->history();
+        EXPECT_EQ(machinery?before.inventory.specialMachinery:before.inventory.salvageMaterial,
+            std::numeric_limits<uint64_t>::max());
+        ASSERT_TRUE(before.cargo.empty());EXPECT_EQ(before.jobs[0].phase,JobPhase::Completed);
+        const auto rewarded=capture(*session);expectReplay(*beforeDelivery,*rewarded);
+        const auto begins=adapter.begins,activations=adapter.activations;
+        const auto issued=session->lastIssuedId();
+        const auto blocked=inverse(*session,!redo);
+        EXPECT_EQ(session->submit(boot.caller,blocked).issue.error,SessionError::ResourceOverflow);
+        EXPECT_EQ(session->submit(boot.caller,blocked).issue.error,SessionError::ResourceOverflow);
+        expectWorldEqual(before,session->snapshot());EXPECT_EQ(session->history(),history);
+        EXPECT_EQ(session->lastIssuedId(),issued);EXPECT_EQ(adapter.begins,begins);EXPECT_EQ(adapter.activations,activations);
+        EXPECT_FALSE(session->journalFaulted());
+        const auto after=capture(*session);expectReplay(*beforeDelivery,*after);
+        // Allowing hypothetical positive overflow must not permit forged history value.
+        auto forged=*after;
+        if(redo)++forged.history.entries[0].credit.salvageMaterial;
+        else ++forged.history.entries[0].debit.salvageMaterial;
+        RecoveryIssue issue;
+        EXPECT_FALSE(SessionRecovery::admit(forged,{kWorld,recoveryContent()},catalog(),issue));
+        EXPECT_EQ(issue.error,RecoveryError::InvalidHistory);
+        SaveCodecIssue codec;
+        auto decoded=SessionSaveCodec::decodeCheckpoint(savedCheckpoint(*session),{kWorld,recoveryContent()},catalog(),codec);
+        ASSERT_TRUE(decoded);session.reset();FakeAdapter fresh;
+        const auto restored=SessionRecovery::restore(decoded,fixtureIncarnation(),fresh,issue);
+        ASSERT_TRUE(restored)<<static_cast<int>(issue.error);EXPECT_FALSE(decoded);
+        expectWorldEqual(before,restored->session->snapshot());EXPECT_EQ(restored->session->history().entries,0u);
+        EXPECT_EQ(fresh.begins,0u);EXPECT_EQ(fresh.activations,0u);
+        EXPECT_EQ(restored->session->submit(boot.caller,delivery).issue.error,SessionError::WrongToken);
+        EXPECT_EQ(restored->session->snapshot().inventory,before.inventory);
+    }
 }
 
 } // namespace

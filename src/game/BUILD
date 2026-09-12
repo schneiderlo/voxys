@@ -513,3 +513,12 @@ cc_library(
     includes = [".."],
     deps = [":construction_types", "//src/core:sha256"],
 )
+
+cc_library(
+    name = "design_library",
+    srcs = ["expedition/design_library.cpp"],
+    hdrs = ["expedition/design_library.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//src/core:sha256", "//third_party:tinygltf"],
+)

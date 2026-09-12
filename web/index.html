@@ -219,6 +219,7 @@
     <div id="lego-crosshair" aria-hidden="true"></div>
     <section id="salvage-preview" hidden data-voxy-ui aria-label="Cove preview controls">
         <h2 id="salvage-title">Salvage Cove</h2>
+        <p id="salvage-controller-help" class="salvage-note" hidden>View opens the workshop. Menu opens its controls. Directions choose · Confirm uses · Back closes · Menu returns to building. Right stick orbits · hold R3 to pan · hold L3 to zoom.</p>
         <p id="salvage-status" role="status" aria-live="polite">Explore the dock and wreck.</p>
         <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
         <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
@@ -275,10 +276,25 @@
                 <button id="workshop-remove" data-workshop-action="74">Remove part</button>
                 <button id="workshop-keep" data-workshop-action="71">Keep change · E</button>
                 <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
+                <button id="workshop-redo" data-workshop-action="306">Redo edit</button>
             </div>
                 <button id="workshop-launch" data-workshop-action="79" title="Launch with your placed bricks. The unused brick preview is not added or charged.">Launch boat · Enter</button>
             <details class="workshop-section"><summary>How to build</summary>
             <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Choose a brick once, then click repeatedly to build. R rotates. Green fits; red is blocked. Select or Esc stops; U undoes the last placement. Launch leaves out the unused preview.</p>
+            </details>
+            <details class="workshop-section" id="workshop-groups"><summary>Select, copy &amp; mirror</summary>
+            <p id="workshop-selection-note" class="salvage-note">Shift-click parts to select a group.</p>
+            <div class="workshop-grid">
+                <button id="workshop-select-all" data-workshop-action="300">Select all</button>
+                <button id="workshop-only-primary" data-workshop-action="301">Only primary part</button>
+                <button id="workshop-toggle-next" data-workshop-action="309">Toggle next part</button>
+                <button id="workshop-duplicate" data-workshop-action="302">Copy selection</button>
+                <button id="workshop-mirror-x" data-workshop-action="303">Mirror across X</button>
+                <button id="workshop-mirror-z" data-workshop-action="304">Mirror across Z</button>
+                <button id="workshop-rotate-x" data-workshop-action="307">Rotate around X</button>
+                <button id="workshop-rotate-z" data-workshop-action="308">Rotate around Z</button>
+            </div>
+            <p class="salvage-note">Mirror copies symmetric bricks across the boat's X = 0 or Z = 0 plane. Move the preview until it fits, then Keep. Copying buys new parts at Launch.</p>
             </details>
             <details class="workshop-section"><summary>Camera</summary>
             <div class="workshop-camera" aria-label="Workshop camera">
@@ -297,6 +313,7 @@
                 <span id="workshop-catalog-name"></span>
                 <button id="workshop-catalog-next" data-workshop-action="83">Next type · C</button>
                 <button id="workshop-add" data-workshop-action="84">Add part · V</button>
+                <button id="workshop-replace" data-workshop-action="305">Replace selection</button>
             </div>
             <div class="workshop-camera" aria-label="Part settings">
                 <span id="workshop-settings-note"></span>
@@ -334,6 +351,7 @@
                 <summary>Saved designs</summary>
                 <label for="design-name">Design name</label>
                 <input id="design-name" type="text" maxlength="96" value="My boat" autocomplete="off">
+                <button id="design-keyboard" type="button" data-design-action="keyboard">Name with on-screen keyboard</button>
                 <label for="design-list">On this device</label>
                 <select id="design-list" size="3" aria-label="Saved designs"></select>
                 <div class="workshop-grid">
@@ -350,6 +368,7 @@
                 </div>
                 <input id="design-file" type="file" accept=".json,.voxy-design.json" hidden>
                 <p id="design-status" role="status" aria-live="polite"></p>
+                <p id="design-load-note" class="salvage-note"></p>
                 <p class="salvage-note">Saves the design. Needed parts are bought at Launch. To keep expedition progress, pause and use Save expedition.</p>
             </details>
             <p class="salvage-note">Keep your changes, then Launch to sail the rebuilt boat. Changes last until you leave this scene.</p>
@@ -390,6 +409,7 @@
     </section>
     <script src="expedition_store.js"></script>
     <script src="cove_saves.js"></script>
+    <script src="controller_menu.js"></script>
     <script src="design_library.js"></script>
     <script src="salvage_preview.js"></script>
     <script src="lego_playground.js"></script>

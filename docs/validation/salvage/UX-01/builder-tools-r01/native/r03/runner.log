@@ -1,0 +1,22 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+fresh-owned-world
+controller-camera-target
+controller-camera-distance
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_builder_tools.py", line 523, in <module>
+    if __name__ == '__main__': main()
+                               ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_builder_tools.py", line 387, in main
+    choose('Select and group')
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_builder_tools.py", line 233, in choose
+    target(label); return pulse('a')
+                          ~~~~~^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_builder_tools.py", line 199, in pulse
+    assert mapping['buttons'][standard[button]] == 1, (button, mapping)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('a', {'device': 0, 'name': 'Voxys acceptance controller', 'guid': '030000005e0400008e02000010010000', 'mappedName': 'X360 Controller', 'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'axes': [1.52587890625e-05, 1.52587890625e-05, 1.52587890625e-05, 1.52587890625e-05, -1.0, -1.0]})

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "engine/platform/gamepad.hpp"
+#include <string>
 #include <array>
 #include <cstdint>
 #include <glm/vec2.hpp>
@@ -127,6 +129,12 @@ public:
     /// Clear held and queued input after focus loss. This also releases mouse
     /// capture so the next click can acquire pointer lock again.
     void resetState();
+    [[nodiscard]] const GamepadInput& gamepad() const noexcept { return gamepad_; }
+    [[nodiscard]] bool focused() const noexcept { return focused_; }
+    void onFocusChanged(bool focused) { focused_=focused; resetState(); }
+    void onCharacter(uint32_t codepoint);
+    [[nodiscard]] const std::string& textInput() const noexcept { return frameText_; }
+
     
     // ─────────────────────────────────────────────────────────────────────────
     // Keyboard State
@@ -140,6 +148,12 @@ public:
     
     // Check if a key was just released this frame
     [[nodiscard]] bool wasKeyReleased(Key key) const;
+    static constexpr uint8_t shiftModifier=1,controlModifier=2,altModifier=4;
+    // Modifiers at the press event, even if released before this displayed frame.
+    [[nodiscard]] uint8_t keyPressModifiers(Key key) const noexcept {
+        const int code=static_cast<int>(key);
+        return isValidKey(code)?keyModifiers_[static_cast<size_t>(code)]:0;
+    }
     
     // ─────────────────────────────────────────────────────────────────────────
     // Mouse State
@@ -230,11 +244,16 @@ public:
     [[nodiscard]] Window* getWindow() const { return window_; }
     
 private:
+    GamepadInput gamepad_;
+    bool focused_=true;
+    std::string queuedText_,frameText_;
+    void pollGamepad();
     static constexpr size_t kMaxKeys = static_cast<size_t>(Key::MaxKey);
     static constexpr size_t kMaxButtons = static_cast<size_t>(MouseButton::MaxButton);
     
     // Keyboard state
     std::array<bool, kMaxKeys> currentKeys_{};
+    std::array<uint8_t,kMaxKeys> keyModifiers_{};
     std::array<bool, kMaxKeys> previousKeys_{};
     // Track keys pressed this frame (even if released before frame end)
     // This prevents losing quick press+release events within a single frame

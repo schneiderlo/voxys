@@ -72,9 +72,10 @@ std::unique_ptr<CoveSceneryCollision> CoveSceneryCollision::compile(
 }
 
 std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compile(
-    const assets::LoadedAssetFixture& scene, std::string& error) {
-    if(!scene.registry.navigation) {error="Missing cove navigation";return {};}
-    return compileMembers(scene,scene.registry.navigation->boatPlacements,error);
+    const assets::LoadedAssetFixture& scene, std::string& error, Diagnostic* diagnostic) {
+    if(diagnostic)*diagnostic={};
+    if(!scene.registry.navigation) {error="Missing cove navigation";if(diagnostic)diagnostic->failure=Diagnostic::Failure::InvalidScene;return {};}
+    return compileMembers(scene,scene.registry.navigation->boatPlacements,error,false,diagnostic);
 }
 std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileCargo(
     const assets::LoadedAssetFixture& scene,uint32_t placement,std::string& error) {
@@ -86,8 +87,9 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileSeparatedScene(
     return compileMembers(scene,scene.registry.navigation->boatPlacements,error,true);
 }
 std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileMembers(
-    const assets::LoadedAssetFixture& scene,std::span<const uint32_t> members,std::string& error,bool separated) {
+    const assets::LoadedAssetFixture& scene,std::span<const uint32_t> members,std::string& error,bool separated,Diagnostic* diagnostic) {
     const auto fail = [&](const std::string& detail) -> std::unique_ptr<CoveBoatAssembly> {
+        if(diagnostic)diagnostic->failure=Diagnostic::Failure::InvalidScene;
         error = "Boat assembly: " + detail; return {};
     };
     if (members.empty() || scene.registry.placements.size()>assets::kMaximumFixturePlacements) return fail("missing physical membership");
@@ -97,7 +99,7 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileMembers(
         selected[index] = true;
     }
     const auto catalog=makeCovePartCatalog(scene,error);
-    if(!catalog)return {};
+    if(!catalog){if(diagnostic)diagnostic->failure=Diagnostic::Failure::InvalidScene;return {};}
     constexpr WorldNamespace sceneWorld{{'v','o','x','y','-','c','o','v','e','-','b','o','a','t','0','1'}};
     const auto id = [&](uint64_t value) { return DurableId{sceneWorld, value}; };
     BuildSnapshot build; build.id = id(1); build.owner = id(2);
@@ -147,7 +149,7 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileMembers(
         if(!helm)return fail("missing control helm");
         return compileFragments(build,*catalog,parts,*helm,error);
     }
-    return compileBuild(build,*catalog,parts,error);
+    return compileRoots(build,*catalog,parts,std::nullopt,error,diagnostic);
 }
 
 std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileBuild(
@@ -160,8 +162,11 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileFragments(
 }
 std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
     const BuildSnapshot& build,const PartCatalog& catalog,std::span<const Part> placements,
-    std::optional<DurableId> controlPart,std::string& error) {
-    const auto fail=[&](const std::string& detail)->std::unique_ptr<CoveBoatAssembly>{error="Boat assembly: "+detail;return {};};
+    std::optional<DurableId> controlPart,std::string& error,Diagnostic* diagnostic) {
+    const auto fail=[&](const std::string& detail,Diagnostic::Failure failure=Diagnostic::Failure::PhysicalPreparation)->std::unique_ptr<CoveBoatAssembly>{
+        if(diagnostic)diagnostic->failure=failure;
+        error="Boat assembly: "+detail;return {};
+    };
     if(placements.size()!=build.parts.size() || placements.empty() || placements.size()>assets::kMaximumFixturePlacements)return fail("part mapping count");
     std::array<bool,assets::kMaximumFixturePlacements> used{};
     for(size_t i=0;i<placements.size();++i) {
@@ -174,14 +179,20 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
     }
     AssemblyFunctionIssue issue;
     auto assembly = CompiledAssembly::compile(build, catalog, issue);
+    if(diagnostic) {
+        diagnostic->assembly=issue;
+        const auto object=issue.buoyancy.collision.assembly.build.object;
+        const auto part=std::find_if(placements.begin(),placements.end(),[&](const auto& p){return p.id==object;});
+        if(part!=placements.end())diagnostic->placement=part->placement;
+    }
     if (!assembly) return fail("invalid physical build at " + std::string(issue.buoyancy.collision.assembly.build.field)
         + " (build " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.assembly.build.error))
         + ", assembly " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.assembly.error))
         + ", exterior " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.geometry.error))
         + ", coverage " + std::to_string(static_cast<unsigned>(issue.buoyancy.coverage.error))
-        + ", functions " + std::to_string(static_cast<unsigned>(issue.error)) + ")");
+        + ", functions " + std::to_string(static_cast<unsigned>(issue.error)) + ")",Diagnostic::Failure::Compilation);
     const auto count=assembly->mass().roots().size();
-    if(!controlPart && count!=1)return fail("boat parts must form one welded body");
+    if(!controlPart && count!=1)return fail("boat parts must form one welded body",Diagnostic::Failure::Disconnected);
     if(count==0 || count!=assembly->collision().roots().size() || count!=assembly->buoyancy().roots().size())
         return fail("incomplete rigid roots");
     uint32_t primary=0;
@@ -213,7 +224,7 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
         if(module.root>=roots.size())return fail("unknown module root");
         auto& root=roots[module.root];const auto output=coveModuleOutput(module);
         if(const auto* propeller=std::get_if<PropellerModule>(&module.parameters)) {
-            if(root.propeller)return fail("one propeller per rigid cove body is supported");
+            if(root.propeller)return fail("one propeller per rigid cove body is supported",Diagnostic::Failure::DuplicatePropeller);
             unsigned frames=0;
             for(const auto& frame:functions.moduleFrames(index))if(frame.kind==AssemblyFrameKind::Thrust) {
                 const auto direction=rotate(frame.rootFromFrame.rotation,{0,0,-1});
@@ -227,7 +238,7 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
             root.propeller=module.part;root.maximumThrustNewtons=static_cast<float>(propeller->maximumThrustNewtons)*output;
         }
         if(const auto* helm=std::get_if<HelmModule>(&module.parameters)) {
-            if(root.helm)return fail("one helm per rigid cove body is supported");
+            if(root.helm)return fail("one helm per rigid cove body is supported",Diagnostic::Failure::DuplicateHelm);
             root.helm=module.part;root.maximumSteeringRadians=static_cast<float>(helm->maximumSteeringRadians)*output;
         }
     }

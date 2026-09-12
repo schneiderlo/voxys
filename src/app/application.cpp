@@ -93,6 +93,7 @@
 
 #if defined(VOXY_NATIVE)
     #include <stb_image_write.h>
+    #include "engine/platform/native/workshop_menu.hpp"
     // Platform-specific sleep includes for async polling
     #if defined(_WIN32)
         #include <windows.h>
@@ -295,6 +296,12 @@ struct SalvageLocalSessionState {
         bool workshopFrameWhole=true;
         bool workshopPointerPlacement=false;
         bool workshopPointerTarget=false;
+        bool controllerMenuOwner=false,menuConsumedFrame=false;
+        bool controllerMotor=false;
+#if defined(VOXY_NATIVE)
+        std::optional<game::expedition::CoveDesignCost> menuQuote;
+        uint64_t menuQuoteRevision=std::numeric_limits<uint64_t>::max();
+#endif
         struct WorkshopView { glm::vec3 position; float yaw,pitch; glm::ivec3 sector; };
         std::optional<WorkshopView> workshopReturnView;
         std::unique_ptr<game::expedition::CoveSceneryCollision> scenery;
@@ -1240,6 +1247,7 @@ bool Application::init(const ApplicationConfig& config) {
     uncappedFPS_ = !config_.vsync;
     primitiveCullController_.reset();
 #if defined(VOXY_NATIVE)
+    nativeWorkshopMenu_.reset();
     nativeCoveHud_.reset();
 #endif
     legoPlayground_.reset();
@@ -1561,6 +1569,7 @@ void Application::shutdown() {
     salvagePreview_.reset();
     salvageLocalSession_.reset();
 #if defined(VOXY_NATIVE)
+    nativeWorkshopMenu_.reset();
     nativeCoveHud_.reset();
 #endif
     coveResume_.reset();
@@ -2113,6 +2122,9 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     }
     updateSalvagePreview(frameDeltaTime);
     if (salvagePreviewFailed_) return;
+#if defined(VOXY_NATIVE)
+    updateNativeWorkshopMenu();
+#endif
     applyRendererSettings();
 
     const bool browserJourneyWasRunning = browserJourneyBenchmark_
@@ -5132,7 +5144,7 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         }
         if(designPart) {
             rendered.cameraRelativeRoot=glm::translate(root,glm::dvec3(0,4,0));
-            if(i==asset.workshop->selected())rendered.tint=!asset.workshop->valid()
+            if(asset.workshop->isSelected(static_cast<uint32_t>(i)))rendered.tint=!asset.workshop->valid()
                 ? glm::vec4(1.f,.22f,.18f,1.f)
                 : asset.workshopPointerPlacement&&!asset.workshopPointerTarget
                     ? glm::vec4(1.f,.75f,.25f,1.f):glm::vec4(.45f,1.f,.55f,1.f);
@@ -6287,6 +6299,15 @@ void Application::resetSalvagePreviewView() {
     if (characterController_) characterController_->syncPhysicsPosition();
 }
 
+bool Application::coveUiOwnsInput() const {
+    if(!salvageLocalSession_||!salvageLocalSession_->asset)return false;
+    const auto& asset=*salvageLocalSession_->asset;
+#if defined(VOXY_WASM)
+    if(EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();}))return true;
+#endif
+    return asset.controllerMenuOwner||asset.menuConsumedFrame;
+}
+
 std::string Application::salvageBlueprintAction(int action,std::string_view text) {
     if(!initialized_ || !salvageLocalSession_ || !salvageLocalSession_->asset || !salvageLocalSession_->session
         || salvagePreviewFailed_ || !salvagePreview_ || salvagePreview_->busy() || salvageLocalSession_->pendingControl)return {};
@@ -6516,7 +6537,7 @@ bool Application::salvagePreviewAction(int action) {
         const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;
         asset->player->discardPendingInput();if(input_)input_->resetState();return result.admitted;
     }
-    if(((action>=60 && action<=89)||(action>=92&&action<=94)||(action>=96&&action<=98)||(action>=100&&action<100+int(game::assets::kMaximumFixtureBundles))
+    if(((action>=60 && action<=89)||(action>=92&&action<=94)||(action>=96&&action<=98)||(action>=300&&action<=309)||(action>=100&&action<100+int(game::assets::kMaximumFixtureBundles))
         ||(action>=200&&action<200+int(game::expedition::kBrickPaintPalette.size()))) && salvageLocalSession_->asset && salvageLocalSession_->asset->player) {
         auto& asset=*salvageLocalSession_->asset;
         if(asset.leaving || salvagePreview_->busy() || salvageLocalSession_->pendingControl
@@ -6531,6 +6552,9 @@ bool Application::salvagePreviewAction(int action) {
                 }
                 asset.workshopReturnView=SalvageLocalSessionState::AssetPreview::WorkshopView{camera_->position(),camera_->yaw(),camera_->pitch(),camera_->worldSector()};
                 asset.workshopOpen=true;asset.workshopPointerPlacement=false;
+#if defined(VOXY_NATIVE)
+                asset.menuQuoteRevision=std::numeric_limits<uint64_t>::max();
+#endif
                 asset.workshopFrameRequest=2;
             } else {
                 (void)asset.workshop->stopBrickTool();asset.workshopPointerPlacement=false;
@@ -6594,6 +6618,32 @@ bool Application::salvagePreviewAction(int action) {
                 game::expedition::RebuildStarter{{local.boatId,asset.boat->build().revision}}};
             asset.launchMessage="Preparing boat…";
             const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;return result.admitted;
+        }
+        if(action>=300&&action<=309) {
+            auto& workshop=*asset.workshop;
+            using Workshop=game::expedition::CoveWorkshop;
+            if(workshop.brickToolActive()) { (void)workshop.stopBrickTool();asset.workshopPointerPlacement=false; }
+            bool edited=false;
+            switch(action) {
+                case 300:edited=workshop.selectAll();break;
+                case 301:edited=workshop.selectOnlyPrimary();break;
+                case 302:edited=workshop.duplicateSelection({32,0,0});break;
+                case 303:edited=workshop.mirrorSelection(Workshop::Axis::X,0);break;
+                case 304:edited=workshop.mirrorSelection(Workshop::Axis::Z,0);break;
+                case 305:edited=workshop.replaceSelection(workshop.catalogIndex());break;
+                case 306:edited=workshop.command(Workshop::Action::Redo);break;
+                case 307:edited=workshop.rotateSelection(Workshop::Axis::X);break;
+                case 308:edited=workshop.rotateSelection(Workshop::Axis::Z);break;
+                case 309: {
+                    const auto& parts=workshop.design().registry.navigation->boatPlacements;
+                    const auto it=std::find(parts.begin(),parts.end(),workshop.selected());
+                    if(!parts.empty())edited=workshop.selectPart(parts[(size_t(it-parts.begin())+1)%parts.size()],Workshop::SelectionMode::Toggle);
+                    break;
+                }
+            }
+            asset.workshopPointerPlacement=false;asset.workshopPointerTarget=false;
+            if(edited)asset.launchMessage.clear();
+            return edited;
         }
         if(action>=200) {
             if(!asset.workshop->setPaint(static_cast<uint32_t>(action-200)))return false;
@@ -6779,12 +6829,69 @@ bool Application::salvagePreviewAction(int action) {
 }
 
 #if defined(VOXY_NATIVE)
+void Application::updateNativeWorkshopMenu() {
+    auto* asset=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
+    if(!asset||!asset->player||!input_) {if(nativeWorkshopMenu_)nativeWorkshopMenu_->dismiss();return;}
+    asset->menuConsumedFrame=false;
+    if(!nativeWorkshopMenu_&&asset->workshopOpen) {
+        game::expedition::StoreIssue issue;
+        auto root=config_.salvageDesignLibraryRoot.empty()?platform::NativeDesignLibrary::defaultRoot(issue):config_.salvageDesignLibraryRoot;
+        nativeWorkshopMenu_=std::make_unique<platform::NativeWorkshopMenu>(std::move(root),
+            [this](int action){return salvagePreviewAction(action);},
+            [this](int action,std::string_view bytes){return salvageBlueprintAction(action,bytes);});
+    }
+    if(!nativeWorkshopMenu_)return;
+    platform::NativeWorkshopMenu::Facts facts;
+    facts.workshopOpen=asset->workshopOpen&&!asset->leaving&&!salvagePreviewFailed_;
+    facts.pending=!facts.workshopOpen||salvageLocalSession_->storageRevoked
+        ||salvageLocalSession_->pendingControl||salvageLocalSession_->session->hasPending()
+        ||salvageLocalSession_->launchRequest||asset->launch||asset->checkpointPending
+        ||asset->status!=render::SalvageFixtureStatus::Active||salvagePreview_->busy();
+    if(asset->workshop&&facts.workshopOpen) {
+        const auto& w=*asset->workshop;const bool clean=!w.changed();
+        facts.canLoadBlueprint=clean&&!w.brickToolActive();
+        facts.canKeep=w.changed()&&w.valid();facts.canUndo=w.undoCount()>0;facts.canRedo=clean&&w.redoCount()>0;
+        facts.canPaint=w.canPaint();facts.canConfigure=w.configurable();facts.canAdd=w.canAdd();
+        facts.brushActive=w.brickToolActive();facts.hasOutputLimit=w.hasOutputLimit();facts.canReverse=w.canReverse();
+        facts.paintIndex=w.paintIndex();facts.selectedCount=w.selectedParts().size();
+        facts.selectedName=std::string(w.selectedName());
+        facts.message=asset->launchMessage.empty()?w.message():asset->launchMessage;
+        const auto owned=salvageLocalSession_->session->snapshot();
+        if(asset->menuQuoteRevision!=w.revision()) {
+            asset->menuQuote=game::expedition::quoteCoveDesign(w.design(),*asset->boat,*salvageLocalSession_->catalog,owned.storedParts);
+            asset->menuQuoteRevision=w.revision();
+        }
+        const bool same=w.matchesDesign(asset->acceptedScene());
+        const bool kept=clean||w.brickToolActive();
+        facts.canLaunch=kept&&!same&&asset->menuQuote&&asset->menuQuote->affordable(owned.inventory);
+        if(asset->menuQuote)facts.message+=" | Launch "+std::to_string(asset->menuQuote->debit.salvageMaterial)
+            +" material; return "+std::to_string(asset->menuQuote->credit.salvageMaterial);
+        const auto history=salvageLocalSession_->session->history();
+        facts.canUndoLaunch=kept&&same&&history.undo&&history.undo->target.build==salvageLocalSession_->boatId;
+        facts.canRedoLaunch=kept&&same&&history.redo&&history.redo->target.build==salvageLocalSession_->boatId;
+        facts.catalogIndex=w.catalogIndex();
+        for(uint32_t i=0;i<w.catalogCount();++i)facts.catalogNames.emplace_back(w.catalogNameAt(i));
+    }
+    const bool before=nativeWorkshopMenu_->active();
+    const auto width=gpuContext_->getSwapchainWidth(),height=gpuContext_->getSwapchainHeight();
+    const glm::vec2 pointerScale{float(width)/float(std::max(window_->getWidth(),1)),
+        float(height)/float(std::max(window_->getHeight(),1))};
+    const bool consumed=nativeWorkshopMenu_->tick(*input_,facts,width,height,pointerScale);
+    const bool after=nativeWorkshopMenu_->active();
+    if(before!=after)input_->resetState();
+    asset->controllerMenuOwner=after;asset->menuConsumedFrame=consumed;
+}
+
 render::CoveHudContent Application::nativeCoveHudContent() const {
     render::CoveHudContent hud;
     const auto& local=*salvageLocalSession_;
     const auto& asset=*local.asset;
     using Tone=render::CoveHudTone;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
+    if(nativeWorkshopMenu_&&nativeWorkshopMenu_->active()) {
+        hud.title="Workshop tools";hud.menu=nativeWorkshopMenu_->menuContent();
+        hud.tone=Tone::Neutral;hud.objective="workshop-tools";return hud;
+    }
     const auto owned=local.session->snapshot();
     hud.economy="Material "+std::to_string(owned.inventory.salvageMaterial);
     if(asset.pause!=Pause::Running){
@@ -6828,7 +6935,7 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
         hud.hints={workshop.brickToolActive()?"Click: Place   R: Rotate":"1 / 2 / 3: Choose brick",
             workshop.canPaint()?(workshop.brickToolActive()?"Y: Color  Esc: Select  U: Undo":"Y: Color  E: Keep  U: Undo")
                 :(workshop.brickToolActive()?"Esc: Select   U: Undo":"E: Keep   U: Undo"),
-            "Enter: Launch   B: Close"};
+            "Enter: Launch   F2 / Menu: Tools"};
         return hud;
     }
     using Player=game::expedition::CovePlayer;
@@ -6920,7 +7027,9 @@ bool Application::renderNativeCoveHud(WGPUCommandEncoder encoder,WGPUTextureView
     }
     // Status is a read-only sample; bound the snapshot/quote work to 10 Hz.
     // Overlay geometry uploads only when text, colors or viewport actually change.
-    if(nativeCoveHud_->needsContentUpdate())nativeCoveHud_->setContent(nativeCoveHudContent());
+    const bool interactive=nativeWorkshopMenu_&&nativeWorkshopMenu_->active();
+    if(interactive||nativeCoveHud_->content().menu||nativeCoveHud_->needsContentUpdate())
+        nativeCoveHud_->setContent(nativeCoveHudContent());
     return nativeCoveHud_->render(encoder,target,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
 }
 #endif
@@ -7042,6 +7151,34 @@ std::string Application::salvagePreviewJson() const {
         const bool canOpen=!asset->player->onBoat()
             &&(!asset->harbor||asset->harbor->state().mode==game::expedition::CoveHarborLiftMode::Detached)
             && glm::length(asset->player->feet()-asset->content->registry.navigation->spawn)<=3;
+#if defined(VOXY_NATIVE)
+        if(nativeWorkshopMenu_) {
+            const auto string=[&](std::string_view value){
+                json<<'"';for(char byte:value) {
+                    const auto c=static_cast<unsigned char>(byte);
+                    if(c=='"'||c=='\\')json<<'\\'<<static_cast<char>(c);
+                    else if(c<32)json<<' ';else json<<static_cast<char>(c);
+                }json<<'"';
+            };
+            const auto& menu=*nativeWorkshopMenu_;const auto& view=menu.menuContent();const auto& library=menu.library();
+            json<<",\"nativeMenu\":{\"open\":"<<(menu.active()?"true":"false")<<",\"page\":";string(menu.pageName());
+            json<<",\"title\":";string(view.title);json<<",\"selected\":"<<view.selected<<",\"rows\":[";
+            for(size_t i=0;i<view.rows.size();++i){if(i)json<<',';json<<"{\"label\":";string(view.rows[i].label);json<<",\"enabled\":"<<(view.rows[i].enabled?"true":"false")<<'}';}
+            json<<"],\"naming\":"<<(view.naming?"true":"false")<<",\"name\":";string(view.name);
+            json<<",\"key\":"<<view.key<<",\"keyboardFocus\":"<<(view.keyboardFocus?"true":"false")
+                <<",\"library\":{\"ready\":"<<(library.ready()?"true":"false")<<",\"busy\":"<<(library.busy()?"true":"false")
+                <<",\"generation\":\""<<library.generation()<<"\",\"root\":";string(library.root().string());
+            json<<",\"selectedId\":\""<<library.selectedId()<<"\",\"rows\":[";
+            for(size_t i=0;i<library.rows().size();++i){const auto& row=library.rows()[i];if(i)json<<',';
+                json<<"{\"id\":\""<<row.id<<"\",\"revision\":\""<<row.revision<<"\",\"name\":";string(row.name);
+                json<<",\"backupAvailable\":"<<(row.backupAvailable?"true":"false")<<'}';}
+            json<<"],\"imports\":[";for(size_t i=0;i<library.imports().size();++i){if(i)json<<',';string(library.imports()[i]);}
+            json<<"],\"lastPath\":";string(library.lastPath().string());json<<",\"message\":";string(library.message());json<<"}}";
+        }
+#endif
+        if(input_)json<<",\"gamepad\":{\"connected\":"<<(input_->gamepad().connected()?"true":"false")
+            <<",\"armed\":"<<(input_->gamepad().armed()?"true":"false")
+            <<",\"menuOwner\":"<<(coveUiOwnsInput()?"true":"false")<<'}';
         json<<",\"workshop\":{\"open\":"<<(asset->workshopOpen?"true":"false")
             <<",\"canOpen\":"<<(canOpen?"true":"false")
             <<",\"displayOrigin\":["<<asset->origin.x<<','<<asset->origin.y+4<<','<<asset->origin.z<<']';
@@ -7063,6 +7200,11 @@ std::string Application::salvagePreviewJson() const {
                 <<"\",\"massKg\":"<<w.massKg()<<",\"parts\":"<<w.preview().registry.navigation->boatPlacements.size()
                 <<",\"placement\":["<<p.translation.x<<','<<p.translation.y<<','<<p.translation.z<<']'
                 <<",\"rotation\":"<<static_cast<unsigned>(p.rotation.value)<<",\"message\":\""<<w.message()<<'"';
+            json<<",\"selectedCount\":"<<w.selectedParts().size()<<",\"selectedParts\":[";
+            for(size_t i=0;i<w.selectedParts().size();++i){if(i)json<<',';json<<w.selectedParts()[i];}
+            json<<"],\"redoCount\":"<<w.redoCount()<<",\"problemCode\":"<<static_cast<unsigned>(w.placementIssue().problem)
+                <<",\"problemPlacement\":";
+            if(w.placementIssue().placement)json<<*w.placementIssue().placement;else json<<"null";
         }
         const auto history=salvageLocalSession_->session->history();
         const bool pending=salvageLocalSession_->session->hasPending() || bool(asset->launch);
@@ -7107,6 +7249,8 @@ std::string Application::salvagePreviewJson() const {
                 <<",\"pointerPlacement\":"<<(asset->workshopPointerPlacement?"true":"false")
                 <<",\"pointerTarget\":"<<(asset->workshopPointerTarget?"true":"false");
         }
+        json<<",\"canLoadBlueprint\":"<<(!pending&&asset->workshopOpen&&asset->workshop
+            &&!asset->workshop->changed()&&!asset->workshop->brickToolActive()?"true":"false");
         json<<",\"storedParts\":"<<owned.storedParts.size()<<",\"savePending\":"<<(asset->workshopSavePending?"true":"false")
             <<",\"canRebuild\":"<<(!pending&&kept&&same&&salvageLocalSession_->storageHostReady&&!asset->towRope.valid()?"true":"false");
         json<<",\"recoveryDesigns\":"<<asset->recoveryDesigns.size()<<",\"recoverySelected\":"<<asset->selectedRecoveryDesign
@@ -7563,7 +7707,12 @@ void Application::updateCovePlayer(float deltaTime) {
     if (!camera_ || asset.leaving || salvageLocalSession_->pendingControl
         || asset.status != render::SalvageFixtureStatus::Active) return;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
-    if(input_->wasKeyPressed(Key::P))(void)salvagePreviewAction(asset.pause==Pause::Paused?91:90);
+    const auto pad=input_->gamepad();
+#if defined(VOXY_WASM)
+    asset.menuConsumedFrame=false;
+#endif
+    if(input_->wasKeyPressed(Key::P)||(!asset.workshopOpen&&pad.pressed(PadButton::Menu)))
+        if(salvagePreviewAction(asset.pause==Pause::Paused?91:90))return;
     if(asset.pause!=Pause::Running) {
         // The final observed boat transform carries an aboard player while
         // outstanding GPU work drains. Walking/input time stays frozen.
@@ -7596,24 +7745,104 @@ void Application::updateCovePlayer(float deltaTime) {
         }
         return;
     }
-    if(input_->wasKeyPressed(Key::B))(void)salvagePreviewAction(60);
+    const auto neutralize=[&] {
+        asset.player->discardPendingInput();
+        if(!asset.boat->primaryRoot().cells.empty()&&asset.boatRoot().body.valid())
+            if(!physicsWorld_->setAuthoredHelm(asset.boatRoot().body,0,0)) {
+                salvagePreviewFailed_=true;requestExit();
+            }
+        if(asset.towMotor!=0&&asset.towRope.valid()&&!asset.towBroken) {
+            if(!physicsWorld_->setAttachmentMotorSpeed(asset.towRope,0)){salvagePreviewFailed_=true;requestExit();}
+            asset.towMotor=0;asset.towChangedTick=physicsWorld_->tickFrontier().scheduled+1;
+        }
+        if(asset.harbor&&asset.harbor->motor()!=0)
+            if(!asset.harbor->stop(*physicsWorld_)){salvagePreviewFailed_=true;requestExit();}
+        asset.controllerMotor=false;asset.harborKeyboardMotor=false;
+    };
+    const auto menuFrame=[&] {
+        neutralize();
+        if(!asset.workshopOpen)return;
+        auto& view=asset.workshopCamera;
+        const auto& projection=camera_->projectionMatrix();
+        glm::dvec4 rectangle=view.rectangle();
+#if defined(VOXY_NATIVE)
+        rectangle=render::coveHudWorkshopRectangle(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+#endif
+        if(view.viewport({projection[0][0],projection[1][1]},rectangle)&&asset.workshopFrameRequest) {
+            asset.workshopFrameWhole=asset.workshopFrameRequest==2;
+            if(const auto bounds=asset.workshop->viewBounds(asset.workshopFrameWhole))(void)view.frame(*bounds);
+            asset.workshopFrameRequest=0;
+        }
+        const auto origin=asset.origin+glm::dvec3(0,4,0);
+        setCameraWorldPose(*camera_,origin+view.eye(),origin+view.viewTarget());
+    };
+    if(!input_->focused()){neutralize();return;}
+#if defined(VOXY_NATIVE)
+    if(asset.menuConsumedFrame){menuFrame();return;}
+#endif
+#if defined(VOXY_WASM)
+    const bool before=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
+    const bool consumed=EM_ASM_INT({
+        if(typeof window['voxyControllerMenuInput']!=='function')return false;
+        return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+            'confirm':!!$4,'back':!!$5,'menu':!!$6});
+    },pad.navigation(0),pad.navigation(1),pad.navigation(2),pad.navigation(3),
+        pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),pad.pressed(PadButton::Menu))!=0;
+    const bool after=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
+    if(before!=after||asset.controllerMenuOwner!=after)input_->resetState();
+    asset.controllerMenuOwner=after;asset.menuConsumedFrame=consumed||before||after;
+    if(asset.menuConsumedFrame){menuFrame();return;}
+#endif
+    if(input_->wasKeyPressed(Key::B)||pad.pressed(PadButton::View))
+        if(salvagePreviewAction(60)){neutralize();return;}
     if(asset.workshopOpen) {
+        const bool ctrl=input_->isKeyDown(Key::LeftControl)||input_->isKeyDown(Key::RightControl);
+        const auto modified=[&](Key key,uint8_t mask){return (input_->keyPressModifiers(key)&mask)!=0;};
+        const bool shifted=modified(Key::R,Input::shiftModifier),alt=modified(Key::R,Input::altModifier);
+        for(const auto& [key,action]:std::array<std::pair<Key,int>,5>{{
+            {Key::A,300},{Key::D,302},{Key::Z,72},{Key::Y,306},{Key::R,305}}})
+            if(input_->wasKeyPressed(key)&&modified(key,Input::controlModifier))(void)salvagePreviewAction(action);
+        if(input_->wasKeyPressed(Key::R)&&!modified(Key::R,Input::controlModifier)&&(shifted||alt))
+            (void)salvagePreviewAction(shifted?307:308);
+        bool padEdit=false;
+        for(size_t direction=0;direction<4;++direction)if(pad.navigation(direction)) {
+            constexpr std::array<int,4> commands{65,66,63,64};
+            (void)salvagePreviewAction(commands[direction]);padEdit=true;
+        }
+        for(const auto& [button,action]:std::array<std::pair<PadButton,int>,7>{{
+            {PadButton::LeftShoulder,61},{PadButton::RightShoulder,62},
+            {PadButton::Tool,69},{PadButton::Alternate,70},{PadButton::LeftTrigger,68},
+            {PadButton::RightTrigger,67},
+            {PadButton::Back,asset.workshop->brickToolActive()?96:73}}})
+            if(pad.pressed(button)){(void)salvagePreviewAction(action);padEdit=true;}
+        if(pad.pressed(PadButton::Confirm)) {
+            if(asset.workshop->brickToolActive()) {
+                const auto state=salvageLocalSession_->session->snapshot();
+                const auto* stored=game::expedition::availableCoveStoredPart(asset.workshop->preview(),*asset.boat,
+                    state.storedParts,asset.workshop->catalogDefinition());
+                if(asset.workshop->placeBrickTool(stored))asset.launchMessage.clear();
+            }else (void)salvagePreviewAction(71);
+            padEdit=true;
+        }
+        if(padEdit||std::abs(pad.axis(2))>.001f||std::abs(pad.axis(3))>.001f) {
+            asset.workshopPointerPlacement=false;asset.workshopPointerTarget=false;
+        }
         const std::array<std::pair<Key,int>,28> actions{{{Key::Tab,62},{Key::Left,63},{Key::Right,64},
             {Key::Up,65},{Key::Down,66},{Key::Q,67},{Key::Z,68},{Key::R,69},{Key::T,70},
             {Key::E,71},{Key::U,72},{Key::Backspace,73},{Key::Delete,74},{Key::Escape,asset.workshop->brickToolActive()?96:60},
             {Key::Enter,79},{Key::I,80},{Key::O,81},{Key::C,83},{Key::V,84},{Key::X,85},{Key::L,86},{Key::N,87},{Key::H,88},{Key::K,89},{Key::J,93},{Key::F,94},{Key::G,97},{Key::M,98}}};
-        for(const auto& [key,action]:actions)if(input_->wasKeyPressed(key))(void)salvagePreviewAction(action);
+        for(const auto& [key,action]:actions)if(!modified(key,Input::controlModifier)&&!(key==Key::R&&(shifted||alt))&&input_->wasKeyPressed(key))(void)salvagePreviewAction(action);
         if(!asset.workshopOpen)return;
-        if(input_->wasKeyPressed(Key::Y)&&asset.workshop->canPaint()) {
+        if(!modified(Key::Y,Input::controlModifier)&&input_->wasKeyPressed(Key::Y)&&asset.workshop->canPaint()) {
             const auto count=static_cast<uint32_t>(game::expedition::kBrickPaintPalette.size());
             const auto next=(asset.workshop->paintIndex().value_or(count-1)+1)%count;
             (void)salvagePreviewAction(200+static_cast<int>(next));
         }
         auto& view=asset.workshopCamera;
-        if(input_->isKeyDown(Key::A))view.orbit(-double(deltaTime),0);
-        if(input_->isKeyDown(Key::D))view.orbit(double(deltaTime),0);
-        if(input_->isKeyDown(Key::W))view.zoom(4*double(deltaTime));
-        if(input_->isKeyDown(Key::S))view.zoom(-4*double(deltaTime));
+        if(!ctrl&&input_->isKeyDown(Key::A))view.orbit(-double(deltaTime),0);
+        if(!ctrl&&input_->isKeyDown(Key::D))view.orbit(double(deltaTime),0);
+        if(!ctrl&&input_->isKeyDown(Key::W))view.zoom(4*double(deltaTime));
+        if(!ctrl&&input_->isKeyDown(Key::S))view.zoom(-4*double(deltaTime));
         for(const auto& [key,name]:std::array<std::pair<Key,std::string_view>,3>{{
             {Key::Num1,"Brick 1 x 2"},{Key::Num2,"Brick 2 x 2"},{Key::Num3,"Brick 2 x 4"}}})
             if(input_->wasKeyPressed(key))for(uint32_t i=0;i<asset.workshop->catalogCount();++i)
@@ -7649,6 +7878,10 @@ void Application::updateCovePlayer(float deltaTime) {
             if(bounds&&!view.frame(*bounds))asset.launchMessage="This design is too wide to fit in one view.";
             asset.workshopFrameRequest=0;
         }
+        if(pad.down(PadButton::RightStick))
+            view.pan({-double(pad.axis(2))*320*double(deltaTime),double(pad.axis(3))*320*double(deltaTime)},pointerHeight);
+        else if(pad.down(PadButton::LeftStick))view.zoom(-double(pad.axis(3))*4*double(deltaTime));
+        else view.orbit(-double(pad.axis(2))*double(deltaTime),double(pad.axis(3))*double(deltaTime));
         const auto gestureButton=[&](MouseButton button){return input_->isMouseButtonDown(button)
             ||input_->wasMouseButtonPressed(button)||input_->wasMouseButtonReleased(button);};
         const bool middle=gestureButton(MouseButton::Middle),orbiting=gestureButton(MouseButton::Right);
@@ -7703,7 +7936,8 @@ void Application::updateCovePlayer(float deltaTime) {
                         } else (void)salvagePreviewAction(71);
                     }
                 } else if(hit) {
-                    if(hit->placement==asset.workshop->selected())asset.workshopPointerPlacement=true;
+                    if(shift)(void)asset.workshop->selectPart(hit->placement,game::expedition::CoveWorkshop::SelectionMode::Toggle);
+                    else if(hit->placement==asset.workshop->selected())asset.workshopPointerPlacement=true;
                     else (void)asset.workshop->selectPart(hit->placement);
                 }
             }
@@ -7733,21 +7967,22 @@ void Application::updateCovePlayer(float deltaTime) {
         const auto delta = input_->mouseDelta();
         camera_->rotate(delta.x * config_.cameraMouseSensitivity, -delta.y * config_.cameraMouseSensitivity);
     }
-    const double forwardInput = double(input_->isKeyDown(Key::W) || input_->isKeyDown(Key::Up))
-        - double(input_->isKeyDown(Key::S) || input_->isKeyDown(Key::Down));
-    const double rightInput = double(input_->isKeyDown(Key::D) || input_->isKeyDown(Key::Right))
-        - double(input_->isKeyDown(Key::A) || input_->isKeyDown(Key::Left));
+    camera_->rotate(pad.axis(2)*100.f*deltaTime,-pad.axis(3)*100.f*deltaTime);
+    const double forwardInput = std::clamp(double(input_->isKeyDown(Key::W) || input_->isKeyDown(Key::Up))
+        - double(input_->isKeyDown(Key::S) || input_->isKeyDown(Key::Down))-double(pad.axis(1)),-1.,1.);
+    const double rightInput = std::clamp(double(input_->isKeyDown(Key::D) || input_->isKeyDown(Key::Right))
+        - double(input_->isKeyDown(Key::A) || input_->isKeyDown(Key::Left))+double(pad.axis(0)),-1.,1.);
     const auto forward = camera_->forward();
     const auto right = camera_->right();
     const auto horizontal = glm::normalize(glm::dvec2(forward.x, forward.z));
     const auto sideways = glm::normalize(glm::dvec2(right.x, right.z));
     if(input_->wasKeyPressed(Key::C)) { (void)salvagePreviewAction(95);if(salvageLocalSession_->launchRequest)return; }
-    if (input_->wasKeyPressed(Key::E)) (void)salvagePreviewAction(30);
-    if(input_->wasKeyPressed(Key::J)) (void)salvagePreviewAction(50);
-    if(input_->wasKeyPressed(Key::H)) (void)salvagePreviewAction(51);
+    if (input_->wasKeyPressed(Key::E)||pad.pressed(PadButton::Confirm)) (void)salvagePreviewAction(30);
+    if(input_->wasKeyPressed(Key::J)||pad.pressed(PadButton::Up)) (void)salvagePreviewAction(50);
+    if(input_->wasKeyPressed(Key::H)||pad.pressed(PadButton::Down)) (void)salvagePreviewAction(51);
     const bool dockLift=asset.harbor&&asset.harbor->durable()&&!asset.player->onBoat();
-    if(input_->wasKeyPressed(Key::K))(void)salvagePreviewAction(52);
-    if(input_->wasKeyPressed(Key::F))(void)salvagePreviewAction(dockLift?(asset.harbor->attachmentPending()||asset.harbor->state().mode!=game::expedition::CoveHarborLiftMode::Detached?57:53):40);
+    if(input_->wasKeyPressed(Key::K)||pad.pressed(PadButton::Left))(void)salvagePreviewAction(52);
+    if(input_->wasKeyPressed(Key::F)||pad.pressed(PadButton::Tool))(void)salvagePreviewAction(dockLift?(asset.harbor->attachmentPending()||asset.harbor->state().mode!=game::expedition::CoveHarborLiftMode::Detached?57:53):40);
     if(input_->wasKeyPressed(Key::Q)){
         if(salvagePreviewAction(dockLift?54:41)&&dockLift)asset.harborKeyboardMotor=true;
     }
@@ -7760,8 +7995,17 @@ void Application::updateCovePlayer(float deltaTime) {
     if(input_->wasKeyReleased(Key::Q)||input_->wasKeyReleased(Key::Z)){
         (void)salvagePreviewAction(43);(void)salvagePreviewAction(56);
     }
+    if(pad.pressed(PadButton::RightTrigger)) {
+        if(salvagePreviewAction(dockLift?54:41))asset.controllerMotor=true;
+    }
+    if(pad.pressed(PadButton::LeftTrigger)) {
+        if(salvagePreviewAction(dockLift?55:42))asset.controllerMotor=true;
+    }
+    if(asset.controllerMotor&&!pad.down(PadButton::LeftTrigger)&&!pad.down(PadButton::RightTrigger)) {
+        (void)salvagePreviewAction(43);(void)salvagePreviewAction(56);asset.controllerMotor=false;
+    }
     if(!asset.checkpointPending)asset.player->advance(deltaTime, {horizontal * forwardInput + sideways * rightInput,
-        input_->wasKeyPressed(Key::Space)});
+        input_->wasKeyPressed(Key::Space)||pad.pressed(PadButton::Back)});
     if (asset.boatRoot().body.valid()&&!asset.boat->primaryRoot().cells.empty()) {
         const bool helm=asset.player->mode()==game::expedition::CovePlayer::Mode::Helm
             && !salvageLocalSession_->session->hasPending()&&!(asset.harbor&&asset.harbor->hasRopes());
@@ -8136,7 +8380,7 @@ void Application::processThrowableInput(float deltaTime) {
 }
 
 void Application::handleKeyboardShortcuts() {
-    if (!input_) return;
+    if (!input_ || coveUiOwnsInput()) return;
     // Presentation pacing applies to every experience, including the Cove
     // and its workshop. Handle it before their gameplay-shortcut guards.
     if (input_->wasKeyPressed(Key::F9)) toggleUncappedFPS();

@@ -39,6 +39,7 @@ set(GAME_SOURCES
     game/construction/part_catalog.cpp
     game/expedition/cove_player.cpp
     game/expedition/cove_workshop.cpp
+    game/expedition/design_library.cpp
     game/expedition/workshop_camera.cpp
     game/expedition/cove_build.cpp
     game/expedition/cove_boat.cpp
@@ -48,7 +49,8 @@ set(GAME_SOURCES
     game/expedition/salvage_preview.cpp
 )
 if(NOT EMSCRIPTEN)
-    list(APPEND GAME_SOURCES engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp)
+    list(APPEND GAME_SOURCES engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp
+        engine/platform/native/design_library.cpp engine/platform/native/workshop_menu.cpp)
 endif()
 set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")

@@ -1,0 +1,219 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[  8%] Built target libzstd_static
+[  9%] Built target miniz
+[ 23%] Built target tinygltf
+[ 24%] Built target box3d
+[ 59%] Built target Jolt
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/camera/character_controller.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/camera/controller.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/wasm/input.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.hpp:13:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/camera/character_controller.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/camera/character_controller.hpp:15:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:93:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+   93 |                 overlay.style.display = $0 ? 'block' : 'none';
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:132:53: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  132 |         if (fpsEl) fpsEl.textContent = UTF8ToString($0);
+      |                                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:388:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  388 |         var camText = UTF8ToString($0);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:389:37: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  389 |         var pathText = UTF8ToString($1);
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:390:40: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  390 |         var terrainText = UTF8ToString($2);
+      |                                        ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:391:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  391 |         var memText = UTF8ToString($3);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:392:39: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  392 |         var frameCount = UTF8ToString($4);
+      |                                       ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:393:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  393 |         var physicsIdentity = UTF8ToString($5);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:394:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  394 |         var physicsBodies = UTF8ToString($6);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:395:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  395 |         var physicsBroad = UTF8ToString($7);
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:396:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  396 |         var physicsContacts = UTF8ToString($8);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:397:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  397 |         var physicsSolver = UTF8ToString($9);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:398:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  398 |         var physicsIslands = UTF8ToString($10);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:399:50: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  399 |         var physicsCcdWaterEvents = UTF8ToString($11);
+      |                                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:400:38: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  400 |         var physicsIo = UTF8ToString($12);
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:401:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  401 |         var physicsTimings = UTF8ToString($13);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:402:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  402 |         var renderTimings = UTF8ToString($14);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:474:56: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  474 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                        ^
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:474:89: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  474 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:474:92: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  474 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                                                            ^
+1 warning generated.
+18 warnings generated.
+3 warnings generated.
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:56:
+/home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_layout_cache.hpp:57:53: warning: implicit conversion changes signedness: 'uint32_t' (aka 'unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+   57 |         std::sort(pending_.begin(),pending_.begin()+pendingCount_,[&](const auto& a,const auto& b) {
+      |                                                    ~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5777:79: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 5777 |         if (config_.salvageAssetFixtureWaterAnchor) asset->origin.y = config_.waterHeight;
+      |                                                                     ~ ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6242:81: warning: implicit conversion changes signedness: 'const size_t' (aka 'const unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 6242 |             && std::all_of(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                         ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:74:47: note: in instantiation of function template specialization 'voxy::Application::configureCoveLaunch()::(lambda)::operator()<voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+   74 | struct __invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...> {
+      |                                               ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: during template argument deduction for class template partial specialization '__invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   82 | using __invoke_result_t _LIBCPP_NODEBUG = typename __invoke_result<_Args...>::type;
+      | ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: in instantiation of template class 'std::__invoke_result_impl<void, (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:94:48: note: in instantiation of template type alias '__invoke_result_t' requested here
+   94 | inline const bool __is_invocable_impl<__void_t<__invoke_result_t<_Args...> >, _Args...> = true;
+      |                                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:97:38: note: during template argument deduction for variable template partial specialization '__is_invocable_impl<__void_t<__invoke_result_t<_Args...>>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   97 | inline const bool __is_invocable_v = __is_invocable_impl<void, _Args...>;
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:100:49: note: (skipping 3 contexts in backtrace; use -ftemplate-backtrace-limit=0 to see all)
+  100 | struct __is_invocable : integral_constant<bool, __is_invocable_v<_Args...> > {};
+      |                                                 ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:619:20: note: in instantiation of template type alias '_And' requested here
+  619 |             bool = _And<_IsNotSame<__remove_cvref_t<_Fp>, function>, __is_invocable<_Fp, _ArgTypes...> >::value>
+      |                    ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:632:65: note: in instantiation of default argument for '__callable<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37) &>' required here
+  632 |   using _EnableIfLValueCallable _LIBCPP_NODEBUG = __enable_if_t<__callable<_Fp&>::value>;
+      |                                                                 ^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:642:32: note: in instantiation of template type alias '_EnableIfLValueCallable' requested here
+  642 |   template <class _Fp, class = _EnableIfLValueCallable<_Fp>>
+      |                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:643:25: note: in instantiation of default argument for 'function<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37)>' required here
+  643 |   _LIBCPP_HIDE_FROM_ABI function(_Fp);
+      |                         ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37: note: while substituting deduced template arguments into function template 'function' [with _Fp = (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6237:37), $1 = (no value)]
+ 6237 |     local.preparation.observedBuild=[asset](auto tick) {
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6434:128: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6434 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                                                ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6434:107: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6434 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                           ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6434:86: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6434 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                      ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6434:65: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6434 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7787:58: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7787 |         return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+      |                                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7787:70: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7787 |         return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+      |                                                                      ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7787:82: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7787 |         return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+      |                                                                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7787:95: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7787 |         return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+      |                                                                                               ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7788:25: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7788 |             'confirm':!!$4,'back':!!$5,'menu':!!$6});
+      |                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7788:37: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7788 |             'confirm':!!$4,'back':!!$5,'menu':!!$6});
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7788:49: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+ 7788 |             'confirm':!!$4,'back':!!$5,'menu':!!$6});
+      |                                                 ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7895:27: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 7895 |         view.zoom(input_->scrollDelta());
+      |              ~~~~ ~~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8007:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 8007 |     if(!asset.checkpointPending)asset.player->advance(deltaTime, {horizontal * forwardInput + sideways * rightInput,
+      |                                               ~~~~~~~ ^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8912:101: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8912 |                 const auto parent=std::find_if(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                                             ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8914:58: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8914 |                 if(parent!=launch.parents.begin()+launch.parentCount) {
+      |                                                  ~~~~~~~~^~~~~~~~~~~
+19 warnings generated.
+[ 60%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[ 98%] Building CXX object CMakeFiles/voxy_wasm.dir/src/engine/platform/wasm/entry.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/entry.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm
