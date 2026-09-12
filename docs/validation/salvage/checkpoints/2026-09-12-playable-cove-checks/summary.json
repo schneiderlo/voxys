@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "command": "nix-shell --run 'bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test'",
+  "baseMain": "299c8ef27d71640677b17d98356a544034b03b30",
+  "finishedUtc": "2026-09-12T04:21:23Z",
+  "voxyXmlAttributes": {
+    "tests": "2074",
+    "failures": "0",
+    "disabled": "4",
+    "errors": "0",
+    "time": "1071.073",
+    "timestamp": "2026-09-12T04:02:17.509",
+    "name": "AllTests"
+  },
+  "caseCount": 2074,
+  "passed": 2067,
+  "skipped": [
+    "WindowGLFWTest.WindowCreation",
+    "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+    "RaycastPathGPUTest.LegoHorizonBenchmark"
+  ],
+  "notRun": [
+    "ApplicationGPUTest.DISABLED_InitAndShutdown",
+    "ApplicationGPUTest.DISABLED_RenderPathToggle",
+    "ApplicationGPUTest.DISABLED_ProcessSingleFrame",
+    "ApplicationGPUTest.DISABLED_UpdateCallback"
+  ],
+  "failed": [],
+  "terrainImportLog": "exec ${PAGER:-/usr/bin/less} \"$0\" || exit 1\nExecuting tests from //tools:terrain_diffusion_import_test\n-----------------------------------------------------------------------------\n.......s...\n----------------------------------------------------------------------\nRan 11 tests in 0.070s\n\nOK (skipped=1)\nRequesting Terrain Diffusion tile: 2x2\n  http://127.0.0.1:8000/terrain?i1=0&j1=0&i2=2&j2=2&scale=1\nWrote raw heightmap: /tmp/nix-shell-150474-1822032557/tmpouv9qmg2/tile.r16\nWrote metadata: /tmp/nix-shell-150474-1822032557/tmpouv9qmg2/tile.json\nNo LDH file was created; compress the raw heightmap before using it in voxy.cfg.\n"
+}

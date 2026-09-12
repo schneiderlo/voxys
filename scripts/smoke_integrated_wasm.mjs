@@ -44,7 +44,9 @@ const directory=process.env.VOXY_SMOKE_PROFILE?path.resolve(process.env.VOXY_SMO
 const profileMarker=path.join(directory,'voxys-smoke-profile');
 if(process.env.VOXY_SMOKE_PROFILE)assert.equal(await readFile(profileMarker,'utf8'),'isolated-voxys-smoke-v1');
 else await writeFile(profileMarker,'isolated-voxys-smoke-v1');
-const retainedProfile=process.env.VOXY_SMOKE_KEEP_PROFILE==='1';
+// An explicitly supplied profile belongs to the caller and may contain older
+// test worlds. Only profiles created by this invocation are disposable.
+const retainedProfile=Boolean(process.env.VOXY_SMOKE_PROFILE)||process.env.VOXY_SMOKE_KEEP_PROFILE==='1';
 const listenPort=Number(process.env.VOXY_SMOKE_PORT||0);
 assert(Number.isInteger(listenPort)&&(listenPort===0||(listenPort>=1024&&listenPort<=65535)));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -316,6 +318,8 @@ try{
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
     assert.equal(sample.loadingVisible,false,'loading overlay still covers the application');
+    if(process.env.VOXY_SMOKE_PRESENTATION_PARTS!==undefined)
+        assert.equal(sample.salvage?.assetFixture?.presentationParts,Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS),'active presentation parts');
     assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
     assert.equal(sample.telemetry.render_gpu.frame_interval_available,true);
     assert(sample.telemetry.render_gpu.gpu_frame_ms>0,'missing complete-frame timestamp');
@@ -465,6 +469,11 @@ try{
         assert.equal(selected,'salvage-cove');
         const {validateCoveWorkshop}=await import('./validate_cove_workshop.mjs');
         report.cove_workshop=await validateCoveWorkshop(call,process.env.VOXY_SMOKE_COVE_WORKSHOP);
+    }
+    if(process.env.VOXY_SMOKE_COVE_SCENE_SHADOWS){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveSceneShadows}=await import('./validate_cove_scene_shadows.mjs');
+        report.cove_scene_shadows=await validateCoveSceneShadows(call,process.env.VOXY_SMOKE_COVE_SCENE_SHADOWS);
     }
     if(process.env.VOXY_SMOKE_COVE_PLAYER){
         assert.equal(selected,'salvage-cove');

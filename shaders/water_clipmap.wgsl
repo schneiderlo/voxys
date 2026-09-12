@@ -1,3 +1,45 @@
+// BEGIN GENERATED SCENE SUN SHADOW
+struct SunShadowUniforms {
+    viewProj: mat4x4<f32>,
+    // enabled, world metres per texel, inverse depth range, reserved
+    params: vec4<f32>,
+    // Absolute origin of the camera-sector frame used by mesh casters.
+    worldOrigin: vec4<f32>,
+};
+@group(1) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
+@group(1) @binding(1) var sunDepth: texture_depth_2d;
+@group(1) @binding(2) var sunSampler: sampler_comparison;
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    if (sunShadow.params.x < 0.5) { return 1.0; }
+    // Use geometric normals for bias: normal-map grain must not move shadows.
+    let slope = 1.0 - abs(dot(geometricNormal, light));
+    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
+    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+    if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
+        return 1.0;
+    }
+    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
+    let reference = clip.z - 0.003 * sunShadow.params.z;
+    var visibility = 0.0;
+    for (var y = -1; y <= 1; y += 1) {
+        for (var x = -1; x <= 1; x += 1) {
+            visibility += textureSampleCompareLevel(sunDepth, sunSampler,
+                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+        }
+    }
+    // A local map fades at its border instead of following the camera as a hard edge.
+    let edge = max(abs(clip.x), abs(clip.y));
+    let fade = smoothstep(0.80, 0.98, edge);
+    return mix(visibility / 9.0, 1.0, fade);
+}
+
+fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    return sunVisibility(worldPosition - sunShadow.worldOrigin.xyz, geometricNormal, light);
+}
+// END GENERATED SCENE SUN SHADOW
+
 // Camera-following displaced ocean clipmap.
 // Geometry carries the live two-cascade FFT and four long swells. The
 // fragment stage performs exact terrain rejection and the complete optical
@@ -225,6 +267,11 @@ fn bakedShadow(worldPosition : vec3<f32>) -> f32 {
     let origin = 0.5 * terrainExtent * camera.metrics.y;
     let dimensions = vec2<i32>(textureDimensions(shadowHeightTexture));
     let heightCell = (worldPosition.xz + origin) / camera.metrics.y;
+    // The ocean continues beyond this finite terrain. Its border texels do
+    // not describe occluders out there; preserve the legacy outside-map light.
+    if (any(heightCell < vec2<f32>(0.0)) || any(heightCell > terrainExtent)) {
+        return 1.0;
+    }
     let scale = vec2<f32>(dimensions) / camera.terrainSize;
     let cell = clamp(vec2<i32>(floor(heightCell * scale)), vec2<i32>(0),
                      dimensions - vec2<i32>(1));
@@ -486,7 +533,7 @@ struct FragmentOutput {
     @location(1) linearDepth : f32,
 };
 
-fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
+fn shadeWaterFragment(input : VertexOutput, objectSunVisibility : f32) -> FragmentOutput {
     if (camera.waterParams.y <= 0.5) {
         discard;
     }
@@ -567,7 +614,7 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
 
     let halfway = normalize(light + view);
     let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
-                      oceanSunIntensity() * 1.8;
+                      oceanSunIntensity() * 1.8 * objectSunVisibility;
 
     let worldPerPixel = distanceToCamera * 2.0 *
         max(camera.invProjParams.x / f32(max(dimensions.x, 1u)),
@@ -708,7 +755,7 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         let scatterLobe =
             pow(clamp((dot(view, -light) + 0.5) / 1.5, 0.0, 1.0) *
                 clamp(dot(normal, -light) + 0.3, 0.0, 1.0), 0.85) *
-            oceanSunIntensity() * 0.35 *
+            oceanSunIntensity() * 0.35 * objectSunVisibility *
             (1.0 - smoothstep(100.0, 6400.0, distanceToCamera));
         let body = mix(oceanScatterColor(), oceanSurfaceColor(),
                        clamp(scatterLobe, 0.0, 1.0));
@@ -725,14 +772,16 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         let reflectedWater = environment +
             camera.lightingColor.rgb * sunSpecular +
             oceanScatterColor() * camera.lightingColor.rgb *
-            forwardScatter * oceanSunIntensity();
+            forwardScatter * oceanSunIntensity() * objectSunVisibility;
 
         let opticalCoverage = select(smoothstep(0.12, 12.0, waterDepth),
                                      1.0, OPAQUE_SCENE_WATER);
         color = mix(refractedWater, reflectedWater,
                     fresnel * opticalCoverage *
                     clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
-        color = mix(color, vec3<f32>(0.94, 0.98, 1.0), foamStrength);
+        let foamLight = mix(vec3<f32>(0.94, 0.98, 1.0), vec3<f32>(0.24, 0.30, 0.36),
+            (1.0 - objectSunVisibility) * clamp(camera.lightingColor.w, 0.0, 1.0));
+        color = mix(color, foamLight, foamStrength);
         color = mix(color, oceanFogColor(),
                     atmosphericFog(distanceToCamera));
     }
@@ -749,7 +798,7 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
 
 @fragment
 fn fs(input : VertexOutput) -> FragmentOutput {
-    return shadeWaterFragment(input);
+    return shadeWaterFragment(input, 1.0);
 }
 
 // When no later primitive or underwater-particle pass consumes linear depth,
@@ -757,5 +806,22 @@ fn fs(input : VertexOutput) -> FragmentOutput {
 // surface at full-window resolution.
 @fragment
 fn fsColor(input : VertexOutput) -> @location(0) vec4<f32> {
-    return shadeWaterFragment(input).color;
+    return shadeWaterFragment(input, 1.0).color;
+}
+
+fn sceneWaterSunVisibility(input : VertexOutput) -> f32 {
+    // Low-frequency geometry drives bias; fine animated normal detail must not
+    // slide the shadow across the water. Refraction/sky remain independently lit.
+    return sceneSunVisibility(input.worldPosition, normalize(input.lowFrequencyNormal),
+        normalize(camera.lightDirWS.xyz)) * bakedShadow(input.worldPosition);
+}
+
+@fragment
+fn fsScene(input : VertexOutput) -> FragmentOutput {
+    return shadeWaterFragment(input, sceneWaterSunVisibility(input));
+}
+
+@fragment
+fn fsSceneColor(input : VertexOutput) -> @location(0) vec4<f32> {
+    return shadeWaterFragment(input, sceneWaterSunVisibility(input)).color;
 }

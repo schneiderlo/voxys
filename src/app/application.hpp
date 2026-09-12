@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "render/scene_shadows.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -70,6 +72,8 @@ namespace terrain {
 }
 
 namespace render {
+    class CoveHudPath;
+    struct CoveHudContent;
     class TrianglePath;
     class RaycastPath;
     class BlitPath;
@@ -777,7 +781,8 @@ private:
     void clearRayObjectDepth(WGPUCommandEncoder encoder);
     void renderMoto(WGPUCommandEncoder encoder, WGPUTextureView colorView);
     bool renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView colorView,
-                           render::SalvageFixtureTicket& ticket, WGPUTextureView linearDepthOutput = nullptr);
+                           render::SalvageFixtureTicket& ticket, WGPUTextureView linearDepthOutput = nullptr,
+                           render::SceneShadowConsumer beforeColor = {});
     void pollRenderGpuTimings();
     void updateCameraUniforms();
     [[nodiscard]] float waterPhaseSeconds() const noexcept;
@@ -906,6 +911,11 @@ private:
     float salvageRetirementSeconds_ = 0;
     bool salvagePreviewFailed_ = false;
     std::unique_ptr<render::MeshPath> meshPath_;
+#if defined(VOXY_NATIVE)
+    std::unique_ptr<render::CoveHudPath> nativeCoveHud_;
+    render::CoveHudContent nativeCoveHudContent() const;
+    bool renderNativeCoveHud(WGPUCommandEncoder,WGPUTextureView);
+#endif
     std::unique_ptr<moto::MotoSession> motoSession_;
     std::unique_ptr<moto::RaceSession> motoRaceSession_;
     glm::vec3 motoWorldSpawn_{0.0f};

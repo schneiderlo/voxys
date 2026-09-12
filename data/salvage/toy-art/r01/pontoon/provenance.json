@@ -1,0 +1,421 @@
+{
+  "schema": 1,
+  "status": "authored candidate; runtime compatibility still required",
+  "original_metadata": "data/salvage/material-calibration/r02/pontoon-r02/source/pontoon.gameplay.json",
+  "original_metadata_sha256": "b5c048767167eecb20a3d074781ad1622554b5270cb0797b8769a02245a47a3a",
+  "blender_version": "5.2.1 LTS",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 2665,
+      "triangles": 5188,
+      "draws": 3,
+      "bounds": {
+        "minimum": [
+          -0.5059999823570251,
+          -0.47999998927116394,
+          -2.0
+        ],
+        "maximum": [
+          0.5059999823570251,
+          0.6600000262260437,
+          2.0
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 3.5241702873940626,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "pontoon_shell_lod0",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 29,
+            "minimum_face_alignment": 0.5749703792389482,
+            "maximum_unit_length_error": 1.5646220474785366e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 5,
+            "minimum_face_alignment": 0.6822299435734749,
+            "maximum_unit_length_error": 1.0709664488572912e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8584996403660625,
+            "maximum_unit_length_error": 1.1915289377384397e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.002",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8585004745400511,
+            "maximum_unit_length_error": 9.449877769185377e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.003",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 5,
+            "minimum_face_alignment": 0.6822294667363167,
+            "maximum_unit_length_error": 1.5990461710302384e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577945062506842,
+            "maximum_unit_length_error": 1.2164090068544908e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578053700221062,
+            "maximum_unit_length_error": 1.2151407524640945e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.004",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 5,
+            "minimum_face_alignment": 0.6822294667363167,
+            "maximum_unit_length_error": 1.529051469884024e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.005",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8585126192774624,
+            "maximum_unit_length_error": 1.0807661388057e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.006",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8584996403660625,
+            "maximum_unit_length_error": 1.3661564457478903e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.007",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 5,
+            "minimum_face_alignment": 0.6822299286723137,
+            "maximum_unit_length_error": 1.099542654703356e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578053998226096,
+            "maximum_unit_length_error": 1.2149808359396275e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577945062506842,
+            "maximum_unit_length_error": 1.2164090068544908e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      }
+    },
+    {
+      "lod": 1,
+      "vertices": 830,
+      "triangles": 1284,
+      "draws": 3,
+      "bounds": {
+        "minimum": [
+          -0.5059999823570251,
+          -0.47999998927116394,
+          -2.0
+        ],
+        "maximum": [
+          0.5059999823570251,
+          0.6600000262260437,
+          2.0
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 3.506195455573851,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "pontoon_shell_lod1",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 159,
+            "minimum_face_alignment": 0.5881549380719662,
+            "maximum_unit_length_error": 1.288426657586328e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 2,
+            "minimum_face_alignment": 0.36030783224850893,
+            "maximum_unit_length_error": 1.1243536679472754e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5939054302871227,
+            "maximum_unit_length_error": 7.06967132613201e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.002",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5939054302871227,
+            "maximum_unit_length_error": 7.06967132613201e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.003",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 2,
+            "minimum_face_alignment": 0.36030733212828636,
+            "maximum_unit_length_error": 1.0979419440282356e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773443343782674,
+            "maximum_unit_length_error": 1.1907674846156624e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773443343782674,
+            "maximum_unit_length_error": 5.947895642677281e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.004",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 2,
+            "minimum_face_alignment": 0.3603077754378319,
+            "maximum_unit_length_error": 1.1548399259098119e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.005",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5939054302871227,
+            "maximum_unit_length_error": 7.06967132613201e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.006",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5939054302871227,
+            "maximum_unit_length_error": 7.06967132613201e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.007",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 2,
+            "minimum_face_alignment": 0.36030783224850893,
+            "maximum_unit_length_error": 1.0531220495657578e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773443343782674,
+            "maximum_unit_length_error": 5.947895642677281e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773443343782674,
+            "maximum_unit_length_error": 1.1907674846156624e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      }
+    },
+    {
+      "lod": 2,
+      "vertices": 722,
+      "triangles": 528,
+      "draws": 3,
+      "bounds": {
+        "minimum": [
+          -0.5059999823570251,
+          -0.47999998927116394,
+          -2.0
+        ],
+        "maximum": [
+          0.5059999823570251,
+          0.6600000262260437,
+          2.0
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 3.4910980294456078,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "pontoon_shell_lod2",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 137,
+            "minimum_face_alignment": 0.7447752803564072,
+            "maximum_unit_length_error": 1.288426657586328e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 24,
+            "minimum_face_alignment": 0.9767522066831589,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 16,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.002",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 16,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.003",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 24,
+            "minimum_face_alignment": 0.9767522066831589,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.004",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 24,
+            "minimum_face_alignment": 0.9767522066831589,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.005",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 16,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.006",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 16,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hull_side_panel.007",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 24,
+            "minimum_face_alignment": 0.9767522066831589,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_grip.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      }
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720"
+  },
+  "provenance": "Original procedural models and solid PBR material factors; no external model, texture, UV chart or image capture"
+}

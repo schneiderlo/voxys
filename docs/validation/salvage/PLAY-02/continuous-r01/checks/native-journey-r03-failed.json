@@ -1,0 +1,992 @@
+{
+  "status": "failed",
+  "kind": "Native pointer brick building and save/restart; no images",
+  "binarySha256": "7a536460a7d89dd8bc20d5be2522ac21218a6583fd4701a89221e1e1ad2bf5a7",
+  "stages": [
+    {
+      "name": "placed-brick-1",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "nativeHud": {
+          "enabled": true,
+          "lastEncodedQuads": 140,
+          "uploads": 8,
+          "bodyPixels": 20,
+          "truncated": false,
+          "panel": [
+            14,
+            14,
+            400,
+            274
+          ]
+        },
+        "world": "bbb75cb98a4a99688c513eee8067cb60",
+        "camera": {
+          "local": [
+            -9.87076,
+            64.4523,
+            -85.3933
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -0.804107,
+            -0.47131,
+            -0.494781,
+            -0.494748,
+            -6.38088e-07,
+            1.51765,
+            -0.481949,
+            -0.481917,
+            0.550118,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            39.0393,
+            -161.297,
+            -35.6794,
+            -35.577
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "7",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "73",
+          "waterTime": 1.21667
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1,
+              0.8595,
+              -53.486
+            ],
+            "distance": 9.43625,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.108333,
+              -0.5,
+              0.9,
+              0.9
+            ]
+          },
+          "configurable": false,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 26,
+          "name": "Brick 2 x 4",
+          "valid": false,
+          "changed": true,
+          "undo": 2,
+          "revision": "2",
+          "massKg": 0,
+          "parts": 12,
+          "placement": [
+            150,
+            24,
+            -2725
+          ],
+          "rotation": 0,
+          "message": "Blocked by another part. Try another socket.",
+          "catalogName": "Brick 2 x 4",
+          "catalogIndex": 10,
+          "catalogCount": 11,
+          "canAdd": false,
+          "partCost": "5",
+          "partMachinery": "0",
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": true,
+          "canChooseBrick": true,
+          "placedParts": 11,
+          "placedBricks": 1,
+          "pointerPlacement": true,
+          "pointerTarget": true,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "5",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": true,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 73,
+          "position": [
+            -0.498793,
+            -0.594242,
+            -53.9994
+          ],
+          "speed": 1.82643,
+          "orientation": [
+            0.000175667,
+            0.000317942,
+            0.00074796,
+            1
+          ],
+          "helmPosition": [
+            0.500103,
+            0.526937,
+            -53.0997
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "73",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "73",
+            "encoded": "73",
+            "submitted": "73",
+            "completed": "73",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "73",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "73",
+              "position": [
+                -0.498793,
+                -0.594242,
+                -53.9994
+              ],
+              "orientation": [
+                0.000175667,
+                0.000317942,
+                0.00074796,
+                1
+              ],
+              "velocity": [
+                -0.0955273,
+                -1.82268,
+                0.0676795
+              ],
+              "angularVelocity": [
+                -0.063116,
+                0.00840788,
+                -0.105935
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 6.72157,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 73,
+          "position": [
+            -4.49985,
+            -3.02549,
+            -57.9993
+          ],
+          "speed": 0.0409774,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40257,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "73",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "bbb75cb98a4a99688c513eee8067cb60",
+          "incarnation": "08b82a81e7f8e3903c94ab6ab85de516",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 3,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "14522896",
+          "submittedSerial": "1077",
+          "completedSerial": "1073",
+          "draws": 73,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "6220800",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "1",
+            "2",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "placedBrick": {
+        "name": "Brick 2 x 4",
+        "placement": [
+          100,
+          72,
+          -2775
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "name": "placed-brick-2",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "nativeHud": {
+          "enabled": true,
+          "lastEncodedQuads": 141,
+          "uploads": 10,
+          "bodyPixels": 20,
+          "truncated": false,
+          "panel": [
+            14,
+            14,
+            400,
+            274
+          ]
+        },
+        "world": "bbb75cb98a4a99688c513eee8067cb60",
+        "camera": {
+          "local": [
+            -12.0861,
+            62.2998,
+            -89.0481
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -0.804107,
+            -0.47131,
+            -0.494781,
+            -0.494748,
+            -6.2235e-07,
+            1.51765,
+            -0.481949,
+            -0.481917,
+            0.550118,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            39.2685,
+            -161.592,
+            -40.4562,
+            -40.3535
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "7",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "100",
+          "waterTime": 1.66667
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              3,
+              0.57,
+              -54.5
+            ],
+            "distance": 4.54315,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.108333,
+              -0.5,
+              0.9,
+              0.9
+            ]
+          },
+          "configurable": false,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 27,
+          "name": "Brick 2 x 4",
+          "valid": false,
+          "changed": true,
+          "undo": 3,
+          "revision": "3",
+          "massKg": 0,
+          "parts": 13,
+          "placement": [
+            150,
+            72,
+            -2725
+          ],
+          "rotation": 0,
+          "message": "Blocked by another part. Try another socket.",
+          "catalogName": "Brick 2 x 4",
+          "catalogIndex": 10,
+          "catalogCount": 11,
+          "canAdd": false,
+          "partCost": "5",
+          "partMachinery": "0",
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": true,
+          "canChooseBrick": true,
+          "placedParts": 12,
+          "placedBricks": 2,
+          "pointerPlacement": true,
+          "pointerTarget": true,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "10",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": true,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 99,
+          "position": [
+            -0.481174,
+            -0.989754,
+            -54.0041
+          ],
+          "speed": 0.505331,
+          "orientation": [
+            0.00196439,
+            -0.000206118,
+            0.0104257,
+            0.999944
+          ],
+          "helmPosition": [
+            0.494921,
+            0.147304,
+            -53.0993
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "99",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "100",
+            "encoded": "100",
+            "submitted": "100",
+            "completed": "99",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "99",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "99",
+              "position": [
+                -0.481174,
+                -0.989754,
+                -54.0041
+              ],
+              "orientation": [
+                0.00196439,
+                -0.000206118,
+                0.0104257,
+                0.999944
+              ],
+              "velocity": [
+                0.0251902,
+                -0.50453,
+                0.0132189
+              ],
+              "angularVelocity": [
+                -0.0149794,
+                -0.000335302,
+                0.0275154
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 6.42839,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 99,
+          "position": [
+            -4.49968,
+            -3.02559,
+            -57.9993
+          ],
+          "speed": 0.0443522,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40244,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "99",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "bbb75cb98a4a99688c513eee8067cb60",
+          "incarnation": "08b82a81e7f8e3903c94ab6ab85de516",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 3,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "14522896",
+          "submittedSerial": "1425",
+          "completedSerial": "1419",
+          "draws": 74,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "6220800",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "placedBrick": {
+        "name": "Brick 2 x 4",
+        "placement": [
+          100,
+          120,
+          -2775
+        ],
+        "rotation": 0
+      }
+    }
+  ],
+  "error": "(695.9851103690478, -76.15638398928309)"
+}

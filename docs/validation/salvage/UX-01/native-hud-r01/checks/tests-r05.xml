@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="0.06" timestamp="2026-09-12T03:44:09.398" name="AllTests">
+  <testsuite name="CoveHud" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-09-12T03:44:09.398">
+    <testcase name="ReadableBoundsKeepTheBuildAndPaletteClear" file="tests/test_cove_hud.cpp" line="21" status="run" result="completed" time="0." timestamp="2026-09-12T03:44:09.398" classname="CoveHud" />
+    <testcase name="OversizedTextAndTinyWindowsStayBoundedWithoutShrinking" file="tests/test_cove_hud.cpp" line="42" status="run" result="completed" time="0." timestamp="2026-09-12T03:44:09.398" classname="CoveHud" />
+    <testcase name="AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts" file="tests/test_cove_hud.cpp" line="60" status="run" result="completed" time="0.001" timestamp="2026-09-12T03:44:09.398" classname="CoveHud" />
+  </testsuite>
+  <testsuite name="CoveHudGpu" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.059" timestamp="2026-09-12T03:44:09.399">
+    <testcase name="TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak" file="tests/test_cove_hud.cpp" line="70" status="run" result="completed" time="0.058" timestamp="2026-09-12T03:44:09.399" classname="CoveHudGpu">
+      <properties>
+        <property name="textPixels" value="3675"/>
+        <property name="backgroundPixels" value="58334"/>
+        <property name="accentPixels" value="1220"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,42 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = BlitPathTest.ProductionShaderHasNoGpuValidationErrors:BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely:MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from BlitPathTest
+[ RUN      ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors
+[32m[INFO ] [77:28:14.156] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:28:14.156] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:28:14.156] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:28:14.156] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:28:14.157] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:28:14.647] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:28:14.729] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:28:15.682] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors (1591 ms)
+[ RUN      ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely
+[32m[INFO ] [77:28:15.715] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:28:15.715] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:28:15.715] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:28:15.715] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:28:15.717] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:28:15.970] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:28:16.048] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:28:16.945] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely (1263 ms)
+[----------] 2 tests from BlitPathTest (2854 ms total)
+
+[----------] 1 test from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[32m[INFO ] [77:28:16.981] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:28:16.981] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:28:16.981] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:28:16.981] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:28:16.982] [GPU] Headless GPU context initialized successfully[0m
+Sun receiver clear=190 static=6 live=6
+Live sun: clear 190, shadow 6, ambient 6
+[       OK ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses (107 ms)
+[----------] 1 test from MeshPathGPUTest (107 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (2961 ms total)
+[  PASSED  ] 3 tests.

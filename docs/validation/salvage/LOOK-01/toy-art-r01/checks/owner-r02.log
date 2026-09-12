@@ -1,0 +1,24 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureGPU
+[ RUN      ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+[32m[INFO ] [77:00:10.062] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:00:10.062] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:00:10.062] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:00:10.062] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:00:10.062] [GPU] Headless GPU context initialized successfully[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp:428: Failure
+Expected: (requested) <= (config.maximumOwnerGpuBytes), actual: 17027832 vs 16777216
+
+[  FAILED  ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits (96 ms)
+[----------] 1 test from FixtureGPU (96 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (96 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+
+ 1 FAILED TEST

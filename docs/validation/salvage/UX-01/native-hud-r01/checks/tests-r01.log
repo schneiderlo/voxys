@@ -1,0 +1,13 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+ERROR: Traceback (most recent call last):
+	File "/home/modkin/workspace/schneiderlo/voxys/tests/BUILD", line 271, column 9, in <toplevel>
+		[cc_test(
+Error in cc_test: cc_test rule 'cove_hud' conflicts with existing cc_test rule, defined at /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:60:8
+ERROR: Skipping '//tests:cove_hud': Error evaluating '//tests:cove_hud': error loading package 'tests': Package 'tests' contains errors
+ERROR: Error evaluating '//tests:cove_hud': error loading package 'tests': Package 'tests' contains errors
+INFO: Elapsed time: 0.092s
+INFO: 0 processes.
+ERROR: Build did NOT complete successfully
+ERROR: Couldn't start the build. Unable to run tests

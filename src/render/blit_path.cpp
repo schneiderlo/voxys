@@ -55,6 +55,16 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
     , backgroundPipeline_(other.backgroundPipeline_)
+    , sceneShadowLayout_(other.sceneShadowLayout_)
+    , sceneTerrainInputsLayout_(other.sceneTerrainInputsLayout_)
+    , sceneWaterInputsLayout_(other.sceneWaterInputsLayout_)
+    , sceneTerrainLayout_(other.sceneTerrainLayout_)
+    , sceneWaterLayout_(other.sceneWaterLayout_)
+    , sceneTerrainPipeline_(other.sceneTerrainPipeline_)
+    , sceneWaterPipeline_(other.sceneWaterPipeline_)
+    , sceneWaterColorPipeline_(other.sceneWaterColorPipeline_)
+    , sceneTerrainBindings_(other.sceneTerrainBindings_)
+    , sceneWaterBindings_(other.sceneWaterBindings_)
     , cachedPipelineLayout_(other.cachedPipelineLayout_)
     , cachedPipeline_(other.cachedPipeline_)
     , cachedColorPipeline_(other.cachedColorPipeline_)
@@ -138,6 +148,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , linearDepthRequired_(other.linearDepthRequired_)
     , usedGeometryWaterPathLastRender_(
           other.usedGeometryWaterPathLastRender_)
+    , usedSceneSunShadows_(other.usedSceneSunShadows_)
     , debugMode_(other.debugMode_)
     , debugMaxDepth_(other.debugMaxDepth_)
     , debugUniformsDirty_(other.debugUniformsDirty_)
@@ -149,6 +160,16 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.pipelineLayout_ = nullptr;
     other.pipeline_ = nullptr;
     other.backgroundPipeline_ = nullptr;
+    other.sceneShadowLayout_ = nullptr;
+    other.sceneTerrainInputsLayout_ = nullptr;
+    other.sceneWaterInputsLayout_ = nullptr;
+    other.sceneWaterBindings_ = nullptr;
+    other.sceneTerrainLayout_ = nullptr;
+    other.sceneWaterLayout_ = nullptr;
+    other.sceneTerrainPipeline_ = nullptr;
+    other.sceneWaterPipeline_ = nullptr;
+    other.sceneWaterColorPipeline_ = nullptr;
+    other.sceneTerrainBindings_ = nullptr;
     other.cachedPipelineLayout_ = nullptr;
     other.cachedPipeline_ = nullptr;
     other.cachedColorPipeline_ = nullptr;
@@ -227,6 +248,16 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
         backgroundPipeline_ = other.backgroundPipeline_;
+        sceneShadowLayout_ = other.sceneShadowLayout_;
+        sceneTerrainInputsLayout_ = other.sceneTerrainInputsLayout_;
+        sceneWaterInputsLayout_ = other.sceneWaterInputsLayout_;
+        sceneWaterBindings_ = other.sceneWaterBindings_;
+        sceneTerrainLayout_ = other.sceneTerrainLayout_;
+        sceneWaterLayout_ = other.sceneWaterLayout_;
+        sceneTerrainPipeline_ = other.sceneTerrainPipeline_;
+        sceneWaterPipeline_ = other.sceneWaterPipeline_;
+        sceneWaterColorPipeline_ = other.sceneWaterColorPipeline_;
+        sceneTerrainBindings_ = other.sceneTerrainBindings_;
         cachedPipelineLayout_ = other.cachedPipelineLayout_;
         cachedPipeline_ = other.cachedPipeline_;
         cachedColorPipeline_ = other.cachedColorPipeline_;
@@ -310,6 +341,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         linearDepthRequired_ = other.linearDepthRequired_;
         usedGeometryWaterPathLastRender_ =
             other.usedGeometryWaterPathLastRender_;
+        usedSceneSunShadows_ = other.usedSceneSunShadows_;
         debugMode_ = other.debugMode_;
         debugMaxDepth_ = other.debugMaxDepth_;
         debugUniformsDirty_ = other.debugUniformsDirty_;
@@ -320,6 +352,16 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.pipelineLayout_ = nullptr;
         other.pipeline_ = nullptr;
         other.backgroundPipeline_ = nullptr;
+        other.sceneShadowLayout_ = nullptr;
+        other.sceneTerrainInputsLayout_ = nullptr;
+        other.sceneWaterInputsLayout_ = nullptr;
+        other.sceneWaterBindings_ = nullptr;
+        other.sceneTerrainLayout_ = nullptr;
+        other.sceneWaterLayout_ = nullptr;
+        other.sceneTerrainPipeline_ = nullptr;
+        other.sceneWaterPipeline_ = nullptr;
+        other.sceneWaterColorPipeline_ = nullptr;
+        other.sceneTerrainBindings_ = nullptr;
         other.cachedPipelineLayout_ = nullptr;
         other.cachedPipeline_ = nullptr;
         other.cachedColorPipeline_ = nullptr;
@@ -469,6 +511,16 @@ void BlitPath::shutdown() {
         wgpuPipelineLayoutRelease(cachedPipelineLayout_);
         cachedPipelineLayout_ = nullptr;
     }
+    if (sceneWaterBindings_) { wgpuBindGroupRelease(sceneWaterBindings_); sceneWaterBindings_ = nullptr; }
+    if (sceneTerrainInputsLayout_) { wgpuBindGroupLayoutRelease(sceneTerrainInputsLayout_); sceneTerrainInputsLayout_ = nullptr; }
+    if (sceneWaterInputsLayout_) { wgpuBindGroupLayoutRelease(sceneWaterInputsLayout_); sceneWaterInputsLayout_ = nullptr; }
+    if (sceneTerrainBindings_) { wgpuBindGroupRelease(sceneTerrainBindings_); sceneTerrainBindings_ = nullptr; }
+    if (sceneWaterColorPipeline_) { wgpuRenderPipelineRelease(sceneWaterColorPipeline_); sceneWaterColorPipeline_ = nullptr; }
+    if (sceneWaterPipeline_) { wgpuRenderPipelineRelease(sceneWaterPipeline_); sceneWaterPipeline_ = nullptr; }
+    if (sceneTerrainPipeline_) { wgpuRenderPipelineRelease(sceneTerrainPipeline_); sceneTerrainPipeline_ = nullptr; }
+    if (sceneWaterLayout_) { wgpuPipelineLayoutRelease(sceneWaterLayout_); sceneWaterLayout_ = nullptr; }
+    if (sceneTerrainLayout_) { wgpuPipelineLayoutRelease(sceneTerrainLayout_); sceneTerrainLayout_ = nullptr; }
+    if (sceneShadowLayout_) { wgpuBindGroupLayoutRelease(sceneShadowLayout_); sceneShadowLayout_ = nullptr; }
     if (backgroundPipeline_) {
         wgpuRenderPipelineRelease(backgroundPipeline_);
         backgroundPipeline_ = nullptr;
@@ -627,6 +679,7 @@ void BlitPath::shutdown() {
     backgroundDirty_ = true;
     linearDepthRequired_ = true;
     usedGeometryWaterPathLastRender_ = false;
+    usedSceneSunShadows_ = false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1947,6 +2000,18 @@ bool BlitPath::createBindGroupLayout() {
         return false;
     }
     
+    // Keep each stage inside WebGPU's baseline 16 sampled-texture limit.
+    // The old fused layout already fills that limit; scene receivers bind only
+    // the textures reachable by their terrain or water entry point.
+    std::vector<gpu::BindGroupLayoutEntry> terrainEntries(entries.begin(), entries.end());
+    terrainEntries.push_back(gpu::BindGroupLayoutEntry(11).fragmentVisible().texture());
+    sceneTerrainInputsLayout_ = gpu::createBindGroupLayout(device_, terrainEntries, "scene_terrain_inputs_layout");
+    const std::array waterEntries{cachedEntries[0], cachedEntries[1], cachedEntries[6], cachedEntries[7],
+        cachedEntries[8], cachedEntries[9], cachedEntries[10], cachedEntries[11], cachedEntries[12],
+        cachedEntries[13], cachedEntries[14], cachedEntries[15], cachedEntries[16], cachedEntries[19]};
+    sceneWaterInputsLayout_ = gpu::createBindGroupLayout(device_, waterEntries, "scene_water_inputs_layout");
+    if (!sceneTerrainInputsLayout_ || !sceneWaterInputsLayout_) return false;
+
     LOG_DEBUG("Created blit bind group layout");
     return true;
 }
@@ -2032,6 +2097,26 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         return false;
     }
 
+    if (config.enableOpaqueScene) {
+        sceneShadowLayout_ = gpu::createBindGroupLayout(device_, sceneShadowLayoutEntries(), "scene_sun_receiver_layout");
+        if (!sceneShadowLayout_) return false;
+        const std::array sceneLayouts{sceneTerrainInputsLayout_, sceneShadowLayout_};
+        const std::array waterLayouts{sceneWaterInputsLayout_, sceneShadowLayout_};
+        sceneTerrainLayout_ = gpu::createPipelineLayout(device_, sceneLayouts, "scene_terrain_layout");
+        sceneWaterLayout_ = gpu::createPipelineLayout(device_, waterLayouts, "scene_water_layout");
+        if (!sceneTerrainLayout_ || !sceneWaterLayout_) return false;
+        std::array<WGPUColorTargetState, 2> sceneTargets{};
+        sceneTargets[0].format = WGPUTextureFormat_RGBA16Float;
+        sceneTargets[1].format = WGPUTextureFormat_R32Float;
+        for (auto& target : sceneTargets) target.writeMask = WGPUColorWriteMask_All;
+        fragmentState.targetCount = sceneTargets.size(); fragmentState.targets = sceneTargets.data();
+        WGPU_SET_ENTRY_POINT(fragmentState, "fsSceneTerrain");
+        pipelineDesc.layout = sceneTerrainLayout_;
+        WGPU_SET_LABEL(pipelineDesc, "scene_live_terrain_lighting");
+        sceneTerrainPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        if (!sceneTerrainPipeline_) return false;
+    }
+
     std::array<WGPUBindGroupLayout, 1> cachedLayouts = {
         cachedBindGroupLayout_
     };
@@ -2086,6 +2171,27 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+bool BlitPath::renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows) {
+    if (!opaqueScene_ || !sceneTerrainPipeline_ || !sceneTerrainBindings_ || !shadows) return false;
+    std::array<WGPURenderPassColorAttachment, 2> targets{};
+    targets[0].view = opaqueScene_->colorView(); targets[1].view = opaqueScene_->depthView();
+    for (auto& target : targets) {
+        target.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        target.loadOp = WGPULoadOp_Load; target.storeOp = WGPUStoreOp_Store;
+    }
+    WGPURenderPassDescriptor descriptor{};
+    WGPU_SET_LABEL(descriptor, "scene_terrain_current_sun");
+    descriptor.colorAttachmentCount = targets.size(); descriptor.colorAttachments = targets.data();
+    auto pass = wgpuCommandEncoderBeginRenderPass(encoder, &descriptor);
+    if (!pass) return false;
+    wgpuRenderPassEncoderSetPipeline(pass, sceneTerrainPipeline_);
+    wgpuRenderPassEncoderSetBindGroup(pass, 0, sceneTerrainBindings_, 0, nullptr);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, shadows, 0, nullptr);
+    wgpuRenderPassEncoderDraw(pass, 3, 1, 0, 0);
+    wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
+    return true;
+}
+
 bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     const std::filesystem::path shaderPath =
         config.shaderPath.parent_path() / "water_clipmap.wgsl";
@@ -2175,6 +2281,19 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
         return false;
     }
 
+    if (config.enableOpaqueScene) {
+        pipelineDesc.layout = sceneWaterLayout_;
+        fragmentState.targetCount = colorTargets.size();
+        WGPU_SET_ENTRY_POINT(fragmentState, "fsScene");
+        WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_lighting");
+        sceneWaterPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        fragmentState.targetCount = 1u;
+        WGPU_SET_ENTRY_POINT(fragmentState, "fsSceneColor");
+        WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_color_lighting");
+        sceneWaterColorPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        if (!sceneWaterPipeline_ || !sceneWaterColorPipeline_) return false;
+    }
+
     const detail::WaterClipmapMesh mesh = detail::makeWaterClipmap();
     if (mesh.vertices.empty() || mesh.indices.empty() ||
         mesh.indices.size() > std::numeric_limits<uint32_t>::max()) {
@@ -2254,7 +2373,10 @@ bool BlitPath::createBindGroup() {
     WGPUBindGroup nextStaticBindGroup = nullptr;
     WGPUBindGroup nextCachedBindGroup = nullptr;
     WGPUBindGroup nextParticleBindGroup = nullptr;
+    WGPUBindGroup nextSceneTerrainBindings = nullptr, nextSceneWaterBindings = nullptr;
     const auto cleanup = [&]() {
+        if (nextSceneTerrainBindings) wgpuBindGroupRelease(nextSceneTerrainBindings);
+        if (nextSceneWaterBindings) wgpuBindGroupRelease(nextSceneWaterBindings);
         if (nextParticleBindGroup) {
             wgpuBindGroupRelease(nextParticleBindGroup);
         }
@@ -2372,6 +2494,16 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view()),
             gpu::BindGroupEntry(20).textureView(legoLayoutView_ ? legoLayoutView_ : emptyLegoView_)
         };
+        if (opaqueScene_) {
+            std::vector<gpu::BindGroupEntry> terrainEntries(staticEntries.begin(), staticEntries.end());
+            terrainEntries.push_back(gpu::BindGroupEntry(11).textureView(backgroundView_));
+            nextSceneTerrainBindings = gpu::createBindGroup(device_, sceneTerrainInputsLayout_, terrainEntries, "scene_terrain_inputs");
+            const std::array waterEntries{cachedEntries[0], cachedEntries[1], cachedEntries[6], cachedEntries[7],
+                cachedEntries[8], cachedEntries[9], cachedEntries[10], cachedEntries[11], cachedEntries[12],
+                cachedEntries[13], cachedEntries[14], cachedEntries[15], cachedEntries[16], cachedEntries[19]};
+            nextSceneWaterBindings = gpu::createBindGroup(device_, sceneWaterInputsLayout_, waterEntries, "scene_water_inputs");
+            if (!nextSceneTerrainBindings || !nextSceneWaterBindings) { cleanup(); return false; }
+        }
         nextCachedBindGroup = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
             "blit_cached_bind_group");
@@ -2386,6 +2518,10 @@ bool BlitPath::createBindGroup() {
     if (cachedBindGroup_) wgpuBindGroupRelease(cachedBindGroup_);
     if (staticBindGroup_) wgpuBindGroupRelease(staticBindGroup_);
     if (bindGroup_) wgpuBindGroupRelease(bindGroup_);
+    if (sceneTerrainBindings_) wgpuBindGroupRelease(sceneTerrainBindings_);
+    sceneTerrainBindings_ = nextSceneTerrainBindings;
+    if (sceneWaterBindings_) wgpuBindGroupRelease(sceneWaterBindings_);
+    sceneWaterBindings_ = nextSceneWaterBindings;
     bindGroup_ = nextBindGroup;
     staticBindGroup_ = nextStaticBindGroup;
     cachedBindGroup_ = nextCachedBindGroup;
@@ -2591,6 +2727,7 @@ bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                       uint32_t timestampBegin,
                       uint32_t timestampEnd, OpaqueSceneDraw opaque) {
     usedGeometryWaterPathLastRender_ = false;
+    usedSceneSunShadows_ = false;
     if (!pipeline_) {
         LOG_WARN("BlitPath::render: not initialized");
         return false;
@@ -2770,10 +2907,30 @@ bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         backgroundDirty_ = false;
     }
 
+    struct SceneBackground {
+        BlitPath* path;
+        WGPUQuerySet query;
+        uint32_t begin;
+        bool encoded = false;
+        WGPUBindGroup shadows = nullptr; // Borrowed only until this frame finishes encoding.
+    } sceneBackground{this, lightingTimestampStarted ? nullptr : timestampQuerySet, timestampBegin};
     if (opaqueScene_) {
-        if (!opaqueScene_->seed(encoder, backgroundView_, staticDepthView_,
-                lightingTimestampStarted ? nullptr : timestampQuerySet, timestampBegin)
-            || !opaque.encode(opaque.context, encoder, opaqueScene_->colorView(), opaqueScene_->depthView())) return false;
+        SceneShadowConsumer background{&sceneBackground,
+            [](void* context, WGPUCommandEncoder commands, WGPUBindGroup shadows) {
+                auto& state = *static_cast<SceneBackground*>(context);
+                if (state.encoded) return false;
+                state.encoded = true;
+                state.shadows = shadows;
+                auto& path = *state.path;
+                // Seed first for the timestamp boundary and the no-shadow path.
+                // Both inputs stay immutable while the separate opaque target
+                // receives current terrain lighting, object color, then water.
+                return path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin)
+                    && (!shadows || path.renderSceneTerrain(commands, shadows));
+            }};
+        if (!opaque.encode(opaque.context, encoder, opaqueScene_->colorView(), opaqueScene_->depthView(), background)) return false;
+        // During admission/Leave the application may have no active fixture.
+        if (!sceneBackground.encoded && !background(encoder, nullptr)) return false;
         lightingTimestampStarted = timestampQuerySet != nullptr;
     }
 
@@ -2827,14 +2984,17 @@ bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             return false;
         }
         usedGeometryWaterPathLastRender_ = true;
+        usedSceneSunShadows_ = sceneBackground.shadows != nullptr;
         if (uniforms_->waterParams.y > 0.5f) {
             wgpuRenderPassEncoderSetStencilReference(renderPass, 1u);
             wgpuRenderPassEncoderSetPipeline(
-                renderPass, preserveLinearDepth
-                    ? waterClipmapPipeline_
-                    : waterClipmapColorPipeline_);
+                renderPass, sceneBackground.shadows
+                    ? (preserveLinearDepth ? sceneWaterPipeline_ : sceneWaterColorPipeline_)
+                    : (preserveLinearDepth ? waterClipmapPipeline_ : waterClipmapColorPipeline_));
+            if (sceneBackground.shadows)
+                wgpuRenderPassEncoderSetBindGroup(renderPass, 1, sceneBackground.shadows, 0, nullptr);
             wgpuRenderPassEncoderSetBindGroup(
-                renderPass, 0, cachedBindGroup_, 0, nullptr);
+                renderPass, 0, sceneBackground.shadows ? sceneWaterBindings_ : cachedBindGroup_, 0, nullptr);
             wgpuRenderPassEncoderSetVertexBuffer(
                 renderPass, 0, waterClipmapVertexBuffer_, 0,
                 WGPU_WHOLE_SIZE);

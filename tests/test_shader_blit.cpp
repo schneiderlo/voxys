@@ -20,6 +20,18 @@
 
 namespace voxy {
 
+TEST(SceneShadowSources, AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade) {
+    const auto read=[](const char* name){std::ifstream file(std::filesystem::path("shaders")/name);
+        return std::string(std::istreambuf_iterator<char>(file),{});};
+    const auto source=read("scene_sun_shadow.wgsl.in");ASSERT_FALSE(source.empty());
+    for(const auto* name:{"mesh_path.wgsl","ray_blit.wgsl","water_clipmap.wgsl"}) {
+        auto expected=source;size_t at=0;
+        const std::string group=std::string(name)=="mesh_path.wgsl"?"2":"1";
+        while((at=expected.find("SHADOW_GROUP",at))!=std::string::npos){expected.replace(at,12,group);at+=group.size();}
+        EXPECT_NE(read(name).find(expected),std::string::npos)<<name;
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Test Fixture
 // ═══════════════════════════════════════════════════════════════════════════════

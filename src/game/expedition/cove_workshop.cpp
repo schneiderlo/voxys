@@ -99,10 +99,12 @@ ResourceAmounts CoveWorkshop::catalogCostAt(uint32_t index) const noexcept {
 std::string_view CoveWorkshop::catalogName() const noexcept { return catalogNameAt(catalogIndex_); }
 ResourceAmounts CoveWorkshop::catalogCost() const noexcept { return catalogCostAt(catalogIndex_); }
 bool CoveWorkshop::selectCatalogAt(uint32_t index) noexcept {
-    if(index>=catalog_.size())return false;
+    if(index>=catalog_.size() || (brickToolActive_&&index!=catalogIndex_))return false;
     catalogIndex_=index;return true;
 }
 bool CoveWorkshop::selectPart(uint32_t placement) {
+    if(brickToolActive_ && !member(design_.registry,placement))return false;
+    if(brickToolActive_)(void)stopBrickTool();
     if(changed() || !member(design_.registry,placement))return false;
     selected_=placement;preview_=design_;evaluate();return true;
 }
@@ -151,19 +153,23 @@ bool CoveWorkshop::aimAt(const Pick& hit) {
             if(distance<score){score=distance;best=*frame;}
         }
     }
-    if(!best||*best==current)return false;
+    if(!best)return false;
+    if(*best==current)return true;
     preview_.registry.placements[selected_].placement=*best;evaluate();return true;
 }
 ContentKey CoveWorkshop::catalogDefinition() const noexcept {
     return catalog_.empty()?ContentKey{}:design_.bundles[catalog_[catalogIndex_].bundleIndex]->sidecar().part.key;
 }
 bool CoveWorkshop::selectCatalog(int direction) noexcept {
-    if(catalog_.empty() || (direction!=-1 && direction!=1))return false;
+    if(catalog_.empty() || brickToolActive_ || (direction!=-1 && direction!=1))return false;
     const auto count=static_cast<uint32_t>(catalog_.size());
     catalogIndex_=(catalogIndex_+count+(direction>0?1u:count-1u))%count;return true;
 }
 bool CoveWorkshop::canAdd() const noexcept {
     if(catalog_.empty() || changed())return false;
+    return hasFreePartSlot();
+}
+bool CoveWorkshop::hasFreePartSlot() const noexcept {
     for(uint32_t slot=fixedPlacements_;slot<assets::kMaximumFixturePlacements;++slot)
         if(std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)==acceptedSlots_.end()
             && std::find(design_.registry.navigation->boatPlacements.begin(),design_.registry.navigation->boatPlacements.end(),slot)
@@ -172,14 +178,18 @@ bool CoveWorkshop::canAdd() const noexcept {
 }
 bool CoveWorkshop::addPart(const PartInstance* stored) {
     if(!canAdd()){message_="Keep or cancel the move first. Launch removals to free part slots.";return false;}
+    return addPreview(catalogIndex_,stored,design_.registry.placements[selected_].placement);
+}
+bool CoveWorkshop::addPreview(uint32_t index,const PartInstance* stored,GridTransform from) {
+    if(index>=catalog_.size() || !hasFreePartSlot())return false;
     auto candidate=design_;
     uint32_t slot=fixedPlacements_;
     while(std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)!=acceptedSlots_.end()
         || std::find(candidate.registry.navigation->boatPlacements.begin(),candidate.registry.navigation->boatPlacements.end(),slot)
             !=candidate.registry.navigation->boatPlacements.end())++slot;
-    auto placed=catalog_[catalogIndex_];placed.placement=candidate.registry.placements[selected_].placement;
+    auto placed=catalog_[index];placed.placement=from;
     if(stored) {
-        if(stored->definition!=catalogDefinition()||stored->provenance!=PartProvenance{})return false;
+        if(stored->definition!=design_.bundles[placed.bundleIndex]->sidecar().part.key||stored->provenance!=PartProvenance{})return false;
         placed.paint=stored->paint;placed.settings=stored->settings;
     }
     const auto raised=checkedAdd(placed.placement.translation,{0,32,0});if(!raised)return false;
@@ -187,10 +197,41 @@ bool CoveWorkshop::addPart(const PartInstance* stored) {
     if(slot==candidate.registry.placements.size())candidate.registry.placements.push_back(placed);
     else candidate.registry.placements[slot]=placed;
     candidate.registry.navigation->boatPlacements.push_back(slot);
-    preview_=std::move(candidate);selected_=slot;evaluate();
+    preview_=std::move(candidate);selected_=slot;catalogIndex_=index;evaluate();
     // A new part is a visible, editable ghost. Snapping searches the real
     // sockets and full compiler; an unsuccessful search never spends stock.
     (void)snap();return true;
+}
+bool CoveWorkshop::canChooseBrick() const noexcept {
+    return !catalog_.empty() && (brickToolActive_ || !changed()) && hasFreePartSlot();
+}
+bool CoveWorkshop::beginBrickTool(uint32_t index,const PartInstance* stored) {
+    if(!canChooseBrick() || index>=catalog_.size()
+        || !design_.bundles[catalog_[index].bundleIndex]->sidecar().part.nameKey.starts_with("salvage.part.brick_"))return false;
+    const auto anchor=brickToolActive_?brickToolAnchor_:selected_;
+    const auto from=preview_.registry.placements[selected_].placement;
+    // Build the replacement from kept design data. A rejected type/stock/slot
+    // request leaves the existing preview and tool intact.
+    if(!addPreview(index,stored,from))return false;
+    brickToolActive_=true;brickToolAnchor_=anchor;return true;
+}
+bool CoveWorkshop::placeBrickTool(const PartInstance* nextStored) {
+    if(!brickToolActive_ || !valid() || !changed())return false;
+    const auto index=catalogIndex_;const auto placed=selected_;
+    const auto from=preview_.registry.placements[placed].placement;
+    // Explicit Keep remains a one-shot edit. This pointer operation asks for
+    // the next preview only after that ordinary keep succeeds.
+    if(!command(Action::Keep))return false;
+    if(addPreview(index,nextStored,from)) {
+        brickToolActive_=true;brickToolAnchor_=placed;
+    } else message_="Brick placed. Select parts or Launch your boat.";
+    return true;
+}
+bool CoveWorkshop::stopBrickTool() {
+    if(!brickToolActive_)return false;
+    brickToolActive_=false;selected_=brickToolAnchor_;
+    if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
+    preview_=design_;evaluate();return true;
 }
 double CoveWorkshop::massKg() const noexcept {
     return compiled_?compiled_->massKg():0;
@@ -333,7 +374,9 @@ bool CoveWorkshop::snap() {
     message_="No other free socket fits this part.";return false;
 }
 std::vector<std::byte> CoveWorkshop::blueprintBytes(std::string& error) const {
-    if(changed()){error="Keep or cancel your current change before saving.";return {};}
+    // A repeating tool's next brick is only a suggestion. Export the same
+    // kept design used for pricing/launch; ordinary unfinished edits refuse.
+    if(changed()&&!brickToolActive_){error="Keep or cancel your current change before saving.";return {};}
     const auto catalog=makeCovePartCatalog(design_,error);if(!catalog)return {};
     const auto boat=CoveBoatAssembly::compile(design_,error);if(!boat)return {};
     BuildIssue issue;const auto model=BuildModel::create(boat->build(),*catalog,issue);
@@ -401,11 +444,16 @@ bool CoveWorkshop::loadBlueprint(std::span<const std::byte> bytes,std::string& e
     }
     auto history=history_;if(history.size()==maximumHistory)history.erase(history.begin());history.push_back(design_.registry);
     auto preview=candidate;design_=std::move(candidate);preview_=std::move(preview);compiled_=std::move(compiled);history_=std::move(history);
-    selected_=design_.registry.navigation->boatPlacements.front();++revision_;
+    selected_=design_.registry.navigation->boatPlacements.front();brickToolActive_=false;++revision_;
     message_="Design loaded. Check the cost, then Launch to build it.";error.clear();return true;
 }
 
 bool CoveWorkshop::command(Action action) {
+    if(brickToolActive_ && (action==Action::Previous || action==Action::Next || action==Action::Undo
+        || action==Action::Revert || action==Action::Remove)) {
+        (void)stopBrickTool();
+        if(action==Action::Revert || action==Action::Remove)return true;
+    }
     if(action==Action::Previous || action==Action::Next) {
         const auto& parts=design_.registry.navigation->boatPlacements;
         const auto found=std::find(parts.begin(),parts.end(),selected_);
@@ -427,6 +475,7 @@ bool CoveWorkshop::command(Action action) {
         auto accepted=preview_;auto history=history_;
         if(history.size()==maximumHistory)history.erase(history.begin());
         history.push_back(design_.registry);design_=std::move(accepted);history_=std::move(history);++revision_;
+        brickToolActive_=false;
         if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
         message_="Design kept. Launch to sail these changes.";return true;
     }

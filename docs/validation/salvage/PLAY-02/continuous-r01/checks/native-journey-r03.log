@@ -1,0 +1,12 @@
+placed-brick-1
+placed-brick-2
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_bricks.py", line 204, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_bricks.py", line 149, in main
+    target=project(point);before=int(read()['assetFixture']['submittedSerial']);mouse(target);frames(before)
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_bricks.py", line 73, in project
+    assert 0<x<960 and 0<y<540,(x,y)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: (695.9851103690478, -76.15638398928309)

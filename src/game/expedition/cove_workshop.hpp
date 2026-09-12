@@ -30,10 +30,19 @@ public:
     // Rays/points use metres in the canonical build frame, before the
     // workshop display offset. Picking follows the actual collision shells.
     [[nodiscard]] std::optional<Pick> pick(glm::dvec3 origin,glm::dvec3 direction,bool excludeSelected=false) const;
+    // True means this target resolved a compatible mating transform, including
+    // an unchanged transform. A false result must never accept an older ghost.
     [[nodiscard]] bool aimAt(const Pick&);
     [[nodiscard]] std::optional<WorkshopBounds> viewBounds(bool wholeBuild) const;
     [[nodiscard]] bool addPart(const construction::PartInstance* stored = nullptr);
     [[nodiscard]] bool canAdd() const noexcept;
+    // The brick tool owns one unplaced preview. Only placeBrickTool/Keep adds
+    // it to the design; stopping, switching or launching never buys the ghost.
+    [[nodiscard]] bool beginBrickTool(uint32_t catalogIndex, const construction::PartInstance* stored = nullptr);
+    [[nodiscard]] bool placeBrickTool(const construction::PartInstance* nextStored = nullptr);
+    [[nodiscard]] bool stopBrickTool();
+    [[nodiscard]] bool brickToolActive() const noexcept { return brickToolActive_; }
+    [[nodiscard]] bool canChooseBrick() const noexcept;
     enum class SettingAction { Toggle, CycleLimit, Reverse };
     [[nodiscard]] bool configure(SettingAction);
     [[nodiscard]] bool configurable() const noexcept;
@@ -63,6 +72,8 @@ private:
     [[nodiscard]] bool reconnect(assets::LoadedAssetFixture&) const;
     void evaluate();
     [[nodiscard]] bool snap();
+    [[nodiscard]] bool hasFreePartSlot() const noexcept;
+    [[nodiscard]] bool addPreview(uint32_t catalogIndex, const construction::PartInstance*, construction::GridTransform from);
     assets::LoadedAssetFixture design_,preview_;
     std::vector<assets::AssetFixtureRegistry> history_;
     std::unique_ptr<CoveBoatAssembly> compiled_;
@@ -72,6 +83,8 @@ private:
     std::vector<uint32_t> acceptedSlots_;
     std::vector<uint32_t> collisionBoatSlots_;
     uint64_t revision_=0;
+    bool brickToolActive_=false;
+    uint32_t brickToolAnchor_=0;
     std::string message_;
 };
 } // namespace voxy::game::expedition

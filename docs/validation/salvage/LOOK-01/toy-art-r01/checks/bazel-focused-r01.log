@@ -1,0 +1,30 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (3 packages loaded, 198 targets configured).
+[374 / 381] Compiling src/game/assets/fixture_registry.cpp; 1s linux-sandbox ... (3 actions running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/src/game/BUILD:122:11: Compiling src/game/assets/fixture_registry.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //src/game:fixture_registry) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 61 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+src/game/assets/fixture_registry.cpp: In function 'std::unique_ptr<const voxy::game::assets::LoadedAssetFixture> voxy::game::assets::appendAssetFixtureCatalog(const LoadedAssetFixture&, const std::filesystem::__cxx11::path&, std::string&)':
+src/game/assets/fixture_registry.cpp:411:28: error: declaration of 'provider' shadows a previous local [-Werror=shadow]
+  411 |                 const auto provider=openCookedPartDirectory(root/spec.directory,error);if(!provider)return {};
+      |                            ^~~~~~~~
+src/game/assets/fixture_registry.cpp:354:20: note: shadowed declaration is here
+  354 |         const auto provider=openCookedPartDirectory(root,error);if(!provider)return {};
+      |                    ^~~~~~~~
+cc1plus: all warnings being treated as errors
+[377 / 381] 1 / 2 tests, 1 failed; checking cached actions
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 5.180s, Critical Path: 3.81s
+INFO: 10 processes: 367 action cache hit, 10 internal.
+ERROR: Build did NOT complete successfully
+//tests:salvage_asset_fixture                                         NO STATUS
+//tests:fixture_registry                                        FAILED TO BUILD
+
+Executed 0 out of 2 tests: 1 fails to build and 1 was skipped.

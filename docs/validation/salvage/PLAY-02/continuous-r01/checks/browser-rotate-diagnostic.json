@@ -1,0 +1,2631 @@
+{
+  "status": "probe-completed",
+  "kind": "Eight actual bricks, pointer placement, rotation, undo, launch and reload; no images",
+  "stages": [
+    {
+      "name": "placed-brick-1",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+        "camera": {
+          "local": [
+            -15.5504,
+            64.7964,
+            -83.4891
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -0.893453,
+            -0.47131,
+            -0.49478,
+            -0.494747,
+            -0.0000011453,
+            1.51765,
+            -0.48195,
+            -0.481918,
+            0.611242,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            37.1385,
+            -163.184,
+            -36.9466,
+            -36.8442
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "198",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "41",
+          "waterTime": 0.683333
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1,
+              0.8595,
+              -53.486
+            ],
+            "distance": 8.16913,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.94,
+              -0.9,
+              0.42875,
+              0.9
+            ]
+          },
+          "configurable": false,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 26,
+          "name": "Brick 2 x 4",
+          "valid": true,
+          "changed": true,
+          "undo": 2,
+          "revision": "2",
+          "massKg": 1041,
+          "parts": 12,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "rotation": 0,
+          "message": "Fits. Keep this change or try another socket.",
+          "catalogName": "Brick 2 x 4",
+          "catalogIndex": 10,
+          "catalogCount": 11,
+          "canAdd": false,
+          "partCost": "5",
+          "partMachinery": "0",
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": true,
+          "canChooseBrick": true,
+          "placedParts": 11,
+          "placedBricks": 1,
+          "pointerPlacement": true,
+          "pointerTarget": true,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "5",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": true,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 38,
+          "position": [
+            -0.463451,
+            0.0906792,
+            -53.9513
+          ],
+          "speed": 1.40485,
+          "orientation": [
+            -0.0248772,
+            0.00110081,
+            0.0201168,
+            0.999487
+          ],
+          "helmPosition": [
+            0.491717,
+            1.29334,
+            -53.1113
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "39",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "41",
+            "encoded": "41",
+            "submitted": "41",
+            "completed": "39",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "38",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "38",
+              "position": [
+                -0.463451,
+                0.0906792,
+                -53.9513
+              ],
+              "orientation": [
+                -0.0248772,
+                0.00110081,
+                0.0201168,
+                0.999487
+              ],
+              "velocity": [
+                -0.230207,
+                -1.38577,
+                -0.0157741
+              ],
+              "angularVelocity": [
+                0.0223515,
+                0.00400324,
+                -0.242165
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.08942,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 38,
+          "position": [
+            -4.49976,
+            -3.02554,
+            -57.9997
+          ],
+          "speed": 0.0407842,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40272,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "39",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+          "incarnation": "26efc1165ea9d494516691c713d0c20a",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 3,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "14522896",
+          "submittedSerial": "41",
+          "completedSerial": "39",
+          "draws": 70,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "12288000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "1",
+            "2",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "placedBrick": {
+        "name": "Brick 2 x 4",
+        "placement": [
+          100,
+          72,
+          -2775
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "name": "placed-brick-2",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+        "camera": {
+          "local": [
+            -14.8063,
+            65.2047,
+            -82.9973
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -0.893453,
+            -0.47131,
+            -0.494781,
+            -0.494748,
+            -8.2268e-7,
+            1.51765,
+            -0.481949,
+            -0.481917,
+            0.611242,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            37.5028,
+            -163.114,
+            -36.026,
+            -35.9236
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "198",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "48",
+          "waterTime": 0.8
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1.49,
+              0.8595,
+              -53.72
+            ],
+            "distance": 9.0165,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.94,
+              -0.9,
+              0.42875,
+              0.9
+            ]
+          },
+          "configurable": false,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 27,
+          "name": "Brick 2 x 4",
+          "valid": true,
+          "changed": true,
+          "undo": 3,
+          "revision": "3",
+          "massKg": 1089,
+          "parts": 13,
+          "placement": [
+            100,
+            168,
+            -2775
+          ],
+          "rotation": 0,
+          "message": "Fits. Keep this change or try another socket.",
+          "catalogName": "Brick 2 x 4",
+          "catalogIndex": 10,
+          "catalogCount": 11,
+          "canAdd": false,
+          "partCost": "5",
+          "partMachinery": "0",
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": true,
+          "canChooseBrick": true,
+          "placedParts": 12,
+          "placedBricks": 2,
+          "pointerPlacement": true,
+          "pointerTarget": true,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "10",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": true,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 46,
+          "position": [
+            -0.47974,
+            -0.042984,
+            -53.966
+          ],
+          "speed": 0.777045,
+          "orientation": [
+            -0.0172297,
+            0.0010241,
+            0.0113967,
+            0.999786
+          ],
+          "helmPosition": [
+            0.495925,
+            1.12984,
+            -53.1076
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "46",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "48",
+            "encoded": "48",
+            "submitted": "48",
+            "completed": "46",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "46",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "46",
+              "position": [
+                -0.47974,
+                -0.042984,
+                -53.966
+              ],
+              "orientation": [
+                -0.0172297,
+                0.0010241,
+                0.0113967,
+                0.999786
+              ],
+              "velocity": [
+                -0.0390999,
+                -0.757839,
+                -0.167184
+              ],
+              "angularVelocity": [
+                0.17019,
+                -0.00744152,
+                -0.0436073
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.03643,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 46,
+          "position": [
+            -4.4997,
+            -3.02548,
+            -57.9997
+          ],
+          "speed": 0.0359548,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40268,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "46",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+          "incarnation": "26efc1165ea9d494516691c713d0c20a",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 3,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "14522896",
+          "submittedSerial": "48",
+          "completedSerial": "46",
+          "draws": 71,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "12288000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "placedBrick": {
+        "name": "Brick 2 x 4",
+        "placement": [
+          100,
+          120,
+          -2775
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "name": "rotation-probe-complete",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+        "camera": {
+          "local": [
+            -14.8063,
+            65.2047,
+            -82.9973
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -0.893453,
+            -0.47131,
+            -0.494781,
+            -0.494748,
+            -8.2268e-7,
+            1.51765,
+            -0.481949,
+            -0.481917,
+            0.611242,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            37.5028,
+            -163.114,
+            -36.026,
+            -35.9236
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "198",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "50",
+          "waterTime": 0.833333
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1.49,
+              0.8595,
+              -53.72
+            ],
+            "distance": 9.0165,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.94,
+              -0.9,
+              0.42875,
+              0.9
+            ]
+          },
+          "configurable": false,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 27,
+          "name": "Brick 2 x 4",
+          "valid": false,
+          "changed": true,
+          "undo": 3,
+          "revision": "3",
+          "massKg": 0,
+          "parts": 13,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "rotation": 0,
+          "message": "Blocked by another part. Try another socket.",
+          "catalogName": "Brick 2 x 4",
+          "catalogIndex": 10,
+          "catalogCount": 11,
+          "canAdd": false,
+          "partCost": "5",
+          "partMachinery": "0",
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": true,
+          "canChooseBrick": true,
+          "placedParts": 12,
+          "placedBricks": 2,
+          "pointerPlacement": true,
+          "pointerTarget": true,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "10",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": true,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 48,
+          "position": [
+            -0.480156,
+            -0.0662804,
+            -53.972
+          ],
+          "speed": 0.70697,
+          "orientation": [
+            -0.0141861,
+            0.000844744,
+            0.0111468,
+            0.999837
+          ],
+          "helmPosition": [
+            0.495838,
+            1.1008,
+            -53.1062
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "48",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "50",
+            "encoded": "50",
+            "submitted": "50",
+            "completed": "48",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "48",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "48",
+              "position": [
+                -0.480156,
+                -0.0662804,
+                -53.972
+              ],
+              "orientation": [
+                -0.0141861,
+                0.000844744,
+                0.0111468,
+                0.999837
+              ],
+              "velocity": [
+                -0.00447993,
+                -0.682521,
+                -0.184262
+              ],
+              "angularVelocity": [
+                0.186077,
+                -0.00942793,
+                -0.00647213
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.03095,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 48,
+          "position": [
+            -4.49974,
+            -3.02552,
+            -57.9995
+          ],
+          "speed": 0.0427889,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40264,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "48",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e31bd4c2dee5673acefcd542cc0f4b00",
+          "incarnation": "26efc1165ea9d494516691c713d0c20a",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 3,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "14522896",
+          "submittedSerial": "50",
+          "completedSerial": "48",
+          "draws": 71,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "12288000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "events": [
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "salvage-workshop-toggle",
+          "x": 91.40234375,
+          "y": 459.921875,
+          "time": 34917.5,
+          "rectangle": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          },
+          "disabled": false,
+          "status": ""
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "salvage-workshop-toggle",
+          "x": 91.40234375,
+          "y": 459.921875,
+          "time": 34919.90000000037,
+          "rectangle": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          },
+          "disabled": false,
+          "status": ""
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "salvage-workshop-toggle",
+          "x": 91.40234375,
+          "y": 459.921875,
+          "time": 35003.5,
+          "rectangle": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          },
+          "disabled": false,
+          "status": ""
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "salvage-workshop-toggle",
+          "x": 91,
+          "y": 459,
+          "time": 35004.199999999255,
+          "rectangle": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          },
+          "disabled": false,
+          "status": ""
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "salvage-workshop-toggle",
+          "x": 91,
+          "y": 459,
+          "time": 35004.40000000037,
+          "rectangle": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          },
+          "disabled": false,
+          "status": ""
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "workshop-next",
+          "x": 1022.25,
+          "y": 568.984375,
+          "time": 35920.800000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "status": "Select a part. Snap finds a matching socket. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "workshop-next",
+          "x": 1022.25,
+          "y": 568.984375,
+          "time": 35925.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "status": "Select a part. Snap finds a matching socket. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "workshop-next",
+          "x": 1022.25,
+          "y": 568.984375,
+          "time": 36010.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "status": "Select a part. Snap finds a matching socket. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "workshop-next",
+          "x": 1022,
+          "y": 568,
+          "time": 36010.59999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "status": "Select a part. Snap finds a matching socket. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "workshop-next",
+          "x": 1022,
+          "y": 568,
+          "time": 36010.90000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "status": "Select a part. Snap finds a matching socket. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "workshop-remove",
+          "x": 1022.25,
+          "y": 592.984375,
+          "time": 36921.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 531.71875,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Part is connected. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "workshop-remove",
+          "x": 1022.25,
+          "y": 592.984375,
+          "time": 36925,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 531.71875,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Part is connected. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "workshop-remove",
+          "x": 1022.25,
+          "y": 592.984375,
+          "time": 37010.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 531.71875,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Part is connected. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "workshop-remove",
+          "x": 1022,
+          "y": 592,
+          "time": 37010.800000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 531.71875,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Part is connected. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "workshop-remove",
+          "x": 1022,
+          "y": 592,
+          "time": 37011.09999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 531.71875,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Part is connected. Mass: 1035 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "workshop-keep",
+          "x": 1162.75,
+          "y": 611.828125,
+          "time": 37922.5,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "workshop-keep",
+          "x": 1162.75,
+          "y": 611.828125,
+          "time": 37925.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "workshop-keep",
+          "x": 1162.75,
+          "y": 611.828125,
+          "time": 38010.199999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "workshop-keep",
+          "x": 1162,
+          "y": 611,
+          "time": 38010.59999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "workshop-keep",
+          "x": 1162,
+          "y": 611,
+          "time": 38010.800000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            75,
+            64,
+            -2750
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "workshop-brick-2x4",
+          "x": 1182,
+          "y": 283.015625,
+          "time": 38923,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            -8,
+            -2700
+          ],
+          "status": "Design kept. Launch to sail these changes. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "workshop-brick-2x4",
+          "x": 1182,
+          "y": 283.015625,
+          "time": 38925.800000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            -8,
+            -2700
+          ],
+          "status": "Design kept. Launch to sail these changes. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "workshop-brick-2x4",
+          "x": 1182,
+          "y": 283.015625,
+          "time": 39009.5,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            -8,
+            -2700
+          ],
+          "status": "Design kept. Launch to sail these changes. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "workshop-brick-2x4",
+          "x": 1182,
+          "y": 283,
+          "time": 39009.90000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            -8,
+            -2700
+          ],
+          "status": "Design kept. Launch to sail these changes. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "workshop-brick-2x4",
+          "x": 1182,
+          "y": 283,
+          "time": 39010.199999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 550.5625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            -25,
+            -8,
+            -2700
+          ],
+          "status": "Design kept. Launch to sail these changes. Mass: 945 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "voxy-canvas",
+          "x": 353.2637939453125,
+          "y": 366.78656005859375,
+          "time": 39924.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "status": "Point at a matching stud or socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "voxy-canvas",
+          "x": 353.2637939453125,
+          "y": 366.78656005859375,
+          "time": 41926.59999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "voxy-canvas",
+          "x": 353.2637939453125,
+          "y": 366.78656005859375,
+          "time": 41929.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "voxy-canvas",
+          "x": 353.2637939453125,
+          "y": 366.78656005859375,
+          "time": 42011.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "voxy-canvas",
+          "x": 353,
+          "y": 366,
+          "time": 42011.800000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "voxy-canvas",
+          "x": 353,
+          "y": 366,
+          "time": 42012.09999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 569.40625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            72,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 993 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "SUMMARY",
+          "x": 1092.5,
+          "y": 755.546875,
+          "time": 43929.699999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 511.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "SUMMARY",
+          "x": 1092.5,
+          "y": 755.546875,
+          "time": 43932.59999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 511.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "SUMMARY",
+          "x": 1092.5,
+          "y": 755.546875,
+          "time": 44017.90000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 493.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "SUMMARY",
+          "x": 1092,
+          "y": 755,
+          "time": 44018.199999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 493.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "SUMMARY",
+          "x": 1092,
+          "y": 755,
+          "time": 44018.5,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 493.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "workshop-frame",
+          "x": 1162.75,
+          "y": 756.546875,
+          "time": 44929.40000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "workshop-frame",
+          "x": 1162.75,
+          "y": 756.546875,
+          "time": 44932.5,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "workshop-frame",
+          "x": 1162.75,
+          "y": 756.546875,
+          "time": 45017.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "workshop-frame",
+          "x": 1162,
+          "y": 756,
+          "time": 45017.699999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "workshop-frame",
+          "x": 1162,
+          "y": 756,
+          "time": 45018,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "voxy-canvas",
+          "x": 382.6152648925781,
+          "y": 295.31304931640625,
+          "time": 46931.90000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            150,
+            24,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "setup",
+          "type": "pointermove",
+          "target": "voxy-canvas",
+          "x": 382.6152648925781,
+          "y": 295.31304931640625,
+          "time": 48933.199999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerdown",
+          "target": "voxy-canvas",
+          "x": 382.6152648925781,
+          "y": 295.31304931640625,
+          "time": 48935.59999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "pointerup",
+          "target": "voxy-canvas",
+          "x": 382.6152648925781,
+          "y": 295.31304931640625,
+          "time": 49020.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "click",
+          "target": "voxy-canvas",
+          "x": 382,
+          "y": 295,
+          "time": 49020.699999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "setup",
+          "type": "after-click",
+          "target": "voxy-canvas",
+          "x": 382,
+          "y": 295,
+          "time": 49020.90000000037,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            120,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1041 kg."
+        },
+        {
+          "phase": "rotate",
+          "type": "pointermove",
+          "target": "workshop-rotate",
+          "x": 1162.75,
+          "y": 502.328125,
+          "time": 50936.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": true,
+          "placement": [
+            100,
+            168,
+            -2775
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1089 kg."
+        },
+        {
+          "phase": "rotate",
+          "type": "pointerdown",
+          "target": "workshop-rotate",
+          "x": 1162.75,
+          "y": 502.328125,
+          "time": 50940.09999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 483.90625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "status": "Fits. Keep this change or try another socket. Mass: 1089 kg."
+        },
+        {
+          "phase": "rotate",
+          "type": "pointerup",
+          "target": "DIV",
+          "x": 1162.75,
+          "y": 502.328125,
+          "time": 51022.699999999255,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "rotate",
+          "type": "click",
+          "target": "DIV",
+          "x": 1162,
+          "y": 502,
+          "time": 51023.09999999963,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        },
+        {
+          "phase": "rotate",
+          "type": "after-click",
+          "target": "DIV",
+          "x": 1162,
+          "y": 502,
+          "time": 51023.300000000745,
+          "rectangle": {
+            "x": 1095.5,
+            "y": 465.0625,
+            "w": 134.5,
+            "h": 36.84375
+          },
+          "disabled": false,
+          "rotation": 0,
+          "valid": false,
+          "placement": [
+            100,
+            72,
+            -2725
+          ],
+          "status": "Blocked by another part. Try another socket."
+        }
+      ]
+    }
+  ],
+  "pointerTargets": [
+    [
+      {
+        "point": [
+          2,
+          0.96,
+          -55
+        ],
+        "valid": true,
+        "pointerTarget": true,
+        "placement": [
+          100,
+          72,
+          -2775
+        ]
+      }
+    ],
+    [
+      {
+        "point": [
+          2,
+          1.8599999999999999,
+          -55.5
+        ],
+        "valid": true,
+        "pointerTarget": true,
+        "placement": [
+          100,
+          120,
+          -2775
+        ]
+      }
+    ]
+  ]
+}

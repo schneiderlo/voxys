@@ -1,0 +1,39 @@
+struct SunShadowUniforms {
+    viewProj: mat4x4<f32>,
+    // enabled, world metres per texel, inverse depth range, reserved
+    params: vec4<f32>,
+    // Absolute origin of the camera-sector frame used by mesh casters.
+    worldOrigin: vec4<f32>,
+};
+@group(SHADOW_GROUP) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
+@group(SHADOW_GROUP) @binding(1) var sunDepth: texture_depth_2d;
+@group(SHADOW_GROUP) @binding(2) var sunSampler: sampler_comparison;
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    if (sunShadow.params.x < 0.5) { return 1.0; }
+    // Use geometric normals for bias: normal-map grain must not move shadows.
+    let slope = 1.0 - abs(dot(geometricNormal, light));
+    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
+    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+    if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
+        return 1.0;
+    }
+    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
+    let reference = clip.z - 0.003 * sunShadow.params.z;
+    var visibility = 0.0;
+    for (var y = -1; y <= 1; y += 1) {
+        for (var x = -1; x <= 1; x += 1) {
+            visibility += textureSampleCompareLevel(sunDepth, sunSampler,
+                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+        }
+    }
+    // A local map fades at its border instead of following the camera as a hard edge.
+    let edge = max(abs(clip.x), abs(clip.y));
+    let fade = smoothstep(0.80, 0.98, edge);
+    return mix(visibility / 9.0, 1.0, fade);
+}
+
+fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    return sunVisibility(worldPosition - sunShadow.worldOrigin.xyz, geometricNormal, light);
+}

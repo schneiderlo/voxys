@@ -180,6 +180,7 @@ cc_binary(
         "//third_party:tinygltf",
     ],
     data = [
+        "//data:cove_hud_font_notice",
         "//shaders:shaders",
         "//data:data",
         "voxy.cfg",

@@ -1,14 +1,21 @@
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "cove_hud_font_notice",
+    srcs = ["fonts/cove-hud/LICENSE.debian", "fonts/cove-hud/README.md"],
+)
+
+filegroup(
     name = "salvage_material_metric",
     srcs = [
         "salvage/fixture-material-metric-r01.json",
         "salvage/fixture-material-shading-r02.json",
         "salvage/fixture-cove-r01.json",
         "salvage/cove-bricks-r02.json",
+        "salvage/cove-workshop-r03.json",
     ] + glob([
         "salvage/bricks/r02/*/cooked/*",
+        "salvage/toy-art/r01/*/cooked/*",
         "salvage/material-calibration/r02/pontoon-r02/cooked/*",
         "salvage/material-calibration/r02/kit/winch/cooked/*",
         "salvage/material-calibration/r02/kit/helm/cooked/*",

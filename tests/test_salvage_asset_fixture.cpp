@@ -1,4 +1,5 @@
 #include "render/salvage_asset_fixture.hpp"
+#include "game/assets/fixture_registry.hpp"
 #include "core/sha256.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
@@ -364,6 +365,8 @@ TEST_F(FixtureGPU, FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWi
     SalvageFixtureConfig config; config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
     config.filteredEnvironment=true;
     config.sunShadows=true;
+    EXPECT_EQ(MeshPath::sunShadowReservationBytes,
+        uint64_t(MeshPath::sunShadowResolution)*MeshPath::sunShadowResolution*4u+96u);
     const uint64_t charge=SalvageAssetFixture::fixedGpuReservationBytes
         +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes+bundle->requestedGpuBytes();
     config.maximumOwnerGpuBytes=charge-1;
@@ -405,6 +408,43 @@ TEST_F(FixtureGPU, FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWi
     EXPECT_EQ(fixture.stats().active.environmentGpuBytes,0u);
     EXPECT_EQ(fixture.stats().candidate.environmentGpuBytes,0u);
     EXPECT_EQ(fixture.stats().retiring.environmentGpuBytes,0u);
+}
+
+TEST_F(FixtureGPU, CoveToyArtFitsExistingOwnerAndDrawLimits) {
+    fixture.shutdown();
+    const auto base=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    const auto scene=game::assets::appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r03.json"),error);
+    ASSERT_TRUE(scene)<<error;
+    SalvageFixtureConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.filteredEnvironment=true;config.sunShadows=true;
+    uint64_t requested=SalvageAssetFixture::fixedGpuReservationBytes
+        +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes;
+    for(size_t i=0;i<scene->renderBundles().size();++i) {
+        uint64_t bytes=0;
+        for(const auto& lod:scene->renderBundles()[i]->lods())bytes+=lod.prefab.counts.gpuBytes;
+        requested+=bytes;
+        RecordProperty("bundleGpuBytes"+std::to_string(i),std::to_string(bytes));
+    }
+    RecordProperty("requestedOwnerGpuBytes",std::to_string(requested));
+    ASSERT_LE(requested,config.maximumOwnerGpuBytes);
+    ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error))<<error;
+    ASSERT_TRUE(fixture.beginCandidate(scene->renderBundles(),error))<<error;
+    ASSERT_EQ(await([](Status s){return s==Status::CandidateReady;}),Status::CandidateReady)<<fixture.lastError();
+    ASSERT_TRUE(fixture.publishCandidate(error))<<error;
+    const auto reserved=fixture.stats().active.reservedGpuBytes;
+    EXPECT_LE(reserved,16ull*1024ull*1024ull);
+    EXPECT_EQ(fixture.stats().active.uniqueUploads,36u);
+    RecordProperty("ownerGpuBytes",std::to_string(reserved));
+    std::vector<SalvageFixturePlacement> placements;
+    for(const auto& p:scene->registry.placements)placements.push_back({p.bundleIndex,1,glm::dmat4(1),p.placement});
+    auto value=frame();value.cameraPosition={4,8,-46};
+    value.view=glm::lookAtLH(glm::vec3(4,8,-46),glm::vec3(1,0,-54),glm::vec3(0,1,0));
+    startFrame();SalvageFixtureTicket ticket;
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    submit(ticket);
+    EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
+    RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
 }
 
 TEST_F(FixtureGPU, DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection) {
@@ -635,6 +675,8 @@ TEST_F(FixtureGPU, RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically)
     invalid = frame(); invalid.width = 8193;
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, {}, invalid, ticket, error));
     invalid = frame(); invalid.useRayDepth = true;
+    EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, {}, invalid, ticket, error));
+    invalid = frame(); invalid.shadowFrameWorldOrigin.x = std::numeric_limits<float>::infinity();
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, {}, invalid, ticket, error));
     std::vector<SalvageFixturePlacement> tooMany(SalvageAssetFixture::maximumPlacements+1);
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, tooMany, frame(), ticket, error));

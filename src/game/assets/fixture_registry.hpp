@@ -53,6 +53,12 @@ struct LoadedAssetFixture {
     std::array<std::byte,32> installedRegistryDigest{};
     AssetFixtureRegistry registry{};
     std::vector<std::shared_ptr<const CookedPartBundle>> bundles{};
+    // Optional visual revisions, indexed exactly like canonical bundles. These
+    // never enter the part catalog, physics compiler or saved content identity.
+    std::vector<std::shared_ptr<const CookedPartBundle>> presentationBundles{};
+    [[nodiscard]] std::span<const std::shared_ptr<const CookedPartBundle>> renderBundles() const noexcept {
+        return presentationBundles.empty() ? std::span(bundles) : std::span(presentationBundles);
+    }
     std::vector<construction::PartDefinition> prototypes{};
     // Private static inspection validation, never exported or added to a
     // GameSession/inventory. All six rendered parts use these exact placements.
@@ -73,7 +79,12 @@ struct LoadedAssetFixture {
 [[nodiscard]] std::unique_ptr<const LoadedAssetFixture> loadAssetFixture(
     const std::filesystem::path& registryPath, std::string& error);
 
-// Trusted additive catalogue, schema 1 {schema,bundles}. It admits exact
+// Trusted additive catalogue, schema 1 {schema,bundles}. Schema 2 also selects
+// compatible visual-only revisions in presentations. Each names an exact
+// source manifest and a replacement bundle; all nonvisual metadata and LOD
+// IDs/basis/thresholds must match. Extra input/decoded CPU data is capped at
+// 16 MiB each. The renderer retains its ordinary generation/GPU ceilings.
+// It admits exact
 // immutable content through the same no-follow loader. It cannot replace an
 // existing content ID, alter world placements or change the base layout
 // identity. Older saves still resolve the same exact part keys; new saves

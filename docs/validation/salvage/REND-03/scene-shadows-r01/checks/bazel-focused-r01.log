@@ -1,0 +1,43 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:voxy_tests (3 packages loaded, 350 targets configured).
+[521 / 675] Compiling src/game/expedition/cove_player.cpp; 1s linux-sandbox ... (24 actions, 23 running)
+[526 / 675] Compiling src/game/expedition/cove_harbor_lift.cpp; 2s linux-sandbox ... (24 actions running)
+[534 / 675] Compiling src/game/expedition/cove_boat.cpp; 3s linux-sandbox ... (24 actions running)
+[545 / 675] Compiling src/game/expedition/cove_boat.cpp; 4s linux-sandbox ... (24 actions running)
+[557 / 675] Compiling src/game/expedition/cove_workshop.cpp; 5s linux-sandbox ... (24 actions running)
+[572 / 675] Compiling src/game/expedition/cove_workshop.cpp; 6s linux-sandbox ... (24 actions running)
+[577 / 675] Compiling src/app/application.cpp; 7s linux-sandbox ... (24 actions, 23 running)
+[586 / 675] Compiling src/app/application.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[594 / 675] Compiling src/app/application.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[601 / 675] Compiling src/app/application.cpp; 10s linux-sandbox ... (24 actions, 23 running)
+[605 / 675] Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:871:8: Compiling tests/test_blit_path.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:voxy_tests) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 131 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_blit_path.cpp: In destructor 'voxy::BlitPathTest_MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth_Test::TestBody()::Owned::~Owned()':
+tests/test_blit_path.cpp:686:13: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+  686 |             if(sampler)wgpuSamplerRelease(sampler);if(readback)wgpuBufferRelease(readback);}
+      |             ^~
+tests/test_blit_path.cpp:686:52: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+  686 |             if(sampler)wgpuSamplerRelease(sampler);if(readback)wgpuBufferRelease(readback);}
+      |                                                    ^~
+tests/test_blit_path.cpp: In member function 'virtual void voxy::BlitPathTest_MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth_Test::TestBody()':
+tests/test_blit_path.cpp:796:86: error: implicit conversion from 'float' to 'double' to match other operand of binary expression [-Werror=double-promotion]
+  796 |         std::vector<uint32_t> field(256,static_cast<uint32_t>(std::round((plane/10+1)*.5*65535)));
+      |                                                                          ~~~~~~~~~~~~^~~
+cc1plus: all warnings being treated as errors
+Target //tests:voxy_tests failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 15.034s, Critical Path: 13.23s
+INFO: 118 processes: 521 action cache hit, 35 internal, 83 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:voxy_tests                                              FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

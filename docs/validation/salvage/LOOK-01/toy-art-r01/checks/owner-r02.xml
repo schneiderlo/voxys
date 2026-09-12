@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="1" disabled="0" errors="0" time="0.096" timestamp="2026-09-10T14:54:05.099" name="AllTests">
+  <testsuite name="FixtureGPU" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="0.096" timestamp="2026-09-10T14:54:05.099">
+    <testcase name="CoveToyArtFitsExistingOwnerAndDrawLimits" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="411" status="run" result="completed" time="0.096" timestamp="2026-09-10T14:54:05.099" classname="FixtureGPU">
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp:428&#x0A;Expected: (requested) &lt;= (config.maximumOwnerGpuBytes), actual: 17027832 vs 16777216&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp:428
+Expected: (requested) <= (config.maximumOwnerGpuBytes), actual: 17027832 vs 16777216
+]]></failure>
+      <properties>
+        <property name="bundleGpuBytes0" value="1305192"/>
+        <property name="bundleGpuBytes1" value="1141200"/>
+        <property name="bundleGpuBytes2" value="1269864"/>
+        <property name="bundleGpuBytes3" value="855700"/>
+        <property name="bundleGpuBytes4" value="763852"/>
+        <property name="bundleGpuBytes5" value="1785504"/>
+        <property name="bundleGpuBytes6" value="2097312"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="17027832"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,89 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [02:44:38.105] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:44:38.105] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:44:38.105] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:44:38.105] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:44:38.107] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:44:38.338] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [02:44:38.415] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [02:44:39.359] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=196 shadow=37 moved=196
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826: Failure
+The difference between sample(true) and shadowed is 159, which exceeds 2, where
+sample(true) evaluates to 196,
+shadowed evaluates to 37, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000
+
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826: Failure
+The difference between sample(true) and shadowed is 159, which exceeds 2, where
+sample(true) evaluates to 196,
+shadowed evaluates to 37, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000
+
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=191 shadow=181 moved=191
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=84,79,72 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826: Failure
+The difference between sample(true) and shadowed is 10, which exceeds 2, where
+sample(true) evaluates to 191,
+shadowed evaluates to 181, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000
+
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826: Failure
+The difference between sample(true) and shadowed is 10, which exceeds 2, where
+sample(true) evaluates to 191,
+shadowed evaluates to 181, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000
+
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1385 ms)
+[----------] 1 test from BlitPathTest (1385 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1385 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+
+ 1 FAILED TEST

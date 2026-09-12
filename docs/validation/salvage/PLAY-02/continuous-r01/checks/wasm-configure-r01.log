@@ -1,0 +1,58 @@
+-- Building for WebAssembly with Emscripten
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- The ASM compiler identification is unknown
+-- Found assembler: /tmp/voxys-emsdk/upstream/emscripten/emcc
+-- ZSTD VERSION: 1.5.5
+-- CMAKE_INSTALL_PREFIX: /tmp/voxys-emsdk/upstream/emscripten/cache/sysroot
+-- CMAKE_INSTALL_LIBDIR: lib
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   tinygltf: Found
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: Clang
+-- CMake C++ compiler: Clang
+-- CMake system name: Emscripten
+-- CMake host system processor: x86_64
+-- Box3D on Emscripten
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- WebGPU available via Emscripten
+CMake Warning at src/CMakeLists.txt:537 (message):
+  Emscripten WebGPU headers not found at
+  /tmp/voxys-emsdk/upstream/emscripten/cache/ports/emdawnwebgpu/emdawnwebgpu_pkg/webgpu/include
+
+
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/assets/cooked_part_directory.cpp;game/assets/fixture_registry.cpp;game/expedition/session_events.cpp;game/expedition/session_transactions.cpp;game/assets/cooked_part_bundle.cpp;game/assets/rigid_prefab.cpp;game/assets/gameplay_sidecar.cpp;game/expedition/game_session.cpp;game/expedition/session_recovery.cpp;game/expedition/session_save.cpp;game/expedition/cove_save.cpp;game/expedition/cove_restore.cpp;game/expedition/save_generation.cpp;game/construction/build_refit.cpp;game/construction/build_model.cpp;game/construction/assembly_compiler.cpp;geometry/box_union.cpp;game/construction/assembly_collision.cpp;game/construction/orthogonal_coverage.cpp;game/construction/assembly_buoyancy.cpp;game/construction/assembly_functions.cpp;game/construction/compiled_assembly.cpp;game/construction/assembly_fracture.cpp;game/construction/construction_types.cpp;game/construction/part_catalog.cpp;game/expedition/cove_player.cpp;game/expedition/cove_workshop.cpp;game/expedition/workshop_camera.cpp;game/expedition/cove_build.cpp;game/expedition/cove_boat.cpp;game/expedition/cove_rigid_roots.cpp;game/expedition/cove_harbor_lift.cpp;game/expedition/cove_harbor_runtime.cpp;game/expedition/salvage_preview.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/cove_hud.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/environment_lighting.cpp;render/salvage_asset_fixture.cpp;render/inspection_guides.cpp;render/blit_path.cpp;render/opaque_scene.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/rigid_mass_frame.cpp;physics/authored_body_frame.cpp;physics/authored_shape.cpp;physics/authored_shape_pool.cpp;physics/gpu/gpu_authored_shapes.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/wasm/window.cpp;engine/platform/wasm/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring WASM target: voxy_wasm
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      OFF
+--   WASM build:        ON
+--   Build tools:       OFF
+--   Build tests:       OFF
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (2.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-lego-wasm

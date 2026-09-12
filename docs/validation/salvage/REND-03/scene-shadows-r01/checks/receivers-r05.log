@@ -1,0 +1,39 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [77:38:37.726] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:38:37.726] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:38:37.726] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:38:37.726] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:38:37.728] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:38:37.766] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:38:37.849] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:38:38.724] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=226,217,204 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=67,44,15 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=226,217,204 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=226 shadow=67 moved=226
+  caster=0 rgba=226,217,204 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=67,44,15 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=67,44,15 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=132,127,118 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=218,210,198 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=132,127,118 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=132 shadow=218 moved=132
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:798: Failure
+Expected: (shadowed) < (clear-5), actual: 218 vs 127
+
+  caster=0 rgba=132,127,118 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1074 ms)
+[----------] 1 test from BlitPathTest (1074 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1074 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+
+ 1 FAILED TEST

@@ -97,7 +97,7 @@
         const showError=error=>{status.textContent=error?.name==='QuotaExceededError'?'Storage is full. Your previous design is safe; export a file to keep this design.':String(error?.message||error);};
         const render=()=>{
             const w=state?.workshop,ready=Boolean(state?.ready&&w?.open&&!w.pending&&!state?.busy&&!state?.failed&&!busy&&!stopped);
-            const clean=ready&&!w.changed,has=Boolean(selectedRow());
+            const clean=ready&&(!w.changed||w.brickTool),has=Boolean(selectedRow());
             for(const b of buttons){
                 const action=b.dataset.designAction;
                 b.disabled=!ready||(action==='save-new'&&!clean)||(action==='update'&&(!clean||!has))

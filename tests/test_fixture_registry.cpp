@@ -1,4 +1,5 @@
 #include "game/assets/fixture_registry.hpp"
+#include "core/sha256.hpp"
 
 #include <gtest/gtest.h>
 #include <json.hpp>
@@ -103,7 +104,89 @@ TEST(FixtureRegistry, AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistin
     EXPECT_EQ(base->bundles.size(),9u);EXPECT_EQ(expanded->bundles.size(),12u);
 }
 
+TEST(FixtureRegistry, ToyArtSelectsRenderBundlesWithoutChangingOwnedContent) {
+    std::string error;
+    const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    const auto selected=appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r03.json"),error);
+    ASSERT_TRUE(selected)<<error;
+    ASSERT_EQ(selected->bundles.size(),12u);ASSERT_EQ(selected->renderBundles().size(),12u);
+    EXPECT_EQ(selected->installedRegistryDigest,base->installedRegistryDigest);
+    EXPECT_EQ(selected->registry.navigation->boatPlacements,base->registry.navigation->boatPlacements);
+    EXPECT_EQ(selected->registry.navigation->spawn,base->registry.navigation->spawn);
+    for(size_t i=0;i<base->bundles.size();++i) {
+        EXPECT_EQ(selected->bundles[i],base->bundles[i]);
+        EXPECT_EQ(selected->registry.bundles[i].selection.manifestSha256,base->registry.bundles[i].selection.manifestSha256);
+        if(i<3) {
+            EXPECT_NE(selected->renderBundles()[i],selected->bundles[i]);
+            EXPECT_EQ(selected->renderBundles()[i]->sidecar().part.key,selected->bundles[i]->sidecar().part.key);
+            EXPECT_NE(selected->renderBundles()[i]->lods()[0].asset,selected->bundles[i]->lods()[0].asset);
+        } else EXPECT_EQ(selected->renderBundles()[i],selected->bundles[i]);
+    }
+    for(size_t i=0;i<base->registry.placements.size();++i)
+        EXPECT_EQ(selected->registry.placements[i].placement,base->registry.placements[i].placement);
+    for(size_t i=9;i<12;++i)EXPECT_EQ(selected->renderBundles()[i],selected->bundles[i]);
+    EXPECT_TRUE(base->presentationBundles.empty());
+}
+
 #if defined(__unix__) || defined(__EMSCRIPTEN__)
+TEST(FixtureRegistry, PresentationRejectsChangedGameplaySourceAndGeometryAtomically) {
+    std::string error;
+    const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    char name[]="/tmp/voxys-presentation-XXXXXX";ASSERT_NE(::mkdtemp(name),nullptr);
+    const std::filesystem::path root(name);
+    struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{root};
+    Json source;std::ifstream("data/salvage/cove-workshop-r03.json")>>source;
+    // Isolate the beam presentation. This also checks schema 2 can select art
+    // after a canonical catalogue has already been loaded, with no new parts.
+    source["bundles"]=Json::array();source["presentations"]=Json::array({source["presentations"][1]});
+    const auto directory=source["presentations"][0]["bundle"]["directory"].get<std::string>();
+    const auto package=root/directory;std::filesystem::create_directories(package);
+    for(const auto* file:{"cook-manifest.json","gameplay.json","lod-1.vmesh","lod-2.vmesh","lod-3.vmesh"})
+        std::filesystem::copy_file(std::filesystem::path("data/salvage")/directory/file,package/file);
+    const auto write=[](const std::filesystem::path& path,std::string_view bytes){std::ofstream file(path,std::ios::binary);file.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));};
+    const auto hash=[](std::string_view bytes){return core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))));};
+    const auto selects=[&](const Json& value){write(root/"catalog.json",value.dump());return appendAssetFixtureCatalog(*base,root/"catalog.json",error);};
+    ASSERT_TRUE(selects(source))<<error;
+    const auto refuses=[&](const Json& value,std::string_view message){
+        EXPECT_FALSE(selects(value));EXPECT_NE(error.find(message),std::string::npos)<<error;
+        EXPECT_TRUE(base->presentationBundles.empty());EXPECT_EQ(base->bundles.size(),9u);
+    };
+    auto value=source;value["presentations"][0]["source_manifest_sha256"]=std::string(64,'0');refuses(value,"source");
+    value=source;value["presentations"].push_back(value["presentations"][0]);refuses(value,"duplicate presentation");
+    value=source;value["presentations"][0]["bundle"]["directory"]="../escape";refuses(value,"directory");
+    value=source;value["presentations"][0]["bundle"]["manifest_sha256"]=std::string(64,'0');refuses(value,"SHA256 mismatch");
+    Json metadata,manifest;std::ifstream(package/"gameplay.json")>>metadata;std::ifstream(package/"cook-manifest.json")>>manifest;
+    const auto installMetadata=[&](Json changed){
+        const auto parsed=parseGameplaySidecar(changed.dump(),[](const auto&){return true;},error);
+        if(!parsed)throw std::runtime_error(error);
+        write(package/"gameplay.json",parsed->normalizedJson);
+        auto updated=manifest;updated["normalized_sidecar"]["bytes"]=parsed->normalizedJson.size();
+        updated["normalized_sidecar"]["sha256"]=hash(parsed->normalizedJson);
+        const auto encoded=updated.dump(2)+"\n";write(package/"cook-manifest.json",encoded);
+        auto selection=source;selection["presentations"][0]["bundle"]["manifest_sha256"]=hash(encoded);return selection;
+    };
+    auto changed=metadata;changed["part"]["cost"]["salvage_material"]="13";
+    refuses(installMetadata(changed),"gameplay metadata");
+    changed=metadata;changed["lods"][0]["minimum_screen_height_pixels"]=201;
+    refuses(installMetadata(changed),"LOD identity");
+    changed=metadata;changed["lods"][0]["asset"]=Json::parse(base->bundles[1]->sidecar().normalizedJson)["lods"][0]["asset"];
+    refuses(installMetadata(changed),"unique new visual asset");
+    (void)installMetadata(metadata);
+    // Rehash a valid mesh whose root has moved: byte integrity alone must not
+    // permit art to move away from the owned physical part.
+    std::ifstream input(package/"lod-1.vmesh",std::ios::binary);
+    std::vector<uint8_t> bytes(std::istreambuf_iterator<char>(input),{});moto::VmeshData mesh;
+    ASSERT_TRUE(moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))<<error;
+    ASSERT_FALSE(mesh.nodes.empty());mesh.nodes[0].translation[0]+=.5f;
+    ASSERT_TRUE(moto::writeVmesh(mesh,&bytes,&error))<<error;
+    const std::string encodedMesh(bytes.begin(),bytes.end());write(package/"lod-1.vmesh",encodedMesh);
+    manifest["lods"][0]["bytes"]=bytes.size();manifest["lods"][0]["sha256"]=hash(encodedMesh);
+    const auto encoded=manifest.dump(2)+"\n";write(package/"cook-manifest.json",encoded);
+    value=source;value["presentations"][0]["bundle"]["manifest_sha256"]=hash(encoded);refuses(value,"visual envelope");
+}
+
 TEST(FixtureRegistry, AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically) {
     std::string error;
     const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);

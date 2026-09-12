@@ -1,0 +1,24 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (1 packages loaded, 72 targets configured).
+[374 / 381] Compiling src/game/assets/fixture_registry.cpp; 1s linux-sandbox ... (3 actions running)
+[375 / 381] Compiling tests/test_fixture_registry.cpp; 3s linux-sandbox ... (3 actions, 2 running)
+[380 / 382] Testing //tests:fixture_registry; 0s linux-sandbox ... (2 actions, 1 running)
+[381 / 383] Testing //tests:fixture_registry; 2s linux-sandbox ... (2 actions running)
+[382 / 383] 1 / 2 tests; Testing //tests:fixture_registry; 3s linux-sandbox
+[382 / 383] 2 / 2 tests; Testing //tests:fixture_registry; 12s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 17.630s, Critical Path: 15.89s
+INFO: 10 processes: 373 action cache hit, 2 internal, 8 linux-sandbox.
+INFO: Build completed successfully, 10 total actions
+//tests:fixture_registry                                                 PASSED in 12.3s
+//tests:salvage_asset_fixture                                            PASSED in 2.3s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -1,0 +1,40 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = SceneShadowSources.*:BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SceneShadowSources
+[ RUN      ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade
+[       OK ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade (0 ms)
+[----------] 1 test from SceneShadowSources (0 ms total)
+
+[----------] 1 test from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [77:45:39.965] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:45:39.965] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:45:39.965] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:45:39.965] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:45:39.967] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:45:40.076] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:45:40.157] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:45:41.043] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=196 shadow=37 moved=196
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=191 shadow=181 moved=191
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=84,79,72 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+[       OK ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1167 ms)
+[----------] 1 test from BlitPathTest (1167 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (1167 ms total)
+[  PASSED  ] 2 tests.

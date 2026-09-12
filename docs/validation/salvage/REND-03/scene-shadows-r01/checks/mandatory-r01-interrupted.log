@@ -1,0 +1,81 @@
+Starting local Bazel server (8.5.0) and connecting to it...
+Computing main repo mapping: 
+WARNING: WORKSPACE support will be removed in Bazel 9 (late 2025), please migrate to Bzlmod, see https://bazel.build/external/migration.
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (2 packages loaded, 0 targets configured)
+Analyzing: 2 targets (2 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (120 packages loaded, 1880 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (149 packages loaded, 3925 targets configured).
+[13 / 680] 1 / 2 tests; Compiling src/game/construction/construction_types.cpp; 0s linux-sandbox ... (23 actions running)
+[33 / 680] 1 / 2 tests; Compiling src/game/construction/construction_types.cpp; 1s linux-sandbox ... (24 actions running)
+[79 / 680] 1 / 2 tests; Compiling src/core/config.cpp; 2s linux-sandbox ... (23 actions running)
+[121 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 3s linux-sandbox ... (24 actions running)
+[149 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 4s linux-sandbox ... (24 actions, 23 running)
+[165 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 5s linux-sandbox ... (24 actions running)
+[181 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 6s linux-sandbox ... (23 actions running)
+[196 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 7s linux-sandbox ... (24 actions, 23 running)
+[210 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 8s linux-sandbox ... (24 actions, 23 running)
+[221 / 680] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 9s linux-sandbox ... (24 actions, 23 running)
+[243 / 680] 1 / 2 tests; Compiling src/game/assets/cooked_part_bundle.cpp; 6s linux-sandbox ... (24 actions, 23 running)
+[262 / 680] 1 / 2 tests; Compiling src/game/expedition/session_recovery.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[271 / 680] 1 / 2 tests; Compiling src/game/expedition/session_recovery.cpp; 6s linux-sandbox ... (24 actions, 23 running)
+[291 / 680] 1 / 2 tests; Compiling src/game/expedition/session_recovery.cpp; 7s linux-sandbox ... (24 actions, 23 running)
+[297 / 680] 1 / 2 tests; Compiling src/game/expedition/session_recovery.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[315 / 680] 1 / 2 tests; Compiling src/game/expedition/session_recovery.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[321 / 680] 1 / 2 tests; Compiling src/game/assets/fixture_registry.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[331 / 680] 1 / 2 tests; Compiling src/game/assets/fixture_registry.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[348 / 680] 1 / 2 tests; Compiling src/physics/jolt/jolt_backend.cpp; 8s linux-sandbox ... (24 actions running)
+[359 / 680] 1 / 2 tests; Compiling src/physics/jolt/jolt_backend.cpp; 9s linux-sandbox ... (24 actions running)
+[367 / 680] 1 / 2 tests; Compiling src/physics/jolt/jolt_backend.cpp; 10s linux-sandbox ... (24 actions running)
+[391 / 680] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 3s linux-sandbox ... (24 actions, 23 running)
+[406 / 680] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[427 / 680] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/SixDOFConstraint.cpp; 2s linux-sandbox ... (24 actions, 23 running)
+[441 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 3s linux-sandbox ... (24 actions, 23 running)
+[451 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[464 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 5s linux-sandbox ... (24 actions, 23 running)
+[473 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 6s linux-sandbox ... (24 actions, 23 running)
+[488 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 7s linux-sandbox ... (24 actions, 23 running)
+[504 / 680] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/MeshShape.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[520 / 680] 1 / 2 tests; Compiling src/game/expedition/cove_restore.cpp; 4s linux-sandbox ... (24 actions running)
+[536 / 680] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 4s linux-sandbox ... (24 actions running)
+[544 / 680] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 5s linux-sandbox ... (24 actions running)
+[553 / 680] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 7s linux-sandbox ... (24 actions, 23 running)
+[564 / 680] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[571 / 680] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[579 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 7s linux-sandbox ... (24 actions, 23 running)
+[589 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[596 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[598 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 10s linux-sandbox ... (24 actions running)
+[611 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 11s linux-sandbox ... (24 actions running)
+[614 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions running)
+[617 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions running)
+[623 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions running)
+[628 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions running)
+[629 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions running)
+[630 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 17s linux-sandbox ... (24 actions running)
+[636 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 18s linux-sandbox ... (24 actions running)
+[646 / 680] 1 / 2 tests; Compiling src/app/application.cpp; 19s linux-sandbox ... (24 actions running)
+[652 / 680] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 9s linux-sandbox ... (24 actions running)
+[656 / 680] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 10s linux-sandbox ... (23 actions running)
+[669 / 680] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 11s linux-sandbox ... (10 actions running)
+[677 / 680] 1 / 2 tests; Compiling tests/test_game_session.cpp; 11s linux-sandbox ... (2 actions running)
+[678 / 680] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 13s linux-sandbox
+[679 / 680] 1 / 2 tests; [Prepa] Linking tests/voxy_tests
+[680 / 681] 1 / 2 tests; Testing //tests:voxy_tests; 1s linux-sandbox
+[680 / 681] 1 / 2 tests; Testing //tests:voxy_tests; 11s linux-sandbox
+[680 / 681] 1 / 2 tests; Testing //tests:voxy_tests; 41s linux-sandbox
+
+Bazel caught interrupt signal; cancelling pending invocation.
+
+ERROR: build interrupted
+INFO: Elapsed time: 114.873s, Critical Path: 70.19s
+INFO: 583 processes: 3 internal, 580 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:voxy_tests                                                    NO STATUS
+//tools:terrain_diffusion_import_test                                    PASSED in 0.2s
+
+Executed 1 out of 2 tests: 1 test passes and 1 was skipped.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

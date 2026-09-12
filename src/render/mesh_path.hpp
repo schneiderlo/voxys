@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "render/scene_shadows.hpp"
+
 #include "moto/vmesh.hpp"
 #include "render/environment_lighting.hpp"
 #include "physics/physics_types.hpp"
@@ -142,7 +144,7 @@ public:
     static constexpr uint64_t filteredEnvironmentReservationBytes = 1228944u;
     static constexpr uint32_t sunShadowResolution = 1024u;
     static constexpr uint64_t sunShadowReservationBytes =
-        uint64_t(sunShadowResolution) * sunShadowResolution * 4u + 80u;
+        uint64_t(sunShadowResolution) * sunShadowResolution * 4u + sizeof(SunShadowUniforms);
     [[nodiscard]] uint32_t environmentBakeCount() const noexcept { return environmentBakeCount_; }
     [[nodiscard]] bool environmentLightingReady() const noexcept { return filteredEnvironmentReady_; }
 
@@ -157,7 +159,8 @@ public:
                 WGPUTextureView depthView, const glm::mat4& view,
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
                 const PrimitiveLighting& lighting, uint32_t width,
-                uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput = nullptr);
+                uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput = nullptr,
+                SceneShadowConsumer beforeColor = {}, glm::vec3 shadowFrameWorldOrigin = {});
 
 private:
     WGPUTexture sunShadowTexture_ = nullptr;

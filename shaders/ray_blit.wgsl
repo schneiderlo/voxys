@@ -1,3 +1,45 @@
+// BEGIN GENERATED SCENE SUN SHADOW
+struct SunShadowUniforms {
+    viewProj: mat4x4<f32>,
+    // enabled, world metres per texel, inverse depth range, reserved
+    params: vec4<f32>,
+    // Absolute origin of the camera-sector frame used by mesh casters.
+    worldOrigin: vec4<f32>,
+};
+@group(1) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
+@group(1) @binding(1) var sunDepth: texture_depth_2d;
+@group(1) @binding(2) var sunSampler: sampler_comparison;
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    if (sunShadow.params.x < 0.5) { return 1.0; }
+    // Use geometric normals for bias: normal-map grain must not move shadows.
+    let slope = 1.0 - abs(dot(geometricNormal, light));
+    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
+    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+    if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
+        return 1.0;
+    }
+    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
+    let reference = clip.z - 0.003 * sunShadow.params.z;
+    var visibility = 0.0;
+    for (var y = -1; y <= 1; y += 1) {
+        for (var x = -1; x <= 1; x += 1) {
+            visibility += textureSampleCompareLevel(sunDepth, sunSampler,
+                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+        }
+    }
+    // A local map fades at its border instead of following the camera as a hard edge.
+    let edge = max(abs(clip.x), abs(clip.y));
+    let fade = smoothstep(0.80, 0.98, edge);
+    return mix(visibility / 9.0, 1.0, fade);
+}
+
+fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    return sunVisibility(worldPosition - sunShadow.worldOrigin.xyz, geometricNormal, light);
+}
+// END GENERATED SCENE SUN SHADOW
+
 // BEGIN GENERATED LEGO SURFACE
 // Canonical LEGO geometry. Generated into standalone shader modules by
 // scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
@@ -2393,7 +2435,7 @@ fn backgroundSky(pixel : vec2<i32>, dims : vec2<u32>) -> vec3<f32> {
 }
 
 fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
-                     depthCenter : f32) -> vec3<f32> {
+                     depthCenter : f32, objectSunVisibility : f32) -> vec3<f32> {
     let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
     let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
     let ndcCenter = ndcFromPixel(pixel, dimsF);
@@ -2475,9 +2517,11 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     normal = worldNormalToView(surface.normal);
     let lightVisibility = textureSampleLevel(
         lightmapTex, terrainSampler, terrainUv, 0.0).x;
-    let shadow = textureLoad(shadowTex, pixel, 0).x;
+    let terrainSunVisibility = textureLoad(shadowTex, pixel, 0).x;
+    let shadow = terrainSunVisibility * objectSunVisibility;
     let light = camera.lightDirVS.xyz;
-    let diffuse = max(dot(normal, light), 0.0) * shadow;
+    let baseDiffuse = max(dot(normal, light), 0.0) * terrainSunVisibility;
+    let diffuse = baseDiffuse * objectSunVisibility;
     let ambient = max(camera.lightDirVS.w, 0.05);
     let view = normalize(-posCenterView);
     let specular = terrainSpecular(
@@ -2486,7 +2530,7 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     let warmLight = vec3<f32>(1.10, 0.96, 0.84);
     let coolShadow = vec3<f32>(0.90, 0.96, 1.02);
     let grade = mix(coolShadow, warmLight,
-        clamp(diffuse * lightVisibility + 0.35, 0.0, 1.0));
+        clamp(baseDiffuse * lightVisibility + 0.35, 0.0, 1.0));
     let lit = surface.albedo *
         (diffuse * lightVisibility * sunRadiance() + ambient * ambientTint()) *
         grade + specular * sunRadiance();
@@ -2522,7 +2566,36 @@ fn fsBackground(i : VSOut) -> @location(0) vec4<f32> {
     if (depth < 0.0) {
         return vec4<f32>(backgroundSky(pixel, dims), 1.0);
     }
-    return vec4<f32>(backgroundTerrain(pixel, dims, depth), 1.0);
+    return vec4<f32>(backgroundTerrain(pixel, dims, depth, 1.0), 1.0);
+}
+
+struct SceneTerrainOutput {
+    @location(0) color : vec4<f32>,
+    @location(1) depth : f32,
+};
+
+// The static HDR/depth caches are sampled only. Re-evaluate the existing
+// material lighting only where the current object map removes sunlight.
+@fragment
+fn fsSceneTerrain(i : VSOut) -> SceneTerrainOutput {
+    let dims = textureDimensions(depthTex, 0);
+    let pixel = clamp(vec2<i32>(floor(i.uv * vec2<f32>(dims))), vec2<i32>(0), vec2<i32>(dims) - 1);
+    let depth = textureLoad(depthTex, pixel, 0).x;
+    var output = SceneTerrainOutput(textureLoad(backgroundTex, pixel, 0), depth);
+    if (depth > 0.0) {
+        let posView = viewPosFromDepth(camera.invProjParams.xy, ndcFromPixel(pixel, vec2<f32>(dims)), depth);
+        let position = viewToWorld(camera.invView, posView);
+        // The ray material stores the exact terrain/stud normal. Up is the
+        // conservative bias fallback for older producers lacking that normal.
+        let supplied = textureLoad(materialTex, pixel, 0).xyz;
+        var normal = vec3<f32>(0, 1, 0);
+        if (dot(supplied, supplied) > 0.5) { normal = normalize(supplied); }
+        let visibility = sceneSunVisibility(position, normal, normalize(camera.lightDirWS.xyz));
+        if (visibility < 1.0) {
+            output.color = vec4<f32>(backgroundTerrain(pixel, dims, depth, visibility), 1.0);
+        }
+    }
+    return output;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3382,4 +3455,3 @@ fn fsFused(i : VSOut) -> FusedFragmentOutput {
     output.color = vec4<f32>(presented, 1.0);
     return output;
 }
-

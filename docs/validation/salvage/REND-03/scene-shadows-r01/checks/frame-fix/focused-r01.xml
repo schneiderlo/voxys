@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="7" failures="0" disabled="0" errors="0" time="3.011" timestamp="2026-09-11T23:35:11.983" name="AllTests">
+  <testsuite name="SceneShadowSources" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-11T23:35:11.983">
+    <testcase name="AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_shader_blit.cpp" line="23" status="run" result="completed" time="0." timestamp="2026-09-11T23:35:11.983" classname="SceneShadowSources" />
+  </testsuite>
+  <testsuite name="BlitPathTest" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="2.795" timestamp="2026-09-11T23:35:11.984">
+    <testcase name="SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp" line="378" status="run" result="completed" time="1.647" timestamp="2026-09-11T23:35:11.984" classname="BlitPathTest" />
+    <testcase name="MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp" line="675" status="run" result="completed" time="1.147" timestamp="2026-09-11T23:35:13.631" classname="BlitPathTest" />
+  </testsuite>
+  <testsuite name="MeshPathGPUTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.063" timestamp="2026-09-11T23:35:14.779">
+    <testcase name="LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="302" status="run" result="completed" time="0.063" timestamp="2026-09-11T23:35:14.779" classname="MeshPathGPUTest" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.152" timestamp="2026-09-11T23:35:14.843">
+    <testcase name="FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="363" status="run" result="completed" time="0.041" timestamp="2026-09-11T23:35:14.843" classname="FixtureGPU" />
+    <testcase name="CoveToyArtFitsExistingOwnerAndDrawLimits" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="413" status="run" result="completed" time="0.082" timestamp="2026-09-11T23:35:14.884" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="855700"/>
+        <property name="bundleGpuBytes4" value="763852"/>
+        <property name="bundleGpuBytes5" value="1785504"/>
+        <property name="bundleGpuBytes6" value="2097312"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="14522896"/>
+        <property name="ownerGpuBytes" value="14522896"/>
+        <property name="colorDraws" value="69"/>
+      </properties>
+    </testcase>
+    <testcase name="RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="654" status="run" result="completed" time="0.028" timestamp="2026-09-11T23:35:14.967" classname="FixtureGPU" />
+  </testsuite>
+</testsuites>

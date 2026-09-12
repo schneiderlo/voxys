@@ -1,0 +1,149 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_hud (1 packages loaded, 132 targets configured).
+[552 / 556] Compiling src/app/application.cpp; 1s linux-sandbox
+[553 / 556] [Prepa] Linking src/app/libapp.so
+FAIL: //tests:cove_hud (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_hud/test.log)
+INFO: From Testing //tests:cove_hud:
+==================== Test output for //tests:cove_hud:
+Running main() from gmock_main.cc
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveHud
+[ RUN      ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear
+[       OK ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear (0 ms)
+[ RUN      ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[       OK ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking (0 ms)
+[ RUN      ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts
+[       OK ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts (1 ms)
+[----------] 3 tests from CoveHud (1 ms total)
+
+[----------] 1 test from CoveHudGpu
+[ RUN      ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [02:52:21.441] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [02:52:21.441] [GPU]   Vendor: radv
+[INFO ] [02:52:21.441] [GPU]   Backend: Vulkan
+[INFO ] [02:52:21.441] [GPU]   Type: Integrated GPU
+[INFO ] [02:52:21.443] [GPU] Headless GPU context initialized successfully
+[ERROR] [02:52:21.447] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuDeviceCreateShaderModule, label = 'cove_hud_shader'
+    
+Shader validation error: 
+   ┌─ cove_hud_shader:13:11
+   │
+13 │     let p=corners[index];
+   │           ^^^^^^^^^^^^^^ naga::Expression [23]
+
+
+      Entry point vs at Vertex is invalid
+        Expression [23] is invalid
+          The expression [22] may only be indexed by a constant
+
+[ERROR] [02:52:21.448] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuDeviceCreateRenderPipeline, label = 'cove_hud_pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader module is invalid
+
+[ERROR] [02:52:21.448] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuRenderPassEncoderSetPipeline
+    In a set_pipeline command
+      Render pipeline Id(0,1,vk) is invalid
+
+[ERROR] [02:52:21.448] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuRenderPassEncoderEnd
+    In a draw command, kind: Draw
+      Render pipeline must be set
+
+[ERROR] [02:52:21.449] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuRenderPassEncoderSetPipeline
+    In a set_pipeline command
+      Render pipeline Id(0,1,vk) is invalid
+
+[ERROR] [02:52:21.449] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuRenderPassEncoderEnd
+    In a draw command, kind: Draw
+      Render pipeline must be set
+
+[ERROR] [02:52:21.449] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Command encoder is invalid
+
+[ERROR] [02:52:21.449] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderFinish
+    Command encoder is invalid
+
+tests/test_cove_hud.cpp:133: Failure
+Expected: (textPixels) > (1000u), actual: 0 vs 1000
+
+tests/test_cove_hud.cpp:133: Failure
+Expected: (accentPixels) > (300u), actual: 0 vs 300
+
+tests/test_cove_hud.cpp:135: Failure
+The difference between untouched[0] and 51 is 51, which exceeds 1, where
+untouched[0] evaluates to 0,
+51 evaluates to 51, and
+1 evaluates to 1.
+
+tests/test_cove_hud.cpp:135: Failure
+The difference between untouched[1] and 102 is 102, which exceeds 1, where
+untouched[1] evaluates to 0,
+102 evaluates to 102, and
+1 evaluates to 1.
+
+tests/test_cove_hud.cpp:135: Failure
+The difference between untouched[2] and 153 is 153, which exceeds 1, where
+untouched[2] evaluates to 0,
+153 evaluates to 153, and
+1 evaluates to 1.
+
+tests/test_cove_hud.cpp:136: Failure
+Expected equality of these values:
+  errors->load()
+    Which is: 8
+  0u
+    Which is: 0
+
+[  FAILED  ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak (54 ms)
+[----------] 1 test from CoveHudGpu (54 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (55 ms total)
+[  PASSED  ] 3 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:cove_hud up-to-date:
+  bazel-bin/tests/cove_hud
+INFO: Elapsed time: 9.659s, Critical Path: 7.91s
+INFO: 6 processes: 551 action cache hit, 2 internal, 4 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 6 total actions
+//tests:cove_hud                                                         FAILED in 0.1s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_hud/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

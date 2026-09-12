@@ -1,0 +1,308 @@
+[  0%] Built target miniz
+[  9%] Built target libzstd_static
+[ 13%] Built target tinygltf
+[ 24%] Built target box3d
+[ 59%] Built target Jolt
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/log.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/context.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/stb_impl.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/config.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/context_surface.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/core/config.cpp:90:6: warning: variable 'initialized' set but not used [-Wunused-but-set-global]
+   90 | bool initialized = false;
+      |      ^
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/resources.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/cooked_part_directory.cpp.o
+1 warning generated.
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/fixture_registry.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/session_events.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/session_transactions.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/cooked_part_bundle.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/rigid_prefab.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/gameplay_sidecar.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/game_session.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/session_recovery.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/session_save.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_save.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_restore.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/save_generation.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/build_refit.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_restore.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_restore.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_build.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/build_model.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/assembly_compiler.cpp.o
+1 warning generated.
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/geometry/box_union.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/assembly_collision.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/orthogonal_coverage.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/assembly_buoyancy.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/assembly_functions.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/compiled_assembly.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/assembly_fracture.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/construction_types.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/part_catalog.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_player.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_workshop.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/workshop_camera.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_build.cpp.o
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_boat.cpp.o
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_rigid_roots.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_workshop.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_workshop.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_build.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_build.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:249:105: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  249 |             input.originVelocity={motion.originVelocity.x,motion.originVelocity.y,motion.originVelocity.z};
+      |                                   ~~~~~~                                          ~~~~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:249:81: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  249 |             input.originVelocity={motion.originVelocity.x,motion.originVelocity.y,motion.originVelocity.z};
+      |                                   ~~~~~~                  ~~~~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:249:57: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  249 |             input.originVelocity={motion.originVelocity.x,motion.originVelocity.y,motion.originVelocity.z};
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:250:109: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  250 |             input.angularVelocity={motion.angularVelocity.x,motion.angularVelocity.y,motion.angularVelocity.z};
+      |                                    ~~~~~~                                            ~~~~~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:250:84: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  250 |             input.angularVelocity={motion.angularVelocity.x,motion.angularVelocity.y,motion.angularVelocity.z};
+      |                                    ~~~~~~                   ~~~~~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_rigid_roots.cpp:250:59: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  250 |             input.angularVelocity={motion.angularVelocity.x,motion.angularVelocity.y,motion.angularVelocity.z};
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~^
+7 warnings generated.
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_harbor_lift.cpp.o
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_harbor_runtime.cpp.o
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/salvage_preview.cpp.o
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_authority_bridge.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/salvage_preview.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/salvage_preview.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_movement.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_authority_bridge.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_authority_bridge.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_step.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_harbor_lift.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_harbor_lift.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_harbor_runtime.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_harbor_runtime.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_harbor_lift.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_content_manifest.cpp.o
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_live_world.cpp.o
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_match.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_step.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_step.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_replay.cpp.o
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_replay_playback.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_live_world.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_live_world.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_vessel_damage.cpp.o
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/structural_assembly.cpp.o
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/platform_parity.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_vessel_damage.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_vessel_damage.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_vessel_damage.cpp:317:44: warning: implicit conversion increases floating-point precision: 'float' to 'long double' [-Wdouble-promotion]
+  317 |             saturatingMilliImpulse(config_.edgeBreakImpulse);
+      |             ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~^~~~~~~~~~~~~~~~
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/vertical_slices.cpp.o
+2 warnings generated.
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/water_dynamics.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/moto/bike.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/moto/race.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/moto/session.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/moto/vmesh_io.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/moto/world.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/heightmap.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/authored_cove.cpp.o
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/compression.cpp.o
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/mip_generator.cpp.o
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/textures.cpp.o
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/shadow_bake.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/voxel/svo_buffers.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/render/cove_hud.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/render/triangle_path.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/render/mip_pipeline.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:10: error: cannot initialize a member subobject of type 'WGPUChainedStruct *' (aka 'struct WGPUChainedStruct *') with an rvalue of type 'WGPUVertexFormat'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:37: error: cannot initialize a member subobject of type 'WGPUVertexFormat' (aka 'enum WGPUVertexFormat') with an rvalue of type 'int'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:43: error: cannot initialize a member subobject of type 'WGPUChainedStruct *' (aka 'struct WGPUChainedStruct *') with an rvalue of type 'WGPUVertexFormat'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:70: error: cannot initialize a member subobject of type 'WGPUVertexFormat' (aka 'enum WGPUVertexFormat') with an rvalue of type 'int'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |                                                                      ^~
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:77: error: cannot initialize a member subobject of type 'WGPUChainedStruct *' (aka 'struct WGPUChainedStruct *') with an rvalue of type 'WGPUVertexFormat'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |                                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/render/cove_hud.cpp:144:104: error: cannot initialize a member subobject of type 'WGPUVertexFormat' (aka 'enum WGPUVertexFormat') with an rvalue of type 'int'
+  144 |         {WGPUVertexFormat_Float32x4,0,0},{WGPUVertexFormat_Float32x4,16,1},{WGPUVertexFormat_Float32x4,32,2}}};
+      |                                                                                                        ^~
+6 errors generated.
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:989: src/CMakeFiles/voxy_core.dir/render/cove_hud.cpp.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [CMakeFiles/Makefile2:701: src/CMakeFiles/voxy_core.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:319: CMakeFiles/voxy_wasm.dir/rule] Error 2
+make: *** [Makefile:170: voxy_wasm] Error 2

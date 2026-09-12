@@ -1,0 +1,30 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [77:33:38.447] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:33:38.447] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:33:38.447] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:33:38.447] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:33:38.449] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:33:38.501] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:33:38.584] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:33:39.460] [BlitPath::init] BlitPath initialized successfully[0m
+[31m[ERROR] [77:33:39.461] Texture upload extent 1x1 exceeds mip 0 extent 1x1[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:713: Failure
+Value of: upload(waves,flatWave,1,1,i)
+  Actual: false
+Expected: true
+
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1060 ms)
+[----------] 1 test from BlitPathTest (1060 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1060 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+
+ 1 FAILED TEST

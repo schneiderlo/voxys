@@ -1,0 +1,59 @@
+[  0%] Built target miniz
+[  0%] Built target tinygltf
+[  8%] Built target libzstd_static
+[ 23%] Built target box3d
+[ 23%] Built target wreckwater_build_content_header
+[ 23%] Refreshing native shaders and launch configs
+[ 57%] Built target Jolt
+[ 57%] Built target voxy_native_runtime_files
+[ 57%] Building CXX object src/CMakeFiles/voxy_core.dir/render/salvage_asset_fixture.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/voxy_core.dir/render/blit_path.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/voxy_core.dir/render/mesh_path.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:781:28: error: ‘voxy::render::SceneShadowConsumer’ has not been declared
+  781 |                            render::SceneShadowConsumer beforeColor = {});
+      |                            ^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5036:6: error: no declaration matches ‘bool voxy::Application::renderSalvageAsset(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&, WGPUTextureView, voxy::render::SceneShadowConsumer)’
+ 5036 | bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+      |      ^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:779:10: note: candidate is: ‘bool voxy::Application::renderSalvageAsset(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&, WGPUTextureView, int)’
+  779 |     bool renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+      |          ^~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:444:7: note: ‘class voxy::Application’ defined here
+  444 | class Application {
+      |       ^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp: In lambda function:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5276:87: error: cannot convert ‘voxy::render::SceneShadowConsumer’ to ‘int’
+ 5276 |             return draw.app->renderSalvageAsset(commands, color, *draw.ticket, depth, background);
+      |                                                                                       ^~~~~~~~~~
+      |                                                                                       |
+      |                                                                                       voxy::render::SceneShadowConsumer
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:781:56: note: initializing argument 5 of ‘bool voxy::Application::renderSalvageAsset(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&, WGPUTextureView, int)’
+  781 |                            render::SceneShadowConsumer beforeColor = {});
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp: In member function ‘bool voxy::Application::renderRaycastPath(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&)’:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5273:25: error: cannot convert ‘voxy::Application::renderRaycastPath(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&)::<lambda(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)>’ to ‘bool (*)(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)’ {aka ‘bool (*)(void*, WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer)’} in assignment
+ 5273 |         opaque.encode = [](void* opaqueContext, WGPUCommandEncoder commands,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                         |
+      |                         voxy::Application::renderRaycastPath(WGPUCommandEncoder, WGPUTextureView, voxy::render::SalvageFixtureTicket&)::<lambda(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)>
+ 5274 |                            WGPUTextureView color, WGPUTextureView depth, render::SceneShadowConsumer background) {
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 5275 |             auto& draw = *static_cast<DrawContext*>(opaqueContext);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 5276 |             return draw.app->renderSalvageAsset(commands, color, *draw.ticket, depth, background);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 5277 |         };
+      |         ~                
+[ 57%] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:6:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:781:28: error: ‘voxy::render::SceneShadowConsumer’ has not been declared
+  781 |                            render::SceneShadowConsumer beforeColor = {});
+      |                            ^~~~~~
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:2039: src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:2011: src/CMakeFiles/voxy_core.dir/app/application.cpp.o] Error 1
+make[2]: *** [CMakeFiles/Makefile2:2112: src/CMakeFiles/voxy_core.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:629: CMakeFiles/voxy_native.dir/rule] Error 2
+make: *** [Makefile:192: voxy_native] Error 2

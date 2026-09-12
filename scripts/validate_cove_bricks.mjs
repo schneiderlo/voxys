@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 export async function validateCoveBricks(call,directory) {
     await mkdir(directory,{recursive:true});
+    const continuous=process.env.VOXY_SMOKE_CONTINUOUS_BRICKS==='1';
     const expression='JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json()))';
     const evaluate=async expression=>{
         const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
@@ -75,9 +76,9 @@ export async function validateCoveBricks(call,directory) {
     };
 
     const report={status:'running',kind:'Eight actual bricks, pointer placement, rotation, undo, launch and reload; no images',stages:[]};
-    const record=async name=>{const state=await read();assert.equal(state.failed,false);assert.equal(state.terrainSurface,'lego');
+    const record=async (name,extra={})=>{const state=await read();assert.equal(state.failed,false);assert.equal(state.terrainSurface,'lego');
         assert.deepEqual(await evaluate('globalThis.voxyUncapturedGpuErrors||[]'),[]);
-        report.stages.push({name,state});await writeFile(`${directory}/summary.json`,JSON.stringify(report,null,2));return state;};
+        report.stages.push({name,state,...extra});await writeFile(`${directory}/summary.json`,JSON.stringify(report,null,2));return state;};
     const project=async point=>{
         const s=await read(),m=s.camera.viewProjection;
         assert.equal(m?.length,16,'read-only view projection is required');
@@ -116,7 +117,7 @@ export async function validateCoveBricks(call,directory) {
             await click('salvage-pause');await wait(s=>s.pause.phase==='running','resume button');
             await click('salvage-workshop-toggle');await wait(s=>s.workshop.open,'restored workshop');
             const geometry=w=>JSON.stringify([w.name,w.placement,w.rotation]);
-            const expected=prior.stages.filter(s=>s.name.startsWith('placed-brick-')).map(s=>geometry(s.state.workshop));
+            const expected=prior.stages.filter(s=>s.name.startsWith('placed-brick-')).map(s=>geometry(s.placedBrick||s.state.workshop));
             const actual=[];
             for(let i=0;i<18;++i){const w=(await read()).workshop;if(w.name.startsWith('Brick '))actual.push(geometry(w));await click('workshop-next');}
             assert.deepEqual(actual.sort(),expected.sort());await record('resumed-exact-brick-layout');
@@ -132,11 +133,40 @@ export async function validateCoveBricks(call,directory) {
             await click('workshop-next');
         await wait(s=>s.workshop.name==='Cargo cradle','select cargo cradle');
         await click('workshop-remove');await click('workshop-keep');await wait(s=>s.workshop.parts===10&&!s.workshop.changed,'clear the cargo deck');
-        let previous,cost=0;const sizes=['2x4','2x2','1x2','2x4','2x2','1x2','2x2','1x2'];
+        let previous,cost=0,palettePicks=0;
+        const sizes=continuous?['2x4','2x4','2x4','2x2','2x2','1x2','1x2','1x2']
+            :['2x4','2x2','1x2','2x4','2x2','1x2','2x2','1x2'];
         for(let i=0;i<sizes.length;++i) {
-            await click('workshop-brick-'+sizes[i]);await wait(s=>s.workshop.changed&&s.workshop.pointerPlacement,'palette creates ghost');
+            if(!continuous||i===0||sizes[i]!==sizes[i-1]) {
+                await click('workshop-brick-'+sizes[i]);palettePicks++;
+            }
+            await wait(s=>s.workshop.changed&&s.workshop.pointerPlacement,'brick tool has a ghost');
             cost+=Number((await read()).workshop.partCost);
-            if(i===2){await click('workshop-rotate');}
+            if(i===2){
+                const beforeRotation=(await read()).workshop.rotation;
+                // Capture real event targets and button geometry. A changing
+                // ghost status must not move Rotate between press and release.
+                await evaluate(`(()=>{
+                    const events=[],observe=event=>{
+                        const button=document.getElementById('workshop-rotate'),r=button.getBoundingClientRect();
+                        events.push({type:event.type,target:event.target.id||event.target.tagName,
+                            x:event.clientX,y:event.clientY,rectangle:{x:r.x,y:r.y,width:r.width,height:r.height},
+                            rotation:JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json())).workshop.rotation});
+                    };
+                    for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,observe,true);
+                    globalThis.voxyFinishRotateObservation=()=>{
+                        for(const type of ['pointerdown','pointerup','click'])document.removeEventListener(type,observe,true);
+                        delete globalThis.voxyFinishRotateObservation;return events;
+                    };
+                })()`);
+                try {
+                    await click('workshop-rotate');
+                    await wait(s=>s.workshop.rotation!==beforeRotation,'Rotate click changes the ghost orientation');
+                } finally {
+                    (report.rotationControls??=[]).push({beforeRotation,events:await evaluate('voxyFinishRotateObservation()'),
+                        afterRotation:(await read()).workshop.rotation});
+                }
+            }
             if(previous){const before=(await read()).assetFixture.submittedSerial;await click('workshop-frame');await frames(before);}
             // Aim through the solid top of the supporting brick. A point at
             // stud-cap height can sit over the gap between studs and miss.
@@ -157,10 +187,25 @@ export async function validateCoveBricks(call,directory) {
             const ghost=(await read()).workshop;
             if(previous)assert.equal(ghost.placement[1],previous.placement[1]+48,'engaged stack height');
             if(i===2)assert.notEqual(ghost.rotation,previous.rotation,'upper brick rotated relative to support');
-            await mouse(p);await wait(s=>!s.workshop.changed&&s.workshop.parts===11+i,'click keeps brick '+i);
-            previous=(await read()).workshop;
+            await mouse(p);
+            if(continuous) {
+                await wait(s=>s.workshop.brickTool&&s.workshop.placedBricks===i+1
+                    &&s.workshop.placedParts===11+i,'click keeps a brick and creates the next preview');
+            } else {
+                await wait(s=>s.workshop.brickTool?s.workshop.placedBricks===i+1:!s.workshop.changed,
+                    'click keeps brick '+i);
+                if((await read()).workshop.brickTool)await click('workshop-select');
+                await wait(s=>!s.workshop.changed&&s.workshop.parts===11+i,'selection after placement');
+            }
+            previous=ghost;
             assert.equal((await read()).session.inventory.salvageMaterial,'48','preview spends nothing');
-            await record('placed-brick-'+(i+1));
+            await record('placed-brick-'+(i+1),{placedBrick:{name:ghost.name,placement:ghost.placement,rotation:ghost.rotation}});
+        }
+        if(continuous) {
+            assert.equal(palettePicks,3,'eight placements need only three type choices');
+            await click('workshop-select');
+            await wait(s=>s.workshop.open&&!s.workshop.brickTool&&!s.workshop.changed&&s.workshop.parts===18,'Select discards only the unused ghost');
+            await record('continuous-tool-stopped',{palettePicks});
         }
         const design=await blueprint();assert(design.startsWith('53564250'));report.design=design;
         await click('workshop-lower');await wait(s=>s.workshop.changed&&!s.workshop.valid,'overlap is refused');
@@ -169,6 +214,11 @@ export async function validateCoveBricks(call,directory) {
         await click('workshop-remove');await click('workshop-keep');await wait(s=>s.workshop.parts===17&&!s.workshop.changed,'remove upper brick');
         await click('workshop-undo');await wait(s=>s.workshop.parts===18,'undo brick removal');assert.equal(await blueprint(),design);
         await record('overlap-refused-and-remove-undone');
+        if(continuous) {
+            await click('workshop-brick-2x4');await wait(s=>s.workshop.brickTool&&s.workshop.parts===19,'unused preview before Launch');
+            assert.equal(await blueprint(),design,'export contains only placed bricks');
+            await record('unused-preview-before-launch');
+        }
         await click('workshop-launch');await wait(s=>!s.workshop.open&&!s.workshop.pending&&s.boat.parts===18,'physical brick launch');
         const launched=await record('launched-eight-bricks');assert.equal(launched.boat.paidPartIds.length,8);
         assert.equal(launched.session.inventory.salvageMaterial,String(48-cost));

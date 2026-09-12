@@ -45,6 +45,8 @@ struct SalvageFixtureFrame {
     uint32_t width = 0;
     uint32_t height = 0;
     WGPUTextureView linearDepthOutput = nullptr; // Required only by the HDR opaque path.
+    SceneShadowConsumer beforeColor{};
+    glm::vec3 shadowFrameWorldOrigin{0.0f}; // Explicit absolute origin of the mesh/caster coordinate frame.
     bool useRayDepth = false;
     InspectionGuides guides = InspectionGuides::Off;
     physics::PhysicsRenderView physics{};
@@ -104,7 +106,10 @@ public:
     static constexpr uint32_t maximumExpandedDraws = 512; // Per model or guide path.
     // Model and X-ray paths each reserve 512 * 96-byte instances, 160-byte
     // uniforms, two 1x1 2D fallbacks and one 1x1 cube, plus the 1936-byte guide:
-    // 100624 requested bytes fit. The independent paths can each draw 512;
+    // 100624 base requested bytes plus both paths' 64-byte body fallbacks,
+    // 32-byte body cameras, 96-byte shadow uniforms and 1-texel fallback maps
+    // total 101016 bytes. Live shadow storage is additionally charged below.
+    // The independent paths can each draw 512;
     // guides do not consume the model path's already reserved capacity.
     // Conservative requested-storage reservation, not driver working set.
     static constexpr uint64_t fixedGpuReservationBytes = 128ull * 1024ull;

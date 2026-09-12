@@ -1,0 +1,29 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_hud
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveHud
+[ RUN      ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear
+[       OK ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear (0 ms)
+[ RUN      ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[       OK ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking (0 ms)
+[ RUN      ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts
+[       OK ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts (1 ms)
+[----------] 3 tests from CoveHud (1 ms total)
+
+[----------] 1 test from CoveHudGpu
+[ RUN      ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [02:52:53.665] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:52:53.665] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:52:53.665] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:52:53.665] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:52:53.666] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak (58 ms)
+[----------] 1 test from CoveHudGpu (59 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (60 ms total)
+[  PASSED  ] 4 tests.

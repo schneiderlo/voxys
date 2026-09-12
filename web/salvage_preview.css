@@ -84,7 +84,9 @@
 #salvage-preview[data-workshop="true"] #salvage-scope { display: none; }
 #salvage-preview[data-workshop="true"] #salvage-workshop-stock { font-weight: 600; margin: 10px 0 0; }
 #salvage-preview[data-workshop="true"] #salvage-workshop-part { font-weight: 650; }
-#salvage-preview[data-workshop="true"] #salvage-workshop-status { padding: 0; margin: 5px 0 10px; }
+/* Ghost validity can change between pointer press and release. Keep the
+   controls below it still; longer explanations remain scrollable. */
+#salvage-preview[data-workshop="true"] #salvage-workshop-status { padding: 0; margin: 5px 0 10px; height: 3lh; overflow-y: auto; scrollbar-gutter: stable; }
 #salvage-preview[data-workshop="true"] #salvage-workshop button { margin: 0; }
 #salvage-preview[data-workshop="true"] #workshop-launch { width: 100%; margin-top: 9px; padding: 11px; }
 #salvage-preview[data-workshop="true"] .workshop-bricks { gap: 6px; }

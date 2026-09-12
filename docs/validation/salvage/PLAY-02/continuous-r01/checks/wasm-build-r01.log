@@ -1,0 +1,23 @@
+[  0%] Built target miniz
+[  2%] Built target tinygltf
+[ 10%] Built target libzstd_static
+[ 24%] Built target box3d
+[ 59%] Built target Jolt
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/context.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/log.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/config.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/core/stb_impl.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/gpu/context.cpp:5:
+/home/modkin/workspace/schneiderlo/voxys/src/gpu/context.hpp:21:14: fatal error: 'webgpu/webgpu.h' file not found
+   21 |     #include <webgpu/webgpu.h>
+      |              ^~~~~~~~~~~~~~~~~
+1 error generated.
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:121: src/CMakeFiles/voxy_core.dir/gpu/context.cpp.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+/home/modkin/workspace/schneiderlo/voxys/src/core/config.cpp:90:6: warning: variable 'initialized' set but not used [-Wunused-but-set-global]
+   90 | bool initialized = false;
+      |      ^
+1 warning generated.
+make[2]: *** [CMakeFiles/Makefile2:701: src/CMakeFiles/voxy_core.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:319: CMakeFiles/voxy_wasm.dir/rule] Error 2
+make: *** [Makefile:170: voxy_wasm] Error 2

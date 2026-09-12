@@ -1,3 +1,45 @@
+// BEGIN GENERATED SCENE SUN SHADOW
+struct SunShadowUniforms {
+    viewProj: mat4x4<f32>,
+    // enabled, world metres per texel, inverse depth range, reserved
+    params: vec4<f32>,
+    // Absolute origin of the camera-sector frame used by mesh casters.
+    worldOrigin: vec4<f32>,
+};
+@group(2) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
+@group(2) @binding(1) var sunDepth: texture_depth_2d;
+@group(2) @binding(2) var sunSampler: sampler_comparison;
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    if (sunShadow.params.x < 0.5) { return 1.0; }
+    // Use geometric normals for bias: normal-map grain must not move shadows.
+    let slope = 1.0 - abs(dot(geometricNormal, light));
+    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
+    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+    if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
+        return 1.0;
+    }
+    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
+    let reference = clip.z - 0.003 * sunShadow.params.z;
+    var visibility = 0.0;
+    for (var y = -1; y <= 1; y += 1) {
+        for (var x = -1; x <= 1; x += 1) {
+            visibility += textureSampleCompareLevel(sunDepth, sunSampler,
+                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
+        }
+    }
+    // A local map fades at its border instead of following the camera as a hard edge.
+    let edge = max(abs(clip.x), abs(clip.y));
+    let fade = smoothstep(0.80, 0.98, edge);
+    return mix(visibility / 9.0, 1.0, fade);
+}
+
+fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    return sunVisibility(worldPosition - sunShadow.worldOrigin.xyz, geometricNormal, light);
+}
+// END GENERATED SCENE SUN SHADOW
+
 // BEGIN GENERATED AUTHORED GEOMETRY
 // Authored shape heap format 1. The including pipeline declares
 // var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
@@ -238,14 +280,6 @@ struct LiveBodyCamera { sector: vec4<i32>, local: vec4<f32> };
 @group(1) @binding(3) var<storage,read> authored_shape_heap: array<vec4<u32>>;
 @group(1) @binding(4) var<uniform> live_camera: LiveBodyCamera;
 
-struct SunShadowUniforms {
-    viewProj: mat4x4<f32>,
-    // enabled, world metres per texel, inverse depth range, reserved
-    params: vec4<f32>,
-};
-@group(2) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
-@group(2) @binding(1) var sunDepth: texture_depth_2d;
-@group(2) @binding(2) var sunSampler: sampler_comparison;
 
 fn live_root_matrix(body: vec2<u32>) -> mat4x4<f32> {
     var invalid: mat4x4<f32>;
@@ -357,30 +391,6 @@ fn meshVertex(input : VertexInput, shadowPass: bool) -> VertexOutput {
     }
 }
 
-fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
-    if (sunShadow.params.x < 0.5) { return 1.0; }
-    // Use geometric normals for bias: normal-map grain must not move shadows.
-    let slope = 1.0 - abs(dot(geometricNormal, light));
-    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
-    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
-    let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
-    if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
-        return 1.0;
-    }
-    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
-    let reference = clip.z - 0.003 * sunShadow.params.z;
-    var visibility = 0.0;
-    for (var y = -1; y <= 1; y += 1) {
-        for (var x = -1; x <= 1; x += 1) {
-            visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel, reference);
-        }
-    }
-    // A local map fades at its border instead of following the camera as a hard edge.
-    let edge = max(abs(clip.x), abs(clip.y));
-    let fade = smoothstep(0.80, 0.98, edge);
-    return mix(visibility / 9.0, 1.0, fade);
-}
 
 fn distributionGGX(normal : vec3<f32>, halfVector : vec3<f32>,
                    roughness : f32) -> f32 {

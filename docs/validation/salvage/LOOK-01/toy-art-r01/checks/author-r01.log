@@ -1,0 +1,18 @@
+/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_toy_art.py:34: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_toy_art.py", line 156, in <module>
+    main()
+    ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_toy_art.py", line 115, in main
+    obj, checks = model.finish(materials(lod), art.shading.ANALYTIC)
+                  ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_functional_kit.py", line 189, in finish
+    metric_uv=metric.measure(obj,self.lod) if isinstance(material,dict) else None,
+              ~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/metric_materials.py", line 169, in measure
+    raise ValueError(f'metric chart stretch {maximum_stretch} exceeds 1.02')
+ValueError: metric chart stretch 2.422581205511454 exceeds 1.02
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:12:34)
+
+Blender quit

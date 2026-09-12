@@ -130,6 +130,138 @@ TEST_F(CoveMovement, BrickPointerPlacementRotatesStacksRefusesOverlapAndRestores
     EXPECT_EQ(restored->blueprintBytes(error),bytes);
 }
 
+TEST_F(CoveMovement, BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    const auto index=[&](std::string_view name){for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)==name)return i;return UINT32_MAX;};
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 2 x 4")));ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto first=workshop->selected();const auto base=workshop->preview().registry.placements[first].placement;
+    ASSERT_TRUE(workshop->placeBrickTool());ASSERT_TRUE(workshop->brickToolActive());
+    EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),11u);
+    EXPECT_EQ(workshop->preview().registry.navigation->boatPlacements.size(),12u);
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 1 x 2"))); // Replaces only the unused preview.
+    EXPECT_EQ(workshop->preview().registry.navigation->boatPlacements.size(),12u);
+    ASSERT_TRUE(workshop->command(Action::Rotate));
+    const auto second=workshop->selected();const auto rotation=workshop->preview().registry.placements[second].placement.rotation;
+    const auto top=[](GridTransform frame){return glm::dvec3(frame.translation.x,frame.translation.y,frame.translation.z)*.02+glm::dvec3(0,.66,0);};
+    (void)workshop->aimAt({first,top(base)});ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto middle=workshop->preview().registry.placements[second].placement;
+    ASSERT_TRUE(workshop->placeBrickTool());ASSERT_TRUE(workshop->brickToolActive());
+    EXPECT_EQ(workshop->preview().registry.placements[workshop->selected()].placement.rotation,rotation);
+    (void)workshop->aimAt({second,top(middle)});ASSERT_TRUE(workshop->valid())<<workshop->message();
+    ASSERT_TRUE(workshop->placeBrickTool());ASSERT_TRUE(workshop->brickToolActive());
+    EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),13u);
+    EXPECT_EQ(workshop->preview().registry.navigation->boatPlacements.size(),14u);
+    const auto revision=workshop->revision();
+    ASSERT_TRUE(workshop->command(Action::Raise));EXPECT_FALSE(workshop->valid());
+    EXPECT_FALSE(workshop->placeBrickTool());EXPECT_EQ(workshop->revision(),revision);
+    EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),13u);
+    const WorldNamespace world{{'r','e','p','e','a','t','-','b','r','i','c','k'}};
+    auto seed=prepareCoveBuild(*expanded,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto owned=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(owned)<<error;
+    const auto quote=quoteCoveDesign(workshop->design(),*owned,seed->catalog);ASSERT_TRUE(quote);
+    EXPECT_EQ(quote->debit.salvageMaterial,9u); // 5 + 2 + 2; the fourth preview is free.
+    const auto duringTool=workshop->blueprintBytes(error);ASSERT_FALSE(duringTool.empty())<<error;
+    ASSERT_TRUE(workshop->stopBrickTool());EXPECT_FALSE(workshop->changed());
+    const auto request=prepareCoveRefit(workshop->design(),*owned,seed->catalog,error);ASSERT_TRUE(request)<<error;
+    EXPECT_EQ(request->design->parts().size(),13u);
+    const auto bytes=workshop->blueprintBytes(error);ASSERT_FALSE(bytes.empty())<<error;
+    EXPECT_EQ(bytes,duringTool);
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 1 x 2")));ASSERT_TRUE(workshop->stopBrickTool());
+    EXPECT_EQ(workshop->blueprintBytes(error),bytes);EXPECT_EQ(workshop->revision(),revision);
+}
+
+TEST_F(CoveMovement, BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    uint32_t brick=UINT32_MAX;for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)=="Brick 1 x 2")brick=i;
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    const auto cleared=workshop->blueprintBytes(error);ASSERT_FALSE(cleared.empty());
+    ASSERT_TRUE(workshop->beginBrickTool(brick));ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto initial=workshop->preview().registry.placements[workshop->selected()].placement;
+    uint32_t propeller=UINT32_MAX;
+    for(const auto slot:expanded->registry.navigation->boatPlacements)
+        if(std::holds_alternative<PropellerModule>(expanded->bundles[expanded->registry.placements[slot].bundleIndex]->sidecar().part.module))propeller=slot;
+    ASSERT_NE(propeller,UINT32_MAX);
+    EXPECT_FALSE(workshop->aimAt({propeller,{0,0,0}})); // A hit is not necessarily a matching stud/socket.
+    EXPECT_EQ(workshop->preview().registry.placements[workshop->selected()].placement,initial);
+    EXPECT_TRUE(workshop->valid()); // Caller must use the resolved-target result, not this older valid ghost.
+    const auto point=glm::dvec3(initial.translation.x,initial.translation.y,initial.translation.z)*.02;
+    bool resolved=false;
+    for(const auto slot:workshop->design().registry.navigation->boatPlacements) {
+        if(workshop->aimAt({slot,point})&&workshop->valid()){resolved=true;EXPECT_TRUE(workshop->aimAt({slot,point}));break;}
+    }
+    ASSERT_TRUE(resolved);
+    ASSERT_TRUE(workshop->placeBrickTool());
+    const auto selected=workshop->selected();const auto preview=workshop->preview().registry.placements[selected].placement;
+    const auto revision=workshop->revision();
+    EXPECT_FALSE(workshop->beginBrickTool(UINT32_MAX));EXPECT_FALSE(workshop->beginBrickTool(0));
+    EXPECT_FALSE(workshop->selectCatalogAt(0));EXPECT_FALSE(workshop->selectCatalog(1));
+    PartInstance badStock;EXPECT_FALSE(workshop->beginBrickTool(brick,&badStock));
+    EXPECT_TRUE(workshop->brickToolActive());EXPECT_EQ(workshop->selected(),selected);
+    EXPECT_EQ(workshop->preview().registry.placements[selected].placement,preview);EXPECT_EQ(workshop->revision(),revision);
+    ASSERT_TRUE(workshop->command(Action::Undo));EXPECT_FALSE(workshop->brickToolActive());EXPECT_FALSE(workshop->changed());
+    EXPECT_EQ(workshop->blueprintBytes(error),cleared);
+    ASSERT_TRUE(workshop->beginBrickTool(brick));ASSERT_TRUE(workshop->valid())<<workshop->message();
+    ASSERT_TRUE(workshop->command(Action::Keep));EXPECT_FALSE(workshop->brickToolActive());EXPECT_FALSE(workshop->changed());
+    EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),11u);
+    ASSERT_TRUE(workshop->addPart());const auto ghost=workshop->selected();
+    EXPECT_FALSE(workshop->beginBrickTool(brick));EXPECT_EQ(workshop->selected(),ghost); // Ordinary pending edits are never discarded.
+    ASSERT_TRUE(workshop->command(Action::Revert));
+    ASSERT_TRUE(workshop->beginBrickTool(brick));ASSERT_TRUE(workshop->command(Action::Remove));
+    EXPECT_FALSE(workshop->brickToolActive());EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),11u);
+    EXPECT_FALSE(workshop->changed());
+    // Reserve all but one scene slot. The final placement succeeds and leaves
+    // the tool cleanly stopped when no following preview can be admitted.
+    auto crowded=*expanded;
+    crowded.registry.placements.resize(assets::kMaximumFixturePlacements-1,crowded.registry.placements.front());
+    auto limited=CoveWorkshop::create(crowded,error,assets::kMaximumFixturePlacements-1);ASSERT_TRUE(limited)<<error;
+    ASSERT_TRUE(limited->selectPart(10));ASSERT_TRUE(limited->command(Action::Remove));ASSERT_TRUE(limited->command(Action::Keep));
+    ASSERT_TRUE(limited->beginBrickTool(brick));ASSERT_TRUE(limited->valid())<<limited->message();
+    ASSERT_TRUE(limited->placeBrickTool());EXPECT_FALSE(limited->brickToolActive());EXPECT_FALSE(limited->changed());
+    EXPECT_EQ(limited->design().registry.navigation->boatPlacements.size(),11u);
+    EXPECT_FALSE(limited->canAdd());EXPECT_FALSE(limited->canChooseBrick());EXPECT_FALSE(limited->beginBrickTool(brick));
+}
+
+TEST_F(CoveMovement, BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    const WorldNamespace world{{'s','t','o','r','e','d','-','b','r','i','c','k'}};
+    auto seed=prepareCoveBuild(*expanded,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto owned=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(owned)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    uint32_t brick=UINT32_MAX;for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)=="Brick 1 x 2")brick=i;
+    ASSERT_TRUE(workshop->selectCatalogAt(brick));const auto key=workshop->catalogDefinition();
+    const auto* definition=seed->catalog.lookup(key).definition;ASSERT_NE(definition,nullptr);
+    PartInstance paid;paid.id={world,1000};paid.owningBuild=seed->build.id;paid.definition=key;paid.health=4321;paid.paint={20,40,60,255};paid.settings=defaultModuleSettings(*definition);
+    auto other=paid;other.id.counter=1001;other.health=6543;other.paint={80,100,120,255};const std::array stock{paid,other};
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->beginBrickTool(brick,availableCoveStoredPart(workshop->design(),*owned,stock,key)));
+    ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto first=workshop->selected();const auto frame=workshop->preview().registry.placements[first].placement;
+    EXPECT_EQ(workshop->preview().registry.placements[first].paint,paid.paint);
+    const auto* next=availableCoveStoredPart(workshop->preview(),*owned,stock,key);ASSERT_NE(next,nullptr);EXPECT_EQ(next->id,other.id);
+    ASSERT_TRUE(workshop->placeBrickTool(next));
+    EXPECT_EQ(workshop->preview().registry.placements[workshop->selected()].paint,other.paint);
+    (void)workshop->aimAt({first,glm::dvec3(frame.translation.x,frame.translation.y,frame.translation.z)*.02+glm::dvec3(0,.66,0)});
+    ASSERT_TRUE(workshop->valid())<<workshop->message();
+    EXPECT_EQ(availableCoveStoredPart(workshop->preview(),*owned,stock,key),nullptr);
+    ASSERT_TRUE(workshop->placeBrickTool());ASSERT_TRUE(workshop->brickToolActive());
+    const auto quote=quoteCoveDesign(workshop->design(),*owned,seed->catalog,stock);ASSERT_TRUE(quote);EXPECT_EQ(quote->debit,ResourceAmounts{});
+    ASSERT_TRUE(workshop->stopBrickTool());
+    auto request=prepareCoveRefit(workshop->design(),*owned,seed->catalog,error,expanded->registry.navigation->boatPlacements,stock);ASSERT_TRUE(request)<<error;
+    BuildIssue issue;auto model=BuildModel::create(seed->build,seed->catalog,issue);ASSERT_TRUE(model);uint64_t issued=1001;
+    auto plan=prepareBuildRefit(*model,*request->design,seed->catalog,[&]{return DurableId{world,++issued};},issue,{stock,{}});ASSERT_TRUE(plan)<<issue.field;
+    EXPECT_TRUE(plan->storedPartsAfter.empty());EXPECT_EQ(plan->debit,ResourceAmounts{});EXPECT_EQ(plan->after.parts.size(),12u);
+    for(const auto& source:stock) {
+        const auto fitted=std::find_if(plan->after.parts.begin(),plan->after.parts.end(),[&](const auto& part){return part.id==source.id;});ASSERT_NE(fitted,plan->after.parts.end());
+        EXPECT_EQ(fitted->paint,source.paint);EXPECT_EQ(fitted->health,source.health);EXPECT_EQ(fitted->settings,source.settings);
+    }
+}
+
 TEST_F(CoveMovement, SixtyFourLargeBricksCompileRoundTripAndRefuseWholeSceneOverflow) {
     using namespace construction;using Action=CoveWorkshop::Action;std::string error;
     const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;

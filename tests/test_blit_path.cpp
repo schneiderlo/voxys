@@ -13,6 +13,18 @@
 #include <cstdint>
 #include <filesystem>
 #include <limits>
+#include <atomic>
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <memory>
+#include <chrono>
+#include <thread>
+#include <glm/gtc/packing.hpp>
+#include "render/mesh_path.hpp"
+#include "render/inspection_guides.hpp"
+#include "render/primitive_path.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -141,7 +153,7 @@ protected:
         gpu::TextureDesc depthDesc = gpu::TextureDesc::tex2D(
             320, 240,
             WGPUTextureFormat_R32Float,
-            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding | WGPUTextureUsage_CopyDst | WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc,
             "test_depth_texture"
         );
         depthTexture_ = gpu::createTexture(device, depthDesc);
@@ -157,7 +169,7 @@ protected:
         gpu::TextureDesc shadowDesc = gpu::TextureDesc::tex2D(
             320, 240,
             WGPUTextureFormat_R32Float,
-            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding | WGPUTextureUsage_CopyDst | WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc,
             "test_shadow_texture"
         );
         shadowTexture_ = gpu::createTexture(device, shadowDesc);
@@ -173,7 +185,7 @@ protected:
         gpu::TextureDesc materialDesc = gpu::TextureDesc::tex2D(
             320, 240,
             WGPUTextureFormat_RGBA16Float,
-            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding | WGPUTextureUsage_CopyDst | WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc,
             "test_material_texture"
         );
         materialTexture_ = gpu::createTexture(device, materialDesc);
@@ -256,6 +268,7 @@ protected:
             WGPUTextureFormat_BGRA8Unorm,
             "test_color_output"
         );
+        colorDesc.usage |= WGPUTextureUsage_CopySrc;
         colorTexture_ = gpu::createTexture(device, colorDesc);
         if (!colorTexture_) return false;
         
@@ -359,6 +372,22 @@ TEST_F(BlitPathTest, ProductionShaderHasNoGpuValidationErrors) {
     EXPECT_TRUE(blitPath_.init(gpuContext_.getDevice(), gpuContext_.getQueue(), getConfig()));
     gpuContext_.tick();
     blitPath_.shutdown();
+    gpuContext_.setErrorCallback({});
+}
+
+TEST_F(BlitPathTest, SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely) {
+    ASSERT_TRUE(gpuContextInitialized_);
+    gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) {
+        ADD_FAILURE() << "Scene shadow validation: " << message;
+    });
+    auto config = getConfig(); config.enableOpaqueScene = true;
+    ASSERT_TRUE(blitPath_.init(gpuContext_.getDevice(), gpuContext_.getQueue(), config));
+    ASSERT_TRUE(blitPath_.resize(64, 64));
+    render::BlitPath moved(std::move(blitPath_));
+    blitPath_ = std::move(moved);
+    EXPECT_EQ(blitPath_.opaqueSceneBytes(), 64u * 64u * 12u);
+    blitPath_.shutdown();
+    gpuContext_.tick();
     gpuContext_.setErrorCallback({});
 }
 
@@ -640,6 +669,188 @@ TEST_F(BlitPathTest, CustomConfig) {
     EXPECT_FLOAT_EQ(uniforms.metrics.x, 1000.0f);  // heightScale
     EXPECT_FLOAT_EQ(uniforms.metrics.y, 2.0f);     // cellScale
     EXPECT_FLOAT_EQ(uniforms.metrics.w, 0.0002f);  // fogDensity
+}
+
+
+TEST_F(BlitPathTest, MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth) {
+    ASSERT_TRUE(gpuContextInitialized_);
+    gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) { ADD_FAILURE() << message; });
+    auto device=gpuContext_.getDevice();auto queue=gpuContext_.getQueue();
+    auto config=getConfig();config.enableOpaqueScene=true;
+    ASSERT_TRUE(blitPath_.init(device,queue,config));ASSERT_TRUE(createTestTextures());
+    ASSERT_TRUE(blitPath_.resize(320,240));
+    struct Owned {
+        std::vector<WGPUTextureView> views;std::vector<WGPUTexture> textures;
+        WGPUSampler sampler=nullptr;WGPUBuffer readback=nullptr;
+        ~Owned(){for(auto v:views)wgpuTextureViewRelease(v);for(auto t:textures)wgpuTextureRelease(t);
+            if(sampler)wgpuSamplerRelease(sampler);
+            if(readback)wgpuBufferRelease(readback);}
+    } owned;
+    const auto texture=[&](uint32_t width,uint32_t height,WGPUTextureFormat format,uint32_t layers=1u) {
+        auto desc=gpu::TextureDesc::tex2D(width,height,format,WGPUTextureUsage_TextureBinding|WGPUTextureUsage_CopyDst|WGPUTextureUsage_CopySrc);
+        desc.depthOrArrayLayers=layers;auto t=gpu::createTexture(device,desc);owned.textures.push_back(t);return t;
+    };
+    const auto viewOf=[&](WGPUTexture t,uint32_t layers=1u){gpu::TextureViewDesc desc;
+        if(layers>1){desc.dimension=WGPUTextureViewDimension_2DArray;desc.arrayLayerCount=layers;}
+        auto v=gpu::createTextureView(t,desc);owned.views.push_back(v);return v;};
+    const auto upload=[&](WGPUTexture t,const auto& values,uint32_t width,uint32_t height,uint32_t layer=0u){
+        return gpu::writeTexture(queue,t,std::as_bytes(std::span(values)),width,height,
+            width*static_cast<uint32_t>(sizeof(values[0])),0,{0,0,layer});};
+    auto staticDepth=texture(320,240,WGPUTextureFormat_R32Float);auto staticDepthView=viewOf(staticDepth);
+    auto heights=texture(16,16,WGPUTextureFormat_R32Uint);auto heightView=viewOf(heights);
+    auto shadowHeights=texture(16,16,WGPUTextureFormat_R32Uint);auto shadowHeightView=viewOf(shadowHeights);
+    auto waves=texture(1,1,WGPUTextureFormat_RGBA16Float,4);auto waveView=viewOf(waves,4);
+    auto depthDesc=gpu::TextureDesc::depth(320,240,WGPUTextureFormat_Depth32Float);
+    auto objectDepth=gpu::createTexture(device,depthDesc);owned.textures.push_back(objectDepth);auto objectDepthView=viewOf(objectDepth);
+    owned.sampler=gpu::createSampler(device,gpu::SamplerDesc{});
+    owned.readback=gpu::createBuffer(device,gpu::BufferDesc{.label="scene_shadow_numeric_samples",.size=768,
+        .usage=WGPUBufferUsage_CopyDst|WGPUBufferUsage_MapRead});
+    ASSERT_NE(owned.readback,nullptr);
+    std::vector<float> visibility(320u*240u,1);ASSERT_TRUE(upload(shadowTexture_,visibility,320,240));
+    std::vector<glm::u16vec4> normals(320u*240u,glm::u16vec4(0,glm::packHalf1x16(1.f),0,0));
+    ASSERT_TRUE(upload(materialTexture_,normals,320,240));
+    std::vector<glm::u8vec4> albedo(256u*256u,glm::u8vec4(200,165,100,255));ASSERT_TRUE(upload(terrainTexture_,albedo,256,256));
+    std::vector<uint8_t> ao(256u*256u,255);ASSERT_TRUE(upload(lightmapTexture_,ao,256,256));
+    const std::array<glm::u16vec4,1> flatWave{glm::u16vec4(0,glm::packHalf1x16(1.f),0,0)};
+    for(uint32_t i=0;i<4;++i) {
+        gpu::CompatImageCopyTexture destination{};destination.texture=waves;destination.origin.z=i;
+        destination.aspect=WGPUTextureAspect_All;
+        WGPUTextureDataLayout layout{};layout.bytesPerRow=8;layout.rowsPerImage=1;
+        const WGPUExtent3D extent{1,1,1};
+        wgpuQueueWriteTexture(queue,&destination,flatWave.data(),sizeof(flatWave),&layout,&extent);
+    }
+    std::vector<uint32_t> clearShadow(256,0);ASSERT_TRUE(upload(shadowHeights,clearShadow,16,16));
+    blitPath_.setDepthTexture(depthView_);blitPath_.setShadowTexture(shadowView_);
+    blitPath_.setStaticTerrainTextures(staticDepthView,shadowView_);blitPath_.setMaterialTexture(materialView_);
+    blitPath_.setTerrainTexture(terrainView_);blitPath_.setLightmapTexture(lightmapView_);
+    blitPath_.setTerrainMaterialTextures(terrainMaterialAlbedoView_,terrainMaterialNormalRoughnessView_);
+    blitPath_.setWaterCompositeResources(heightView,shadowHeightView,waveView,owned.sampler);
+    blitPath_.setTerrainSize(16,16);blitPath_.setLinearDepthRequired(true);
+    const glm::vec3 eye(-3,3,0);const auto view=glm::lookAtLH(eye,glm::vec3(0),glm::vec3(0,1,0));
+    const auto projection=glm::perspectiveLH_ZO(glm::radians(60.f),320.f/240.f,.1f,100.f);
+    blitPath_.updateCamera(view,projection,eye,.12f);
+    auto uniforms=blitPath_.getUniforms();uniforms.metrics={10,1,1,0};uniforms.invProjParams.z=1;
+    const auto direction=glm::normalize(glm::vec3(1,1,0));uniforms.lightDirWS=glm::vec4(direction,0);
+    uniforms.lightDirVS=glm::vec4(glm::mat3(view)*direction,.12f);uniforms.lightingColor={1,1,1,1};
+    // Keep the diagnostic pixel below the tone curve's highlight shoulder so
+    // the direct-sun change survives 8-bit quantization of the final output.
+    uniforms.ambientExposure={1,1,1,.5f};uniforms.fogColor={0,0,0,0};uniforms.waterMotion={0,0,0,0};
+    uniforms.waterParams={0,0,0,.2f};uniforms.waterColorA={.1f,.2f,.3f,1};uniforms.waterColorB={.03f,.09f,.12f,1};
+    uniforms.waterOptics={1.333f,0,1,1};uniforms.waterFoam={1,0,0,500};uniforms.waterSpectrum={128,16,0,0};
+    render::MeshPath mesh;render::MeshPathConfig meshConfig;meshConfig.colorFormat=WGPUTextureFormat_RGBA16Float;
+    meshConfig.linearHdrOutput=true;meshConfig.sunShadows=true;
+    ASSERT_TRUE(mesh.init(device,queue,meshConfig));ASSERT_TRUE(mesh.loadMeshData(render::inspectionGuideMesh()));
+    ASSERT_TRUE(mesh.setSceneTextures(nullptr,staticDepthView));
+    render::PrimitiveLighting lighting;lighting.direction=direction;lighting.fogDensity=0;
+    struct Draw {render::MeshPath* mesh;WGPUTextureView depth;glm::mat4 view,projection;glm::vec3 eye;
+        render::PrimitiveLighting light;glm::vec3 worldOrigin{0};};
+    Draw draw{&mesh,objectDepthView,view,projection,eye,lighting};
+    render::OpaqueSceneDraw objects{&draw,[](void* value,WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,render::SceneShadowConsumer background){
+        auto& d=*static_cast<Draw*>(value);return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin);}};
+    float expectedDepth=0, finalDepth=0;
+    const auto sample=[&](bool caster,bool discard=false,float overrideX=0){
+        mesh.clearInstances();
+        // The control caster must miss both the water point and the refracted
+        // seabed point. At x=5 its shadow still crosses the latter (x=2,y=-2).
+        mesh.addInstance({.modelMatrix=glm::translate(glm::mat4(1),glm::vec3(overrideX!=0?overrideX:(caster?1.f:15.f),1,0)-draw.worldOrigin)*glm::scale(glm::mat4(1),glm::vec3(1.2f,.1f,1.2f))});
+        auto encoder=wgpuDeviceCreateCommandEncoder(device,nullptr);
+        WGPURenderPassDepthStencilAttachment clear{};clear.view=objectDepthView;clear.depthLoadOp=WGPULoadOp_Clear;
+        clear.depthStoreOp=WGPUStoreOp_Store;clear.depthClearValue=1;clear.stencilReadOnly=true;
+        WGPURenderPassDescriptor descriptor{};descriptor.depthStencilAttachment=&clear;
+        auto pass=wgpuCommandEncoderBeginRenderPass(encoder,&descriptor);wgpuRenderPassEncoderEnd(pass);wgpuRenderPassEncoderRelease(pass);
+        const bool rendered=blitPath_.render(encoder,colorView_,nullptr,WGPU_QUERY_SET_INDEX_UNDEFINED,WGPU_QUERY_SET_INDEX_UNDEFINED,objects);
+        if(!rendered){wgpuCommandEncoderRelease(encoder);return -1;}
+        if(discard){wgpuCommandEncoderRelease(encoder);blitPath_.discardEncoding();return 0;}
+        gpu::CompatImageCopyTexture source{};source.texture=colorTexture_;source.origin={160,120,0};source.aspect=WGPUTextureAspect_All;
+        WGPUImageCopyBuffer destination{};destination.buffer=owned.readback;destination.layout.bytesPerRow=256;destination.layout.rowsPerImage=1;
+        const WGPUExtent3D extent{1,1,1};wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
+        source.texture=staticDepth;destination.layout.offset=256;wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
+        source.texture=depthTexture_;destination.layout.offset=512;wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
+        auto commands=wgpuCommandEncoderFinish(encoder,nullptr);wgpuCommandEncoderRelease(encoder);
+        wgpuQueueSubmit(queue,1,&commands);wgpuCommandBufferRelease(commands);
+        auto done=std::make_shared<std::atomic<int>>(0);
+        using Completion=std::shared_ptr<std::atomic<int>>;
+        wgpuBufferMapAsync(owned.readback,WGPUMapMode_Read,0,768,
+            [](WGPUBufferMapAsyncStatus status,void* context){
+                std::unique_ptr<Completion> completion(static_cast<Completion*>(context));
+                (*completion)->store(status==WGPUBufferMapAsyncStatus_Success?1:2);
+            },new Completion(done));
+        const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+        while(!done->load()&&std::chrono::steady_clock::now()<until){gpuContext_.tick();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+        if(done->load()!=1)return -2;
+        const auto* bytes=static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(owned.readback,0,768));
+        const int red=bytes[2]; // BGRA8 output.
+        std::memcpy(&finalDepth,bytes+512,sizeof(float));
+        std::printf("  caster=%d rgba=%u,%u,%u finalDepth=%g staticDepth=%g water=%g scene=%d\n",caster,bytes[2],bytes[1],bytes[0],double(finalDepth),double(expectedDepth),double(blitPath_.getUniforms().waterParams.y),blitPath_.didUseSceneSunShadows());
+        float retainedDepth;std::memcpy(&retainedDepth,bytes+256,sizeof(float));wgpuBufferUnmap(owned.readback);
+        EXPECT_FLOAT_EQ(retainedDepth,expectedDepth);return red;
+    };
+    for(int water=0;water<2;++water){
+        const float plane=water?-2.f:0.f;
+        std::vector<float> depths(320u*240u);
+        for(uint32_t y=0;y<240;++y)for(uint32_t x=0;x<320;++x){
+            const auto ray=glm::normalize(glm::mat3(glm::inverse(view))*glm::vec3((2*(float(x)+.5f)/320-1)/projection[0][0],
+                (1-2*(float(y)+.5f)/240)/projection[1][1],1));
+            depths[y*320+x]=ray.y<0?(plane-eye.y)/ray.y:-1;
+        }
+        expectedDepth=depths[120u*320u+160u];
+        ASSERT_TRUE(upload(staticDepth,depths,320,240));
+        std::vector<uint32_t> field(256,static_cast<uint32_t>(std::round((plane/10.f+1.f)*.5f*65535.f)));
+        ASSERT_TRUE(upload(heights,field,16,16));
+        uniforms.waterParams.y=float(water);blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
+        const int clear=sample(false);blitPath_.setStaticCacheState(true,false);const int shadowed=sample(true);
+        const int moved=sample(false);ASSERT_GE(clear,0);ASSERT_GE(shadowed,0);
+        std::printf("Scene receiver water=%d clear=%d shadow=%d moved=%d\n",water,clear,shadowed,moved);
+        EXPECT_LT(shadowed,clear-5);EXPECT_NEAR(moved,clear,2);
+        EXPECT_EQ(sample(true,true),0);EXPECT_NEAR(sample(false),clear,2);
+        if(water) {
+            const int shadedBed=sample(false,false,5);
+            EXPECT_LT(shadedBed,clear-20); // Shadowed seabed remains visible through refraction.
+            EXPECT_LT(finalDepth,expectedDepth-1); // Surface depth still belongs to the ocean.
+        }
+        uniforms.lightingColor.w=0;blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
+        const int ambient=sample(false);blitPath_.setStaticCacheState(true,false);
+        EXPECT_NEAR(sample(true),ambient,2);uniforms.lightingColor.w=1;
+        blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
+        // Re-express the identical absolute world in independent caster
+        // frames. Terrain/water uniforms deliberately remain absolute. The
+        // negative-Y frame reproduces Cove's sector, while mixed X/Z checks
+        // that the bridge is a vector rather than a vertical-only correction.
+        for(const auto origin:{glm::vec3(0,-256,0),glm::vec3(256,0,-256)}) {
+            SCOPED_TRACE("shadow frame origin " + std::to_string(origin.x) + ","
+                + std::to_string(origin.y) + "," + std::to_string(origin.z));
+            draw.worldOrigin=origin;draw.eye=eye-origin;
+            draw.view=view*glm::translate(glm::mat4(1),origin);
+            EXPECT_NEAR(sample(false),clear,2);
+            blitPath_.setStaticCacheState(true,false);
+            EXPECT_NEAR(sample(true),shadowed,2);
+        }
+        draw.worldOrigin={0,0,0};draw.eye=eye;draw.view=view;
+    }
+    // A high terrain-shadow boundary must remove sunlight inside the map,
+    // yet must have no effect on the ocean beyond any of its four edges.
+    // This compares the real sun glint with the same cached seabed/depth.
+    const std::vector<uint32_t> blockedShadow(256,65535);
+    const int insideOpen=sample(false);
+    ASSERT_TRUE(upload(shadowHeights,blockedShadow,16,16));
+    const int insideBlocked=sample(false);
+    ASSERT_GE(insideOpen,0);ASSERT_GE(insideBlocked,0);
+    EXPECT_LT(insideBlocked,insideOpen-5);
+    for(const auto offset:{glm::vec3(30,0,0),glm::vec3(-30,0,0),
+            glm::vec3(0,0,30),glm::vec3(0,0,-30)}) {
+        SCOPED_TRACE("ocean outside finite terrain " + std::to_string(offset.x) + "," + std::to_string(offset.z));
+        draw.eye=eye+offset;draw.view=view*glm::translate(glm::mat4(1),-offset);
+        ASSERT_TRUE(uniforms.setCamera(draw.view,projection,draw.eye));
+        blitPath_.setCameraUniforms(uniforms);blitPath_.setStaticCacheState(true,true);
+        ASSERT_TRUE(upload(shadowHeights,clearShadow,16,16));
+        const int open=sample(false);blitPath_.setStaticCacheState(true,false);
+        ASSERT_TRUE(upload(shadowHeights,blockedShadow,16,16));
+        const int borderBlocked=sample(false);
+        ASSERT_GE(open,0);ASSERT_GE(borderBlocked,0);
+        EXPECT_NEAR(borderBlocked,open,2);
+        EXPECT_LT(finalDepth,expectedDepth-1);
+    }
+    mesh.shutdown();blitPath_.shutdown();gpuContext_.tick();gpuContext_.setErrorCallback({});
 }
 
 } // namespace voxy

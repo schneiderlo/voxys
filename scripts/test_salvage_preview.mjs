@@ -9,6 +9,7 @@ function fixture(asset = false, workshop = false) {
         removeEventListener(name, callback) { if (this.listeners.get(name) === callback) this.listeners.delete(name); }
         click() { this.listeners.get('click')?.(); }
         attributes = new Map(); dataset = {};
+        focused = 0; focus() { ++this.focused; }
         setAttribute(name, value) { this.attributes.set(name, value); }
     }
     const elements = Object.fromEntries(['salvage-preview', 'salvage-status', 'salvage-reset', 'salvage-pause', 'salvage-leave', 'salvage-interact','salvage-towing','salvage-tow-status','salvage-hook','salvage-reel','salvage-payout','salvage-hold','salvage-job','salvage-job-status','salvage-job-accept','salvage-job-deliver','salvage-harbor','salvage-harbor-status',...['install','attach','raise','lower','stop','release'].map(n=>'salvage-harbor-'+n)].map(id => [id, new Element()]));
@@ -19,12 +20,12 @@ function fixture(asset = false, workshop = false) {
         elements['salvage-lods'].querySelectorAll = () => lodButtons;
         elements['salvage-guides'].querySelectorAll = () => guideButtons;
     }
-    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,97,98]
+    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,96,97,98]
         .map(action=>Object.assign(new Element(),{dataset:{workshopAction:String(action)}})):[];
     if(workshop) {
         for(const name of ['Brick 1 x 2','Brick 2 x 2','Brick 2 x 4'])workshopButtons.push(
             Object.assign(new Element(),{dataset:{workshopAction:'-1',workshopBrick:name}}));
-        for(const id of ['salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status'])elements[id]=new Element();
+        for(const id of ['voxy-canvas','salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-workshop-tool','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status'])elements[id]=new Element();
         elements['salvage-workshop'].querySelectorAll=()=>workshopButtons;
     }
     let state = { active: true, ready: true, busy: false, failed: false, resets: 0 };
@@ -47,6 +48,30 @@ function fixture(asset = false, workshop = false) {
     const cleanup = install(engine, environment);
     return { elements, lodButtons, guideButtons, workshopButtons, actions, navigations, engine, cleanup, tick: () => tick(),
         state: update => Object.assign(state, update), pagehide: () => events.get('pagehide')?.(), event:name=>events.get(name)?.(), events, cleared: () => cleared };
+}
+{
+    const f=fixture(true,true);
+    const w={open:true,canOpen:true,selected:28,name:'Brick 1 x 2',catalogName:'Brick 1 x 2',catalogIndex:4,
+        valid:false,changed:true,undo:3,massKg:0,parts:14,placedParts:13,placedBricks:3,message:'Blocked by another part.',
+        brickTool:true,pointerPlacement:true,canChooseBrick:true,canAdd:false,canLaunch:true,materials:'48',charge:'8',
+        catalog:[{index:4,name:'Brick 1 x 2',cost:'1'},{index:2,name:'Brick 2 x 2',cost:'3'},{index:6,name:'Brick 2 x 4',cost:'6'}]};
+    f.state({workshop:w});f.tick();
+    const select=f.workshopButtons.find(b=>b.dataset.workshopAction==='96');
+    const launch=f.workshopButtons.find(b=>b.dataset.workshopAction==='79');
+    const bricks=f.workshopButtons.filter(b=>b.dataset.workshopBrick);
+    assert(bricks.every(b=>!b.disabled),'an unplaced preview must not block choosing another brick');
+    assert(!select.disabled&&!launch.disabled,'placed bricks can launch despite an invalid unused preview');
+    assert.match(f.elements['salvage-workshop-part'].textContent,/3 bricks placed.*13 boat parts/);
+    assert.match(f.elements['salvage-workshop-tool'].textContent,/preview is not charged/);
+    assert.match(f.elements['salvage-workshop-stock'].textContent,/Launch: 8 material/);
+    bricks[1].click();select.click();launch.click();assert.deepEqual(f.actions,[102,96,79]);
+    assert.equal(f.elements['voxy-canvas'].focused,2,'brick selection and Select hand keyboard input to the canvas');
+    f.state({workshop:{...w,brickTool:false,pointerPlacement:false,changed:false,parts:13}});f.tick();
+    assert(select.disabled);assert.equal(select.attributes.get('aria-pressed'),'true');
+    f.state({workshop:{...w,pending:true}});f.tick();
+    assert(select.disabled&&launch.disabled&&bricks.every(b=>b.disabled));
+    f.cleanup();assert.equal(select.listeners.size,0);
+    console.log('Continuous brick controls: switching, placed counts, launch, selection and focus: 1 case passed');
 }
 {
     const f=fixture(true,true);

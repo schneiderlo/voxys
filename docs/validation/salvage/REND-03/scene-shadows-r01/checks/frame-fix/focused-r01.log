@@ -1,0 +1,104 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = SceneShadowSources.*:BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely:BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth:FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration:FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits:FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically:MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[==========] Running 7 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SceneShadowSources
+[ RUN      ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade
+[       OK ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade (0 ms)
+[----------] 1 test from SceneShadowSources (0 ms total)
+
+[----------] 2 tests from BlitPathTest
+[ RUN      ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely
+[32m[INFO ] [02:43:56.249] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:56.249] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:56.249] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:56.249] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:56.250] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:43:56.837] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [02:43:56.921] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [02:43:57.849] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely (1647 ms)
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [02:43:57.875] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:57.875] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:57.875] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:57.875] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:57.876] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:43:57.908] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [02:43:57.988] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [02:43:58.900] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=196 shadow=37 moved=196
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=191 shadow=181 moved=191
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=84,79,72 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.2325 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23244 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=75,98,122 finalDepth=4.23245 staticDepth=7.05414 water=1 scene=1
+[       OK ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1147 ms)
+[----------] 2 tests from BlitPathTest (2795 ms total)
+
+[----------] 1 test from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[32m[INFO ] [02:43:59.018] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:59.018] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:59.018] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:59.018] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:59.018] [GPU] Headless GPU context initialized successfully[0m
+Sun receiver clear=190 static=6 live=6
+Live sun: clear 190, shadow 6, ambient 6
+[       OK ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses (63 ms)
+[----------] 1 test from MeshPathGPUTest (63 ms total)
+
+[----------] 3 tests from FixtureGPU
+[ RUN      ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration
+[32m[INFO ] [02:43:59.082] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:59.082] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:59.082] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:59.082] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:59.083] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration (41 ms)
+[ RUN      ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+[32m[INFO ] [02:43:59.122] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:59.122] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:59.122] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:59.122] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:59.123] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits (82 ms)
+[ RUN      ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically
+[32m[INFO ] [02:43:59.205] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:43:59.205] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:43:59.205] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:43:59.205] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:43:59.206] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically (28 ms)
+[----------] 3 tests from FixtureGPU (152 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 4 test suites ran. (3011 ms total)
+[  PASSED  ] 7 tests.

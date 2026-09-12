@@ -116,7 +116,7 @@ class Model:
                     obj['surface_kind']='machined'
                 bpy.data.objects.remove(cutter, do_unlink=True)
 
-    def finish(self, material, surface_shading=shading.FLAT):
+    def finish(self, material, surface_shading=shading.FLAT, *, metric_uv=True):
         interface_checks = {}
         shading_checks=[]
         if self.name == 'winch':
@@ -154,7 +154,8 @@ class Model:
             geo.activate(obj)
             if surface_shading!=shading.FLAT:shading_checks.append(shading.apply(obj,surface_shading))
             if isinstance(material,dict):
-                metric.project(obj)
+                if metric_uv:
+                    metric.project(obj)
                 region='rubber' if obj.name.startswith(('deck_grip','steering_wheel')) else obj['palette_region']
                 selected=material[region]
             else:
@@ -186,7 +187,7 @@ class Model:
         return obj, dict(degenerate_faces=bad_faces, nonmanifold_edges=bad_edges,
                          summed_component_volume_m3=volume,
                          interface_checks=interface_checks,
-                         metric_uv=metric.measure(obj,self.lod) if isinstance(material,dict) else None,
+                         metric_uv=metric.measure(obj,self.lod) if isinstance(material,dict) and metric_uv else None,
                          surface_shading=shading_checks,
                          volume_note='Decorative components can intersect; this sum is not displacement.')
 

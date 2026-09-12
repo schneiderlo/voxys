@@ -291,8 +291,8 @@ generator together: `--config salvage_cove.cfg`, or browser
 **E** near the boat to board, use the helm or return to the dock while alongside.
 At the helm, **W/S** controls throttle and **A/D** steers the physical skiff.
 **E** leaves the helm; **R** returns the player and boat to the starting berth.
-Browser buttons offer the same interactions; native window-title prompts show
-the nearby action. The eleven-part hull now floats, moves and turns using its
+Browser buttons offer the same interactions; the native in-game panel shows
+the nearby action, material stock and save status. The eleven-part hull now floats, moves and turns using its
 compiled mass, displacement and propeller frame. The player follows its deck.
 The cove again uses **stepped LEGO terrain and round studs**. Walking, boat
 and cargo collision now match that surface, including open gaps between studs
@@ -312,7 +312,15 @@ The authored boat, dock and cargo now cast sun shadows onto authored parts,
 including the bricks you build with. The browser panel puts the main actions
 first; expand the job, tools, camera and machinery sections when needed.
 [Presentation work and verification scope](docs/validation/salvage/LOOK-01/presentation-r01/README.md).
-Water-relative drag, latching, full mission progression, the robot, terrain/water shadow reception and final visual quality remain unfinished. This is initial sailing, not complete
+The pontoons, beams and dock/deck plates now use molded cream, teal and orange
+models with panel details and rounded edges. Their separate visual revisions
+preserve existing builds, connections, weight and prices. Editable Blender
+sources are included; the materials use solid colors without image textures.
+[Structural art, compatibility and checks](docs/validation/salvage/LOOK-01/toy-art-r01/README.md).
+The boat, dock, cargo and built bricks also cast shadows onto the brick terrain
+and ocean. Shadows move with the parts; the shadowed seabed stays visible through
+the water. [Scene-shadow integration and checks](docs/validation/salvage/REND-03/scene-shadows-r01/README.md).
+Water-relative drag, latching, full mission progression, the robot, dry hull interiors and final visual quality remain unfinished. This is initial sailing, not complete
 machine simulation. [Sailing implementation and checks](docs/validation/salvage/SIM-03/sailing-r01/README.md),
 [dock collision](docs/validation/salvage/SIM-03/dock-collision-r01/README.md).
 
@@ -347,14 +355,21 @@ The workshop now includes **individual studded bricks**: 1×2, 2×2 and 2×4.
 Clear the **Cargo cradle** first: Next / Tab, Remove / Delete, Keep / E.
 Choose a colored brick from the palette or press **1, 2, 3**. Point at the
 freed deck or another brick, press **R** to rotate, then click a green ghost
-to place it. Click existing parts to select them; click the selected part to
-move it. **U** undoes a kept edit. **Launch / Enter** applies the cost and
+to place it. The selected brick tool stays active: keep clicking to build with
+the same size and orientation. **Select / Esc** stops and keeps your placed
+bricks. Then click existing parts to select them; click the selected part to
+move it. **U** undoes a kept edit. **Launch / Enter** leaves out the unused
+preview, applies the cost and
 rebuilds the physical boat. Eight mixed, stacked bricks now pass native/browser
 construction, save/reload, boarding and sailing with exact ownership and costs.
 The audited scene budget supports a tested 64-brick design; complex designs
-still obey collision and connection limits. Final art, controller support and
-a polished native HUD remain unfinished.
+still obey collision and connection limits. The native workshop panel shows
+the selected tool, cost and controls with readable text; its camera
+leaves room for the panel and palette. Final art, controller support and the
+remaining workshop tools are unfinished.
 [Brick-builder controls, capacity and evidence](docs/validation/salvage/LEGO-02/builder-r01/README.md).
+[Continuous tool and current verification](docs/validation/salvage/PLAY-02/continuous-r01/README.md).
+[Native panel implementation and scope](docs/validation/salvage/UX-01/native-hud-r01/README.md).
 
 The workshop also has **part settings**. Select a propeller, helm or winch;
 **X** toggles it, **L** cycles thrust/steering limits, and **N** reverses

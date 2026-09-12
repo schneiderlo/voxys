@@ -1,0 +1,25 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_player (1 packages loaded, 88 targets configured).
+[403 / 408] Compiling tests/test_cove_player.cpp; 1s linux-sandbox ... (2 actions running)
+[404 / 408] Compiling tests/test_cove_player.cpp; 2s linux-sandbox ... (2 actions, 1 running)
+[406 / 408] Compiling tests/test_cove_player.cpp; 4s linux-sandbox
+[407 / 408] [Prepa] Linking tests/cove_player
+[408 / 409] Testing //tests:cove_player; 1s linux-sandbox
+[408 / 409] 1 / 1 tests; Testing //tests:cove_player; 3s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:cove_player up-to-date:
+  bazel-bin/tests/cove_player
+INFO: Elapsed time: 13.458s, Critical Path: 11.57s
+INFO: 7 processes: 402 action cache hit, 2 internal, 5 linux-sandbox.
+INFO: Build completed successfully, 7 total actions
+//tests:cove_player                                                      PASSED in 3.0s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

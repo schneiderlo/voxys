@@ -149,7 +149,8 @@ bool validFrame(const SalvageFixtureFrame& frame) {
             || frame.guides == InspectionGuides::Sockets)
         && frame.width > 0 && frame.height > 0 && frame.width <= 8192 && frame.height <= 8192
         && finite(frame.view) && finite(frame.projection) && finite(frame.projection * frame.view)
-        && finite(frame.cameraPosition) && finite(light.direction) && std::isfinite(length)
+        && finite(frame.cameraPosition) && finite(frame.shadowFrameWorldOrigin)
+        && finite(light.direction) && std::isfinite(length)
         && length > std::numeric_limits<float>::min()
         && finite(light.sunColor) && std::isfinite(light.sunIntensity)
         && finite(light.ambientColor) && std::isfinite(light.ambientIntensity)
@@ -601,7 +602,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     owner.path.clearInstances();
     for (const auto& instance : instances) owner.path.addInstance(instance);
     if (!owner.path.render(encoder, color, depth, frame.view, frame.projection,
-        frame.cameraPosition, frame.lighting, frame.width, frame.height, frame.useRayDepth, frame.linearDepthOutput))
+        frame.cameraPosition, frame.lighting, frame.width, frame.height, frame.useRayDepth, frame.linearDepthOutput,
+        frame.beforeColor, frame.shadowFrameWorldOrigin))
         return state.fail(error, "model drawing failed; discard the open frame ticket");
     owner.guidePath.clearInstances();
     for (const auto& instance : guideInstances) owner.guidePath.addInstance(instance);

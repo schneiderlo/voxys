@@ -81,6 +81,7 @@ cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
+        "cove_hud.cpp",
         "opaque_scene.cpp",
         "debug_visualizer.cpp",
         "environment_lighting.cpp",
@@ -92,11 +93,14 @@ cc_library(
     ],
     hdrs = [
         "blit_path.hpp",
+        "cove_hud.hpp",
+        "cove_hud_font.inc",
         "opaque_scene.hpp",
         "periodic_gradient_lut.hpp",
         "debug_visualizer.hpp",
         "environment_lighting.hpp",
         "mesh_path.hpp",
+        "scene_shadows.hpp",
         "primitive_gpu_culling.hpp",
         "raycast_path.hpp",
         "primitive_path.hpp",

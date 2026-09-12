@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="50" failures="0" disabled="0" errors="0" time="73.03" timestamp="2026-09-10T19:42:52.792" name="AllTests">
+  <testsuite name="SceneShadowSources" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.005" timestamp="2026-09-10T19:42:52.792">
+    <testcase name="AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade" file="tests/test_shader_blit.cpp" line="23" status="run" result="completed" time="0.005" timestamp="2026-09-10T19:42:52.792" classname="SceneShadowSources" />
+  </testsuite>
+  <testsuite name="BlitPathTest" tests="21" failures="0" disabled="0" skipped="0" errors="0" time="59.177" timestamp="2026-09-10T19:42:52.798">
+    <testcase name="DefaultConfigValues" file="tests/test_blit_path.cpp" line="312" status="run" result="completed" time="0.054" timestamp="2026-09-10T19:42:52.798" classname="BlitPathTest" />
+    <testcase name="InitWithNullDeviceFails" file="tests/test_blit_path.cpp" line="324" status="run" result="completed" time="0.019" timestamp="2026-09-10T19:42:52.852" classname="BlitPathTest" />
+    <testcase name="RejectsInvalidConfigBeforeGpuCalls" file="tests/test_blit_path.cpp" line="328" status="run" result="completed" time="0.018" timestamp="2026-09-10T19:42:52.872" classname="BlitPathTest" />
+    <testcase name="RejectsInvalidDebugControls" file="tests/test_blit_path.cpp" line="336" status="run" result="completed" time="0.019" timestamp="2026-09-10T19:42:52.891" classname="BlitPathTest" />
+    <testcase name="NotInitializedByDefault" file="tests/test_blit_path.cpp" line="351" status="run" result="completed" time="0.018" timestamp="2026-09-10T19:42:52.910" classname="BlitPathTest" />
+    <testcase name="InitializationSucceeds" file="tests/test_blit_path.cpp" line="355" status="run" result="completed" time="3.653" timestamp="2026-09-10T19:42:52.928" classname="BlitPathTest" />
+    <testcase name="ProductionShaderHasNoGpuValidationErrors" file="tests/test_blit_path.cpp" line="367" status="run" result="completed" time="3.646" timestamp="2026-09-10T19:42:56.582" classname="BlitPathTest" />
+    <testcase name="SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely" file="tests/test_blit_path.cpp" line="378" status="run" result="completed" time="3.832" timestamp="2026-09-10T19:43:00.228" classname="BlitPathTest" />
+    <testcase name="ShutdownReleasesResources" file="tests/test_blit_path.cpp" line="394" status="run" result="completed" time="3.639" timestamp="2026-09-10T19:43:04.061" classname="BlitPathTest" />
+    <testcase name="DoubleInitFails" file="tests/test_blit_path.cpp" line="408" status="run" result="completed" time="3.643" timestamp="2026-09-10T19:43:07.700" classname="BlitPathTest" />
+    <testcase name="UniformBufferCreated" file="tests/test_blit_path.cpp" line="426" status="run" result="completed" time="3.625" timestamp="2026-09-10T19:43:11.343" classname="BlitPathTest" />
+    <testcase name="SamplerCreated" file="tests/test_blit_path.cpp" line="439" status="run" result="completed" time="3.788" timestamp="2026-09-10T19:43:14.969" classname="BlitPathTest" />
+    <testcase name="CameraUpdateStoresValues" file="tests/test_blit_path.cpp" line="456" status="run" result="completed" time="3.654" timestamp="2026-09-10T19:43:18.757" classname="BlitPathTest" />
+    <testcase name="TerrainSizeUpdatesUniforms" file="tests/test_blit_path.cpp" line="482" status="run" result="completed" time="3.635" timestamp="2026-09-10T19:43:22.412" classname="BlitPathTest" />
+    <testcase name="CanSetInputTextures" file="tests/test_blit_path.cpp" line="507" status="run" result="completed" time="3.656" timestamp="2026-09-10T19:43:26.048" classname="BlitPathTest" />
+    <testcase name="RenderWithoutTexturesFails" file="tests/test_blit_path.cpp" line="533" status="run" result="completed" time="3.641" timestamp="2026-09-10T19:43:29.705" classname="BlitPathTest" />
+    <testcase name="RenderWithAllTexturesSucceeds" file="tests/test_blit_path.cpp" line="556" status="run" result="completed" time="3.668" timestamp="2026-09-10T19:43:33.346" classname="BlitPathTest" />
+    <testcase name="MoveConstructor" file="tests/test_blit_path.cpp" line="612" status="run" result="completed" time="3.692" timestamp="2026-09-10T19:43:37.015" classname="BlitPathTest" />
+    <testcase name="MoveAssignment" file="tests/test_blit_path.cpp" line="630" status="run" result="completed" time="3.628" timestamp="2026-09-10T19:43:40.708" classname="BlitPathTest" />
+    <testcase name="CustomConfig" file="tests/test_blit_path.cpp" line="653" status="run" result="completed" time="3.634" timestamp="2026-09-10T19:43:44.336" classname="BlitPathTest" />
+    <testcase name="MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth" file="tests/test_blit_path.cpp" line="675" status="run" result="completed" time="4.004" timestamp="2026-09-10T19:43:47.971" classname="BlitPathTest" />
+  </testsuite>
+  <testsuite name="FixtureRegistry" tests="13" failures="0" disabled="0" skipped="0" errors="0" time="12.125" timestamp="2026-09-10T19:43:51.975">
+    <testcase name="ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals" file="tests/test_fixture_registry.cpp" line="25" status="run" result="completed" time="0.001" timestamp="2026-09-10T19:43:51.975" classname="FixtureRegistry" />
+    <testcase name="RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading" file="tests/test_fixture_registry.cpp" line="43" status="run" result="completed" time="0.15" timestamp="2026-09-10T19:43:51.976" classname="FixtureRegistry" />
+    <testcase name="LoadsCompleteCoveAndRejectsExcessBundleAdmission" file="tests/test_fixture_registry.cpp" line="63" status="run" result="completed" time="0.261" timestamp="2026-09-10T19:43:52.127" classname="FixtureRegistry" />
+    <testcase name="AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition" file="tests/test_fixture_registry.cpp" line="80" status="run" result="completed" time="0.29" timestamp="2026-09-10T19:43:52.389" classname="FixtureRegistry" />
+    <testcase name="ToyArtSelectsRenderBundlesWithoutChangingOwnedContent" file="tests/test_fixture_registry.cpp" line="107" status="run" result="completed" time="0.342" timestamp="2026-09-10T19:43:52.680" classname="FixtureRegistry" />
+    <testcase name="PresentationRejectsChangedGameplaySourceAndGeometryAtomically" file="tests/test_fixture_registry.cpp" line="133" status="run" result="completed" time="0.379" timestamp="2026-09-10T19:43:53.022" classname="FixtureRegistry" />
+    <testcase name="AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically" file="tests/test_fixture_registry.cpp" line="190" status="run" result="completed" time="0.31" timestamp="2026-09-10T19:43:53.402" classname="FixtureRegistry" />
+    <testcase name="ParsesDataDrivenKeysLimitsPlacementsAndCamera" file="tests/test_fixture_registry.cpp" line="221" status="run" result="completed" time="0." timestamp="2026-09-10T19:43:53.712" classname="FixtureRegistry" />
+    <testcase name="RejectsAmbiguousUnboundedAndMalformedSelections" file="tests/test_fixture_registry.cpp" line="237" status="run" result="completed" time="0.003" timestamp="2026-09-10T19:43:53.712" classname="FixtureRegistry" />
+    <testcase name="RejectsTraversalAndNonpackageDirectoryForms" file="tests/test_fixture_registry.cpp" line="265" status="run" result="completed" time="0.002" timestamp="2026-09-10T19:43:53.716" classname="FixtureRegistry" />
+    <testcase name="AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey" file="tests/test_fixture_registry.cpp" line="277" status="run" result="completed" time="6.284" timestamp="2026-09-10T19:43:53.719" classname="FixtureRegistry" />
+    <testcase name="AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly" file="tests/test_fixture_registry.cpp" line="330" status="run" result="completed" time="3.872" timestamp="2026-09-10T19:44:00.004" classname="FixtureRegistry" />
+    <testcase name="AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion" file="tests/test_fixture_registry.cpp" line="381" status="run" result="completed" time="0.223" timestamp="2026-09-10T19:44:03.876" classname="FixtureRegistry" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="15" failures="0" disabled="0" skipped="0" errors="0" time="1.722" timestamp="2026-09-10T19:44:04.100">
+    <testcase name="FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration" file="tests/test_salvage_asset_fixture.cpp" line="363" status="run" result="completed" time="0.077" timestamp="2026-09-10T19:44:04.100" classname="FixtureGPU" />
+    <testcase name="CoveToyArtFitsExistingOwnerAndDrawLimits" file="tests/test_salvage_asset_fixture.cpp" line="411" status="run" result="completed" time="0.472" timestamp="2026-09-10T19:44:04.178" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="855700"/>
+        <property name="bundleGpuBytes4" value="763852"/>
+        <property name="bundleGpuBytes5" value="1785504"/>
+        <property name="bundleGpuBytes6" value="2097312"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="14522880"/>
+        <property name="ownerGpuBytes" value="14522880"/>
+        <property name="colorDraws" value="69"/>
+      </properties>
+    </testcase>
+    <testcase name="DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection" file="tests/test_salvage_asset_fixture.cpp" line="448" status="run" result="completed" time="0.065" timestamp="2026-09-10T19:44:04.650" classname="FixtureGPU" />
+    <testcase name="GuideToggleSharesOwnerAndRespectsSeparateGuideBudget" file="tests/test_salvage_asset_fixture.cpp" line="471" status="run" result="completed" time="0.056" timestamp="2026-09-10T19:44:04.716" classname="FixtureGPU" />
+    <testcase name="FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget" file="tests/test_salvage_asset_fixture.cpp" line="499" status="run" result="completed" time="0.067" timestamp="2026-09-10T19:44:04.773" classname="FixtureGPU" />
+    <testcase name="PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime" file="tests/test_salvage_asset_fixture.cpp" line="514" status="run" result="completed" time="0.055" timestamp="2026-09-10T19:44:04.840" classname="FixtureGPU" />
+    <testcase name="SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically" file="tests/test_salvage_asset_fixture.cpp" line="542" status="run" result="completed" time="0.057" timestamp="2026-09-10T19:44:04.896" classname="FixtureGPU" />
+    <testcase name="AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload" file="tests/test_salvage_asset_fixture.cpp" line="572" status="run" result="completed" time="0.406" timestamp="2026-09-10T19:44:04.953" classname="FixtureGPU" />
+    <testcase name="TracksRealSubmitDiscardResetAndReplacementTickets" file="tests/test_salvage_asset_fixture.cpp" line="604" status="run" result="completed" time="0.069" timestamp="2026-09-10T19:44:05.360" classname="FixtureGPU" />
+    <testcase name="RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically" file="tests/test_salvage_asset_fixture.cpp" line="652" status="run" result="completed" time="0.065" timestamp="2026-09-10T19:44:05.429" classname="FixtureGPU" />
+    <testcase name="CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration" file="tests/test_salvage_asset_fixture.cpp" line="683" status="run" result="completed" time="0.052" timestamp="2026-09-10T19:44:05.494" classname="FixtureGPU" />
+    <testcase name="DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames" file="tests/test_salvage_asset_fixture.cpp" line="710" status="run" result="completed" time="0.104" timestamp="2026-09-10T19:44:05.547" classname="FixtureGPU" />
+    <testcase name="ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands" file="tests/test_salvage_asset_fixture.cpp" line="733" status="run" result="completed" time="0.073" timestamp="2026-09-10T19:44:05.652" classname="FixtureGPU" />
+    <testcase name="ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal" file="tests/test_salvage_asset_fixture.cpp" line="769" status="run" result="completed" time="0.05" timestamp="2026-09-10T19:44:05.725" classname="FixtureGPU" />
+    <testcase name="ForwardedDeviceLossDoesNotBecomeAnEndlessLeave" file="tests/test_salvage_asset_fixture.cpp" line="789" status="run" result="completed" time="0.047" timestamp="2026-09-10T19:44:05.776" classname="FixtureGPU" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,19 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //src/render:render (1 packages loaded, 0 targets configured)
+Analyzing: target //src/render:render (1 packages loaded, 0 targets configured)
+
+Analyzing: target //src/render:render (1 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //src/render:render (2 packages loaded, 2337 targets configured).
+[271 / 280] Compiling src/render/primitive_path.cpp; 1s linux-sandbox ... (7 actions running)
+[276 / 280] Compiling src/render/blit_path.cpp; 2s linux-sandbox ... (2 actions running)
+INFO: Found 1 target...
+Target //src/render:render up-to-date:
+  bazel-bin/src/render/librender.a
+  bazel-bin/src/render/librender.so
+INFO: Elapsed time: 4.239s, Critical Path: 2.39s
+INFO: 13 processes: 267 action cache hit, 1 internal, 12 linux-sandbox.
+INFO: Build completed successfully, 13 total actions

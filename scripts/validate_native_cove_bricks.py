@@ -22,6 +22,9 @@ def main():
     parser.add_argument('--storage-root',type=Path,required=True)
     parser.add_argument('--source-slot',type=Path)
     parser.add_argument('--resume-report',type=Path)
+    parser.add_argument('--expected-presentation-parts',type=int)
+    parser.add_argument('--continuous',action='store_true',help='Place eight bricks with only three palette choices; discard the unused ghost on Launch')
+    parser.add_argument('--expected-hud',action='store_true',help='Require the native Cove overlay to encode readable text during the journey')
     args=parser.parse_args();args.output=args.output.resolve();args.output.mkdir(exist_ok=False)
     args.storage_root=args.storage_root.resolve();args.storage_root.mkdir(mode=0o700,exist_ok=False)
     report={'status':'running','kind':'Native pointer brick building and save/restart; no images',
@@ -40,10 +43,20 @@ def main():
             if predicate(state):return state
             time.sleep(.025)
         raise RuntimeError(label+': '+json.dumps(read()))
-    def record(name):
-        state=read();report['stages'].append({'name':name,'state':state})
+    def record(name,**extra):
+        state=read()
+        if args.expected_hud:
+            hud=state.get('nativeHud',{})
+            assert hud.get('enabled') and hud.get('lastEncodedQuads',0)>0,hud
+            assert hud['bodyPixels']>=16 and not hud['truncated'],hud
+            x,y,width,height=hud['panel']
+            assert 0<=x and 0<=y and x+width<=960 and y+height<=540,hud
+        report['stages'].append({'name':name,'state':state,**extra})
         print(name,flush=True);(args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n');return state
     def key(name):controls.key(window,name)
+    def frames(before):
+        return wait(lambda s:int(s.get('assetFixture',{}).get('submittedSerial',0))>=before+2
+            and not s['workshop']['camera']['framePending'],'pointer and camera frames')
     def mouse(point,click=False):
         x,y=map(round,point)
         events=[(6,64,0,0)]+([(4,4,1,0),(5,8,1,256)] if click else [])
@@ -108,8 +121,8 @@ def main():
         if args.resume_report:
             prior=json.loads(args.resume_report.read_text());report['continues']=str(args.resume_report)
             saved=next(s['state'] for s in prior['stages'] if s['name']=='saved-eight-bricks')
-            geometries=[(s['state']['workshop']['name'],tuple(s['state']['workshop']['placement']),s['state']['workshop']['rotation'])
-                for s in prior['stages'] if s['name'].startswith('placed-brick-')]
+            placed=[s.get('placedBrick',s['state']['workshop']) for s in prior['stages'] if s['name'].startswith('placed-brick-')]
+            geometries=[(s['name'],tuple(s['placement']),s['rotation']) for s in placed]
             source,_=archive(args.source_slot);assert source['world']==saved['world']
             slot=args.storage_root/saved['world'];slot.mkdir(mode=0o700)
             for name in ('current','mirror'):shutil.copyfile(args.source_slot/name,slot/name);(slot/name).chmod(0o600)
@@ -119,24 +132,51 @@ def main():
             key('Tab');wait(lambda s:s['workshop']['name']=='Cargo cradle','select cargo cradle');key('Delete')
             wait(lambda s:s['workshop']['changed'] and s['workshop']['parts']==10,'cradle removal observed');key('e')
             wait(lambda s:s['workshop']['parts']==10 and not s['workshop']['changed'],'clear cargo deck')
-            previous=None;geometries=[];cost=0
-            for i,thumb in enumerate([2,1,0,2,1,0,1,0]):
-                mouse(((.32+.18*thumb)*960,.86*540),True)
-                wait(lambda s:s['workshop']['pointerPlacement'] and s['workshop']['changed'],'palette creates ghost')
+            previous=None;geometries=[];cost=0;palette_picks=0
+            thumbs=[2,2,2,1,1,0,0,0] if args.continuous else [2,1,0,2,1,0,1,0]
+            for i,thumb in enumerate(thumbs):
+                if not args.continuous or i==0 or thumb!=thumbs[i-1]:
+                    mouse(((.32+.18*thumb)*960,.86*540),True);palette_picks+=1
+                expected=('Brick 1 x 2','Brick 2 x 2','Brick 2 x 4')[thumb]
+                wait(lambda s:s['workshop']['pointerPlacement'] and s['workshop']['changed']
+                    and s['workshop']['catalogName']==expected,'palette selects '+expected)
                 cost+=int(read()['workshop']['partCost'])
                 if i==2:
                     rotation=read()['workshop']['rotation'];key('r');wait(lambda s:s['workshop']['rotation']!=rotation,'rotation observed')
+                if previous:
+                    before=int(read()['assetFixture']['submittedSerial']);key('m');frames(before)
                 point=[v*.02+(.66 if axis==1 else 0) for axis,v in enumerate(previous)] if previous else [2,.96,-55]
-                target=project(point);mouse(target)
-                wait(lambda s:s['workshop']['valid'],'brick fits at pointer')
-                if previous:assert read()['workshop']['placement'][1]==previous[1]+48
-                mouse(target,True);wait(lambda s:not s['workshop']['changed'] and s['workshop']['parts']==11+i,'pointer keeps brick')
-                previous=read()['workshop']['placement'];geometries.append(geometry());record('placed-brick-'+str(i+1))
+                target=None;attempts=[]
+                for dx,dz in ((0,0),(.5,0),(-.5,0),(0,.5),(0,-.5),(.5,.5),(-.5,.5),(.5,-.5),(-.5,-.5)):
+                    candidate=[point[0]+dx,point[1],point[2]+dz]
+                    pointer=project(candidate);before=int(read()['assetFixture']['submittedSerial']);mouse(pointer);frames(before)
+                    w=read()['workshop'];attempts.append({'point':candidate,'valid':w['valid'],'pointerTarget':w['pointerTarget'],'placement':w['placement']})
+                    if w['pointerTarget'] and w['valid'] and (not previous or w['placement'][1]==previous[1]+48):target=pointer;break
+                report.setdefault('pointerTargets',[]).append(attempts)
+                assert target,'Visible supporting stud required: '+json.dumps(attempts)
+                ghost=read()['workshop'];mouse(target,True)
+                if args.continuous:
+                    wait(lambda s:s['workshop']['brickTool'] and s['workshop']['placedBricks']==i+1
+                        and s['workshop']['placedParts']==11+i,'pointer keeps brick and creates next preview')
+                else:
+                    wait(lambda s:s['workshop']['placedBricks']==i+1 if s['workshop'].get('brickTool') else not s['workshop']['changed'],'pointer keeps brick')
+                    if read()['workshop'].get('brickTool'):key('Escape')
+                    wait(lambda s:not s['workshop']['changed'] and s['workshop']['parts']==11+i,'selection after placement')
+                previous=ghost['placement'];geometries.append((ghost['name'],tuple(previous),ghost['rotation']))
+                record('placed-brick-'+str(i+1),placedBrick={k:ghost[k] for k in ('name','placement','rotation')})
+            if args.continuous:
+                assert palette_picks==3
+                key('Escape');wait(lambda s:s['workshop']['open'] and not s['workshop']['brickTool'] and not s['workshop']['changed']
+                    and s['workshop']['parts']==18,'Esc stops without removing placed bricks')
+                record('continuous-tool-stopped',palettePicks=palette_picks)
             key('z');wait(lambda s:s['workshop']['changed'] and not s['workshop']['valid'],'refused overlap');key('BackSpace')
             wait(lambda s:not s['workshop']['changed'],'cancel overlap');key('Delete')
             wait(lambda s:s['workshop']['changed'] and s['workshop']['parts']==17,'removal observed');key('e')
             wait(lambda s:not s['workshop']['changed'],'removal kept');key('u')
             wait(lambda s:s['workshop']['parts']==18 and not s['workshop']['changed'],'remove and undo');record('remove-undone')
+            if args.continuous:
+                key('3');wait(lambda s:s['workshop']['brickTool'] and s['workshop']['parts']==19,'unused preview before launch')
+                record('unused-preview-before-launch')
             key('Return');wait(lambda s:not s['workshop']['open'] and not s['workshop']['pending'] and s['boat']['parts']==18,'physical launch')
             launched=record('launched-eight-bricks');assert len(launched['boat']['paidPartIds'])==8
             assert launched['session']['inventory']['salvageMaterial']==str(48-cost)
@@ -144,6 +184,8 @@ def main():
             wait(lambda _:'Expedition saved' in controls.title(window),'disk save acknowledgment')
             saved=record('saved-eight-bricks');archive(args.storage_root/saved['world']);stop();start(saved['world'])
         restored=record('restored-eight-bricks');assert restored['boat']['paidPartIds']==saved['boat']['paidPartIds']
+        if args.expected_presentation_parts is not None:
+            assert restored['assetFixture']['presentationParts']==args.expected_presentation_parts
         assert restored['session']['inventory']==saved['session']['inventory'];assert restored['boat']['massKg']==saved['boat']['massKg']
         key('p');wait(lambda s:s['pause']['phase']=='running','resume');key('b');wait(lambda s:s['workshop']['open'],'restored workshop')
         seen=[]

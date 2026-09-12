@@ -1,0 +1,29 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_player
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.BrickTool*:CoveMovement.BrickPointerPlacement*:CoveMovement.Workshop*
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from CoveMovement
+[ RUN      ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign
+[       OK ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign (436 ms)
+[ RUN      ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost
+[       OK ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost (451 ms)
+[ RUN      ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics
+[       OK ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics (434 ms)
+[ RUN      ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview
+[       OK ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview (374 ms)
+[ RUN      ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull
+[       OK ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull (326 ms)
+[ RUN      ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft
+[       OK ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft (302 ms)
+[ RUN      ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign
+[       OK ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign (308 ms)
+[ RUN      ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections
+[       OK ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections (305 ms)
+[----------] 8 tests from CoveMovement (2940 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (2940 ms total)
+[  PASSED  ] 8 tests.

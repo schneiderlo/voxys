@@ -1,0 +1,30 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:cove_hud (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud (1 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:cove_hud (2 packages loaded, 3623 targets configured).
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:263:9: Compiling tests/test_cove_hud.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:cove_hud) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 127 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_cove_hud.cpp: In member function 'virtual void voxy::render::CoveHud_ReadableBoundsKeepTheBuildAndPaletteClear_Test::TestBody()':
+tests/test_cove_hud.cpp:21:41: error: 'uvec2' is not a member of 'glm'; did you mean 'uvec4'?
+   21 |     for(const auto size:std::array<glm::uvec2,5>{{{640,480},{960,540},{1280,800},{1920,1080},{3440,1440}}}){
+      |                                         ^~~~~
+      |                                         uvec4
+tests/test_cove_hud.cpp:21:48: error: template argument 1 is invalid
+   21 |     for(const auto size:std::array<glm::uvec2,5>{{{640,480},{960,540},{1280,800},{1920,1080},{3440,1440}}}){
+      |                                                ^
+[549 / 556] 1 / 1 tests, 1 failed; checking cached actions
+Target //tests:cove_hud failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 3.034s, Critical Path: 1.16s
+INFO: 11 processes: 538 action cache hit, 11 internal.
+ERROR: Build did NOT complete successfully
+//tests:cove_hud                                                FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

@@ -243,10 +243,12 @@
                 <button id="workshop-brick-2x2" data-workshop-action="-1" data-workshop-brick="Brick 2 x 2" disabled><span class="brick-icon brick-2x2" aria-hidden="true"></span><span class="brick-label">2 × 2 · 2</span></button>
                 <button id="workshop-brick-2x4" data-workshop-action="-1" data-workshop-brick="Brick 2 x 4" disabled><span class="brick-icon brick-2x4" aria-hidden="true"></span><span class="brick-label">2 × 4 · 3</span></button>
             </div>
+            <p id="salvage-workshop-tool" class="salvage-note">Choose a brick once. Click to build with it again and again.</p>
             <p id="salvage-workshop-part"></p>
             <p id="salvage-workshop-status" role="status" aria-live="polite"></p>
             <p class="salvage-note">Need space? Select Cargo cradle, then Remove and Keep.</p>
             <div class="workshop-grid workshop-primary">
+                <button id="workshop-select" data-workshop-action="96" title="Stop placing bricks. Keeps every placed brick and discards the unused preview.">Select parts · Esc</button>
                 <button id="workshop-prev" data-workshop-action="61">Previous part</button>
                 <button id="workshop-next" data-workshop-action="62">Next part · Tab</button>
                 <button id="workshop-rotate" data-workshop-action="69">Rotate · R</button>
@@ -254,9 +256,9 @@
                 <button id="workshop-keep" data-workshop-action="71">Keep change · E</button>
                 <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
             </div>
-                <button id="workshop-launch" data-workshop-action="79">Launch boat · Enter</button>
+                <button id="workshop-launch" data-workshop-action="79" title="Launch with your placed bricks. The unused brick preview is not added or charged.">Launch boat · Enter</button>
             <details class="workshop-section"><summary>How to build</summary>
-            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Then choose a brick, point and click. R rotates. Green fits; red is blocked.</p>
+            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Choose a brick once, then click repeatedly to build. R rotates. Green fits; red is blocked. Select or Esc stops; U undoes the last placement. Launch leaves out the unused preview.</p>
             </details>
             <details class="workshop-section"><summary>Camera</summary>
             <div class="workshop-camera" aria-label="Workshop camera">

@@ -1,0 +1,409 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = SceneShadowSources.*:BlitPathTest.*:MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses:FixtureGPU.*:FixtureRegistry.*
+[==========] Running 50 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SceneShadowSources
+[ RUN      ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade
+[       OK ] SceneShadowSources.AllReceiversUseTheSameGeneratedBiasFilterAndBorderFade (5 ms)
+[----------] 1 test from SceneShadowSources (5 ms total)
+
+[----------] 21 tests from BlitPathTest
+[ RUN      ] BlitPathTest.DefaultConfigValues
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.762] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.762] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.762] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.762] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.768] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] BlitPathTest.DefaultConfigValues (54 ms)
+[ RUN      ] BlitPathTest.InitWithNullDeviceFails
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.786] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.786] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.786] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.786] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.788] [GPU] Headless GPU context initialized successfully[0m
+[31m[ERROR] [77:48:57.788] [BlitPath::init] BlitPath::init: device or queue is null[0m
+[       OK ] BlitPathTest.InitWithNullDeviceFails (19 ms)
+[ RUN      ] BlitPathTest.RejectsInvalidConfigBeforeGpuCalls
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.805] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.805] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.805] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.805] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.807] [GPU] Headless GPU context initialized successfully[0m
+[31m[ERROR] [77:48:57.807] [BlitPath::init] BlitPath::init: invalid renderer configuration[0m
+[       OK ] BlitPathTest.RejectsInvalidConfigBeforeGpuCalls (18 ms)
+[ RUN      ] BlitPathTest.RejectsInvalidDebugControls
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.825] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.825] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.825] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.825] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.826] [GPU] Headless GPU context initialized successfully[0m
+[31m[ERROR] [77:48:57.826] BlitPath::setDebugMode: invalid mode 99[0m
+[31m[ERROR] [77:48:57.826] BlitPath::setDebugMaxDepth: invalid depth[0m
+[31m[ERROR] [77:48:57.826] BlitPath::setDebugMaxDepth: invalid depth[0m
+[       OK ] BlitPathTest.RejectsInvalidDebugControls (19 ms)
+[ RUN      ] BlitPathTest.NotInitializedByDefault
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.843] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.843] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.843] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.843] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.844] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] BlitPathTest.NotInitializedByDefault (18 ms)
+[ RUN      ] BlitPathTest.InitializationSucceeds
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:48:57.862] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:48:57.862] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:48:57.862] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:48:57.862] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:48:57.863] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:48:58.267] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:48:58.574] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:01.496] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.InitializationSucceeds (3653 ms)
+[ RUN      ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:01.519] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:01.519] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:01.519] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:01.519] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:01.522] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:01.900] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:02.211] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:05.143] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors (3646 ms)
+[ RUN      ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:05.166] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:05.166] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:05.166] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:05.166] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:05.169] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:05.732] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:06.038] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:08.975] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely (3832 ms)
+[ RUN      ] BlitPathTest.ShutdownReleasesResources
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:09.001] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:09.001] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:09.001] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:09.001] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:09.004] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:09.383] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:09.686] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:12.614] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.ShutdownReleasesResources (3639 ms)
+[ RUN      ] BlitPathTest.DoubleInitFails
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:12.638] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:12.638] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:12.638] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:12.638] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:12.641] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:13.020] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:13.323] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:16.258] [BlitPath::init] BlitPath initialized successfully[0m
+[31m[ERROR] [77:49:16.258] [BlitPath::init] BlitPath::init: already initialized[0m
+[       OK ] BlitPathTest.DoubleInitFails (3643 ms)
+[ RUN      ] BlitPathTest.UniformBufferCreated
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:16.281] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:16.281] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:16.281] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:16.281] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:16.284] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:16.661] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:16.964] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:19.883] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.UniformBufferCreated (3625 ms)
+[ RUN      ] BlitPathTest.SamplerCreated
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:19.907] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:19.907] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:19.907] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:19.907] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:19.910] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:20.295] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:20.639] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:23.672] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.SamplerCreated (3788 ms)
+[ RUN      ] BlitPathTest.CameraUpdateStoresValues
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:23.696] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:23.696] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:23.696] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:23.696] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:23.699] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:24.080] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:24.384] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:27.323] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.CameraUpdateStoresValues (3654 ms)
+[ RUN      ] BlitPathTest.TerrainSizeUpdatesUniforms
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:27.350] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:27.350] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:27.350] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:27.350] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:27.353] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:27.734] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:28.045] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:30.963] [BlitPath::init] BlitPath initialized successfully[0m
+[31m[ERROR] [77:49:30.963] BlitPath::setTerrainSize: invalid terrain size[0m
+[       OK ] BlitPathTest.TerrainSizeUpdatesUniforms (3635 ms)
+[ RUN      ] BlitPathTest.CanSetInputTextures
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:30.991] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:30.991] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:30.991] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:30.991] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:30.994] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:31.379] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:31.683] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:34.619] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.CanSetInputTextures (3656 ms)
+[ RUN      ] BlitPathTest.RenderWithoutTexturesFails
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:34.643] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:34.643] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:34.643] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:34.643] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:34.646] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:35.027] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:35.329] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:38.257] [BlitPath::init] BlitPath initialized successfully[0m
+[33m[WARN ] [77:49:38.257] BlitPath::render: missing required texture bindings[0m
+[       OK ] BlitPathTest.RenderWithoutTexturesFails (3641 ms)
+[ RUN      ] BlitPathTest.RenderWithAllTexturesSucceeds
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:38.285] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:38.286] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:38.286] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:38.286] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:38.288] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:38.678] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:38.996] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:41.922] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.RenderWithAllTexturesSucceeds (3668 ms)
+[ RUN      ] BlitPathTest.MoveConstructor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:41.948] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:41.948] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:41.948] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:41.948] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:41.949] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:42.363] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:42.668] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:45.622] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.MoveConstructor (3692 ms)
+[ RUN      ] BlitPathTest.MoveAssignment
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:45.646] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:45.646] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:45.646] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:45.646] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:45.647] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:46.026] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:46.329] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:49.250] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.MoveAssignment (3628 ms)
+[ RUN      ] BlitPathTest.CustomConfig
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:49.277] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:49.277] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:49.277] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:49.277] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:49.280] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:49.658] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:49.960] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:52.885] [BlitPath::init] BlitPath initialized successfully[0m
+[       OK ] BlitPathTest.CustomConfig (3634 ms)
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:49:52.909] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:49:52.909] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:49:52.909] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:49:52.909] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:49:52.912] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:49:53.478] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:49:53.782] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:49:56.704] [BlitPath::init] BlitPath initialized successfully[0m
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+Scene receiver water=0 clear=196 shadow=37 moved=196
+  caster=0 rgba=196,180,161 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=1 rgba=37,23,5 finalDepth=4.23248 staticDepth=4.23248 water=0 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=181,170,153 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+Scene receiver water=1 clear=191 shadow=181 moved=191
+  caster=0 rgba=191,182,168 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=84,79,72 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=0 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+  caster=1 rgba=35,28,16 finalDepth=4.23246 staticDepth=7.05414 water=1 scene=1
+[       OK ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (4004 ms)
+[----------] 21 tests from BlitPathTest (59177 ms total)
+
+[----------] 13 tests from FixtureRegistry
+[ RUN      ] FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals
+[       OK ] FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals (1 ms)
+[ RUN      ] FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading
+[       OK ] FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading (150 ms)
+[ RUN      ] FixtureRegistry.LoadsCompleteCoveAndRejectsExcessBundleAdmission
+[       OK ] FixtureRegistry.LoadsCompleteCoveAndRejectsExcessBundleAdmission (261 ms)
+[ RUN      ] FixtureRegistry.AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition
+[       OK ] FixtureRegistry.AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition (290 ms)
+[ RUN      ] FixtureRegistry.ToyArtSelectsRenderBundlesWithoutChangingOwnedContent
+[       OK ] FixtureRegistry.ToyArtSelectsRenderBundlesWithoutChangingOwnedContent (342 ms)
+[ RUN      ] FixtureRegistry.PresentationRejectsChangedGameplaySourceAndGeometryAtomically
+[       OK ] FixtureRegistry.PresentationRejectsChangedGameplaySourceAndGeometryAtomically (379 ms)
+[ RUN      ] FixtureRegistry.AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically
+[       OK ] FixtureRegistry.AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically (310 ms)
+[ RUN      ] FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera
+[       OK ] FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera (0 ms)
+[ RUN      ] FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections
+[       OK ] FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections (3 ms)
+[ RUN      ] FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms
+[       OK ] FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms (2 ms)
+[ RUN      ] FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey
+[       OK ] FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey (6284 ms)
+[ RUN      ] FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly
+[       OK ] FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly (3872 ms)
+[ RUN      ] FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion
+[       OK ] FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion (223 ms)
+[----------] 13 tests from FixtureRegistry (12125 ms total)
+
+[----------] 15 tests from FixtureGPU
+[ RUN      ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.038] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.038] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.038] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.038] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.039] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration (77 ms)
+[ RUN      ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.110] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.110] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.110] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.110] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.111] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits (472 ms)
+[ RUN      ] FixtureGPU.DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.583] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.583] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.583] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.583] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.584] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection (65 ms)
+[ RUN      ] FixtureGPU.GuideToggleSharesOwnerAndRespectsSeparateGuideBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.649] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.649] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.649] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.649] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.650] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.GuideToggleSharesOwnerAndRespectsSeparateGuideBudget (56 ms)
+[ RUN      ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.705] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.705] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.705] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.705] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.706] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget (67 ms)
+[ RUN      ] FixtureGPU.PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.772] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.772] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.772] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.772] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.773] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime (55 ms)
+[ RUN      ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.827] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.827] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.827] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.827] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.828] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically (57 ms)
+[ RUN      ] FixtureGPU.AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:09.886] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:09.886] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:09.886] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:09.886] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:09.887] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload (406 ms)
+[ RUN      ] FixtureGPU.TracksRealSubmitDiscardResetAndReplacementTickets
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.302] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.302] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.302] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.302] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.303] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.TracksRealSubmitDiscardResetAndReplacementTickets (69 ms)
+[ RUN      ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.361] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.361] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.361] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.361] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.362] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically (65 ms)
+[ RUN      ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.427] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.427] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.427] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.427] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.428] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration (52 ms)
+[ RUN      ] FixtureGPU.DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.479] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.479] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.479] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.479] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.480] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames (104 ms)
+[ RUN      ] FixtureGPU.ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.582] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.582] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.582] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.582] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.583] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands (73 ms)
+[ RUN      ] FixtureGPU.ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.656] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.656] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.656] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.656] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.657] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal (50 ms)
+[ RUN      ] FixtureGPU.ForwardedDeviceLossDoesNotBecomeAnEndlessLeave
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [77:50:10.708] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:50:10.708] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:50:10.708] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:50:10.708] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:50:10.709] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ForwardedDeviceLossDoesNotBecomeAnEndlessLeave (47 ms)
+[----------] 15 tests from FixtureGPU (1722 ms total)
+
+[----------] Global test environment tear-down
+[==========] 50 tests from 4 test suites ran. (73030 ms total)
+[  PASSED  ] 50 tests.

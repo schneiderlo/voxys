@@ -1,0 +1,663 @@
+[  0%] Built target miniz
+[  9%] Built target libzstd_static
+[ 23%] Built target box3d
+[ 24%] Built target tinygltf
+[ 59%] Built target Jolt
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/render/cove_hud.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/render/debug_visualizer.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/render/raycast_path.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/render/mesh_path.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:16:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/render/environment_lighting.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/render/salvage_asset_fixture.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/render/inspection_guides.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/voxy_core.dir/render/blit_path.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/salvage_asset_fixture.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/salvage_asset_fixture.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:16:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/render/opaque_scene.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/render/water_clipmap_mesh.cpp.o
+1 warning generated.
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/render/water_simulation.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_culling.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_gpu_culling.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_culling.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_culling.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_gpu_culling.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_gpu_culling.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_instance_packing.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_path.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_instance_packing.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_instance_packing.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/camera/camera.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/camera/controller.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_path.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/primitive_path.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/camera/character_controller.cpp.o
+[ 64%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/box3d/box3d_backend.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/render/primitive_path.cpp:622:68: warning: implicit conversion changes signedness: 'const uint32_t' (aka 'const unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+  622 |     if (count == legoCount_ && std::equal(ids.begin(), ids.begin()+count, legoIds_.begin())) return;
+      |                                                                   ~^~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/camera/character_controller.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/camera/character_controller.hpp:15:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/character/cpu_capsule_mover.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/box3d/box3d_backend.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/box3d/box3d_backend.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/box3d/box3d_backend.cpp:4:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/box3d/box3d_conversions.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/box3d.h:7:
+In file included from /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/collision.h:7:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:765:48: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  765 |         out.lowerBound.x = b3RoundDownFloat( origin.x + localBox.lowerBound.x );
+      |                            ~~~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:766:48: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  766 |         out.lowerBound.y = b3RoundDownFloat( origin.y + localBox.lowerBound.y );
+      |                            ~~~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:767:48: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  767 |         out.lowerBound.z = b3RoundDownFloat( origin.z + localBox.lowerBound.z );
+      |                            ~~~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:768:46: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  768 |         out.upperBound.x = b3RoundUpFloat( origin.x + localBox.upperBound.x );
+      |                            ~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:769:46: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  769 |         out.upperBound.y = b3RoundUpFloat( origin.y + localBox.upperBound.y );
+      |                            ~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:770:46: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  770 |         out.upperBound.z = b3RoundUpFloat( origin.z + localBox.upperBound.z );
+      |                            ~~~~~~~~~~~~~~  ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/character/cpu_capsule_mover.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/character/cpu_capsule_mover.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/deterministic/lockstep_world.cpp.o
+1 warning generated.
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/deterministic/replay.cpp.o
+2 warnings generated.
+[ 65%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/debug_readback_ring.cpp.o
+7 warnings generated.
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/deterministic_primitives.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_buffer_arena.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_broad_phase.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_ccd.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_broad_phase.cpp:5:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_attachments.cpp.o
+1 warning generated.
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_dynamic_solver.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_event_readback.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_islands.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_lockstep.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_islands.cpp:5:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_narrow_phase.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_queries.cpp.o
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_physics_backend.cpp.o
+1 warning generated.
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/jolt/jolt_backend.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_physics_backend.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_physics_backend.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/jolt/jolt_backend.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/jolt/jolt_backend.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 69%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_backend_factory.cpp.o
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_types.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend_factory.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend_factory.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend.hpp:3:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.cpp:1:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/rigid_mass_frame.cpp.o
+1 warning generated.
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/authored_body_frame.cpp.o
+[ 70%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/authored_shape.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/authored_shape_pool.cpp.o
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_authored_shapes.cpp.o
+1 warning generated.
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_world.cpp.o
+[ 71%] Building CXX object src/CMakeFiles/voxy_core.dir/network/authoritative_sandbox.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/network/deterministic_adversity_transport.cpp.o
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/network/multiplayer_session.cpp.o
+1 warning generated.
+[ 72%] Building CXX object src/CMakeFiles/voxy_core.dir/network/native_tcp_transport.cpp.o
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/network/protocol.cpp.o
+1 warning generated.
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/network/replication.cpp.o
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/network/ridgebreak_client_replication.cpp.o
+[ 73%] Building CXX object src/CMakeFiles/voxy_core.dir/network/ridgebreak_protocol.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/network/transport.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_client_replication.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_client_runtime.cpp.o
+[ 74%] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_protocol.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_platform_timeline.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_controller.cpp.o
+[ 75%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_presentation.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_third_person_camera.cpp.o
+In file included from In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.cpp/home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_presentation.cpp::11:
+:
+In file included from In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.hpp/home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_presentation.hpp::33:
+:
+In file included from In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp/home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.hpp::33:
+:
+In file included from In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp/home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp::43:
+:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp4:
+:/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp36::3634::34 : warning: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+
+      3636 |  |         [[[[nnooddiissccaarrdd]]]]  ccoonnsstteexxpprr  aauutoto operator< =o>p(e
+r      a| t                                 ^o
+r<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp33::3316::16 : note: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+
+      3333 |  |         ggllmm::::iivveecc33  sseeccttoorr{{00}};;
+
+            | |                ^               ^
+
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp::3737::4848::  note: note: replace 'default' with 'delete'replace 'default' with 'delete'
+
+      3737 |  |                 ccoonnsstt  WWoorrllddPPoossiittiioonn&&))  ccoonnsstt  nnooeexxcceepptt  ==  ddeeffaauulltt;;
+
+            | |                                                ^~~~~~~                                               ^~~~~~~
+
+            | |                                                delete                                               delete
+
+1 warning generated.
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_application_client.cpp.o
+1 warning generated.
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_client_visual_clock.cpp.o
+1 warning generated.
+[ 76%] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_graphical_client_loop.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_third_person_camera.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_third_person_camera.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_presentation.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_application_client.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_application_client.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_graphical_client_loop.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/server/native_gpu_backend.cpp.o
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/server/ridgebreak_authority.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_application_client.cpp:179:23: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  179 |         intervalCount(maximumPathDistance);
+      |         ~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_graphical_client_loop.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_graphical_client_loop.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_controller.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/client/wreckwater_character_platform_timeline.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+2 warnings generated.
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/server/ridgebreak_server_runtime.cpp.o
+1 warning generated.
+[ 77%] Building CXX object src/CMakeFiles/voxy_core.dir/server/wreckwater_authority_runtime.cpp.o
+[ 78%] Building CXX object src/CMakeFiles/voxy_core.dir/server/world_coordinator.cpp.o
+[ 78%] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/wasm/window.cpp.o
+[ 78%] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/wasm/input.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/server/wreckwater_authority_runtime.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/server/wreckwater_authority_runtime.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_authority_bridge.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:431:56: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  431 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                        ^
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:431:89: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  431 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/input.cpp:431:92: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  431 |             return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+      |                                                                                            ^
+1 warning generated.
+[ 79%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+[ 79%] Building CXX object src/CMakeFiles/voxy_core.dir/game/lego_playground.cpp.o
+[ 79%] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+3 warnings generated.
+[ 79%] Building CXX object src/CMakeFiles/voxy_core.dir/perf/gpu_timer.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/lego_playground.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/lego_playground.hpp:2:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.hpp:13:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[ 80%] Building CXX object src/CMakeFiles/voxy_core.dir/perf/benchmark.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:93:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+   93 |                 overlay.style.display = $0 ? 'block' : 'none';
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:132:53: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  132 |         if (fpsEl) fpsEl.textContent = UTF8ToString($0);
+      |                                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:388:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  388 |         var camText = UTF8ToString($0);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:389:37: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  389 |         var pathText = UTF8ToString($1);
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:390:40: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  390 |         var terrainText = UTF8ToString($2);
+      |                                        ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:391:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  391 |         var memText = UTF8ToString($3);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:392:39: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  392 |         var frameCount = UTF8ToString($4);
+      |                                       ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:393:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  393 |         var physicsIdentity = UTF8ToString($5);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:394:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  394 |         var physicsBodies = UTF8ToString($6);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:395:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  395 |         var physicsBroad = UTF8ToString($7);
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:396:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  396 |         var physicsContacts = UTF8ToString($8);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:397:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  397 |         var physicsSolver = UTF8ToString($9);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:398:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  398 |         var physicsIslands = UTF8ToString($10);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:399:50: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  399 |         var physicsCcdWaterEvents = UTF8ToString($11);
+      |                                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:400:38: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  400 |         var physicsIo = UTF8ToString($12);
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:401:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  401 |         var physicsTimings = UTF8ToString($13);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:402:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  402 |         var renderTimings = UTF8ToString($14);
+      |                                          ^
+18 warnings generated.
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:53:
+/home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_layout_cache.hpp:57:53: warning: implicit conversion changes signedness: 'uint32_t' (aka 'unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+   57 |         std::sort(pending_.begin(),pending_.begin()+pendingCount_,[&](const auto& a,const auto& b) {
+      |                                                    ~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5701:79: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 5701 |         if (config_.salvageAssetFixtureWaterAnchor) asset->origin.y = config_.waterHeight;
+      |                                                                     ~ ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6159:81: warning: implicit conversion changes signedness: 'const size_t' (aka 'const unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 6159 |             && std::all_of(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                         ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:74:47: note: in instantiation of function template specialization 'voxy::Application::configureCoveLaunch()::(lambda)::operator()<voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+   74 | struct __invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...> {
+      |                                               ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: during template argument deduction for class template partial specialization '__invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   82 | using __invoke_result_t _LIBCPP_NODEBUG = typename __invoke_result<_Args...>::type;
+      | ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: in instantiation of template class 'std::__invoke_result_impl<void, (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:94:48: note: in instantiation of template type alias '__invoke_result_t' requested here
+   94 | inline const bool __is_invocable_impl<__void_t<__invoke_result_t<_Args...> >, _Args...> = true;
+      |                                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:97:38: note: during template argument deduction for variable template partial specialization '__is_invocable_impl<__void_t<__invoke_result_t<_Args...>>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   97 | inline const bool __is_invocable_v = __is_invocable_impl<void, _Args...>;
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:100:49: note: (skipping 3 contexts in backtrace; use -ftemplate-backtrace-limit=0 to see all)
+  100 | struct __is_invocable : integral_constant<bool, __is_invocable_v<_Args...> > {};
+      |                                                 ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:619:20: note: in instantiation of template type alias '_And' requested here
+  619 |             bool = _And<_IsNotSame<__remove_cvref_t<_Fp>, function>, __is_invocable<_Fp, _ArgTypes...> >::value>
+      |                    ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:632:65: note: in instantiation of default argument for '__callable<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37) &>' required here
+  632 |   using _EnableIfLValueCallable _LIBCPP_NODEBUG = __enable_if_t<__callable<_Fp&>::value>;
+      |                                                                 ^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:642:32: note: in instantiation of template type alias '_EnableIfLValueCallable' requested here
+  642 |   template <class _Fp, class = _EnableIfLValueCallable<_Fp>>
+      |                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:643:25: note: in instantiation of default argument for 'function<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37)>' required here
+  643 |   _LIBCPP_HIDE_FROM_ABI function(_Fp);
+      |                         ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37: note: while substituting deduced template arguments into function template 'function' [with _Fp = (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6154:37), $1 = (no value)]
+ 6154 |     local.preparation.observedBuild=[asset](auto tick) {
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6342:128: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6342 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                                                ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6342:107: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6342 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                           ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6342:86: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6342 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                      ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6342:65: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6342 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7476:27: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 7476 |         view.zoom(input_->scrollDelta());
+      |              ~~~~ ~~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7577:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 7577 |     if(!asset.checkpointPending)asset.player->advance(deltaTime, {horizontal * forwardInput + sideways * rightInput,
+      |                                               ~~~~~~~ ^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8477:101: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8477 |                 const auto parent=std::find_if(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                                             ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8479:58: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8479 |                 if(parent!=launch.parents.begin()+launch.parentCount) {
+      |                                                  ~~~~~~~~^~~~~~~~~~~
+12 warnings generated.
+[ 80%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[ 98%] Building CXX object CMakeFiles/voxy_wasm.dir/src/engine/platform/wasm/entry.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/entry.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[100%] Linking CXX executable bin/voxy_wasm.js
+cache:INFO: generating port: sysroot/lib/wasm32-emscripten/lto/libemdawnwebgpu-842f9d2b-O2.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libemdawnwebgpu-842f9d2b-O2.a" for subsequent builds)
+system_libs:INFO: compiled 1 inputs in 0.97s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libGL-getprocaddr.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libGL-getprocaddr.a" for subsequent builds)
+system_libs:INFO: compiled 4 inputs in 0.12s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libal.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libal.a" for subsequent builds)
+system_libs:INFO: compiled 1 inputs in 0.11s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libhtml5.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libhtml5.a" for subsequent builds)
+system_libs:INFO: compiled 5 inputs in 0.13s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libstubs.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libstubs.a" for subsequent builds)
+system_libs:INFO: compiled 2 inputs in 0.11s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libnoexit.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libnoexit.a" for subsequent builds)
+system_libs:INFO: compiled 1 inputs in 0.06s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libc.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libc.a" for subsequent builds)
+system_libs:INFO: compiled 1074 inputs in 1.55s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libdlmalloc.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libdlmalloc.a" for subsequent builds)
+system_libs:INFO: compiled 2 inputs in 0.20s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libclang_rt.builtins.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libclang_rt.builtins.a" for subsequent builds)
+system_libs:INFO: compiled 184 inputs in 0.68s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libc++.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libc++.a" for subsequent builds)
+system_libs:INFO: compiled 57 inputs in 2.78s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libc++abi.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libc++abi.a" for subsequent builds)
+system_libs:INFO: compiled 17 inputs in 0.76s
+cache:INFO:  - ok
+cache:INFO: generating system library: sysroot/lib/wasm32-emscripten/lto/libsockets.a... (this will be cached in "/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/lto/libsockets.a" for subsequent builds)
+system_libs:INFO: compiled 27 inputs in 0.31s
+cache:INFO:  - ok
+[100%] Built target voxy_wasm

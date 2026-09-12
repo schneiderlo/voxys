@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="1" disabled="0" errors="0" time="1.385" timestamp="2026-09-11T23:35:53.836" name="AllTests">
+  <testsuite name="BlitPathTest" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="1.385" timestamp="2026-09-11T23:35:53.836">
+    <testcase name="MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp" line="675" status="run" result="completed" time="1.385" timestamp="2026-09-11T23:35:53.836" classname="BlitPathTest">
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826&#x0A;The difference between sample(true) and shadowed is 159, which exceeds 2, where&#x0A;sample(true) evaluates to 196,&#x0A;shadowed evaluates to 37, and&#x0A;2 evaluates to 2.&#x0A;Google Test trace:&#x0A;/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826
+The difference between sample(true) and shadowed is 159, which exceeds 2, where
+sample(true) evaluates to 196,
+shadowed evaluates to 37, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000
+]]></failure>
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826&#x0A;The difference between sample(true) and shadowed is 159, which exceeds 2, where&#x0A;sample(true) evaluates to 196,&#x0A;shadowed evaluates to 37, and&#x0A;2 evaluates to 2.&#x0A;Google Test trace:&#x0A;/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826
+The difference between sample(true) and shadowed is 159, which exceeds 2, where
+sample(true) evaluates to 196,
+shadowed evaluates to 37, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000
+]]></failure>
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826&#x0A;The difference between sample(true) and shadowed is 10, which exceeds 2, where&#x0A;sample(true) evaluates to 191,&#x0A;shadowed evaluates to 181, and&#x0A;2 evaluates to 2.&#x0A;Google Test trace:&#x0A;/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826
+The difference between sample(true) and shadowed is 10, which exceeds 2, where
+sample(true) evaluates to 191,
+shadowed evaluates to 181, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 0.000000,-256.000000,0.000000
+]]></failure>
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826&#x0A;The difference between sample(true) and shadowed is 10, which exceeds 2, where&#x0A;sample(true) evaluates to 191,&#x0A;shadowed evaluates to 181, and&#x0A;2 evaluates to 2.&#x0A;Google Test trace:&#x0A;/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:826
+The difference between sample(true) and shadowed is 10, which exceeds 2, where
+sample(true) evaluates to 191,
+shadowed evaluates to 181, and
+2 evaluates to 2.
+Google Test trace:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:820: shadow frame origin 256.000000,0.000000,-256.000000
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

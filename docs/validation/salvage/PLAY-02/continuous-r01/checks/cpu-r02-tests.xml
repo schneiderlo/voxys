@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="2.961" timestamp="2026-09-12T03:39:36.488" name="AllTests">
+  <testsuite name="CoveMovement" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="2.961" timestamp="2026-09-12T03:39:36.488">
+    <testcase name="BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign" file="tests/test_cove_player.cpp" line="81" status="run" result="completed" time="0.445" timestamp="2026-09-12T03:39:36.488" classname="CoveMovement" />
+    <testcase name="BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost" file="tests/test_cove_player.cpp" line="133" status="run" result="completed" time="0.457" timestamp="2026-09-12T03:39:36.933" classname="CoveMovement" />
+    <testcase name="BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics" file="tests/test_cove_player.cpp" line="176" status="run" result="completed" time="0.41" timestamp="2026-09-12T03:39:37.391" classname="CoveMovement" />
+    <testcase name="BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview" file="tests/test_cove_player.cpp" line="204" status="run" result="completed" time="0.374" timestamp="2026-09-12T03:39:37.802" classname="CoveMovement" />
+    <testcase name="WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull" file="tests/test_cove_player.cpp" line="506" status="run" result="completed" time="0.335" timestamp="2026-09-12T03:39:38.176" classname="CoveMovement" />
+    <testcase name="WorkshopRefusesDisconnectedChangeWithoutEditingCraft" file="tests/test_cove_player.cpp" line="1389" status="run" result="completed" time="0.311" timestamp="2026-09-12T03:39:38.511" classname="CoveMovement" />
+    <testcase name="WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign" file="tests/test_cove_player.cpp" line="1402" status="run" result="completed" time="0.316" timestamp="2026-09-12T03:39:38.823" classname="CoveMovement" />
+    <testcase name="WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections" file="tests/test_cove_player.cpp" line="1417" status="run" result="completed" time="0.309" timestamp="2026-09-12T03:39:39.139" classname="CoveMovement" />
+  </testsuite>
+</testsuites>

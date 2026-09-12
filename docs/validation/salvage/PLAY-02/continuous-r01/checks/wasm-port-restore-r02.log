@@ -1,0 +1,12 @@
+SDK: Emscripten 6.0.1-git restored from local Bazel SDK by parent.
+Port source: /home/modkin/.cache/bazel/_bazel_modkin/2dc032de1cf76be71cb4765f3d1d6e9a/external/emsdk++emscripten_cache+emscripten_cache/cache/ports/emdawnwebgpu.175430.zip
+Port SHA-512: 42784f70b67197c614322f9fabb0f1dc64228a0de10e88f99941fa9d29bee9ad6683f4651d4eefd5a7a9fbd1f976eb522b190b683219ed1793e9b531c602ffa6
+Port version: Dawn release v20260423.175430 at revision <https://dawn.googlesource.com/dawn/+log/31e25af254ab572c77054edec4946d2244e184dd>.
+
+Header restored: /home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/ports/emdawnwebgpu/emdawnwebgpu_pkg/webgpu/include/webgpu/webgpu.h
+No network download or gameplay/build-config source edit.
+Verified compiler invocation: EM_CONFIG=/tmp/voxys-emsdk/.emscripten /tmp/voxys-emsdk/upstream/emscripten/emcc --version
+Compiler revision: 25e4e8d6550d392ba9e0c2936bce7cf41ee47cc0
+Reconfigure: EM_CONFIG=/tmp/voxys-emsdk/.emscripten /nix/store/r9941n32g4wyvggz2703dlplbdq8a6rd-cmake-4.1.2/bin/cmake -S . -B build-lego-wasm -DCMAKE_CROSSCOMPILING_EMULATOR=/home/modkin/.nix-profile/bin/node
+Build: EM_CONFIG=/tmp/voxys-emsdk/.emscripten /nix/store/r9941n32g4wyvggz2703dlplbdq8a6rd-cmake-4.1.2/bin/cmake --build build-lego-wasm --target voxy_wasm -j 4
+First post-restoration build reached cove_hud.cpp and exposed a cross-platform vertex descriptor initializer error. Its failed output is preserved in wasm-build-r02.log. HUD owner notified for explicit field initialization correction.

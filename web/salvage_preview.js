@@ -145,7 +145,7 @@
                 document.getElementById('salvage-title').textContent = state.workshop?.open ? 'Build your boat' : cove ? 'Salvage Cove' : state.assetFixture.assembly
                     ? (state.assetFixture.prototypeUploads ? 'Pontoon assembly check' : 'Assembly inspection') : 'Model inspection';
                 document.getElementById('salvage-help').textContent = state.workshop?.open
-                    ? '1 / 2 / 3: choose a brick · click to place · R: rotate · U: undo · Enter: launch · B: close' : state.player
+                    ? '1 / 2 / 3: choose a brick · click to build · R: rotate · Esc: select · U: undo · Enter: launch' : state.player
                     ? 'WASD to walk · click to look · Space to jump · E to interact · R to return'
                     : 'WASD to fly · click to look · E / Q up and down';
                 for (const button of lodButtons) {
@@ -245,10 +245,16 @@
                 workshopToggle.textContent=open?'Return to dock · B':'Workshop · B';
                 if(workshopPanel)workshopPanel.hidden=!open;
                 if(open) {
-                    document.getElementById('salvage-workshop-part').textContent=`${w.name} · Part ${w.selected+1} · ${w.parts} parts in design`;
+                    document.getElementById('salvage-workshop-part').textContent=w.brickTool
+                        ? `${w.placedBricks||0} bricks placed · ${w.placedParts} boat parts`
+                        : `${w.name} · Part ${w.selected+1} · ${w.parts} parts in design`;
+                    const tool=document.getElementById('salvage-workshop-tool');
+                    if(tool)tool.textContent=w.brickTool
+                        ? `Building with ${w.catalogName.replace('Brick ','')}. Click to place another. R rotates; Esc selects. The preview is not charged.`
+                        : 'Choose a brick once. Click to build with it again and again.';
                     const note=document.getElementById('salvage-workshop-status');
                     const noTarget=w.valid&&w.pointerPlacement&&w.pointerTarget===false;
-                    note.textContent=(w.launchMessage||(noTarget?'Point at a part to place, or Keep this position.':w.message))
+                    note.textContent=(w.launchMessage||(noTarget?(w.brickTool?'Point at a matching stud or socket.':'Point at a part to place, or Keep this position.'):w.message))
                         +(w.valid?` Mass: ${w.massKg.toFixed(0)} kg.`:'');
                     note.dataset.valid=String(w.valid);
                     const drawer=document.getElementById('workshop-catalog-name');
@@ -279,6 +285,7 @@
                             if(label&&part)label.textContent=`${part.name.replace('Brick ','')} · ${part.cost} material`;
                         }
                         const action=button.dataset.workshopAction;
+                        if(action==='96')button.setAttribute('aria-pressed',String(!w.brickTool));
                         if(action==='85') { button.hidden=!w.configurable;button.textContent=`Turn ${settings.enabled?'off':'on'} · X`; }
                         if(action==='86') { button.hidden=!w.hasOutputLimit;button.textContent=`${w.name==='Helm'?'Steering':'Thrust'} limit · L`; }
                         if(action==='87') { button.hidden=!w.canReverse;button.textContent=`${settings.reversed?'Forward':'Reverse'} drive · N`; }
@@ -292,7 +299,9 @@
                         ||(button.dataset.workshopAction==='88'&&!w.canRebuild)
                         ||(['89','92','93'].includes(button.dataset.workshopAction)&&!w.canLoadRecovery)
                         ||(button.dataset.workshopAction==='94'&&!w.canRemoveRecovery)
-                        ||((button.dataset.workshopAction==='84'||button.dataset.workshopBrick)&&!w.canAdd)
+                        ||(button.dataset.workshopAction==='96'&&!w.brickTool)
+                        ||(button.dataset.workshopAction==='84'&&!w.canAdd&&!w.brickTool)
+                        ||(button.dataset.workshopBrick&&!(w.canChooseBrick??w.canAdd))
                         ||(button.dataset.workshopBrick&&button.dataset.workshopAction==='-1')
                         ||(button.dataset.workshopAction==='85'&&!w.configurable)
                         ||(button.dataset.workshopAction==='86'&&!w.hasOutputLimit)
@@ -341,7 +350,15 @@
         workshopToggle?.addEventListener('click',onWorkshop);
         panel.addEventListener('keydown',onWorkshopKey);
         for(const button of workshopButtons) {
-            const handler=()=>{if(!pending&&!button.disabled&&act(Number(button.dataset.workshopAction)))tick();};
+            const handler=()=>{
+                if(!pending&&!button.disabled&&act(Number(button.dataset.workshopAction))) {
+                    tick();
+                    // Selecting the brush hands rotation/undo back to the
+                    // canvas immediately, before the first placement click.
+                    if(button.dataset.workshopBrick||button.dataset.workshopAction==='96')
+                        document.getElementById('voxy-canvas')?.focus({preventScroll:true});
+                }
+            };
             workshopHandlers.set(button,handler);button.addEventListener('click',handler);
         }
         for (const button of lodButtons) {

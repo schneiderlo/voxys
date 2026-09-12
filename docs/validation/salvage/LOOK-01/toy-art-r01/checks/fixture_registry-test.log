@@ -1,0 +1,38 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:fixture_registry
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 13 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 13 tests from FixtureRegistry
+[ RUN      ] FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals
+[       OK ] FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals (1 ms)
+[ RUN      ] FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading
+[       OK ] FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading (172 ms)
+[ RUN      ] FixtureRegistry.LoadsCompleteCoveAndRejectsExcessBundleAdmission
+[       OK ] FixtureRegistry.LoadsCompleteCoveAndRejectsExcessBundleAdmission (277 ms)
+[ RUN      ] FixtureRegistry.AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition
+[       OK ] FixtureRegistry.AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition (304 ms)
+[ RUN      ] FixtureRegistry.ToyArtSelectsRenderBundlesWithoutChangingOwnedContent
+[       OK ] FixtureRegistry.ToyArtSelectsRenderBundlesWithoutChangingOwnedContent (355 ms)
+[ RUN      ] FixtureRegistry.PresentationRejectsChangedGameplaySourceAndGeometryAtomically
+[       OK ] FixtureRegistry.PresentationRejectsChangedGameplaySourceAndGeometryAtomically (407 ms)
+[ RUN      ] FixtureRegistry.AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically
+[       OK ] FixtureRegistry.AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically (334 ms)
+[ RUN      ] FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera
+[       OK ] FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera (0 ms)
+[ RUN      ] FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections
+[       OK ] FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections (4 ms)
+[ RUN      ] FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms
+[       OK ] FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms (2 ms)
+[ RUN      ] FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey
+[       OK ] FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey (6331 ms)
+[ RUN      ] FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly
+[       OK ] FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly (3881 ms)
+[ RUN      ] FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion
+[       OK ] FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion (226 ms)
+[----------] 13 tests from FixtureRegistry (12297 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (12297 ms total)
+[  PASSED  ] 13 tests.

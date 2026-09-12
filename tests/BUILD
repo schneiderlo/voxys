@@ -41,6 +41,7 @@ TEST_SRCS = [
     "test_triangle_path.cpp",
     "test_raycast_path.cpp",
     "test_blit_path.cpp",
+    "test_cove_hud.cpp",
     "test_benchmark.cpp",
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
@@ -83,7 +84,7 @@ cc_test(
     name = "fixture_registry",
     srcs = ["test_fixture_registry.cpp"],
     copts = PROJECT_TEST_COPTS,
-    deps = ["//src/game:fixture_registry", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    deps = ["//src/game:fixture_registry", "//src/core:sha256", "//third_party:tinygltf", "@googletest//:gtest_main"],
     data = ["//data:salvage_asset_fixture", "//data:salvage_functional_kit", "//data:salvage_material_metric"],
 )
 
@@ -435,12 +436,13 @@ cc_test(
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/render:salvage_asset_fixture",
+        "//src/game:fixture_registry",
         "//src/core:sha256",
         "//src/gpu:gpu",
         "//third_party:tinygltf",
         "@googletest//:gtest_main",
     ],
-    data = ["//data:salvage_runtime_probe", "//shaders:shaders"],
+    data = ["//data:salvage_runtime_probe", "//data:salvage_material_metric", "//shaders:shaders"],
 )
 
 cc_test(

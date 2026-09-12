@@ -1,0 +1,31 @@
+[  0%] Built target miniz
+[  0%] Built target tinygltf
+[ 13%] Built target libzstd_static
+[ 18%] Built target box3d
+[ 18%] Built target gtest
+[ 19%] Built target gtest_main
+[ 45%] Built target Jolt
+[ 77%] Built target voxy_core
+[ 77%] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_blit_path.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp: In member function ‘virtual void voxy::BlitPathTest_MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth_Test::TestBody()’:
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:733:31: error: aggregate ‘voxy::render::PrimitiveLighting lighting’ has incomplete type and cannot be defined
+  733 |     render::PrimitiveLighting lighting;lighting.direction=direction;lighting.fogDensity=0;
+      |                               ^~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:734:129: error: field ‘light’ has incomplete type ‘voxy::render::PrimitiveLighting’
+  734 |     struct Draw {render::MeshPath* mesh;WGPUTextureView depth;glm::mat4 view,projection;glm::vec3 eye;render::PrimitiveLighting light;};
+      |                                                                                                                                 ^~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:25:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:35:8: note: forward declaration of ‘struct voxy::render::PrimitiveLighting’
+   35 | struct PrimitiveLighting;
+      |        ^~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:736:43: error: cannot convert ‘voxy::BlitPathTest_MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth_Test::TestBody()::<lambda(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)>’ to ‘bool (*)(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)’ {aka ‘bool (*)(void*, WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer)’} in initialization
+  736 |     render::OpaqueSceneDraw objects{&draw,[](void* value,WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,render::SceneShadowConsumer background){
+      |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                           |
+      |                                           voxy::BlitPathTest_MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth_Test::TestBody()::<lambda(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, voxy::render::SceneShadowConsumer)>
+  737 |         auto& d=*static_cast<Draw*>(value);return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background);}};
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make[3]: *** [tests/CMakeFiles/voxy_tests.dir/build.make:1381: tests/CMakeFiles/voxy_tests.dir/test_blit_path.cpp.o] Error 1
+make[2]: *** [CMakeFiles/Makefile2:3743: tests/CMakeFiles/voxy_tests.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:3750: tests/CMakeFiles/voxy_tests.dir/rule] Error 2
+make: *** [Makefile:1388: voxy_tests] Error 2

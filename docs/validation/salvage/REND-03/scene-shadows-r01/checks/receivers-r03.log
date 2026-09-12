@@ -1,0 +1,202 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlitPathTest
+[ RUN      ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+[32m[INFO ] [77:34:40.007] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [77:34:40.007] [GPU]   Vendor: radv[0m
+[32m[INFO ] [77:34:40.007] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [77:34:40.007] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [77:34:40.008] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [77:34:40.038] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [77:34:40.118] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [77:34:41.000] [BlitPath::init] BlitPath initialized successfully[0m
+[31m[ERROR] [77:34:41.019] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.022] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.024] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+Scene receiver water=0 clear=0 shadow=0 moved=0
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:794: Failure
+Expected: (shadowed) < (clear-5), actual: 0 vs -5
+
+[31m[ERROR] [77:34:41.027] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.030] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.032] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.035] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.038] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[31m[ERROR] [77:34:41.040] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+Scene receiver water=1 clear=0 shadow=0 moved=0
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:794: Failure
+Expected: (shadowed) < (clear-5), actual: 0 vs -5
+
+[31m[ERROR] [77:34:41.044] WebGPU uncaptured error [Validation]: Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+[0m
+/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp:676: Failure
+Failed
+Validation Error
+
+Caused by:
+  In wgpuCommandEncoderCopyTextureToBuffer
+    Copy error
+      Usage flags TextureUsages(TEXTURE_BINDING | RENDER_ATTACHMENT) of Texture with 'test_color_output' label do not contain required usage flags TextureUsages(COPY_SRC)
+
+
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth (1092 ms)
+[----------] 1 test from BlitPathTest (1092 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1092 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BlitPathTest.MovingCasterUpdatesTerrainAndWaterWithoutChangingCameraOrStaticDepth
+
+ 1 FAILED TEST

@@ -526,6 +526,22 @@ if(VOXY_BUILD_WASM)
             salvage_cove.cfg
             data/salvage/fixture-cove-r01.json
             data/salvage/cove-bricks-r02.json
+            data/salvage/cove-workshop-r03.json
+            data/salvage/toy-art/r01/pontoon/cooked/cook-manifest.json
+            data/salvage/toy-art/r01/pontoon/cooked/gameplay.json
+            data/salvage/toy-art/r01/pontoon/cooked/lod-1.vmesh
+            data/salvage/toy-art/r01/pontoon/cooked/lod-2.vmesh
+            data/salvage/toy-art/r01/pontoon/cooked/lod-3.vmesh
+            data/salvage/toy-art/r01/beam/cooked/cook-manifest.json
+            data/salvage/toy-art/r01/beam/cooked/gameplay.json
+            data/salvage/toy-art/r01/beam/cooked/lod-1.vmesh
+            data/salvage/toy-art/r01/beam/cooked/lod-2.vmesh
+            data/salvage/toy-art/r01/beam/cooked/lod-3.vmesh
+            data/salvage/toy-art/r01/plate/cooked/cook-manifest.json
+            data/salvage/toy-art/r01/plate/cooked/gameplay.json
+            data/salvage/toy-art/r01/plate/cooked/lod-1.vmesh
+            data/salvage/toy-art/r01/plate/cooked/lod-2.vmesh
+            data/salvage/toy-art/r01/plate/cooked/lod-3.vmesh
             data/salvage/bricks/r02/brick_1x2/cooked/cook-manifest.json
             data/salvage/bricks/r02/brick_1x2/cooked/gameplay.json
             data/salvage/bricks/r02/brick_1x2/cooked/lod-1.vmesh
@@ -714,6 +730,8 @@ endif()
 # ─────────────────────────────────────────────────────────────────────────────
 if(TARGET voxy_native)
     install(TARGETS voxy_native RUNTIME DESTINATION bin)
+    install(FILES data/fonts/cove-hud/LICENSE.debian data/fonts/cove-hud/README.md
+        DESTINATION share/voxy/licenses/cove-hud)
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/shaders")

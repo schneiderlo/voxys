@@ -29,13 +29,8 @@ constexpr std::streamoff kMaximumVmeshFileBytes =
     512ll * 1024ll * 1024ll;
 constexpr uint32_t kMaximumRenderExtent = 8'192u;
 
-struct alignas(16) SunShadowUniforms {
-    glm::mat4 viewProj{1.0f};
-    glm::vec4 params{0.0f};
-};
-static_assert(sizeof(SunShadowUniforms) == 80u);
-
-SunShadowUniforms sunShadowFrame(const glm::vec3& camera, const glm::vec3& direction) {
+SunShadowUniforms sunShadowFrame(const glm::vec3& camera, const glm::vec3& direction,
+    const glm::vec3& worldOrigin) {
     constexpr float halfWidth = 24.0f, depthRange = 128.0f;
     const auto light = glm::normalize(direction);
     const auto up = std::abs(light.y) > 0.95f ? glm::vec3(0,0,1) : glm::vec3(0,1,0);
@@ -47,7 +42,8 @@ SunShadowUniforms sunShadowFrame(const glm::vec3& camera, const glm::vec3& direc
     const float scale = float(MeshPath::sunShadowResolution) * 0.5f;
     matrix[3].x += (std::round(origin.x * scale) - origin.x * scale) / scale;
     matrix[3].y += (std::round(origin.y * scale) - origin.y * scale) / scale;
-    return {matrix, {1.0f, halfWidth * 2 / float(MeshPath::sunShadowResolution), 1 / depthRange, 0}};
+    return {matrix, {1.0f, halfWidth * 2 / float(MeshPath::sunShadowResolution), 1 / depthRange, 0},
+        glm::vec4(worldOrigin, 0.0f)};
 }
 
 struct alignas(16) MeshUniforms {
@@ -616,10 +612,7 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
     bodyFallback_=gpu::createBuffer(device_,gpu::BufferDesc::storage(64,true,"mesh_body_empty"));
     bodyCamera_=gpu::createBuffer(device_,gpu::BufferDesc::uniform(32,"mesh_body_camera"));
     if (!bodyLayout_ || !bodyFallback_ || !bodyCamera_ || !setAuthoredBodyView({},{})) return false;
-    const std::array shadowEntries{
-        LE(0).vertexVisible().fragmentVisible().uniformBuffer(false,sizeof(SunShadowUniforms)),
-        LE(1).fragmentVisible().texture(WGPUTextureSampleType_Depth),
-        LE(2).fragmentVisible().sampler(WGPUSamplerBindingType_Comparison)};
+    const auto shadowEntries = sceneShadowLayoutEntries();
     sunShadowLayout_ = gpu::createBindGroupLayout(device_,shadowEntries,"mesh_sun_receiver_layout");
     sunCasterLayout_ = gpu::createBindGroupLayout(device_,std::span(shadowEntries).first(1),"mesh_sun_caster_layout");
     sunShadowUniform_ = gpu::createBuffer(device_,gpu::BufferDesc::uniform(sizeof(SunShadowUniforms),"mesh_sun_uniform"));
@@ -1313,7 +1306,8 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                       const glm::mat4& projection,
                       const glm::vec3& cameraPosition,
                       const PrimitiveLighting& lighting, uint32_t width,
-                      uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput) {
+                      uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput,
+                      SceneShadowConsumer beforeColor, glm::vec3 shadowFrameWorldOrigin) {
     lastSubmittedDrawCount_ = 0u;
     lastCulledInstanceCount_ = 0u;
     if (!isInitialized() || !encoder || !colorView || !depthView
@@ -1322,11 +1316,11 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     if (width == 0u || height == 0u || width > kMaximumRenderExtent
         || height > kMaximumRenderExtent || !finiteMatrix(view)
         || !finiteMatrix(projection) || !finiteMatrix(viewProj)
-        || !finiteVec3(cameraPosition) || !validLighting(lighting)) {
+        || !finiteVec3(cameraPosition) || !finiteVec3(shadowFrameWorldOrigin) || !validLighting(lighting)) {
         LOG_ERROR("MeshPath::render: invalid frame matrices, lighting, or extent");
         return false;
     }
-    if (instances_.empty()) return true;
+    if (instances_.empty()) return beforeColor(encoder, nullptr);
 
     std::vector<GpuDrawInstance> gpuInstances;
     std::vector<PendingDraw> draws;
@@ -1469,7 +1463,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     }
     instancesValid_ = true;
 
-    const auto shadow = sunShadows_ ? sunShadowFrame(cameraPosition,lighting.direction) : SunShadowUniforms{};
+    const auto shadow = sunShadows_ ? sunShadowFrame(cameraPosition,lighting.direction,shadowFrameWorldOrigin) : SunShadowUniforms{};
     if (!gpu::writeBuffer(queue_,sunShadowUniform_,0u,shadow)) return false;
     if (sunShadows_) {
         WGPURenderPassDepthStencilAttachment target{};
@@ -1497,6 +1491,8 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         }
         wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
     }
+
+    if (!beforeColor(encoder, sunShadows_ ? sunShadowBinding_ : nullptr)) return false;
 
     std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
     auto& colorAttachment = colorAttachments[0];

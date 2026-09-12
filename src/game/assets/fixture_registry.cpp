@@ -113,6 +113,31 @@ FixtureBundleSpec bundleSpec(const Json& value) {
     }
     return bundle;
 }
+
+void compatiblePresentation(const CookedPartBundle& base, const CookedPartBundle& visual) {
+    auto expected = Json::parse(base.sidecar().normalizedJson);
+    auto actual = Json::parse(visual.sidecar().normalizedJson);
+    expected.erase("lods"); actual.erase("lods");
+    if (expected.dump() != actual.dump()) reject("presentation changes canonical gameplay metadata");
+    const auto& a = base.sidecar().lods; const auto& b = visual.sidecar().lods;
+    if (a.size() != b.size()) reject("presentation changes LOD count");
+    for (size_t i = 0; i < a.size(); ++i)
+        if (a[i].id != b[i].id || a[i].renderToCanonical != b[i].renderToCanonical
+            || a[i].minimumScreenHeightPixels != b[i].minimumScreenHeightPixels)
+            reject("presentation changes LOD identity, basis or threshold");
+    auto low = base.lods().front().prefab.canonicalBounds.minimum;
+    auto high = base.lods().front().prefab.canonicalBounds.maximum;
+    for (const auto& lod : base.lods()) {
+        low = glm::min(low, lod.prefab.canonicalBounds.minimum);
+        high = glm::max(high, lod.prefab.canonicalBounds.maximum);
+    }
+    for (const auto& lod : visual.lods()) {
+        const auto& bounds = lod.prefab.canonicalBounds;
+        for (glm::length_t axis = 0; axis < 3; ++axis)
+            if (bounds.minimum[axis] < low[axis] - .02 || bounds.maximum[axis] > high[axis] + .02)
+                reject("presentation exceeds original visual envelope plus 2 cm");
+    }
+}
 } // namespace
 
 std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(std::string_view json, std::string& error) {
@@ -329,12 +354,15 @@ std::unique_ptr<const LoadedAssetFixture> appendAssetFixtureCatalog(
         const auto provider=openCookedPartDirectory(root,error);if(!provider)return {};
         const auto bytes=(*provider)(path.filename().string(),64u*1024u,error);if(!bytes)return {};
         const auto document=registryDocument(std::string_view(reinterpret_cast<const char*>(bytes->data()),bytes->size()));
-        fields(document,{"schema","bundles"});
-        if(natural(document["schema"],1)!=1)reject("catalogue schema");
+        if (!document.is_object() || !document.contains("schema")) reject("catalogue schema");
+        const auto schema=natural(document["schema"],2);
+        if(schema==1)fields(document,{"schema","bundles"});
+        else fields(document,{"schema","bundles","presentations"});
         const auto& entries=document["bundles"];
-        if(!entries.is_array() || entries.empty() || base.bundles.size()>kMaximumFixtureBundles
+        if(!entries.is_array() || (schema==1 && entries.empty()) || base.bundles.size()>kMaximumFixtureBundles
             || entries.size()>kMaximumFixtureBundles-base.bundles.size()
             || base.registry.bundles.size()!=base.bundles.size())reject("catalogue bundle ceiling");
+        if(!base.presentationBundles.empty())reject("catalogue presentation selection is already finalized");
         auto result=std::make_unique<LoadedAssetFixture>(base);
         PartCatalogDraft draft;draft.definitions=base.prototypes;
         for(const auto& bundle:base.bundles) {
@@ -359,6 +387,36 @@ std::unique_ptr<const LoadedAssetFixture> appendAssetFixtureCatalog(
             return false;
         });
         if(!catalog){error="catalogue: "+std::string(issue.field);return {};}
+        if(schema==2) {
+            const auto& presentations=document["presentations"];
+            if(!presentations.is_array() || presentations.empty() || presentations.size()>result->bundles.size())
+                reject("catalogue presentation ceiling");
+            result->presentationBundles=result->bundles;
+            std::set<size_t> selected;
+            std::set<ContentKey> visualKeys;
+            for(const auto& bundle:result->bundles)for(const auto& lod:bundle->lods())visualKeys.insert(lod.asset);
+            constexpr uint64_t maximumExtraBytes=16ull*1024ull*1024ull;
+            uint64_t inputBytes=0,decodedBytes=0;
+            for(const auto& entry:presentations) {
+                fields(entry,{"source_manifest_sha256","bundle"});
+                const auto sourceDigest=hex(entry["source_manifest_sha256"],64);
+                auto spec=bundleSpec(entry["bundle"]);
+                size_t index=0;
+                while(index<result->bundles.size() && result->bundles[index]->sidecar().part.key!=spec.selection.part)++index;
+                if(index==result->bundles.size() || result->registry.bundles[index].selection.manifestSha256!=sourceDigest)
+                    reject("presentation source does not match an exact installed bundle");
+                if(!selected.insert(index).second)reject("duplicate presentation for a canonical part");
+                spec.selection.maximumInputBytes=std::min(spec.selection.maximumInputBytes,maximumExtraBytes-inputBytes);
+                spec.selection.maximumDecodedBytes=std::min(spec.selection.maximumDecodedBytes,maximumExtraBytes-decodedBytes);
+                const auto visualProvider=openCookedPartDirectory(root/spec.directory,error);if(!visualProvider)return {};
+                auto visual=admitCookedPartBundle(spec.selection,*visualProvider,error);if(!visual)return {};
+                compatiblePresentation(*result->bundles[index],*visual);
+                for(const auto& lod:visual->lods())if(!visualKeys.insert(lod.asset).second)
+                    reject("presentation must use unique new visual asset identities");
+                inputBytes+=visual->inputBytes();decodedBytes+=visual->decodedBytes();
+                result->presentationBundles[index]=std::move(visual);
+            }
+        }
         // Base layout, navigation, current assembly and digest remain exact.
         // Only unused catalogue definitions have been appended. New owned
         // parts still undergo the complete canonical build/save validation.

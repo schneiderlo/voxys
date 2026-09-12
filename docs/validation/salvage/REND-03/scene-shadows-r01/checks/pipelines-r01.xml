@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="3" failures="0" disabled="0" errors="0" time="2.961" timestamp="2026-09-10T15:22:09.178" name="AllTests">
+  <testsuite name="BlitPathTest" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="2.854" timestamp="2026-09-10T15:22:09.178">
+    <testcase name="ProductionShaderHasNoGpuValidationErrors" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp" line="354" status="run" result="completed" time="1.591" timestamp="2026-09-10T15:22:09.178" classname="BlitPathTest" />
+    <testcase name="SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_blit_path.cpp" line="365" status="run" result="completed" time="1.263" timestamp="2026-09-10T15:22:10.769" classname="BlitPathTest" />
+  </testsuite>
+  <testsuite name="MeshPathGPUTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.107" timestamp="2026-09-10T15:22:12.032">
+    <testcase name="LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="302" status="run" result="completed" time="0.107" timestamp="2026-09-10T15:22:12.032" classname="MeshPathGPUTest" />
+  </testsuite>
+</testsuites>

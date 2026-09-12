@@ -17,6 +17,7 @@
 
 #include "render/periodic_gradient_lut.hpp"
 #include "render/opaque_scene.hpp"
+#include "render/scene_shadows.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -80,7 +81,7 @@ struct BlitPathConfig {
 /// - Fog
 struct OpaqueSceneDraw {
     void* context = nullptr;
-    bool (*encode)(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView) = nullptr;
+    bool (*encode)(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView, SceneShadowConsumer) = nullptr;
 };
 
 class BlitPath {
@@ -116,9 +117,11 @@ public:
     [[nodiscard]] bool didUseGeometryWaterPath() const noexcept {
         return usedGeometryWaterPathLastRender_;
     }
+    [[nodiscard]] bool didUseSceneSunShadows() const noexcept { return usedSceneSunShadows_; }
     // Only call when the encoder was released without submitting.
     void discardEncoding() noexcept {
         backgroundValid_ = false; backgroundDirty_ = true; skyLutBaked_ = false;
+        usedSceneSunShadows_ = false;
     }
     [[nodiscard]] uint64_t opaqueSceneBytes() const noexcept {
         return opaqueScene_ ? opaqueScene_->requestedBytes() : 0;
@@ -257,6 +260,7 @@ private:
     bool createBindGroupLayout();
     bool createPipeline(const BlitPathConfig& config);
     bool createWaterClipmapResources(const BlitPathConfig& config);
+    bool renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows);
     bool createBindGroup();
     bool createBackgroundTexture(uint32_t width, uint32_t height);
     bool createSkyLut(const BlitPathConfig& config);
@@ -283,6 +287,13 @@ private:
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPURenderPipeline pipeline_ = nullptr;
     WGPURenderPipeline backgroundPipeline_ = nullptr;
+    WGPUBindGroupLayout sceneShadowLayout_ = nullptr;
+    WGPUBindGroupLayout sceneTerrainInputsLayout_ = nullptr, sceneWaterInputsLayout_ = nullptr;
+    WGPUPipelineLayout sceneTerrainLayout_ = nullptr, sceneWaterLayout_ = nullptr;
+    WGPURenderPipeline sceneTerrainPipeline_ = nullptr;
+    WGPURenderPipeline sceneWaterPipeline_ = nullptr, sceneWaterColorPipeline_ = nullptr;
+    WGPUBindGroup sceneTerrainBindings_ = nullptr;
+    WGPUBindGroup sceneWaterBindings_ = nullptr;
     WGPUPipelineLayout cachedPipelineLayout_ = nullptr;
     WGPURenderPipeline cachedPipeline_ = nullptr;
     WGPURenderPipeline cachedColorPipeline_ = nullptr;
@@ -385,6 +396,7 @@ private:
     bool backgroundDirty_ = true;
     bool linearDepthRequired_ = true;
     bool usedGeometryWaterPathLastRender_ = false;
+    bool usedSceneSunShadows_ = false;
     
     // Debug visualization state
     uint32_t debugMode_ = 0;

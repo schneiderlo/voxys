@@ -1,0 +1,55 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_player (2 packages loaded, 126 targets configured).
+[403 / 408] Compiling src/game/expedition/cove_workshop.cpp; 1s linux-sandbox ... (2 actions running)
+[404 / 408] Compiling tests/test_cove_player.cpp; 2s linux-sandbox ... (2 actions, 1 running)
+[406 / 408] Compiling tests/test_cove_player.cpp; 4s linux-sandbox
+[407 / 408] [Prepa] Linking tests/cove_player
+[408 / 409] Testing //tests:cove_player; 0s linux-sandbox
+FAIL: //tests:cove_player (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log)
+INFO: From Testing //tests:cove_player:
+==================== Test output for //tests:cove_player:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.BrickTool*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveMovement
+[ RUN      ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost
+tests/test_cove_player.cpp:165: Failure
+Expected equality of these values:
+  quote->debit.salvageMaterial
+    Which is: 9
+  8u
+    Which is: 8
+
+[  FAILED  ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost (448 ms)
+[ RUN      ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics
+[       OK ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics (412 ms)
+[ RUN      ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview
+[       OK ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview (378 ms)
+[----------] 3 tests from CoveMovement (1240 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (1240 ms total)
+[  PASSED  ] 2 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:cove_player up-to-date:
+  bazel-bin/tests/cove_player
+INFO: Elapsed time: 11.507s, Critical Path: 9.56s
+INFO: 10 processes: 399 action cache hit, 5 internal, 5 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 10 total actions
+//tests:cove_player                                                      FAILED in 1.3s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log
+
+Executed 1 out of 1 test: 1 fails locally.
