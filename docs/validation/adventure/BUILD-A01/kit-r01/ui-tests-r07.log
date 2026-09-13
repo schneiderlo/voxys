@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: read-only polling presents actual supplies without invoking commands
+ok 1 - read-only polling presents actual supplies without invoking commands
+  ---
+  duration_ms: 2.687714
+  type: 'test'
+  ...
+# Subtest: building controls send only bounded piece/placement intents and require valid preview
+ok 2 - building controls send only bounded piece/placement intents and require valid preview
+  ---
+  duration_ms: 2.015025
+  type: 'test'
+  ...
+# Subtest: refused commands cannot alter displayed authority or inventory
+ok 3 - refused commands cannot alter displayed authority or inventory
+  ---
+  duration_ms: 0.400844
+  type: 'test'
+  ...
+# Subtest: starter room is a separate paid-layout intent with actual cost and validity
+ok 4 - starter room is a separate paid-layout intent with actual cost and validity
+  ---
+  duration_ms: 1.225447
+  type: 'test'
+  ...
+# Subtest: starter room can return to real catalog pieces without sending piece zero
+ok 5 - starter room can return to real catalog pieces without sending piece zero
+  ---
+  duration_ms: 0.563236
+  type: 'test'
+  ...
+# Subtest: interaction rows preserve order, disabled eligibility and unchanged focus
+ok 6 - interaction rows preserve order, disabled eligibility and unchanged focus
+  ---
+  duration_ms: 0.753
+  type: 'test'
+  ...
+# Subtest: save errors and actual dirty state remain visible until confirmed state changes
+ok 7 - save errors and actual dirty state remain visible until confirmed state changes
+  ---
+  duration_ms: 0.539493
+  type: 'test'
+  ...
+# Subtest: a full backpack and chest expose all 64 transfer choices
+ok 8 - a full backpack and chest expose all 64 transfer choices
+  ---
+  duration_ms: 1.010338
+  type: 'test'
+  ...
+# Subtest: unavailable state disables actions and recovery needs a new authoritative read
+ok 9 - unavailable state disables actions and recovery needs a new authoritative read
+  ---
+  duration_ms: 0.762517
+  type: 'test'
+  ...
+# Subtest: an empty inactive runtime cannot leave actionable stale controls
+ok 10 - an empty inactive runtime cannot leave actionable stale controls
+  ---
+  duration_ms: 0.600085
+  type: 'test'
+  ...
+# Subtest: full 1024-part observations keep controls available within the explicit bound
+ok 11 - full 1024-part observations keep controls available within the explicit bound
+  ---
+  duration_ms: 3.38454
+  type: 'test'
+  ...
+# Subtest: oversized observations fail closed without forwarding an action
+ok 12 - oversized observations fail closed without forwarding an action
+  ---
+  duration_ms: 1.750052
+  type: 'test'
+  ...
+# Subtest: new/continue links retain distinct profile routes and text is never interpreted as HTML
+ok 13 - new/continue links retain distinct profile routes and text is never interpreted as HTML
+  ---
+  duration_ms: 0.40353
+  type: 'test'
+  ...
+# Subtest: confirmed Cove shortcut is reused unchanged and restored on cleanup
+ok 14 - confirmed Cove shortcut is reused unchanged and restored on cleanup
+  ---
+  duration_ms: 1.367462
+  type: 'test'
+  ...
+# Subtest: an unavailable Cove shortcut is not exposed as a saved adventure
+ok 15 - an unavailable Cove shortcut is not exposed as a saved adventure
+  ---
+  duration_ms: 0.310908
+  type: 'test'
+  ...
+# Subtest: text scale, contrast and collapse preserve ordinary controls without commands
+ok 16 - text scale, contrast and collapse preserve ordinary controls without commands
+  ---
+  duration_ms: 0.353467
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26.509124

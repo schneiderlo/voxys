@@ -103,3 +103,12 @@ cc_library(
     includes = ["../.."],
     deps = ["//src/game:cove_input_preferences"],
 )
+
+cc_library(
+    name = "native_adventure_saves",
+    srcs = ["native/native_adventure_saves.cpp"],
+    hdrs = ["native/native_adventure_saves.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = [":native_save_worker", "//src/game:adventure_core"],
+)

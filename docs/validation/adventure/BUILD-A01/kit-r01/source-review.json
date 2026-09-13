@@ -1,0 +1,100 @@
+{
+  "status": "passed numerical winding; integration review findings sent to root",
+  "base_commit": "acd9d43d224734a633c3af5db5d6d519e6bc3e23",
+  "catalog_sha256": "fc9c763b22b5ef9d81e461608dea0f1b138d8f16a4940e9378442dc18a611150",
+  "meshes": [
+    {
+      "lod": 0,
+      "sha256": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+      "triangles": 6700,
+      "normal_winding_agreement_min": 7.368594864432242e-06,
+      "negative_or_degenerate_winding": 0,
+      "positive_mesh_volumes": [
+        1.3294156879051418,
+        1.3294156879051418,
+        2.014057692855579,
+        0.904497668854138,
+        1.3294156879051418,
+        2.2599519740685996,
+        0.20435857164756846,
+        2.018982017699127,
+        4.0379698339990355,
+        8.075945439603569,
+        0.5607941816248011,
+        0.9626195462965415,
+        0.5627713101140592,
+        0.24987287272218495
+      ],
+      "triangles_per_mesh": [
+        180,
+        180,
+        252,
+        372,
+        180,
+        720,
+        108,
+        496,
+        872,
+        1624,
+        672,
+        156,
+        564,
+        324
+      ]
+    },
+    {
+      "lod": 1,
+      "sha256": "f95cccd5f23bfbdf483c05a10707cd1fc8880bf9715297baad56bb9fe7f1ea34",
+      "triangles": 3308,
+      "normal_winding_agreement_min": 2.7712717316811555e-05,
+      "negative_or_degenerate_winding": 0,
+      "positive_mesh_volumes": [
+        1.3289055925101612,
+        1.3289055925101612,
+        2.0134426190078147,
+        0.9034731824808904,
+        1.3289055925101612,
+        2.2579125358995547,
+        0.20404888694279977,
+        2.0109250317844523,
+        4.022203721852346,
+        8.044761074866878,
+        0.5599381304563266,
+        0.9622716828677584,
+        0.5619147830355066,
+        0.24962179258144426
+      ],
+      "triangles_per_mesh": [
+        116,
+        116,
+        188,
+        180,
+        116,
+        336,
+        44,
+        240,
+        424,
+        792,
+        288,
+        92,
+        244,
+        132
+      ]
+    }
+  ],
+  "reviewed_sources": {
+    "src/game/adventure/adventure_runtime.cpp": "8ad75f6ff1770dcf9ee61a4321063aa76d157accec7de78f6606b31f0e2f98be",
+    "src/game/adventure/construction_policy.cpp": "38b2f260742ff1eec28f29f07d4edc46d8d7bd35beed039e338c507e918a0eb0",
+    "src/render/mesh_path.cpp": "8f590acd4aa14339d232c53b10297fcf675d38bdf8d5ce8e8bda12139d003bdd",
+    "src/render/mesh_path.hpp": "dcee0f69caec46c88df1efd2ba5b0d2338e6dacfe8c81b0f19ac0ac2937969fe",
+    "CMakeLists.txt": "9fcafccfbae3f01ae4f7bc0f7861793828232353d893f2ec7e50dcad52cd9923",
+    "src/CMakeLists.txt": "57014a15da6f7637306dbdd4ef198ad8db40b9fdecf4b02d9615cbb709babe34",
+    "BUILD": "87215977bb42a0e5784ea49836cf612802fbddf94ab53d6d9e3e033dac001194",
+    "data/BUILD": "aec9f408b2a1d4075b4fbde5265c6332b8fac1d8315f33daa2322fff985d640d",
+    "src/game/BUILD": "a6ff092d0bb07246d80b838da314d8688ba5cef4e5993611f23f3e27a2a2c7d0",
+    "src/app/BUILD": "e5373f5c01b1a67b0e154fe7c6e1a5c2c5be0aee7ed7ab626136ec51b257f7df",
+    "web/adventure_ui.js": "134ecba8b468e01f71ea6c8566285c0e7ddeb1e6a46456856f740f7d75cc1a8f",
+    "web/adventure_ui.css": "9b5a90cced82b1ef8346d050c310ca4c0dbdc3394ea28403f2cc95b2778e6334"
+  },
+  "scope": "Read-only source/package audit plus independent CPU triangle winding checks. No GPU, screenshots or playable acceptance."
+}

@@ -1,0 +1,64 @@
+{
+  "scope": "Actual native worker and filesystem adapter, with deterministic second-stage publication failure. Does not certify browser journeys, Windows durability or GPU performance.",
+  "change": "Recovered pending bytes are acknowledged only when both required replicas match; a single new primary remains unconfirmed until retry repairs the mirror.",
+  "tests": {
+    "tests": "6",
+    "failures": "0",
+    "disabled": "0",
+    "errors": "0",
+    "time": "0.052",
+    "timestamp": "2026-09-12T20:04:17.293",
+    "name": "AllTests"
+  },
+  "compiler": "Nix GCC C++20 -O1 -Wall -Wextra -Werror",
+  "artifacts": [
+    {
+      "file": "native-storage-r04.log.gz",
+      "source": "build-adventure-g-a/authority-checks/native-storage-r04.log",
+      "uncompressedSha256": "19642ab31ad8c5ce8e30260fb0f212ac810b10ea0aaed8917d15493949776f58",
+      "bytes": 1966
+    },
+    {
+      "file": "native-storage-r04.xml.gz",
+      "source": "build-adventure-g-a/authority-checks/native-storage-r04.xml",
+      "uncompressedSha256": "d4848a058b67013179c44baf4da33777b4dd606c8d9d0858de5872ac1a3867d0",
+      "bytes": 1863
+    },
+    {
+      "file": "run-native-r04.sh.gz",
+      "source": "build-adventure-g-a/authority-checks/run-native-r04.sh",
+      "uncompressedSha256": "7834a6de7c56fc0bd0a442fcdacd02bc0aca68eeee6d148eec8c33c2262a74d2",
+      "bytes": 964
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/engine/platform/native/native_adventure_saves.hpp",
+      "sha256": "a3df12555af3ae5aaec2f354ec50dedb134e1cf9e09924d9b6cec9365b6cd723"
+    },
+    {
+      "path": "src/engine/platform/native/native_adventure_saves.cpp",
+      "sha256": "afc940d2c8b9d90c087041d69dd7ad36588b36b7001de83974178478f986fcfb"
+    },
+    {
+      "path": "tests/test_native_adventure_saves.cpp",
+      "sha256": "3ec40438129c39e1245e4a0b30940f9f90a513a18afb5a4fbf33ca83bd94b226"
+    },
+    {
+      "path": "src/game/adventure/adventure_session.hpp",
+      "sha256": "3f2767933a2bbade6eeed794b5c64a3606ab8905f76a32d3fdcf8dae38a6bb92"
+    },
+    {
+      "path": "src/game/adventure/adventure_session.cpp",
+      "sha256": "15e41250a75edc8f9669da298fe366f82f6410107ee4716e882cee90ac7e28f2"
+    },
+    {
+      "path": "src/game/adventure/adventure_save.hpp",
+      "sha256": "f8140ec441dc36affc254a97b12aedbf7eca2fa9d0e708014e740aa07bd2420d"
+    },
+    {
+      "path": "src/game/adventure/adventure_save.cpp",
+      "sha256": "dba70a3af36e6c66cf24ee0a4b59577595bf1e64b9b09bdd71fe073c5912b0a7"
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "scope": "Focused CPU engineering checks; no native/browser player journey claimed",
+  "failures": 0,
+  "full_terrain": {
+    "ldh_sha256": "09fdfe368187cb2214bab5ceaf93c1c6abb79b492d9c3b8704378c5c40188dc7",
+    "decoded_raw_sha256": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+    "samples": [
+      8192,
+      8192
+    ],
+    "height_scale": 600,
+    "cell_scale": 1,
+    "recipe": "full-main-unmodified-lego-r01",
+    "world_water_height": -200,
+    "walk_tool_exit": 0,
+    "spawn": [
+      -63,
+      -145.735,
+      -895
+    ],
+    "walk_segments": [
+      {
+        "target": [
+          -63,
+          -917
+        ],
+        "ticks": 366,
+        "end": [
+          -63,
+          -145.415,
+          -916.96
+        ],
+        "mode": "Walking"
+      },
+      {
+        "target": [
+          -63,
+          -945
+        ],
+        "ticks": 466,
+        "end": [
+          -63,
+          -146.375,
+          -944.92
+        ],
+        "mode": "Walking"
+      },
+      {
+        "target": [
+          -63,
+          -975
+        ],
+        "ticks": 500,
+        "end": [
+          -63,
+          -148.935,
+          -974.92
+        ],
+        "mode": "Walking"
+      }
+    ]
+  },
+  "initial_focused_tests": 16,
+  "final_cmake_tests": 34,
+  "world_query_player_policy_tests": 20,
+  "final_cmake_failures": 0,
+  "final_geometry_transform": "Quarter-turn and origin addition are performed on int64 lattice before one metres conversion; same authored face has bit-identical bounds under O3/FMA.",
+  "earlier_cmake_source_sha256": {
+    "src/game/adventure/world_definition.hpp": "13739e0bd35a68378f12d0f09bbba25b1e2c5df8b7b47635c60598afc84335a1",
+    "src/game/adventure/world_definition.cpp": "01c34d0e8898f7e09de4c3276c316239a5411c2d36f2e12cad9de8d919182ef9",
+    "src/game/adventure/spatial_queries.hpp": "bc8064c7f62201a451ecfcd154b39ceb170185795d03d7d841f2b0c4c9b44a9d",
+    "src/game/adventure/spatial_queries.cpp": "4d9e32361b10338bfd82aec90ab29fe73793c19fc305b3c3ab586874bc996c36",
+    "src/game/adventure/adventure_player.hpp": "1bae0c4f3a30643adfcde1d6885f96aec5e6d3f3ac71533b8f03766c3b46b25d",
+    "src/game/adventure/adventure_player.cpp": "a9591d485d651e6d123827302d3adae4eca266f3b2b198b09420d5eb71d4774b",
+    "src/game/adventure/construction_policy.hpp": "0f530e24c2b1127c98e1cbeb7d94b01297c468b4f05e4c7f882fac9058fa5876",
+    "src/game/adventure/construction_policy.cpp": "839a92e52521556d0da9df2ad352155df452dd1ab8145020bdcbea48cd41e371",
+    "tests/test_adventure_world.cpp": "9213ce128627a1598077919a37ae857d733181c99d8e009d11e827f2e5f99243",
+    "tests/test_adventure_construction_policy.cpp": "790686837939bdad61bf11afa2bed025f740157cb5ef8a677d99358b965dde27"
+  },
+  "source_sha256": {
+    "src/game/adventure/world_definition.hpp": "13739e0bd35a68378f12d0f09bbba25b1e2c5df8b7b47635c60598afc84335a1",
+    "src/game/adventure/world_definition.cpp": "77ae29f654eea069f68501a2f933d9dcc7d108c47c33c38f2a507271bb26a0ad",
+    "src/game/adventure/spatial_queries.hpp": "bc8064c7f62201a451ecfcd154b39ceb170185795d03d7d841f2b0c4c9b44a9d",
+    "src/game/adventure/spatial_queries.cpp": "0bc5938e6de4bf95339b4233cd0058d1beff48f34fc11dc2729c4b5745c0bda2",
+    "src/game/adventure/adventure_player.hpp": "124cbd548239a572bc79de6e315c9a7dc2ba5bc5a442913e2e976b8875cc6a53",
+    "src/game/adventure/adventure_player.cpp": "a9591d485d651e6d123827302d3adae4eca266f3b2b198b09420d5eb71d4774b",
+    "src/game/adventure/construction_policy.hpp": "0f530e24c2b1127c98e1cbeb7d94b01297c468b4f05e4c7f882fac9058fa5876",
+    "src/game/adventure/construction_policy.cpp": "ce055666df984d4707f03f734066cbab788e6537dac9dd30d32943bb75917a9a",
+    "tests/test_adventure_world.cpp": "fec520c885d5c15ea7f8ab062fca8530b646fa03362cc8264b3276a4558c8699",
+    "tests/test_adventure_construction_policy.cpp": "78e4b08a631dc28b4b51cd1111760365bcbb9527fcfe64098c1e6cdda2c023a5",
+    "src/game/adventure/adventure_input.hpp": "753a5488b3bbd0e567a9e4b69a95ed90680df5be83a1051d04350b574868fc3f"
+  },
+  "final_bazel_tests": 39,
+  "final_bazel_failures": 0,
+  "final_bazel_seconds": 0.219,
+  "actual_player_two_layouts": {
+    "name": "PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts",
+    "seconds": 0.007,
+    "room_footprints_metres": [
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        6
+      ]
+    ],
+    "source_geometry": "accepted catalog pieces: stacked foundations, six-tread stair, doorway, walls, roof and bed",
+    "motion": "production AdventurePlayer fixed ticks; climb stairs, enter, follow interior aisle, exit, descend to actual terrain support",
+    "scope": "CPU integration only; not ordinary native/browser controls or screenshot evidence"
+  },
+  "controller_adapter": {
+    "test": "AdventureInput.ControllerMatchesHudAndPlacementCannotAlsoJump",
+    "defaults": "Confirm/A jumps; Tool/X interacts; unused Cove Hook binding cleared",
+    "building": "Confirm stays available to Workshop placement, removed only from World movement sample; keyboard Space preserved; Back does not jump",
+    "scope": "Actual CoveInputRouter CPU integration; no controller hardware journey claimed"
+  }
+}

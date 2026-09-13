@@ -1,5 +1,9 @@
 # List of test source files
 TEST_SRCS = [
+    "test_adventure_session.cpp",
+    "test_adventure_world.cpp",
+    "test_adventure_construction_policy.cpp",
+
     "test_bike.cpp",
     "test_log.cpp",
     "test_lockstep.cpp",
@@ -991,7 +995,7 @@ cc_test(
         "test_wreckwater_client_replication.cpp",
         "test_wreckwater_client_runtime.cpp",
         "test_wreckwater_protocol.cpp",
-    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp"], "//conditions:default": []}),
+    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_adventure_saves.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp"], "//conditions:default": []}),
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/game:cove_rigid_roots",
@@ -1004,13 +1008,14 @@ cc_test(
         "//src/engine/platform:native_design_library",
         "//src/engine/platform:native_workshop_menu",
         "//src/game:design_library",
-        "//src/engine/platform:native_save_worker",
+        "//src/engine/platform:native_save_worker", "//src/engine/platform:native_adventure_saves",
         "//src/game:save_generation",
         "//src/core:sha256",
         "//src/render:salvage_asset_fixture",
         "//src/game:fixture_registry",
         "//src/game:workshop_camera",
         "//src/game:cove_player",
+        "//src/game:adventure_core",
         "//src/game:cove_camera",
         "//src/game:cove_environment",
         "//src/game:cove_environment_collision",
@@ -1359,4 +1364,10 @@ cc_test(
     deps = ["//src/game:cove_test_session", "//src/game:cove_build",
         "//src/game:cove_save",
         "//src/game:cove_rigid_roots", "//src/core:sha256", "@googletest//:gtest_main"],
+)
+cc_test(
+    name = "adventure",
+    srcs = ['test_adventure_session.cpp', 'test_adventure_world.cpp', 'test_adventure_construction_policy.cpp'],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
 )

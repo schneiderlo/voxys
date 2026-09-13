@@ -1,0 +1,37 @@
+{
+  "tests": {
+    "tests": "37",
+    "failures": "0",
+    "disabled": "0",
+    "errors": "0",
+    "time": "0.18",
+    "timestamp": "2026-09-13T00:04:08.270",
+    "name": "AllTests"
+  },
+  "capacity": {
+    "name": "CapacityWorldKeepsFourUsableHousesAnd32ComponentsAcrossExactSave",
+    "file": "tests/test_adventure_session.cpp",
+    "line": "240",
+    "status": "run",
+    "result": "completed",
+    "time": "0.042",
+    "timestamp": "2026-09-13T00:04:08.404",
+    "classname": "AdventureSessionTest"
+  },
+  "properties": {
+    "structures": "4",
+    "parts": "1024",
+    "components": "32",
+    "usable_homes": "4",
+    "collision_solids": "1068",
+    "snapshot_bytes": "31448"
+  },
+  "scope": "CPU authority, actual shared support/collision/shelter rules and canonical save bytes; synthetic flat-terrain engineering workload, not GPU performance or player journey",
+  "sources": {
+    "tests/test_adventure_session.cpp": "7ab4c97df45df6963e9ccf692912d4c64d8a1301a2f28124fa305b401458d47d",
+    "src/game/adventure/adventure_session.cpp": "15e41250a75edc8f9669da298fe366f82f6410107ee4716e882cee90ac7e28f2",
+    "src/game/adventure/adventure_save.cpp": "dba70a3af36e6c66cf24ee0a4b59577595bf1e64b9b09bdd71fe073c5912b0a7",
+    "src/game/adventure/construction_policy.cpp": "ce055666df984d4707f03f734066cbab788e6537dac9dd30d32943bb75917a9a",
+    "src/game/adventure/building_catalog.cpp": "082fa6ced6e3c36a287b185533841fc562167323273314f3a0b0c4d31b8405b8"
+  }
+}

@@ -26,6 +26,7 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
         else if (mode == "lego-shore") result.mode = GameMode::LegoShore;
         else if (mode == "lego-world") result.mode = GameMode::LegoWorld;
         else if (mode == "salvage") result.mode = GameMode::Salvage;
+        else if (mode == "adventure") result.mode = GameMode::Adventure;
         else result.status = GameModeStatus::UnknownMode;
     } else if (config.window.title == "RIDGEBREAK") {
         result.mode = GameMode::Ridgebreak;
@@ -34,7 +35,7 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
     } else if (config.window.title == "LEGO WORLD") {
         result.mode = GameMode::LegoWorld;
     }
-    if (result.ready() && result.mode == GameMode::Salvage
+    if (result.ready() && (result.mode == GameMode::Salvage || result.mode == GameMode::Adventure)
         && validateWreckwaterClientConfig(config.wreckwaterClient)
             != WreckwaterClientConfigStatus::Disabled) {
         result.status = GameModeStatus::ConflictingBootstrap;
@@ -74,7 +75,7 @@ const char* gameModeStatusName(GameModeStatus status) noexcept {
     switch (status) {
     case GameModeStatus::Ready: return "ready";
     case GameModeStatus::UnknownMode: return "unknown game mode";
-    case GameModeStatus::ConflictingBootstrap: return "salvage conflicts with WRECKWATER bootstrap";
+    case GameModeStatus::ConflictingBootstrap: return "game mode conflicts with WRECKWATER bootstrap";
     case GameModeStatus::InvalidAssetFixture: return "asset fixture requires salvage mode and a valid installed registry path";
     }
     return "invalid game mode status";

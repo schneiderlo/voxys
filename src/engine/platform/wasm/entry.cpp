@@ -4,6 +4,7 @@
 
 #include "app/application.hpp"
 #include "game/expedition/cove_save.hpp"
+#include "game/adventure/adventure_runtime.hpp"
 #include "camera/camera.hpp"
 #include "core/log.hpp"
 #include "core/config.hpp"
@@ -1023,6 +1024,7 @@ int main(int argc, char* argv[]) {
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
+    appConfig.adventureEnabled = gameMode.mode == voxy::config::GameMode::Adventure;
     appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
     appConfig.salvageAssetFixtureCatalog = config.game.assetFixtureCatalog;
     appConfig.salvageAssetFixtureGuides = config.game.assetFixtureGuides;
@@ -1413,6 +1415,30 @@ const char* voxy_cove_preferences_action(int action,const char* text) {
 }
 EMSCRIPTEN_KEEPALIVE
 void voxy_cove_save_completed() { if(g_app)g_app->noteCoveSaveCompleted(); }
+
+EMSCRIPTEN_KEEPALIVE
+void adventure_action(int action,int value){if(g_app)g_app->adventureAction(action,value);}
+EMSCRIPTEN_KEEPALIVE
+const char* get_adventure_state_json(){static std::string value;value=g_app?g_app->adventureJson():"{}";return value.c_str();}
+EMSCRIPTEN_KEEPALIVE
+int adventure_stage(const char* world,const char* hex){return !g_app&&world&&hex&&voxy::game::adventure::AdventureRuntime::stageWorld(world,hex);}
+EMSCRIPTEN_KEEPALIVE
+const char* adventure_snapshot_hex(){
+    static std::string result;result.clear();std::vector<std::byte> bytes;std::string error;
+    if(!g_app||!g_app->adventureSnapshot(bytes,error))return result.c_str();
+    constexpr char digits[]="0123456789abcdef";result.reserve(bytes.size()*2);
+    for(const auto b:bytes){const auto v=std::to_integer<unsigned>(b);result+=digits[v>>4];result+=digits[v&15];}return result.c_str();
+}
+EMSCRIPTEN_KEEPALIVE
+int adventure_validate_hex(const char* hex){
+    if(!g_app||!hex)return 0;const std::string_view source(hex),digits="0123456789abcdef";
+    if(source.empty()||source.size()%2||source.size()>2*1024*1024)return 0;
+    std::vector<std::byte> bytes;bytes.reserve(source.size()/2);
+    for(size_t i=0;i<source.size();i+=2){auto a=digits.find(source[i]),b=digits.find(source[i+1]);if(a==digits.npos||b==digits.npos)return 0;bytes.push_back(std::byte(a*16+b));}
+    return g_app->adventureValidateSave(bytes);
+}
+EMSCRIPTEN_KEEPALIVE
+void adventure_save_completed(const char* status){if(g_app&&status)g_app->adventureSaveCompleted(std::string(status).substr(0,240));}
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_stage_cove_resume(const char* worldText,const char* archiveText) {

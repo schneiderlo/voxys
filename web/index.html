@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>voxy — WebGPU Terrain Renderer</title>
+    <title>Voxys — Building Adventure</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="renderer_inspector.css">
@@ -503,6 +503,9 @@
     </section>
     <script src="expedition_store.js"></script>
     <script src="cove_saves.js"></script>
+    <script src="adventure_saves.js"></script>
+    <script src="adventure_ui.js"></script>
+    <link rel="stylesheet" href="adventure_ui.css">
     <script src="controller_menu.js"></script>
     <script src="design_library.js"></script>
     <script src="cove_preferences.js"></script>
@@ -520,8 +523,10 @@
     <script>
         // Global module reference
         let voxyModule = null;
-        // LEGO is the main-page experience. Explicit scene URLs remain usable.
-        const experience = new URLSearchParams(location.search).get('experience') || 'lego-world';
+        // The building adventure is the main entry. Legacy scene URLs retain
+        // their own content and saved-world identities.
+        const experience = new URLSearchParams(location.search).get('experience') || 'adventure';
+        const adventure = experience === 'adventure';
         const legoShore = experience === 'lego';
         const legoWorld = experience === 'lego-world';
         const salvageAssembly = experience === 'salvage-assembly';
@@ -1309,6 +1314,7 @@
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
+                            : adventure ? ['--config', 'adventure.cfg']
                             : salvageCove ? ['--config', 'salvage_cove.cfg']
                             : salvageKit ? ['--config', salvageKitConfigs[experience]]
                             : salvageRotations ? ['--config', experience === 'salvage-rotations-a' ? 'salvage_rotations_a.cfg' : 'salvage_rotations_b.cfg']
@@ -1328,7 +1334,7 @@
                 })();
                 const coveWorld=salvageCove?new URLSearchParams(location.search).get("world"):null;
                 voxyModule = await VoxyModule({
-                    noInitialRun: coveWorld!==null,
+                    noInitialRun: coveWorld!==null || adventure,
                     canvas: canvas,
                     preinitializedWebGPUDevice: device,
                     locateFile: (path, prefix) =>
@@ -1374,6 +1380,45 @@
                 });
 
                 if(coveWorld!==null)await VoxyCoveSaves.resume(voxyModule,coveWorld,coveArguments);
+                if(adventure) {
+                    document.title='Voxys — Building Adventure';
+                    canvas.tabIndex=0;canvas.addEventListener('pointerdown',()=>{canvas.focus({preventScroll:true});voxyModule._adventure_action(15,0);});
+                    const params=new URLSearchParams(location.search);
+                    const store=await VoxyAdventureSaves.open({newWorld:params.get('new')==='1',world:params.get('world')||undefined});
+                    const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+                    try {
+                        if(voxyModule.ccall('adventure_stage','number',['string','string'],[store.world,hex(store.loadedBytes)])!==1)
+                            throw Error('The adventure could not be prepared.');
+                        voxyModule.callMain(coveArguments);
+                        const deadline=Date.now()+120000;
+                        while(voxyModule._voxy_is_initialized()!==1&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,50));
+                        if(voxyModule._voxy_is_initialized()!==1)throw Error('The adventure did not start. Your saves are kept.');
+                        await store.setValidator(bytes=>voxyModule.ccall('adventure_validate_hex','number',['string'],[hex(bytes)])===1);
+                    }
+                    catch(error){await store.close();throw error;}
+                    let saveAgain=false;
+                    window.voxyAdventureSaveRequested=async()=>{
+                        if(store.busy){saveAgain=true;return;}
+                        try {
+                            voxyModule.ccall('adventure_save_completed',null,['string'],['Saving...']);
+                            const text=voxyModule.ccall('adventure_snapshot_hex','string',[],[]);
+                            if(!text)throw Error('The adventure is not ready to save.');
+                            const bytes=Uint8Array.from(text.match(/../g),v=>parseInt(v,16));
+                            await store.publish(bytes);
+                            // Bookmark metadata is optional; it cannot change a
+                            // confirmed storage acknowledgement into a failure.
+                            try {
+                                const savedUrl=new URL(location.href);savedUrl.searchParams.delete('new');savedUrl.searchParams.set('world',store.world);history.replaceState(null,'',savedUrl);
+                            }catch{}
+                            voxyModule.ccall('adventure_save_completed',null,['string'],['Saved adventure']);
+                        }catch(error){voxyModule.ccall('adventure_save_completed',null,['string'],[String(error.message||error)]);}
+                        finally {
+                            if(saveAgain&&!store.closed){saveAgain=false;void window.voxyAdventureSaveRequested();}
+                        }
+                    };
+                    VoxyCoveSaves.installContinue();
+                    window.VoxyAdventureUI.install(voxyModule,window);
+                }
 
                 setupPhysicsBackendSwitcher();
 
@@ -1654,8 +1699,9 @@
 
                 // Handle pointer lock for mouse controls
                 canvas.addEventListener('click', () => {
-                    // The workshop uses buttons and orbit controls without pointer lock.
-                    if (document.getElementById('salvage-preview')?.dataset.workshop === 'true') {
+                    // Construction uses an absolute placement cursor and
+                    // right-drag orbit. A place click must not capture it.
+                    if (adventure || document.getElementById('salvage-preview')?.dataset.workshop === 'true') {
                         canvas.focus({preventScroll: true});
                         return;
                     }

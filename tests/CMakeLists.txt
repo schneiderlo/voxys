@@ -16,6 +16,9 @@ enable_testing()
 # Test Sources
 # ─────────────────────────────────────────────────────────────────────────────
 set(TEST_SOURCES
+    test_adventure_session.cpp
+    test_adventure_world.cpp
+    test_adventure_construction_policy.cpp
     test_cooked_part_directory.cpp
     test_fixture_registry.cpp
     test_functional_kit.cpp
@@ -153,7 +156,7 @@ endif()
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT EMSCRIPTEN)
-    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_design_library.cpp test_native_workshop_menu.cpp test_cove_preferences_store.cpp)
+    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_adventure_saves.cpp test_native_design_library.cpp test_native_workshop_menu.cpp test_cove_preferences_store.cpp)
     add_executable(native_save_store_tests test_native_save_store.cpp test_native_save_worker.cpp test_save_generation.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_store.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_worker.cpp
@@ -1080,3 +1083,11 @@ add_executable(cove_water_clock_tests test_cove_water_clock.cpp)
 target_link_libraries(cove_water_clock_tests PRIVATE voxy_core gtest gtest_main)
 set_project_warnings(cove_water_clock_tests)
 gtest_discover_tests(cove_water_clock_tests DISCOVERY_MODE PRE_TEST TEST_PREFIX "cove_water_clock.")
+
+add_executable(adventure_tests test_adventure_session.cpp test_adventure_world.cpp test_adventure_construction_policy.cpp)
+target_link_libraries(adventure_tests PRIVATE voxy_core gtest gtest_main)
+
+if(NOT EMSCRIPTEN)
+add_executable(native_adventure_save_tests test_native_adventure_saves.cpp)
+target_link_libraries(native_adventure_save_tests PRIVATE voxy_core gtest gtest_main)
+endif()

@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "startedUtc": "2026-09-13T00:22:30.788867+00:00",
+  "binarySha256": "6eae5b52397f772614b2c2d4122f79d21a2e96e7543ee940425361811dcdafea",
+  "world": "bf7488a44a5e0be04c0ee231ac98288d",
+  "scope": "Saved native world startup after render wiring fix; no gameplay input or save request, no screenshot; FPS log describes the running frame loop, not independent GPU draw-count proof",
+  "command": [
+    "/home/modkin/workspace/schneiderlo/voxys/build-native-save-host/bin/voxy_native",
+    "--config",
+    "/home/modkin/workspace/schneiderlo/voxys/build-adventure-g-a/native-render-smoke-r01/observed-adventure.cfg",
+    "--uncapped",
+    "--width",
+    "1280",
+    "--height",
+    "800",
+    "--log-level",
+    "debug"
+  ],
+  "exitCode": -15,
+  "forceKilled": false,
+  "savedDataUnchanged": true,
+  "fpsLines": [
+    "[DEBUG] [00:00:04.943] FPS: 230.5 (4.34 ms) | Path: raycast",
+    "[DEBUG] [00:00:06.952] FPS: 306.2 (3.27 ms) | Path: raycast",
+    "[DEBUG] [00:00:08.953] FPS: 351.8 (2.84 ms) | Path: raycast",
+    "[DEBUG] [00:00:10.955] FPS: 374.2 (2.67 ms) | Path: raycast"
+  ],
+  "errors": [],
+  "elapsedSeconds": 11.312,
+  "observationCount": 32,
+  "firstObservation": "53",
+  "lastObservation": "2552",
+  "savedFiles": {
+    "adventure-v1/bf7488a44a5e0be04c0ee231ac98288d/mirror": {
+      "bytes": 1303,
+      "sha256": "494eba13137e22f49833ba12d5aa2a7c0c935b9823921f84e472bee85a390d7d"
+    },
+    "adventure-v1/bf7488a44a5e0be04c0ee231ac98288d/current": {
+      "bytes": 1303,
+      "sha256": "494eba13137e22f49833ba12d5aa2a7c0c935b9823921f84e472bee85a390d7d"
+    },
+    "adventure-v1/bf7488a44a5e0be04c0ee231ac98288d/writer.lock": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "artifacts": {
+    "summary.json.gz": {
+      "uncompressed_sha256": "38ca235ba365e5a99db722c3e7acc8aa5588420b9d88c42dd3685e4ddb37b020",
+      "uncompressed_bytes": 213954
+    },
+    "process.log.gz": {
+      "uncompressed_sha256": "85ed35e338d2f2606abb59889c36af3525363a7ac4424efcaf5aef00a1197253",
+      "uncompressed_bytes": 13778
+    },
+    "run.py.gz": {
+      "uncompressed_sha256": "a3bbad3b5fbebe449b5e530225e1416fdfdb4947bbc763d0bd0a2d0010010d3c",
+      "uncompressed_bytes": 4078
+    },
+    "observed-adventure.cfg.gz": {
+      "uncompressed_sha256": "6bef231af0e759d31bd06673815f7b1cbbec231f74a4cab0f33a511f3bd5521e",
+      "uncompressed_bytes": 1395
+    }
+  }
+}

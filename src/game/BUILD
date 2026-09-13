@@ -608,3 +608,21 @@ cc_library(
     includes = [".."],
     deps = [":cove_save", ":cove_workshop"],
 )
+
+cc_library(
+    name = "adventure_core",
+    srcs = ['adventure/building_catalog.cpp', 'adventure/item_catalog.cpp', 'adventure/adventure_session.cpp', 'adventure/adventure_save.cpp', 'adventure/world_definition.cpp', 'adventure/spatial_queries.cpp', 'adventure/adventure_player.cpp', 'adventure/construction_policy.cpp'],
+    hdrs = ['adventure/building_catalog.hpp', 'adventure/item_catalog.hpp', 'adventure/adventure_session.hpp', 'adventure/adventure_save.hpp', 'adventure/world_definition.hpp', 'adventure/spatial_queries.hpp', 'adventure/adventure_player.hpp', 'adventure/construction_policy.hpp', 'adventure/adventure_input.hpp'],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":construction_types", ":cove_camera", ":cove_player", ":cove_input_preferences", "//src/engine/platform:input", "//src/core:sha256", "//src/terrain:lego_surface", "//third_party:glm"],
+)
+
+cc_library(
+    name = "adventure_runtime",
+    srcs = ["adventure/adventure_runtime.cpp"],
+    hdrs = ["adventure/adventure_runtime.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":adventure_core", ":robot_asset", ":cove_character", ":cove_input_preferences", "//src/camera:camera", "//src/render:render", "//src/engine/platform:input"] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_adventure_saves"]}),
+)

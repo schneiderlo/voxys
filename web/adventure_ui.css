@@ -1,0 +1,80 @@
+#adventure-ui {
+    --adventure-text-scale: 1;
+    --adventure-panel: #152c35f5;
+    --adventure-edge: #739da3;
+    position: fixed;
+    right: 16px;
+    top: 16px;
+    z-index: 35;
+    width: min(338px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    box-sizing: border-box;
+    border: 1px solid var(--adventure-edge);
+    border-radius: 14px;
+    background: var(--adventure-panel);
+    color: #fff5dd;
+    padding: 14px;
+    box-shadow: 0 5px 24px #07121766;
+    font: calc(15px * var(--adventure-text-scale))/1.55 system-ui, sans-serif;
+    letter-spacing: .015em;
+    text-align: left;
+    scrollbar-gutter: stable;
+    color-scheme: dark;
+}
+body.voxy-adventure .controls-hint,
+body.voxy-adventure #physics-backend-switcher { display: none !important; }
+#adventure-ui [hidden] { display: none !important; }
+#adventure-ui * { box-sizing: border-box; }
+#adventure-ui .adventure-heading,
+#adventure-ui .adventure-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#adventure-ui .adventure-heading { justify-content: space-between; }
+#adventure-ui .adventure-heading strong { font-size: 1.3em; letter-spacing: .05em; }
+#adventure-ui h2 { font: inherit; font-weight: 750; margin: 10px 0 8px; }
+#adventure-ui p { margin: 9px 0; overflow-wrap: anywhere; }
+#adventure-ui .adventure-guide { color: #ffe0a4; font-weight: 600; }
+#adventure-ui .adventure-note { color: #d8e7e4; }
+#adventure-ui button,
+#adventure-ui select,
+#adventure-ui summary,
+#adventure-ui a {
+    min-height: 44px;
+    font: inherit;
+    line-height: 1.35;
+    border: 1px solid #648a92;
+    border-radius: 7px;
+    background: #254550;
+    color: #fff5dd;
+    padding: 9px 11px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    touch-action: manipulation;
+}
+#adventure-ui button { white-space: normal; text-align: left; }
+#adventure-ui button:disabled { opacity: .55; cursor: default; }
+#adventure-ui button:hover:not(:disabled),
+#adventure-ui a:hover { background: #356371; }
+#adventure-ui :focus-visible { outline: 3px solid #ffcc73; outline-offset: 2px; }
+#adventure-ui label { display: block; margin: 10px 0 4px; }
+#adventure-ui select { width: 100%; }
+#adventure-ui section,
+#adventure-ui .adventure-save-row { margin-top: 12px; padding-top: 9px; border-top: 1px solid #527079; }
+#adventure-ui .adventure-menu-rows { display: grid; gap: 8px; }
+#adventure-ui #adventure-place,
+#adventure-ui #adventure-starter[aria-pressed="true"],
+#adventure-ui #adventure-build[aria-pressed="true"] { background: #d9b779; color: #142c34; border-color: #f7d18b; font-weight: 700; }
+#adventure-ui #adventure-starter-title { display: block; margin-bottom: 8px; }
+#adventure-ui #adventure-placement { border-left: 3px solid #e9b271; padding-left: 9px; }
+#adventure-ui #adventure-placement[data-valid="true"] { border-color: #b7dac9; }
+#adventure-ui details { margin-top: 12px; }
+#adventure-ui details > button { margin: 8px 0; }
+#adventure-ui nav { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+#adventure-ui a { display: block; text-decoration: underline; text-underline-offset: 3px; }
+#adventure-ui[data-contrast="true"] { --adventure-panel: #08191fff; --adventure-edge: #fff5dd; }
+#adventure-ui[data-contrast="true"] button,
+#adventure-ui[data-contrast="true"] select,
+#adventure-ui[data-contrast="true"] summary,
+#adventure-ui[data-contrast="true"] a { border-color: #d8e7e4; }
+@media (max-width: 700px) {
+    #adventure-ui { right: 8px; top: 8px; width: min(300px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); padding: 10px; }
+}

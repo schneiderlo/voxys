@@ -12,6 +12,15 @@
 set(CORE_SOURCES "")
 set(GPU_SOURCES "")
 set(GAME_SOURCES
+    game/adventure/building_catalog.cpp
+    game/adventure/item_catalog.cpp
+    game/adventure/adventure_session.cpp
+    game/adventure/adventure_save.cpp
+    game/adventure/world_definition.cpp
+    game/adventure/spatial_queries.cpp
+    game/adventure/adventure_player.cpp
+    game/adventure/construction_policy.cpp
+    game/adventure/adventure_runtime.cpp
     game/assets/cooked_part_directory.cpp
     game/assets/fixture_registry.cpp
     game/expedition/session_events.cpp
@@ -58,7 +67,7 @@ set(GAME_SOURCES
     game/expedition/salvage_preview.cpp
 )
 if(NOT EMSCRIPTEN)
-    list(APPEND GAME_SOURCES engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp
+    list(APPEND GAME_SOURCES engine/platform/native/native_adventure_saves.cpp engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp
         engine/platform/native/design_library.cpp engine/platform/native/workshop_menu.cpp
         engine/platform/native/cove_preferences_store.cpp)
 endif()

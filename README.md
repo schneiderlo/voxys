@@ -1,6 +1,20 @@
 # Voxys
 
-Voxys is the engine and active game prototype for
+Voxys is a C++20/WebGPU engine with several playable prototypes. The active
+product direction is an **open-world building adventure**: explore the main
+landscape, meet NPCs, complete quests, face enemies and build useful homes,
+workshops and outposts. Terrain stays mostly fixed; development targets solo
+play first, then small co-op. The self-contained roadmap is
+[GAME_IMPLEMENTATION_TODO.md](GAME_IMPLEMENTATION_TODO.md).
+
+The building adventure now connects the main landscape to free construction,
+supplies, functional beds/chests/workbenches and separate world saves. It is an
+early building milestone; NPC towns, quests, enemies and co-op are still planned.
+The existing Cove retains its boat construction, robot, sailing and saves.
+The prior salvage-first roadmap is retained in
+[SALVAGE_IMPLEMENTATION_TODO_ARCHIVE.md](SALVAGE_IMPLEMENTATION_TODO_ARCHIVE.md).
+
+The repository also retains the separate
 [WRECKWATER: DEAD HAUL](docs/wreckwater_dead_haul.md): an authoritative
 multiplayer salvage game built around physical boats, cargo, damage, flooding,
 and recovery. The linked completion contract is intentionally explicit about
@@ -266,13 +280,61 @@ terrain, and the 2048-pixel macro texture remain the defaults.
 Prototype documentation is retained in `docs/ridgebreak-prototype.md`;
 its original default-launch instructions are superseded by this opt-in.
 
-## Build, explore, salvage implementation
+## Open-world building adventure
 
-The separate expedition game is tracked in
+The active adventure is tracked in
 [GAME_IMPLEMENTATION_TODO.md](GAME_IMPLEMENTATION_TODO.md). This self-contained
 plan defines the game, architecture, asset workflow, task dependencies and
 completion gates. Implementing agents must read it before claiming work.
-Completed tasks link to evidence; a checked task is not a completed game.
+The browser's main entry opens the adventure. Explicitly select
+`?experience=adventure`, or run native with `--config adventure.cfg`. The world
+uses the full, unmodified 8192² landscape, with LEGO-style terrain and the robot.
+The starting meadow is the first building area; the larger map is not yet a
+populated campaign. Town quests, exploration content and enemies follow.
+
+Choose **Starter room** for a paid, walkable house with a bed, chest and bench,
+or choose individual building pieces. Walk beyond the protected spawn area and
+aim at suitable ground. Placement shows its cost and explains refusals. You can
+build away from the starting site, within reach, support and capacity rules.
+
+| Action | Keyboard/mouse | Controller |
+|---|---|---|
+| Walk / jump | WASD / Space | Left stick / Confirm |
+| Look | Hold right mouse button and drag | Right stick |
+| Use furniture / gather | E | Tool |
+| Build / finish | B | View |
+| Choose pieces | Tab, or visible selector | Left/right shoulder in build mode |
+| Place / rotate | Click or E / R | Confirm / Tool |
+| Raise / lower | Page Up / Page Down | D-pad up / down |
+| Remove | Delete | Back |
+| Undo | Ctrl+Z or visible button | No default binding yet |
+| Menu / save | F2 / F5 | Menu, then Save |
+
+The browser also provides named buttons. Use **Shift** for fine horizontal
+placement. Foundations, piers and stairs accommodate fixed terrain; digging is
+not implemented. The initial limit is four structures, 1,024 pieces total,
+256 pieces per structure and 32 functional objects.
+
+Use a sheltered bed to register your recovery point, a chest to move real items,
+and a workbench to craft the field hammer. The hammer doubles the materials
+gathered from supply piles. Removal returns a piece's cost; removing a nonempty
+chest or essential support is refused.
+
+**Save before leaving.** Saves are manual. A confirmed checkpoint keeps the
+house, backpack, chest contents, hammer, bed and depleted supply piles together.
+Movement after saving makes the current position unsaved again. Browser saves
+belong to that browser profile and address; native saves use a separate
+`adventure-v1` directory. Adventure and Cove saves are separate formats.
+**Help & worlds** retains access to saved Cove expeditions and the playground.
+
+The active plan records acceptance evidence and remaining limits. A usable home
+does not yet complete the planned adventure, its visual polish or its frame-rate
+targets. The old two-job Cove is no longer the core campaign plan.
+
+### Existing Cove prototype
+
+The controls below describe the currently implemented prototype. Its completed
+components are reusable foundations, not completion of the new adventure.
 
 The first scene is an optional **cove preview**:
 

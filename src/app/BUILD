@@ -24,6 +24,7 @@ cc_library(
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/game:lego_playground",
+        "//src/game:adventure_runtime",
         "//src/game:game_session",
         "//src/game:fixture_registry",
         "//src/game:cove_player",

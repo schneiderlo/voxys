@@ -1,0 +1,605 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-building-kit-r01",
+  "profile": "salvage-rigid-v1",
+  "render_to_canonical": 0,
+  "catalog_sha256": "fc9c763b22b5ef9d81e461608dea0f1b138d8f16a4940e9378442dc18a611150",
+  "blender_version": "5.2.1 LTS",
+  "author_sha256": "c8b27e4d5c8730c5c07e321d0fceb1f1afe9ed0b66c00684ef8b62f1458037f0",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "wood": "AF794E",
+    "coral": "ED7942",
+    "slate": "253D53"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "glb": "building-kit-lod0.glb",
+      "blend": "building-kit-lod0.blend",
+      "glb_sha256": "28a5f328c67289c6b42fa71d14b9285926d89ebfccffb112827e0474540542dd",
+      "blend_sha256": "2e8296eec093144ba51fee96669b6fc972bcc1eafd5caaa899e7f192a39d00ca",
+      "vertices": 14908,
+      "triangles": 6700,
+      "draws": 29,
+      "pieces": [
+        {
+          "id": 1,
+          "key": "foundation",
+          "mesh_index": 0,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3294156879051418,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 2,
+          "key": "floor",
+          "mesh_index": 1,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3294156879051418,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 3,
+          "key": "wall",
+          "mesh_index": 2,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.0140576928555785,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1679999977350235
+            ],
+            "maximum": [
+              1.0,
+              2.880000114440918,
+              0.1679999977350235
+            ]
+          }
+        },
+        {
+          "id": 4,
+          "key": "doorway",
+          "mesh_index": 3,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.9044976688541382,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1679999977350235
+            ],
+            "maximum": [
+              1.0,
+              2.880000114440918,
+              0.1679999977350235
+            ]
+          }
+        },
+        {
+          "id": 5,
+          "key": "roof",
+          "mesh_index": 4,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3294156879051418,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 6,
+          "key": "stair",
+          "mesh_index": 5,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.2599519740686,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.0
+            ],
+            "maximum": [
+              1.0,
+              0.9620000123977661,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 7,
+          "key": "beam",
+          "mesh_index": 6,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.20435857164756846,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1599999964237213
+            ],
+            "maximum": [
+              1.0,
+              0.3199999928474426,
+              0.1599999964237213
+            ]
+          }
+        },
+        {
+          "id": 8,
+          "key": "brick_1x2",
+          "mesh_index": 7,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.0189820176991264,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.5059999823570251
+            ],
+            "maximum": [
+              1.0,
+              1.1399999856948853,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 9,
+          "key": "brick_2x2",
+          "mesh_index": 8,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.037969833999033,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              1.1399999856948853,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 10,
+          "key": "brick_2x4",
+          "mesh_index": 9,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 8.07594543960357,
+          "bounds": {
+            "minimum": [
+              -2.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              2.0,
+              1.1399999856948853,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 11,
+          "key": "bed",
+          "mesh_index": 10,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.5607941816248015,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              0.0,
+              -1.0
+            ],
+            "maximum": [
+              0.5,
+              0.800000011920929,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 12,
+          "key": "chest",
+          "mesh_index": 11,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.9626195462965415,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              0.0,
+              -0.5120000243186951
+            ],
+            "maximum": [
+              0.5,
+              0.9599999785423279,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 13,
+          "key": "workbench",
+          "mesh_index": 12,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.5627713101140592,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.5
+            ],
+            "maximum": [
+              1.0,
+              0.9660000205039978,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 14,
+          "key": "pier",
+          "mesh_index": 13,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.24987287272218514,
+          "bounds": {
+            "minimum": [
+              -0.2460000067949295,
+              0.0,
+              -0.2460000067949295
+            ],
+            "maximum": [
+              0.2460000067949295,
+              0.9599999785423279,
+              0.2460000067949295
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "glb": "building-kit-lod1.glb",
+      "blend": "building-kit-lod1.blend",
+      "glb_sha256": "bb5be5e3460c6bcd77a34881a4f025cef2e5ccf70740c03c73e29cb8313eae5b",
+      "blend_sha256": "0166dc53fe6eb803d727fb2f550de46c0bd2065bb0a38d69f2004a243ab27019",
+      "vertices": 6984,
+      "triangles": 3308,
+      "draws": 29,
+      "pieces": [
+        {
+          "id": 1,
+          "key": "foundation",
+          "mesh_index": 0,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3289055925101612,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 2,
+          "key": "floor",
+          "mesh_index": 1,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3289055925101612,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 3,
+          "key": "wall",
+          "mesh_index": 2,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.0134426190078147,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1679999977350235
+            ],
+            "maximum": [
+              1.0,
+              2.880000114440918,
+              0.1679999977350235
+            ]
+          }
+        },
+        {
+          "id": 4,
+          "key": "doorway",
+          "mesh_index": 3,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.9034731824808906,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1679999977350235
+            ],
+            "maximum": [
+              1.0,
+              2.880000114440918,
+              0.1679999977350235
+            ]
+          }
+        },
+        {
+          "id": 5,
+          "key": "roof",
+          "mesh_index": 4,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 1.3289055925101612,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              0.32199999690055847,
+              1.00600004196167
+            ]
+          }
+        },
+        {
+          "id": 6,
+          "key": "stair",
+          "mesh_index": 5,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.2579125358995547,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.0
+            ],
+            "maximum": [
+              1.0,
+              0.9620000123977661,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 7,
+          "key": "beam",
+          "mesh_index": 6,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.20404888694279977,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.1599999964237213
+            ],
+            "maximum": [
+              1.0,
+              0.3199999928474426,
+              0.1599999964237213
+            ]
+          }
+        },
+        {
+          "id": 8,
+          "key": "brick_1x2",
+          "mesh_index": 7,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 2.0109250317844523,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.5059999823570251
+            ],
+            "maximum": [
+              1.0,
+              1.1399999856948853,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 9,
+          "key": "brick_2x2",
+          "mesh_index": 8,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.022203721852344,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              1.0,
+              1.1399999856948853,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 10,
+          "key": "brick_2x4",
+          "mesh_index": 9,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 8.044761074866878,
+          "bounds": {
+            "minimum": [
+              -2.0,
+              0.0,
+              -1.00600004196167
+            ],
+            "maximum": [
+              2.0,
+              1.1399999856948853,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 11,
+          "key": "bed",
+          "mesh_index": 10,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.5599381304563266,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              0.0,
+              -1.0
+            ],
+            "maximum": [
+              0.5,
+              0.800000011920929,
+              1.0
+            ]
+          }
+        },
+        {
+          "id": 12,
+          "key": "chest",
+          "mesh_index": 11,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.9622716828677584,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              0.0,
+              -0.5120000243186951
+            ],
+            "maximum": [
+              0.5,
+              0.9599999785423279,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 13,
+          "key": "workbench",
+          "mesh_index": 12,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.5619147830355066,
+          "bounds": {
+            "minimum": [
+              -1.0,
+              0.0,
+              -0.5
+            ],
+            "maximum": [
+              1.0,
+              0.9660000205039978,
+              0.5
+            ]
+          }
+        },
+        {
+          "id": 14,
+          "key": "pier",
+          "mesh_index": 13,
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.24962179258144437,
+          "bounds": {
+            "minimum": [
+              -0.2460000067949295,
+              0.0,
+              -0.2460000067949295
+            ],
+            "maximum": [
+              0.2460000067949295,
+              0.9599999785423279,
+              0.2460000067949295
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "provenance": "Original procedural home kit. No external models, textures, or generated images. Editable Blender and canonical JSON sources. No capture performed.",
+  "collision": "Exact union of solid boxes; aggregate bounds are never a collider. Bricks alone have cosmetic .18 m top studs excluded from contact; the .96 m brick body remains the stack pitch. Walkable floors and stair treads have no raised cosmetic studs.",
+  "detail": "Near: two bevel segments, sixteen-sided studs. Far: one bevel segment, eight-sided studs. Both preserve solids, openings and furniture."
+}

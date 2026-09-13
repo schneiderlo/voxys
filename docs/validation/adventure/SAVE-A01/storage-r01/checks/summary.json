@@ -1,0 +1,94 @@
+{
+  "baseline": "acd9d43d224734a633c3af5db5d6d519e6bc3e23",
+  "focusedInitial": {
+    "compiler": "Nix GCC C++20 -O1 -Wall -Wextra -Werror",
+    "tests": 20,
+    "passed": 20,
+    "runtimeMs": 47,
+    "log": "Observed directly in task tool result; not archived"
+  },
+  "nativeFinalDelta": {
+    "tests": 5,
+    "passed": 5,
+    "runtimeMs": 29,
+    "reason": "Default saved-world selection must recover from a missing current replica; unsaved empty slots do not consume confirmed-world capacity"
+  },
+  "browserAdapter": {
+    "node": "22.23.1",
+    "command": "node scripts/test_adventure_saves.mjs",
+    "tests": 10,
+    "passed": 10,
+    "runtimeMs": 13.628863,
+    "scope": "Fake transport adapter checks, not a browser gameplay journey"
+  },
+  "artifacts": [
+    {
+      "file": "native-storage-r02.log.gz",
+      "source": "build-adventure-g-a/authority-checks/native-storage-r02.log",
+      "uncompressedSha256": "8fa80cf26a0bdb66707a25d1f4f5ee72ddc2364fba23f77b4b81fb25877b8760",
+      "bytes": 1742
+    },
+    {
+      "file": "native-storage-r02.xml.gz",
+      "source": "build-adventure-g-a/authority-checks/native-storage-r02.xml",
+      "uncompressedSha256": "d09d6ab742ccbfdc13ebeaedcb91599239dc9f5cca7b7233e2ed13f614579ffe",
+      "bytes": 1596
+    },
+    {
+      "file": "run-focused.sh.gz",
+      "source": "build-adventure-g-a/authority-checks/run-focused.sh",
+      "uncompressedSha256": "1265bd7d0d82c20054c29735422e2ad84bddc5ff5e9bfe72db862bfdd65a09cb",
+      "bytes": 997
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/game/adventure/item_catalog.hpp",
+      "sha256": "a653e0e31d6f76734a0fa930e352fc6c518c5741bf7f5fdba00f19127401910a"
+    },
+    {
+      "path": "src/game/adventure/item_catalog.cpp",
+      "sha256": "e9efcb9eb07e1f830ad15ee7d2f36dd6a9d86ca38be8b04d457c118a6e7f5624"
+    },
+    {
+      "path": "src/game/adventure/adventure_session.hpp",
+      "sha256": "0660edb23febfce5216a474f4e30cf5f66cfdaeca70f68ac72331406f81b6e8d"
+    },
+    {
+      "path": "src/game/adventure/adventure_session.cpp",
+      "sha256": "2e1d694d3f63782e175916619e9283880f8746ade4b85e668dbf68dbd4056052"
+    },
+    {
+      "path": "src/game/adventure/adventure_save.hpp",
+      "sha256": "f8140ec441dc36affc254a97b12aedbf7eca2fa9d0e708014e740aa07bd2420d"
+    },
+    {
+      "path": "src/game/adventure/adventure_save.cpp",
+      "sha256": "dba70a3af36e6c66cf24ee0a4b59577595bf1e64b9b09bdd71fe073c5912b0a7"
+    },
+    {
+      "path": "src/engine/platform/native/native_adventure_saves.hpp",
+      "sha256": "65ab06bf161adc2dff09a76f7ddcb7cbc29422f61b4cd57f5b52a89e4705c159"
+    },
+    {
+      "path": "src/engine/platform/native/native_adventure_saves.cpp",
+      "sha256": "9425a409275ba91e898c31bd5b7917536059f78259fb72e0593d34e270a1aca0"
+    },
+    {
+      "path": "tests/test_adventure_session.cpp",
+      "sha256": "312bee118cf5fc8fe0057349ac90ea1c99535609a102293532dad3afb57baa57"
+    },
+    {
+      "path": "tests/test_native_adventure_saves.cpp",
+      "sha256": "d0f57a30d887e20ee6c1de90e1fc0b576e9a52b24588d9300649df88eb98d4fd"
+    },
+    {
+      "path": "web/adventure_saves.js",
+      "sha256": "038ba2cd5c83f80e6224d2a35bc9a481e5425221d3308d268bc73b394ab43c12"
+    },
+    {
+      "path": "scripts/test_adventure_saves.mjs",
+      "sha256": "40c9eb450f8ab1a2039348742ed77e87aa9a8ff81e751288ac0fa43f67b45e9d"
+    }
+  ]
+}

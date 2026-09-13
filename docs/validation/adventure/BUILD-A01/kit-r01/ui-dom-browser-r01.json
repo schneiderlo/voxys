@@ -1,0 +1,118 @@
+{
+  "status": "passed",
+  "scope": "Isolated real Chromium DOM keyboard/focus regression; no game or GPU rendering.",
+  "browser": "152.0.7977.82",
+  "source_sha256": "a4d880126bdf971b9f680cebfad448fa896dd19db81e16e18a2f6064759f707d",
+  "style_sha256": "7ff18ddda322c74b62dee570f37739d6a705d0f57d78752daf9f80c8ee29c4a9",
+  "stages": [
+    {
+      "name": "Enter default activation sends one row intent; no document key leakage",
+      "calls": [
+        [
+          15,
+          1,
+          "ui"
+        ],
+        [
+          10,
+          0,
+          "ui"
+        ]
+      ],
+      "documentKeys": []
+    },
+    {
+      "name": "Tab keeps normal focus navigation; Space activates once; ownership stays inside panel",
+      "calls": [
+        [
+          15,
+          1,
+          "ui"
+        ],
+        [
+          10,
+          0,
+          "ui"
+        ],
+        [
+          10,
+          1,
+          "ui"
+        ]
+      ],
+      "documentKeys": []
+    },
+    {
+      "name": "Escape releases focus and closes an actually open menu once",
+      "calls": [
+        [
+          15,
+          1,
+          "ui"
+        ],
+        [
+          10,
+          0,
+          "ui"
+        ],
+        [
+          10,
+          1,
+          "ui"
+        ],
+        [
+          15,
+          0,
+          "ui"
+        ],
+        [
+          9,
+          0,
+          "ui"
+        ]
+      ],
+      "menu": "",
+      "active": "BODY",
+      "documentKeys": [
+        [
+          "keyup",
+          "Escape"
+        ]
+      ]
+    },
+    {
+      "name": "Escape in world building only releases UI focus; does not toggle the game menu",
+      "calls": [
+        [
+          15,
+          1,
+          "ui"
+        ],
+        [
+          15,
+          0,
+          "ui"
+        ]
+      ],
+      "build": true,
+      "menu": "",
+      "active": "BODY"
+    },
+    {
+      "name": "Canvas click and cleanup release ownership; adventure-only legacy hiding is removed",
+      "calls": [
+        [
+          15,
+          1,
+          "ui"
+        ],
+        [
+          15,
+          0,
+          "ui"
+        ]
+      ],
+      "active": "game"
+    }
+  ]
+}

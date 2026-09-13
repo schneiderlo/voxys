@@ -57,6 +57,7 @@ struct WreckwaterApplicationClientState;
 struct SalvageLocalSessionState;
 struct CoveResumeSource;
 struct CoveUiState;
+namespace game::adventure { class AdventureRuntime; }
 
 namespace platform { class NativeWorkshopMenu; }
 
@@ -266,6 +267,7 @@ struct ApplicationConfig {
     bool legoTerrainEnabled = false;
     std::filesystem::path salvageDesignLibraryRoot;
     bool salvagePreviewEnabled = false;
+    bool adventureEnabled = false;
     std::optional<std::string> salvageAssetFixtureRegistry;
     std::optional<std::string> salvageAssetFixtureCatalog;
     std::string salvageAssetFixtureGuides = "off";
@@ -713,6 +715,11 @@ public:
     [[nodiscard]] std::string legoHudJson() const;
     bool salvagePreviewAction(int action);
     std::string covePreferencesAction(int action,std::string_view text);
+    void adventureAction(int action,int value=0);
+    std::string adventureJson() const;
+    bool adventureSnapshot(std::vector<std::byte>&,std::string&) const;
+    bool adventureValidateSave(std::span<const std::byte>) const;
+    void adventureSaveCompleted(std::string status);
     bool consumeCoveSaveRequest() noexcept;
     void noteCoveSaveCompleted() noexcept;
     void setCoveSavedWorlds(std::vector<std::pair<std::string,std::string>>,std::string current);
@@ -925,6 +932,7 @@ private:
     std::unique_ptr<render::PrimitivePath> primitivePath_;
     std::unique_ptr<game::LegoPlayground> legoPlayground_;
     bool legoPlaygroundActive_ = false;
+    std::unique_ptr<game::adventure::AdventureRuntime> adventure_;
     std::unique_ptr<SalvageLocalSessionState> salvageLocalSession_;
     std::string salvageSaveStatus_;
     std::unique_ptr<CoveResumeSource> coveResume_;

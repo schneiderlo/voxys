@@ -139,3 +139,9 @@ filegroup(
     srcs = ["generated/ocean_environment.png"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "adventure_runtime",
+    srcs = glob(["adventure/building-kit-r01/cooked/*.vmesh", "adventure/building-kit-r01/cooked/manifest.json"]),
+    visibility = ["//visibility:public"],
+)

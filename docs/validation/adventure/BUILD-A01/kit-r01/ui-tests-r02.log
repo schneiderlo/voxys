@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: read-only polling presents actual supplies without invoking commands
+ok 1 - read-only polling presents actual supplies without invoking commands
+  ---
+  duration_ms: 3.69768
+  type: 'test'
+  ...
+# Subtest: building controls send only bounded piece/placement intents and require valid preview
+ok 2 - building controls send only bounded piece/placement intents and require valid preview
+  ---
+  duration_ms: 1.756524
+  type: 'test'
+  ...
+# Subtest: refused commands cannot alter displayed authority or inventory
+ok 3 - refused commands cannot alter displayed authority or inventory
+  ---
+  duration_ms: 0.4574
+  type: 'test'
+  ...
+# Subtest: interaction rows preserve order, disabled eligibility and unchanged focus
+ok 4 - interaction rows preserve order, disabled eligibility and unchanged focus
+  ---
+  duration_ms: 1.335271
+  type: 'test'
+  ...
+# Subtest: save errors and actual dirty state remain visible until confirmed state changes
+ok 5 - save errors and actual dirty state remain visible until confirmed state changes
+  ---
+  duration_ms: 0.838749
+  type: 'test'
+  ...
+# Subtest: unavailable state disables actions and recovery needs a new authoritative read
+ok 6 - unavailable state disables actions and recovery needs a new authoritative read
+  ---
+  duration_ms: 0.639589
+  type: 'test'
+  ...
+# Subtest: an empty inactive runtime cannot leave actionable stale controls
+ok 7 - an empty inactive runtime cannot leave actionable stale controls
+  ---
+  duration_ms: 0.495411
+  type: 'test'
+  ...
+# Subtest: new/continue links retain distinct profile routes and text is never interpreted as HTML
+ok 8 - new/continue links retain distinct profile routes and text is never interpreted as HTML
+  ---
+  duration_ms: 0.456638
+  type: 'test'
+  ...
+# Subtest: text scale, contrast and collapse preserve ordinary controls without commands
+ok 9 - text scale, contrast and collapse preserve ordinary controls without commands
+  ---
+  duration_ms: 0.829271
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19.265807

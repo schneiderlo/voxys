@@ -204,7 +204,7 @@ validateWreckwaterClientConfig(
     std::array<std::byte, 32>& output) noexcept;
 
 enum class GameMode : uint8_t {
-    Terrain, Ridgebreak, LegoShore, LegoWorld, Salvage,
+    Terrain, Ridgebreak, LegoShore, LegoWorld, Salvage, Adventure,
 };
 
 struct GameConfig {
@@ -227,7 +227,7 @@ struct GameModeResolution {
     [[nodiscard]] bool ready() const noexcept { return status == GameModeStatus::Ready; }
     [[nodiscard]] bool legoTerrain() const noexcept {
         return mode == GameMode::LegoShore || mode == GameMode::LegoWorld
-            || mode == GameMode::Salvage;
+            || mode == GameMode::Salvage || mode == GameMode::Adventure;
     }
     [[nodiscard]] uint32_t terrainSizeHint() const noexcept {
         return mode == GameMode::LegoShore || mode == GameMode::Salvage ? 256u : 8192u;

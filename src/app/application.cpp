@@ -17,6 +17,8 @@
     #undef None
 #endif
 
+#include "game/adventure/adventure_runtime.hpp"
+#include "game/adventure/adventure_save.hpp"
 #include "app/debug_overlay.hpp"
 #include "render/cove_hud.hpp"
 #include "render/cove_recovery_guidance.hpp"
@@ -859,6 +861,8 @@ wreckwaterApplicationConnectionState(
 
 [[nodiscard]] bool validApplicationConfig(
     const ApplicationConfig& config) noexcept {
+    if(config.adventureEnabled&&(config.salvagePreviewEnabled||config.motoEnabled||config.wreckwaterClient
+        ||!config.legoTerrainEnabled||config.renderPath!=RenderPath::Raycast))return false;
     const bool validRenderPath = config.renderPath == RenderPath::Triangle
                               || config.renderPath == RenderPath::Raycast;
     const bool validPhysicsBackend =
@@ -1583,11 +1587,19 @@ bool Application::init(const ApplicationConfig& config) {
         }
 
         if (!initSalvagePreview()) return failInitialization();
+        if(config_.adventureEnabled) {
+            adventure_=std::make_unique<game::adventure::AdventureRuntime>();
+            std::string error;
+            if(!adventure_->initialize({heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale},
+                gpuContext_->getDevice(),gpuContext_->getQueue(),config_.shaderDir,config_.colorFormat,error)) {
+                LOG_ERROR("Adventure could not start: {}",error);return failInitialization();
+            }
+        }
 
         setupCallbacks();
     }
 
-    if (config_.legoTerrainEnabled && !config_.salvagePreviewEnabled) {
+    if (config_.legoTerrainEnabled && !config_.salvagePreviewEnabled && !config_.adventureEnabled) {
         // The same shoreline viewpoint, in the original landscape coordinates.
         const bool fullWorld = heightmap_->getWidth() > terrain::lego::kMaximumStudySamples;
         const float x = fullWorld ? -1164.0f : -12.0f;
@@ -1606,7 +1618,11 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  Render path: {}", renderPathToString(config_.renderPath));
     LOG_INFO("");
     LOG_INFO("Controls:");
-    if (motoSession_ && motoSession_->isInitialized()) {
+    if(config_.adventureEnabled) {
+        LOG_INFO("  WASD / left stick - Walk; Space / A - Jump");
+        LOG_INFO("  B / View - Build; F2 / Menu - Options; F5 - Save");
+        LOG_INFO("  E / X - Use; Right drag / right stick - Look");
+    } else if (motoSession_ && motoSession_->isInitialized()) {
         LOG_INFO("  W/Up      - Throttle");
         LOG_INFO("  S/Down    - Brake");
         LOG_INFO("  A/D       - Steer");
@@ -1655,14 +1671,14 @@ bool Application::init(const ApplicationConfig& config) {
 #if defined(VOXY_WASM)
     // RIDGEBREAK opens as a game, not as an engine diagnostics screen.
     // The F1 overlay remains available to developers and benchmarks.
-    getDebugOverlay().setVisible(!motoSession_ && !config_.salvagePreviewEnabled);
-    if (!motoSession_ && !config_.salvageAssetFixtureRegistry) {
+    getDebugOverlay().setVisible(!motoSession_ && !config_.salvagePreviewEnabled && !config_.adventureEnabled);
+    if (!motoSession_ && !config_.salvageAssetFixtureRegistry && !config_.adventureEnabled) {
         // Retain the legacy terrain-sandbox default outside the moto product.
         setControllerMode(ControllerMode::Character);
     }
 #endif
 
-    if (config_.legoTerrainEnabled && !config_.salvageAssetFixtureRegistry)
+    if (config_.legoTerrainEnabled && !config_.salvageAssetFixtureRegistry && !config_.adventureEnabled)
         setControllerMode(ControllerMode::Character);
 
     // Handle initial teleportation
@@ -1752,6 +1768,7 @@ void Application::shutdown() {
 
     // Final interruption/loss may have outstanding work. The fixture releases
     // external handles without Destroy unless its completion fence has passed.
+    adventure_.reset();
     if (salvageLocalSession_) salvageLocalSession_->asset.reset();
     salvageRetirementReadback_.shutdown();
     salvageMetadataSource_.clear();
@@ -2375,7 +2392,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     }
     landingMenuConsumed_=false;
 #if defined(VOXY_WASM)
-    if(input_&&config_.legoTerrainEnabled&&!config_.salvagePreviewEnabled){
+    if(input_&&config_.legoTerrainEnabled&&!config_.salvagePreviewEnabled&&!config_.adventureEnabled){
         const auto& pad=input_->gamepad();
         const bool before=EM_ASM_INT({return typeof window['voxyCoveLandingMenuActive']==='function'&&window['voxyCoveLandingMenuActive']();})!=0;
         const bool consumed=EM_ASM_INT({return typeof window['voxyCoveLandingMenuInput']==='function'&&window['voxyCoveLandingMenuInput'](
@@ -2404,7 +2421,9 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     const bool scriptedBenchmark =
         (config_.benchmarkOnStartup || config_.exitAfterBenchmark)
         && isBenchmarkRunning();
-    if (wreckwaterClientState_) {
+    if(adventure_) {
+        adventure_->update(simulationDeltaTime,*input_,*camera_,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+    } else if (wreckwaterClientState_) {
         handleKeyboardShortcuts();
         updateWreckwaterClient(simulationDeltaTime);
     } else if (motoSession_ && motoSession_->isInitialized()
@@ -2642,6 +2661,7 @@ void Application::render() {
 
     if (config_.renderPath == RenderPath::Raycast
         && !config_.salvageAssetFixtureWaterAnchor
+        && !config_.adventureEnabled
         && ((primitivePath_ && primitivePath_->isInitialized())
             || (meshPath_ && meshPath_->isInitialized()))) {
         clearRayObjectDepth(encoder);
@@ -2811,6 +2831,9 @@ void Application::render() {
         return; // Guard releases the encoder before acknowledging discard.
     }
 
+    if(adventure_&&!adventure_->renderHud(encoder,targetView,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight())) {
+        LOG_ERROR("Could not draw adventure controls");requestExit();return;
+    }
 #if defined(VOXY_NATIVE)
     if(!renderNativeCoveHud(encoder,targetView)){
         LOG_ERROR("Could not draw the Cove controls");
@@ -3079,8 +3102,8 @@ void Application::processFrame(float simulationDeltaTime,
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::setRenderPath(RenderPath path) {
-    if (config_.salvageAssetFixtureWaterAnchor && path != RenderPath::Raycast) {
-        LOG_WARN("Authored cove requires the opaque/water raycast composition path");
+    if ((config_.salvageAssetFixtureWaterAnchor || config_.adventureEnabled) && path != RenderPath::Raycast) {
+        LOG_WARN("World construction requires the opaque/water raycast composition path");
         return;
     }
     if (path != RenderPath::Triangle && path != RenderPath::Raycast) {
@@ -3193,8 +3216,8 @@ void Application::onResize(uint32_t width, uint32_t height) {
             salvageLocalSession_->asset->viewsDirty = true;
     }
 
-    if (!raycastResizeSucceeded && config_.salvageAssetFixtureWaterAnchor) {
-        LOG_ERROR("Cove targets could not resize to {}x{}", renderWidth, renderHeight);
+    if (!raycastResizeSucceeded && (config_.salvageAssetFixtureWaterAnchor || config_.adventureEnabled)) {
+        LOG_ERROR("World construction targets could not resize to {}x{}", renderWidth, renderHeight);
         salvagePreviewFailed_ = true;
         requestExit();
         return;
@@ -4715,7 +4738,7 @@ bool Application::initTerrain() {
 
     // The authored cove is content for the canonical Wreckwater terrain, not
     // a filter applied to arbitrary user heightmaps.
-    if (!config_.heightmapPath.empty() &&
+    if (!config_.adventureEnabled && !config_.heightmapPath.empty() &&
         config_.heightmapPath.filename() ==
             "td_seed_1234_8192.ldh") {
         terrain::AuthoredCoveConfig coveConfig;
@@ -4980,7 +5003,7 @@ bool Application::initRenderers() {
         blitConfig.colorFormat = config_.colorFormat;
         blitConfig.heightScale = config_.heightScale;
         blitConfig.cellScale = config_.cellScale;
-        blitConfig.enableOpaqueScene = config_.salvageAssetFixtureWaterAnchor;
+    blitConfig.enableOpaqueScene = config_.salvageAssetFixtureWaterAnchor || config_.adventureEnabled;
         blitConfig.coveVisuals = config_.salvageAssetFixtureWaterAnchor
             && config_.salvageAssetFixtureRegistry
             && std::filesystem::path(*config_.salvageAssetFixtureRegistry).filename()=="fixture-cove-r01.json";
@@ -5740,6 +5763,7 @@ bool Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
          && (stats_.physicsResidentBodies != 0u || legoPlayground_))
         || (meshPath_ && meshPath_->isInitialized()
             && motoSession_ && motoSession_->isInitialized())
+        || adventure_
         || (salvageLocalSession_ && salvageLocalSession_->asset
             && !salvageLocalSession_->asset->leaving));
     // Render blit pass
@@ -5747,13 +5771,24 @@ bool Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         static_cast<uint32_t>(RenderGpuStage::LightingBlit);
     struct DrawContext { Application* app; render::SalvageFixtureTicket* ticket; } context{this, &ticket};
     render::OpaqueSceneDraw opaque{};
-    if (config_.salvageAssetFixtureWaterAnchor) {
+    if (config_.salvageAssetFixtureWaterAnchor || adventure_) {
         clearRayObjectDepth(encoder);
         opaque.context = &context;
         opaque.encode = [](void* opaqueContext, WGPUCommandEncoder commands,
                            WGPUTextureView color, WGPUTextureView depth, render::SceneShadowConsumer background) {
             auto& draw = *static_cast<DrawContext*>(opaqueContext);
-            return draw.app->renderSalvageAsset(commands, color, *draw.ticket, depth, background);
+            auto& app=*draw.app;
+            if(app.adventure_) {
+                const render::PrimitiveLighting lighting{
+                    .direction=app.rendererSettings_.sunDirection,.sunColor=app.rendererSettings_.sunColor,
+                    .sunIntensity=app.rendererSettings_.sunIntensity,.ambientColor=app.rendererSettings_.ambientColor,
+                    .ambientIntensity=app.rendererSettings_.ambientIntensity,.fogColor=app.rendererSettings_.fogColor,
+                    .fogDensity=app.rendererSettings_.fogDensity,.exposure=app.rendererSettings_.exposure};
+                return app.adventure_->render(commands,color,app.getOrCreateDepthView(),depth,
+                    app.blitPath_->getEnvironmentTextureView(),app.raycastPath_->getTerrainDepthCacheView(),*app.camera_,lighting,
+                    app.gpuContext_->getSwapchainWidth(),app.gpuContext_->getSwapchainHeight(),background);
+            }
+            return app.renderSalvageAsset(commands, color, *draw.ticket, depth, background);
         };
     }
     try {
@@ -10648,3 +10683,15 @@ bool Application::updateCoveBoat() {
     return true;
 }
 } // namespace voxy
+
+namespace voxy {
+void Application::adventureAction(int action,int value){if(adventure_)adventure_->action(action,value);}
+std::string Application::adventureJson() const{return adventure_?adventure_->json():"{}";}
+bool Application::adventureSnapshot(std::vector<std::byte>& bytes,std::string& error)const{return adventure_&&adventure_->snapshot(bytes,error);}
+bool Application::adventureValidateSave(std::span<const std::byte> bytes)const {
+    if(!adventure_)return false;
+    game::adventure::AdventureState state;std::string error;
+    return game::adventure::AdventureSaveCodec::decode(bytes,adventure_->state().world,adventure_->content(),state,error);
+}
+void Application::adventureSaveCompleted(std::string status){if(adventure_)adventure_->saveCompleted(std::move(status));}
+}

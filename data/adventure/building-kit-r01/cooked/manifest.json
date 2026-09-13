@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-building-kit-r01",
+  "render_to_canonical": 0,
+  "catalog_sha256": "fc9c763b22b5ef9d81e461608dea0f1b138d8f16a4940e9378442dc18a611150",
+  "lods": [
+    {
+      "lod": 0,
+      "filename": "building-kit-lod0.vmesh",
+      "bytes": 1116054,
+      "sha256": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+      "requested_gpu_bytes": 1154096
+    },
+    {
+      "lod": 1,
+      "filename": "building-kit-lod1.vmesh",
+      "bytes": 525174,
+      "sha256": "f95cccd5f23bfbdf483c05a10707cd1fc8880bf9715297baad56bb9fe7f1ea34",
+      "requested_gpu_bytes": 542864
+    }
+  ],
+  "cooker_sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa",
+  "recipe_sha256": "8f821d765fbebe4a667047ae303509d52ee1a4b0b4566e5f6ba403a4a12e6598",
+  "checker_sha256": "76611a451215652453dce66325da79968a74918c34148f072063db2eb974280e",
+  "provenance_sha256": "e94eebe51c89779c008577758cc8d1f12813c32206675453c396119eceb44642",
+  "cook_results": [
+    {
+      "lod": 0,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "gltf_vmesh_tool: wrote 1116054 bytes (v=14908 i=20100 s=29 m=5 n=14 sk=0 a=0)\n"
+    },
+    {
+      "lod": 1,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "gltf_vmesh_tool: wrote 525174 bytes (v=6984 i=9924 s=29 m=5 n=14 sk=0 a=0)\n"
+    }
+  ]
+}

@@ -287,6 +287,7 @@ if(VOXY_BUILD_NATIVE)
                 "${CMAKE_SOURCE_DIR}/ridgebreak.cfg"
                 "${CMAKE_SOURCE_DIR}/lego_shore.cfg"
                 "${CMAKE_SOURCE_DIR}/lego_world.cfg"
+                "${CMAKE_SOURCE_DIR}/adventure.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_asset_fixture.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_assembly_fixture.cfg"
@@ -523,6 +524,10 @@ if(VOXY_BUILD_WASM)
             data/salvage/fixture-kit-cargo.json
             salvage_material_fixture.cfg
             salvage_metric_fixture.cfg
+            adventure.cfg
+            data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh
+            data/adventure/building-kit-r01/cooked/building-kit-lod1.vmesh
+            data/adventure/building-kit-r01/cooked/manifest.json
             salvage_cove.cfg
             data/salvage/fixture-cove-r01.json
             data/salvage/robot-r01/manifest.json

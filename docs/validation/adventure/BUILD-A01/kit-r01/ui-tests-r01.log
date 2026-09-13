@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: read-only polling presents actual supplies without invoking commands
+ok 1 - read-only polling presents actual supplies without invoking commands
+  ---
+  duration_ms: 2.615279
+  type: 'test'
+  ...
+# Subtest: building controls send only bounded piece/placement intents and require valid preview
+ok 2 - building controls send only bounded piece/placement intents and require valid preview
+  ---
+  duration_ms: 2.122654
+  type: 'test'
+  ...
+# Subtest: refused commands cannot alter displayed authority or inventory
+ok 3 - refused commands cannot alter displayed authority or inventory
+  ---
+  duration_ms: 0.537699
+  type: 'test'
+  ...
+# Subtest: interaction rows preserve order, disabled eligibility and unchanged focus
+ok 4 - interaction rows preserve order, disabled eligibility and unchanged focus
+  ---
+  duration_ms: 1.419107
+  type: 'test'
+  ...
+# Subtest: save errors and actual dirty state remain visible until confirmed state changes
+ok 5 - save errors and actual dirty state remain visible until confirmed state changes
+  ---
+  duration_ms: 0.964673
+  type: 'test'
+  ...
+# Subtest: unavailable state disables actions and recovery needs a new authoritative read
+ok 6 - unavailable state disables actions and recovery needs a new authoritative read
+  ---
+  duration_ms: 0.555903
+  type: 'test'
+  ...
+# Subtest: new/continue links retain distinct profile routes and text is never interpreted as HTML
+ok 7 - new/continue links retain distinct profile routes and text is never interpreted as HTML
+  ---
+  duration_ms: 0.340303
+  type: 'test'
+  ...
+# Subtest: text scale, contrast and collapse preserve ordinary controls without commands
+ok 8 - text scale, contrast and collapse preserve ordinary controls without commands
+  ---
+  duration_ms: 0.472818
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19.03081

@@ -1,0 +1,734 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-building-kit-r01",
+  "lattice_metres": 0.02,
+  "axes": "+Y up, +X right, -Z forward",
+  "origin": "footprint X/Z centre; minimum Y=0",
+  "collision": "Exact union of solid boxes; aggregate bounds are never a collider. Bricks alone have cosmetic .18 m top studs excluded from contact; the .96 m brick body remains the stack pitch. Walkable floors and stair treads have no raised cosmetic studs.",
+  "pieces": [
+    {
+      "id": 1,
+      "key": "foundation",
+      "name": "Foundation",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -50
+        ],
+        "maximum": [
+          50,
+          16,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -50
+          ],
+          "maximum": [
+            50,
+            16,
+            50
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 4,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": true
+    },
+    {
+      "id": 2,
+      "key": "floor",
+      "name": "Floor",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -50
+        ],
+        "maximum": [
+          50,
+          16,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -50
+          ],
+          "maximum": [
+            50,
+            16,
+            50
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 4,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 3,
+      "key": "wall",
+      "name": "Wall",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -8
+        ],
+        "maximum": [
+          50,
+          144,
+          8
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -8
+          ],
+          "maximum": [
+            50,
+            144,
+            8
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 4,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 4,
+      "key": "doorway",
+      "name": "Open doorway",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -8
+        ],
+        "maximum": [
+          50,
+          144,
+          8
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -8
+          ],
+          "maximum": [
+            -34,
+            112,
+            8
+          ]
+        },
+        {
+          "minimum": [
+            34,
+            0,
+            -8
+          ],
+          "maximum": [
+            50,
+            112,
+            8
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            112,
+            -8
+          ],
+          "maximum": [
+            50,
+            144,
+            8
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 4,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 5,
+      "key": "roof",
+      "name": "Flat roof",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -50
+        ],
+        "maximum": [
+          50,
+          16,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -50
+          ],
+          "maximum": [
+            50,
+            16,
+            50
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 4,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 6,
+      "key": "stair",
+      "name": "Stairs",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -50
+        ],
+        "maximum": [
+          50,
+          48,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            34
+          ],
+          "maximum": [
+            50,
+            8,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            17
+          ],
+          "maximum": [
+            50,
+            16,
+            34
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            0
+          ],
+          "maximum": [
+            50,
+            24,
+            17
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            -16
+          ],
+          "maximum": [
+            50,
+            32,
+            0
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            -33
+          ],
+          "maximum": [
+            50,
+            40,
+            -16
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            -50
+          ],
+          "maximum": [
+            50,
+            48,
+            -33
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 4,
+        "stone": 2,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 7,
+      "key": "beam",
+      "name": "Beam",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -8
+        ],
+        "maximum": [
+          50,
+          16,
+          8
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -8
+          ],
+          "maximum": [
+            50,
+            16,
+            8
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 2,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 8,
+      "key": "brick_1x2",
+      "name": "Brick 1 × 2",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -25
+        ],
+        "maximum": [
+          50,
+          48,
+          25
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -25
+          ],
+          "maximum": [
+            50,
+            48,
+            25
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 2,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 9,
+      "key": "brick_2x2",
+      "name": "Brick 2 × 2",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -50
+        ],
+        "maximum": [
+          50,
+          48,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -50
+          ],
+          "maximum": [
+            50,
+            48,
+            50
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 4,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 10,
+      "key": "brick_2x4",
+      "name": "Brick 2 × 4",
+      "bounds": {
+        "minimum": [
+          -100,
+          0,
+          -50
+        ],
+        "maximum": [
+          100,
+          48,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -100,
+            0,
+            -50
+          ],
+          "maximum": [
+            100,
+            48,
+            50
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 8,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false
+    },
+    {
+      "id": 11,
+      "key": "bed",
+      "name": "Bed",
+      "bounds": {
+        "minimum": [
+          -25,
+          0,
+          -50
+        ],
+        "maximum": [
+          25,
+          40,
+          50
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -25,
+            0,
+            -50
+          ],
+          "maximum": [
+            -17,
+            20,
+            -42
+          ]
+        },
+        {
+          "minimum": [
+            -25,
+            0,
+            42
+          ],
+          "maximum": [
+            -17,
+            20,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            17,
+            0,
+            -50
+          ],
+          "maximum": [
+            25,
+            20,
+            -42
+          ]
+        },
+        {
+          "minimum": [
+            17,
+            0,
+            42
+          ],
+          "maximum": [
+            25,
+            20,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            -25,
+            20,
+            -50
+          ],
+          "maximum": [
+            25,
+            32,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            -25,
+            32,
+            -50
+          ],
+          "maximum": [
+            25,
+            40,
+            -42
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 2
+      },
+      "furniture": "Bed",
+      "terrain_anchor": false
+    },
+    {
+      "id": 12,
+      "key": "chest",
+      "name": "Chest",
+      "bounds": {
+        "minimum": [
+          -25,
+          0,
+          -25
+        ],
+        "maximum": [
+          25,
+          48,
+          25
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -25,
+            0,
+            -25
+          ],
+          "maximum": [
+            25,
+            48,
+            25
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 6,
+        "stone": 0,
+        "scrap": 2
+      },
+      "furniture": "Chest",
+      "terrain_anchor": false
+    },
+    {
+      "id": 13,
+      "key": "workbench",
+      "name": "Workbench",
+      "bounds": {
+        "minimum": [
+          -50,
+          0,
+          -25
+        ],
+        "maximum": [
+          50,
+          48,
+          25
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -50,
+            0,
+            -25
+          ],
+          "maximum": [
+            -42,
+            36,
+            -17
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            17
+          ],
+          "maximum": [
+            -42,
+            36,
+            25
+          ]
+        },
+        {
+          "minimum": [
+            42,
+            0,
+            -25
+          ],
+          "maximum": [
+            50,
+            36,
+            -17
+          ]
+        },
+        {
+          "minimum": [
+            42,
+            0,
+            17
+          ],
+          "maximum": [
+            50,
+            36,
+            25
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            36,
+            -25
+          ],
+          "maximum": [
+            50,
+            48,
+            25
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 4
+      },
+      "furniture": "Workbench",
+      "terrain_anchor": false
+    },
+    {
+      "id": 14,
+      "key": "pier",
+      "name": "Pier",
+      "bounds": {
+        "minimum": [
+          -12,
+          0,
+          -12
+        ],
+        "maximum": [
+          12,
+          48,
+          12
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -12,
+            0,
+            -12
+          ],
+          "maximum": [
+            12,
+            48,
+            12
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 2,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": true
+    }
+  ]
+}

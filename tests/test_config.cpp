@@ -527,6 +527,19 @@ TEST(ConfigGameModeTest, AbsentModePreservesLegacyTitleRoutes) {
     }
 }
 
+TEST(ConfigGameModeTest, AdventureUsesFullLegoTerrainAndSeparateBootstrap) {
+    Config config;config.game.mode="adventure";
+    const auto mode=resolveGameMode(config);
+    ASSERT_TRUE(mode.ready());EXPECT_EQ(mode.mode,GameMode::Adventure);
+    EXPECT_TRUE(mode.legoTerrain());EXPECT_EQ(mode.terrainSizeHint(),8192u);
+    config.game.assetFixtureRegistry="data/salvage/fixture-cove-r01.json";
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::InvalidAssetFixture);
+    config.game.assetFixtureRegistry.reset();
+    config.wreckwaterClient.presentFields=kWreckwaterClientServerField;
+    config.wreckwaterClient.server="127.0.0.1";
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::ConflictingBootstrap);
+}
+
 TEST(ConfigGameModeTest, ExplicitModeOverridesTitleAndRejectsUnknownOrConflict) {
     Config config; config.window.title = "RIDGEBREAK";
     config.game.mode = "salvage";

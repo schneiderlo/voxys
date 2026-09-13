@@ -1,0 +1,7000 @@
+{
+  "status": "passed",
+  "startedUtc": "2026-09-13T00:20:13.882Z",
+  "profile": "/tmp/voxys-adventure-browser-profile-r04",
+  "origin": "http://127.0.0.1:42752",
+  "scope": "Ordinary-input functional journey. Screenshot requires independent visual review.",
+  "packagePath": "/home/modkin/workspace/schneiderlo/voxys/build-adventure-g-a/web-r03",
+  "buildId": "adventure-c7e884ef1ae075e8",
+  "package": {
+    "buildId": "adventure-c7e884ef1ae075e8",
+    "files": {
+      "BUILD": "d855a115e6c9dd9fd71e315093b7455c35e250f935543c8dd08d587a26af1894",
+      "adventure_saves.js": "038ba2cd5c83f80e6224d2a35bc9a481e5425221d3308d268bc73b394ab43c12",
+      "adventure_ui.css": "7ff18ddda322c74b62dee570f37739d6a705d0f57d78752daf9f80c8ee29c4a9",
+      "adventure_ui.js": "aece249a67b647b943838559f9d8b9df5bd594c3fa21aff6745429ea621b5b50",
+      "controller_menu.js": "89d852f971b609ab4bba16b1fd0619e2f7dab566019026a969695af4cf4faf3f",
+      "cove_menu.js": "dc71a666200d6dc803340bb27a63e7cd73d8d0f3f541f61cfc7d549876386057",
+      "cove_preferences.js": "cffac6b4efe07fda01a95a26b1492d1b360010cb0ae195ed6d0ea294bf2c19a5",
+      "cove_saves.js": "7b446c2badb84b378cf9f398125d7e0d7b8fd9005c9d7bb9ccae836c7263607e",
+      "design_library.js": "c3b86e399ab368f3f0dca7188d7156c01394ee9403fed7e9e1ad8a089bf2d675",
+      "expedition_store.js": "d5fcf5a97259332cace13a0da51a7e0d8b1a902555119c897c99526133dee736",
+      "frame_budget.js": "bd1bc44ce6673377dd04df935ab32ffe1d876d8898c90bb9d8c40415401b1e26",
+      "index.html": "4faa637af1ffee751f30061649e3d52c471626210206900714289dc64fae8140",
+      "lego_patch.html": "ece80967c7234a53481ea0a6c34701b8b4d4e1a94064669202d4e309f4298de4",
+      "lego_patch.mjs": "65a6585fce4dfc721b81679ec15d147b0e7613698e77b0a3de2e07644773cb53",
+      "lego_patch_model.mjs": "79310139c2ff864c507c52387c11c3d8590bfbf97074dc0999d165242c8dfea5",
+      "lego_playground.css": "a3694b755f8128beb0c4738e4d39ad87e9fc69e7ef8903c60b60a0f45c0250c9",
+      "lego_playground.js": "8623c5dab1928e756bf0f9fd559c5e02e6f7311dff57d5e5aebc04def0a53ee0",
+      "loader.js": "cb83472567130f679e1648c3a4929e4430930f543a972b3de5d05ff28e9e8fc9",
+      "network_transport.js": "744a7327278186f3c8c7a509c4705b235cc7546e207bc1b776040a3b5e99a40b",
+      "renderer_inspector.css": "bcd493afa295bb1a1cfe06a7e2f50904c1f74bcf42baedd2d0aa2342bee42ba9",
+      "renderer_inspector.js": "329cf0b34cb50a44e0397214404e00ac8744d36a6b57eca9437c831ed3fba21d",
+      "salvage_data.mjs": "700ca3061e3b2d37d4698a2b8eccac1be210634bf6ff3cb825d09928fdd9c47b",
+      "salvage_preview.css": "c0ceb7dd80a6a71342b10898139332b5e3a8761d72a340fb926a5a8b0609a83c",
+      "salvage_preview.js": "9dfa4f07e53164ddf4e7c3a1ae22ab928d91ddc4725ab1070fcff36276dff83b",
+      "shader_parity.html": "bab9844dc7e6e8c9d683c4af6e7f31aad8534e77bded25fd4478e4eaa3ac08fe",
+      "shader_parity.js": "dd92a5fbd5a36b4fd7974fc9d398289b67428b724013010705163ddb675c6076",
+      "shader_parity_manifest.js": "e86d723130dfb334964ea6e38905549bfe7a018dea48e1ffafef8d8a660beea1",
+      "style.css": "793ea83087c860dda1a709f06f7c12580aa7f8a0338f52171af06ab26a82a5d0",
+      "voxy_wasm.data": "03f4c9891bf9bad2e5a68ff12e5bc6ee785219ff1fd587705251d62a8b3bebcd",
+      "voxy_wasm.js": "9ae4261961a22aec0853a45adcc2177a506474ff16619587855c6839777b9aee",
+      "voxy_wasm.wasm": "7592748deb5f614f33ed86fa152b7dc64d9181c38b193876d66e4c5805f43d20"
+    }
+  },
+  "driverSha256": "0224cd14ecc51b735ef457de2780d085a8270cde584945ceb644107da61aa31e",
+  "stages": [
+    {
+      "name": "full-landscape-spawn",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Find a home site. Press B to build.",
+        "previewReason": "Aim at nearby ground or a building.",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 640,
+        "stone": 320,
+        "scrap": 80,
+        "parts": 0,
+        "menu": "",
+        "saveStatus": "Unsaved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "270",
+        "revision": "0",
+        "menuSelected": 0,
+        "player": {
+          "x": -63,
+          "y": -145.73502075195313,
+          "z": -895,
+          "yaw": 0,
+          "tick": "194"
+        },
+        "camera": {
+          "yaw": 0,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -63,
+            -143.02510126099577,
+            -890.4436699932043
+          ],
+          "viewTarget": [
+            -63,
+            -144.53502075195314,
+            -895
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7718106508255005,
+            -3.3960013468004036e-8,
+            0,
+            0,
+            -2.0147517432178574e-8,
+            1.1722075939178467,
+            -0.3145710527896881,
+            -0.314567893743515,
+            6.676704966679381e-9,
+            -0.3884589970111847,
+            -0.949244499206543,
+            -0.9492350220680237,
+            -48.62406921386719,
+            -179.994384765625,
+            -80.79035186767578,
+            -80.68954467773438
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -63,
+            -143.0251007080078,
+            -890.4436721801758
+          ],
+          "to": [
+            -45.25915801041251,
+            -136.81198674242646,
+            -906.9257758187041
+          ],
+          "complete": true,
+          "hit": false,
+          "distance": 25
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [],
+        "components": []
+      }
+    },
+    {
+      "name": "gathered-installed-wood-pile",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Materials gathered.",
+        "previewReason": "Aim at nearby ground or a building.",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 652,
+        "stone": 320,
+        "scrap": 80,
+        "parts": 0,
+        "menu": "",
+        "saveStatus": "Changes not saved",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "680",
+        "revision": "223",
+        "menuSelected": 0,
+        "player": {
+          "x": -75.89295031862173,
+          "y": -145.73502075195313,
+          "z": -895.1123467792129,
+          "yaw": 1.6590000009164214,
+          "tick": "484"
+        },
+        "camera": {
+          "yaw": 1.6590000009164214,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -71.35433269286054,
+            -143.02510126099577,
+            -895.5137109255401
+          ],
+          "viewTarget": [
+            -75.89295031862173,
+            -144.53502075195314,
+            -895.1123467792129
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            0.06798844784498215,
+            -0.38694706559181213,
+            -0.9455548524856567,
+            -0.9455453753471375,
+            3.07648406305816e-7,
+            1.172208309173584,
+            -0.31456953287124634,
+            -0.31456637382507324,
+            0.7688103318214417,
+            0.034218546003103256,
+            0.08361867815256119,
+            0.08361784368753433,
+            102.88509368896484,
+            -155.6771240234375,
+            -21.368444442749023,
+            -21.268230438232422
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -71.35433197021484,
+            -143.0251007080078,
+            -895.5137100219727
+          ],
+          "to": [
+            -89.33594645605845,
+            -136.807378288049,
+            -911.7310300345654
+          ],
+          "complete": true,
+          "hit": false,
+          "distance": 25
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [],
+        "components": []
+      },
+      "woodBefore": 640,
+      "woodGained": 12
+    },
+    {
+      "name": "starter-room-built-and-paid",
+      "state": {
+        "costText": "70 wood, 16 stone, 8 scrap",
+        "build": false,
+        "selected": "Starter room",
+        "piece": 0,
+        "status": "Room built. Finish building, then step through the doorway.",
+        "previewReason": "",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 582,
+        "stone": 304,
+        "scrap": 72,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Changes not saved",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "727",
+        "revision": "224",
+        "menuSelected": 0,
+        "player": {
+          "x": -75.89295031862173,
+          "y": -145.73502075195313,
+          "z": -895.1123467792129,
+          "yaw": 1.6590000009164214,
+          "tick": "509"
+        },
+        "camera": {
+          "yaw": 1.6590000009164214,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -71.35433269286054,
+            -143.02510126099577,
+            -895.5137109255401
+          ],
+          "viewTarget": [
+            -75.89295031862173,
+            -144.53502075195314,
+            -895.1123467792129
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            0.06798844784498215,
+            -0.38694706559181213,
+            -0.9455548524856567,
+            -0.9455453753471375,
+            3.07648406305816e-7,
+            1.172208309173584,
+            -0.31456953287124634,
+            -0.31456637382507324,
+            0.7688103318214417,
+            0.034218546003103256,
+            0.08361867815256119,
+            0.08361784368753433,
+            102.88509368896484,
+            -155.6771240234375,
+            -21.368444442749023,
+            -21.268230438232422
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            615,
+            356
+          ],
+          "usedPointer": [
+            615,
+            356
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -71.35433197021484,
+            -143.0251007080078,
+            -895.5137100219727
+          ],
+          "to": [
+            -95.67514291687873,
+            -148.7446362675607,
+            -894.6276694587677
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 10.6140252194197
+        },
+        "preview": {
+          "x": -84,
+          "y": -145.92000000000002,
+          "z": -895,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      },
+      "origin": [
+        -84,
+        -145.92000000000002,
+        -895
+      ]
+    },
+    {
+      "name": "manual-floor-place-remove-undo",
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Removed. Materials returned.",
+        "previewReason": "",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 582,
+        "stone": 304,
+        "scrap": 72,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Changes not saved",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "1156",
+        "revision": "304",
+        "menuSelected": 0,
+        "player": {
+          "x": -76.89030178017134,
+          "y": -145.73502075195313,
+          "z": -891.0861186939021,
+          "yaw": 2.735550002194941,
+          "tick": "742"
+        },
+        "camera": {
+          "yaw": 2.735550002194941,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -75.09065690916769,
+            -143.02510126099577,
+            -895.2719783988011
+          ],
+          "viewTarget": [
+            -76.89030178017134,
+            -144.53502075195314,
+            -891.0861186939021
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            0.7090562582015991,
+            -0.15343207120895386,
+            -0.3749273717403412,
+            -0.37492361664772034,
+            5.865445587005524e-7,
+            1.1722078323364258,
+            -0.3145706355571747,
+            -0.3145674765110016,
+            0.3048456311225891,
+            0.3568733036518097,
+            0.8720636367797852,
+            0.8720548748970032,
+            92.04175567626953,
+            -98.53141784667969,
+            118.27429962158203,
+            118.37311553955078
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -75.09066009521484,
+            -143.0251007080078,
+            -895.2719802856445
+          ],
+          "to": [
+            -90.52702570554716,
+            -153.1533943947948,
+            -878.4156377482392
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 7.557670767365003
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "walked-through-doorway",
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Removed. Materials returned.",
+        "previewReason": "",
+        "interaction": "Open chest",
+        "valid": false,
+        "wood": 582,
+        "stone": 304,
+        "scrap": 72,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Saved adventure",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "1594",
+        "revision": "526",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.98666484154269,
+          "y": -145.595,
+          "z": -893.7923309190214,
+          "yaw": -0.3637481672061852,
+          "tick": "1036"
+        },
+        "camera": {
+          "yaw": 0.38699999637901783,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -83.26705132168593,
+            -142.88508050904264,
+            -889.5729621897975
+          ],
+          "viewTarget": [
+            -84.98666484154269,
+            -144.395,
+            -893.7923309190214
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7147316932678223,
+            -0.14660866558551788,
+            -0.35825663805007935,
+            -0.3582530617713928,
+            1.3226005535216245e-7,
+            1.1722079515457153,
+            -0.3145703375339508,
+            -0.3145671784877777,
+            0.2912907898426056,
+            -0.35972991585731506,
+            -0.879043698310852,
+            -0.8790348768234253,
+            -24.100534439086914,
+            -188.53530883789062,
+            -101.21632385253906,
+            -101.11531066894531
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -83.26705169677734,
+            -142.88507843017578,
+            -889.5729598999023
+          ],
+          "to": [
+            -84.44603628033416,
+            -153.01596069953706,
+            -912.3978414942519
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.753623086642916
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "home-functions-and-nonempty-storage",
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Rested. This home is your recovery point.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Changes not saved",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "1833",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "1155"
+        },
+        "camera": {
+          "yaw": -0.23385000647976995,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -84.6533839313677,
+            -143.56323447183064,
+            -893.0403439967876
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7508028745651245,
+            0.09001480042934418,
+            0.2199646532535553,
+            0.2199624478816986,
+            -5.347906721908657e-7,
+            1.1722080707550049,
+            -0.3145698308944702,
+            -0.3145666718482971,
+            -0.17884837090969086,
+            -0.37788429856300354,
+            -0.9234074950218201,
+            -0.9233982563018799,
+            -85.92120361328125,
+            -171.4300079345703,
+            -61.57322692871094,
+            -61.47261047363281
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -84.65338134765625,
+            -143.563232421875,
+            -893.0403442382812
+          ],
+          "to": [
+            -72.33243573832661,
+            -153.69232919850515,
+            -912.2912064990113
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.4474139425432995
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "continue-reloaded-home-nonempty-chest-bed-and-tool",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Welcome home. Your adventure is restored.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "3",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "6"
+        },
+        "camera": {
+          "yaw": -0.983248169564294,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -85.79581455966641,
+            -143.70855491857708,
+            -894.333730149989
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.4278314411640167,
+            0.3233136534690857,
+            0.790058970451355,
+            0.7900510430335999,
+            -2.3001749838158503e-8,
+            1.1722081899642944,
+            -0.3145694136619568,
+            -0.3145662546157837,
+            -0.642379879951477,
+            -0.21533018350601196,
+            -0.5261871218681335,
+            -0.5261818766593933,
+            -117.86039733886719,
+            -131.0934600830078,
+            36.53201675415039,
+            36.63165283203125
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -85.79581451416016,
+            -143.70855712890625,
+            -894.3337326049805
+          ],
+          "to": [
+            -62.244172993118916,
+            -137.49044324987506,
+            -888.7074335148355
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.9745055660683395
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "bare-default-entry-restored-adventure",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Welcome home. Your adventure is restored.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "3",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "6"
+        },
+        "camera": {
+          "yaw": -0.983248169564294,
+          "width": 1297,
+          "height": 811,
+          "eye": [
+            -85.79585706241183,
+            -143.70853799568778,
+            -894.3337018427167
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.4280293881893158,
+            0.32331371307373047,
+            0.790058970451355,
+            0.7900510430335999,
+            -1.1506195995991675e-8,
+            1.172208309173584,
+            -0.3145694136619568,
+            -0.3145662546157837,
+            -0.6426771283149719,
+            -0.21533016860485077,
+            -0.5261871218681335,
+            -0.5261818766593933,
+            -117.9149398803711,
+            -131.0934600830078,
+            36.53207778930664,
+            36.6317138671875
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -85.79586029052734,
+            -143.70853424072266,
+            -894.3337020874023
+          ],
+          "to": [
+            -62.243515252771836,
+            -137.4899057373528,
+            -888.710917834064
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.974084640154084
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "ordinary-canvas-click-kept-pointer-free",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Welcome home. Your adventure is restored.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "286",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "204"
+        },
+        "camera": {
+          "yaw": -0.983248169564294,
+          "width": 1297,
+          "height": 811,
+          "eye": [
+            -85.79585706241183,
+            -143.70853799568778,
+            -894.3337018427167
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.4280293881893158,
+            0.32331371307373047,
+            0.790058970451355,
+            0.7900510430335999,
+            -1.1506195995991675e-8,
+            1.172208309173584,
+            -0.3145694136619568,
+            -0.3145662546157837,
+            -0.6426771283149719,
+            -0.21533016860485077,
+            -0.5261871218681335,
+            -0.5261818766593933,
+            -117.9149398803711,
+            -131.0934600830078,
+            36.53207778930664,
+            36.6317138671875
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            832,
+            640
+          ],
+          "usedPointer": [
+            832,
+            640
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -85.79586029052734,
+            -143.70853424072266,
+            -894.3337020874023
+          ],
+          "to": [
+            -75.81910695048461,
+            -160.021650409768,
+            -910.437944809343
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 1.4274798107624032
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "gathered-pile-stayed-depleted-after-reload",
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Move close to a bed, chest, workbench or supply pile.",
+        "previewReason": "",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "dirty": true,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [],
+        "observation": "906",
+        "revision": "920",
+        "menuSelected": 0,
+        "player": {
+          "x": -76.02240508333455,
+          "y": -145.73502075195313,
+          "z": -894.8367068103009,
+          "yaw": 0.3564000001642853,
+          "tick": "650"
+        },
+        "camera": {
+          "yaw": -0.4109981630767008,
+          "width": 1297,
+          "height": 811,
+          "eye": [
+            -77.84277084912394,
+            -143.02510126099708,
+            -890.6598166262604
+          ],
+          "viewTarget": [
+            -76.02240508333455,
+            -144.53502075195314,
+            -894.8367068103009
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7078638076782227,
+            0.15519854426383972,
+            0.3792456388473511,
+            0.37924185395240784,
+            1.438274210840973e-7,
+            1.1722077131271362,
+            -0.3145706355571747,
+            -0.3145674765110016,
+            -0.308499276638031,
+            -0.3561086654663086,
+            -0.8701943755149841,
+            -0.8701856732368469,
+            -92.94256591796875,
+            -164.02920532226562,
+            -41.77776336669922,
+            -41.677345275878906
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            832,
+            640
+          ],
+          "usedPointer": [
+            832,
+            640
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -77.8427734375,
+            -143.0251007080078,
+            -890.6598129272461
+          ],
+          "to": [
+            -78.17644500141438,
+            -159.33954567806387,
+            -909.5999171668337
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 4.160274403384534
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "name": "starter-room",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 3,
+      "state": {
+        "costText": "70 wood, 16 stone, 8 scrap",
+        "build": false,
+        "selected": "Starter room",
+        "piece": 0,
+        "status": "Room built. Finish building, then step through the doorway.",
+        "previewReason": "",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 582,
+        "stone": 304,
+        "scrap": 72,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "762",
+        "revision": "224",
+        "menuSelected": 0,
+        "player": {
+          "x": -75.89295031862173,
+          "y": -145.73502075195313,
+          "z": -895.1123467792129,
+          "yaw": 1.6590000009164214,
+          "tick": "523"
+        },
+        "camera": {
+          "yaw": 1.6590000009164214,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -71.35433269286054,
+            -143.02510126099577,
+            -895.5137109255401
+          ],
+          "viewTarget": [
+            -75.89295031862173,
+            -144.53502075195314,
+            -895.1123467792129
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            0.06798844784498215,
+            -0.38694706559181213,
+            -0.9455548524856567,
+            -0.9455453753471375,
+            3.07648406305816e-7,
+            1.172208309173584,
+            -0.31456953287124634,
+            -0.31456637382507324,
+            0.7688103318214417,
+            0.034218546003103256,
+            0.08361867815256119,
+            0.08361784368753433,
+            102.88509368896484,
+            -155.6771240234375,
+            -21.368444442749023,
+            -21.268230438232422
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            615,
+            356
+          ],
+          "usedPointer": [
+            615,
+            356
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -71.35433197021484,
+            -143.0251007080078,
+            -895.5137100219727
+          ],
+          "to": [
+            -95.67514291687873,
+            -148.7446362675607,
+            -894.6276694587677
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 10.6140252194197
+        },
+        "preview": {
+          "x": -84,
+          "y": -145.92000000000002,
+          "z": -895,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "manual-building",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 4,
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Removed. Materials returned.",
+        "previewReason": "",
+        "interaction": "Use nearby",
+        "valid": false,
+        "wood": 582,
+        "stone": 304,
+        "scrap": 72,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "1170",
+        "revision": "304",
+        "menuSelected": 0,
+        "player": {
+          "x": -76.89030178017134,
+          "y": -145.73502075195313,
+          "z": -891.0861186939021,
+          "yaw": 2.735550002194941,
+          "tick": "744"
+        },
+        "camera": {
+          "yaw": 2.735550002194941,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -75.09065690916769,
+            -143.02510126099577,
+            -895.2719783988011
+          ],
+          "viewTarget": [
+            -76.89030178017134,
+            -144.53502075195314,
+            -891.0861186939021
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            0.7090562582015991,
+            -0.15343207120895386,
+            -0.3749273717403412,
+            -0.37492361664772034,
+            5.865445587005524e-7,
+            1.1722078323364258,
+            -0.3145706355571747,
+            -0.3145674765110016,
+            0.3048456311225891,
+            0.3568733036518097,
+            0.8720636367797852,
+            0.8720548748970032,
+            92.04175567626953,
+            -98.53141784667969,
+            118.27429962158203,
+            118.37311553955078
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -75.09066009521484,
+            -143.0251007080078,
+            -895.2719802856445
+          ],
+          "to": [
+            -90.52702570554716,
+            -153.1533943947948,
+            -878.4156377482392
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 7.557670767365003
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "0",
+        "hammerEquipped": false,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "usable-home",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 6,
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Rested. This home is your recovery point.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "1853",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "1158"
+        },
+        "camera": {
+          "yaw": -0.23385000647976995,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -84.6533839313677,
+            -143.56323447183064,
+            -893.0403439967876
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7508028745651245,
+            0.09001480042934418,
+            0.2199646532535553,
+            0.2199624478816986,
+            -5.347906721908657e-7,
+            1.1722080707550049,
+            -0.3145698308944702,
+            -0.3145666718482971,
+            -0.17884837090969086,
+            -0.37788429856300354,
+            -0.9234074950218201,
+            -0.9233982563018799,
+            -85.92120361328125,
+            -171.4300079345703,
+            -61.57322692871094,
+            -61.47261047363281
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -84.65338134765625,
+            -143.563232421875,
+            -893.0403442382812
+          ],
+          "to": [
+            -72.33243573832661,
+            -153.69232919850515,
+            -912.2912064990113
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.4474139425432995
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "final-home",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 6,
+      "state": {
+        "costText": "4 wood, 0 stone, 0 scrap",
+        "build": false,
+        "selected": "Floor",
+        "piece": 2,
+        "status": "Rested. This home is your recovery point.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "1892",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "1169"
+        },
+        "camera": {
+          "yaw": -0.23385000647976995,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -84.6533839313677,
+            -143.56323447183064,
+            -893.0403439967876
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.7508028745651245,
+            0.09001480042934418,
+            0.2199646532535553,
+            0.2199624478816986,
+            -5.347906721908657e-7,
+            1.1722080707550049,
+            -0.3145698308944702,
+            -0.3145666718482971,
+            -0.17884837090969086,
+            -0.37788429856300354,
+            -0.9234074950218201,
+            -0.9233982563018799,
+            -85.92120361328125,
+            -171.4300079345703,
+            -61.57322692871094,
+            -61.47261047363281
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            483,
+            459
+          ],
+          "usedPointer": [
+            483,
+            459
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -84.65338134765625,
+            -143.563232421875,
+            -893.0403442382812
+          ],
+          "to": [
+            -72.33243573832661,
+            -153.69232919850515,
+            -912.2912064990113
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.4474139425432995
+        },
+        "preview": {
+          "x": -80,
+          "y": -145.74,
+          "z": -890,
+          "kind": 2,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "final-home",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 6,
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Welcome home. Your adventure is restored.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "251",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "168"
+        },
+        "camera": {
+          "yaw": -0.983248169564294,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -85.79581455966641,
+            -143.70855491857708,
+            -894.333730149989
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.4278314411640167,
+            0.3233136534690857,
+            0.790058970451355,
+            0.7900510430335999,
+            -2.3001749838158503e-8,
+            1.1722081899642944,
+            -0.3145694136619568,
+            -0.3145662546157837,
+            -0.642379879951477,
+            -0.21533018350601196,
+            -0.5261871218681335,
+            -0.5261818766593933,
+            -117.86039733886719,
+            -131.0934600830078,
+            36.53201675415039,
+            36.63165283203125
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -85.79581451416016,
+            -143.70855712890625,
+            -894.3337326049805
+          ],
+          "to": [
+            -62.244172993118916,
+            -137.49044324987506,
+            -888.7074335148355
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.9745055660683395
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "before-default-entry",
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "stageCount": 7,
+      "state": {
+        "costText": "0 wood, 4 stone, 0 scrap",
+        "build": false,
+        "selected": "Foundation",
+        "piece": 1,
+        "status": "Welcome home. Your adventure is restored.",
+        "previewReason": "",
+        "interaction": "Rest and register home",
+        "valid": false,
+        "wood": 568,
+        "stone": 304,
+        "scrap": 70,
+        "parts": 19,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "dirty": false,
+        "textScale": 1,
+        "highContrast": false,
+        "rows": [
+          {
+            "label": "Resume",
+            "enabled": true
+          },
+          {
+            "label": "Choose building pieces",
+            "enabled": true
+          },
+          {
+            "label": "Save adventure",
+            "enabled": true
+          },
+          {
+            "label": "Recover at home / town",
+            "enabled": true
+          },
+          {
+            "label": "Text size",
+            "enabled": true
+          },
+          {
+            "label": "High contrast",
+            "enabled": true
+          },
+          {
+            "label": "Reduced camera motion",
+            "enabled": true
+          },
+          {
+            "label": "Starter room blueprint",
+            "enabled": true
+          }
+        ],
+        "observation": "265",
+        "revision": "595",
+        "menuSelected": 0,
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "189"
+        },
+        "camera": {
+          "yaw": -0.983248169564294,
+          "width": 1280,
+          "height": 800,
+          "eye": [
+            -85.79581455966641,
+            -143.70855491857708,
+            -894.333730149989
+          ],
+          "viewTarget": [
+            -84.07177086927366,
+            -144.395,
+            -895.4819612519374
+          ],
+          "origin": [
+            0,
+            -256,
+            -768
+          ],
+          "viewProjection": [
+            -0.4278314411640167,
+            0.3233136534690857,
+            0.790058970451355,
+            0.7900510430335999,
+            -2.3001749838158503e-8,
+            1.1722081899642944,
+            -0.3145694136619568,
+            -0.3145662546157837,
+            -0.642379879951477,
+            -0.21533018350601196,
+            -0.5261871218681335,
+            -0.5261818766593933,
+            -117.86039733886719,
+            -131.0934600830078,
+            36.53201675415039,
+            36.63165283203125
+          ]
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "aimRay": {
+          "from": [
+            -85.79581451416016,
+            -143.70855712890625,
+            -894.3337326049805
+          ],
+          "to": [
+            -62.244172993118916,
+            -137.49044324987506,
+            -888.7074335148355
+          ],
+          "complete": true,
+          "hit": true,
+          "distance": 3.9745055660683395
+        },
+        "preview": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "kind": 1,
+          "yaw": 0
+        },
+        "world": "8a4a508fdaeca5112a7505ad3759226d",
+        "registeredBed": "21",
+        "hammerEquipped": true,
+        "structures": [
+          {
+            "id": "3",
+            "parts": [
+              {
+                "id": "4",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "5",
+                "kind": 1,
+                "x": -85,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "6",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "7",
+                "kind": 1,
+                "x": -83,
+                "y": -145.92000000000002,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "8",
+                "kind": 3,
+                "x": -85,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "9",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -896.84,
+                "yaw": 0
+              },
+              {
+                "id": "10",
+                "kind": 4,
+                "x": -85,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "11",
+                "kind": 3,
+                "x": -83,
+                "y": -145.6,
+                "z": -893.16,
+                "yaw": 0
+              },
+              {
+                "id": "12",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "13",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -896,
+                "yaw": 1
+              },
+              {
+                "id": "14",
+                "kind": 3,
+                "x": -86.16,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "15",
+                "kind": 3,
+                "x": -81.84,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 1
+              },
+              {
+                "id": "16",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "17",
+                "kind": 5,
+                "x": -85,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "18",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -896,
+                "yaw": 0
+              },
+              {
+                "id": "19",
+                "kind": 5,
+                "x": -83,
+                "y": -142.72,
+                "z": -894,
+                "yaw": 0
+              },
+              {
+                "id": "20",
+                "kind": 11,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "22",
+                "kind": 12,
+                "x": -85.26,
+                "y": -145.6,
+                "z": -895.5,
+                "yaw": 0
+              },
+              {
+                "id": "24",
+                "kind": 13,
+                "x": -83.24,
+                "y": -145.6,
+                "z": -894,
+                "yaw": 0
+              }
+            ]
+          }
+        ],
+        "components": [
+          {
+            "id": "21",
+            "part": "20",
+            "kind": 1,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "23",
+            "part": "22",
+            "kind": 2,
+            "wood": 10,
+            "stone": 0,
+            "scrap": 0
+          },
+          {
+            "id": "25",
+            "part": "24",
+            "kind": 3,
+            "wood": 0,
+            "stone": 0,
+            "scrap": 0
+          }
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "key": "Escape",
+      "before": {
+        "observation": "217",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "157"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-collapse",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      },
+      "after": {
+        "observation": "231",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "166"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "BODY",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      }
+    },
+    {
+      "button": "#adventure-menu",
+      "before": {
+        "observation": "235",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "168"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-collapse",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      },
+      "after": {
+        "observation": "239",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "168"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-menu",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      }
+    },
+    {
+      "button": "#adventure-save",
+      "before": {
+        "observation": "241",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "168"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-menu",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      },
+      "after": {
+        "observation": "251",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "168"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "BUTTON",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      }
+    },
+    {
+      "button": "#adventure-menu",
+      "before": {
+        "observation": "7",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "9"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "BODY",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure"
+        }
+      },
+      "after": {
+        "observation": "258",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "189"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-menu",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure"
+        }
+      }
+    },
+    {
+      "button": "#adventure-save",
+      "before": {
+        "observation": "260",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "189"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "BUTTON",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure"
+        }
+      },
+      "after": {
+        "observation": "264",
+        "build": false,
+        "menu": "Adventure paused",
+        "saveStatus": "Saved adventure",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "189"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-save",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html?experience=adventure&world=8a4a508fdaeca5112a7505ad3759226d"
+        }
+      }
+    },
+    {
+      "key": "Escape",
+      "before": {
+        "observation": "262",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "189"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "adventure-collapse",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html"
+        }
+      },
+      "after": {
+        "observation": "276",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -84.07177086927366,
+          "y": -145.595,
+          "z": -895.4819612519374,
+          "yaw": -0.983248169564294,
+          "tick": "198"
+        },
+        "aimInput": {
+          "pointer": [
+            0,
+            0
+          ],
+          "usedPointer": [
+            0,
+            0
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "BODY",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html"
+        }
+      }
+    },
+    {
+      "keys": [
+        "s",
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "303"
+    },
+    {
+      "keys": [
+        "s",
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "324"
+    },
+    {
+      "keys": [
+        "d"
+      ],
+      "heldMilliseconds": 128,
+      "observation": "340"
+    },
+    {
+      "keys": [
+        "d"
+      ],
+      "heldMilliseconds": 47,
+      "observation": "349"
+    },
+    {
+      "keys": [
+        "w",
+        "d"
+      ],
+      "heldMilliseconds": 35,
+      "observation": "357"
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 76,
+      "observation": "369"
+    },
+    {
+      "keys": [
+        "s",
+        "a"
+      ],
+      "heldMilliseconds": 35,
+      "observation": "376"
+    },
+    {
+      "keys": [
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "397"
+    },
+    {
+      "keys": [
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "409"
+    },
+    {
+      "keys": [
+        "w",
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "426"
+    },
+    {
+      "keys": [
+        "w",
+        "d"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "443"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "463"
+    },
+    {
+      "keys": [
+        "w",
+        "d"
+      ],
+      "heldMilliseconds": 171,
+      "observation": "479"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 53,
+      "observation": "485"
+    },
+    {
+      "keys": [
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "505"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "526"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "545"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "565"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "585"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "602"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "622"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "641"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "661"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "681"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "701"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "721"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 87,
+      "observation": "730"
+    },
+    {
+      "keys": [
+        "w",
+        "d"
+      ],
+      "heldMilliseconds": 35,
+      "observation": "737"
+    },
+    {
+      "keys": [
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "757"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "777"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "797"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "818"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "838"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "855"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "874"
+    },
+    {
+      "keys": [
+        "w"
+      ],
+      "heldMilliseconds": 96,
+      "observation": "887"
+    },
+    {
+      "keys": [
+        "w",
+        "a"
+      ],
+      "heldMilliseconds": 35,
+      "observation": "894"
+    },
+    {
+      "key": "e",
+      "before": {
+        "observation": "895",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -76.02240508333455,
+          "y": -145.73502075195313,
+          "z": -894.8367068103009,
+          "yaw": 0.3564000001642853,
+          "tick": "643"
+        },
+        "aimInput": {
+          "pointer": [
+            832,
+            640
+          ],
+          "usedPointer": [
+            832,
+            640
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "voxy-canvas",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html"
+        }
+      },
+      "after": {
+        "observation": "905",
+        "build": false,
+        "menu": "",
+        "saveStatus": "Saved adventure loaded",
+        "player": {
+          "x": -76.02240508333455,
+          "y": -145.73502075195313,
+          "z": -894.8367068103009,
+          "yaw": 0.3564000001642853,
+          "tick": "650"
+        },
+        "aimInput": {
+          "pointer": [
+            832,
+            640
+          ],
+          "usedPointer": [
+            832,
+            640
+          ],
+          "mouseCaptured": false,
+          "gamepadConnected": false,
+          "padOwnsAim": false
+        },
+        "dom": {
+          "active": "voxy-canvas",
+          "pointerLock": "",
+          "url": "http://127.0.0.1:42752/index.html"
+        }
+      }
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "926"
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "946"
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "965"
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "985"
+    },
+    {
+      "keys": [
+        "s"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "1005"
+    },
+    {
+      "keys": [
+        "s",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "1025"
+    },
+    {
+      "keys": [
+        "s",
+        "a"
+      ],
+      "heldMilliseconds": 180,
+      "observation": "1045"
+    },
+    {
+      "keys": [
+        "s",
+        "a"
+      ],
+      "heldMilliseconds": 53,
+      "observation": "1054"
+    },
+    {
+      "pointerWorld": [
+        -84,
+        -144.22000000000003,
+        -895
+      ],
+      "pixel": [
+        752.5481093564555,
+        290.0252935131071
+      ],
+      "observation": "1061"
+    }
+  ],
+  "console": [
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.003] Loading config: adventure.cfg"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.006] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.007]   Voxy - Terrain Renderer"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.007]   Build target: wasm"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.007]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.007] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.008] [Application::init::GPU] WASM GPU context initialized from canvas: #voxy-canvas"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.035] [Application::init] WebGPU physics initialized: 64 usable body slots, 0 MiB resident, 32 MiB scratch"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.036] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.717] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (661.20 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.717] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 661.20 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.718] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.050] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.217] [Application::init] Coastal refraction field initialized: 1024x1024"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.217] [Application::init] FFT water simulation initialized: 2 cascades at 256x256"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.219] [Application::init::TrianglePath::init] TrianglePath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.262] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1280x800 output)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.811] [Application::init] Baked shadow height field: 4096x4096 (548.9 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:02.248] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:02.249] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:02.258] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:02.406] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.651] [Application::init::BlitPath::init] BlitPath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.651] [Application::init] LEGO layout: streamed world (4194304 bytes)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.049] Application initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Window: 1280x800"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Terrain: 8192x8192 (mips: 14)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050] Controls:"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   WASD / left stick - Walk; Space / A - Jump"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   B / View - Build; F2 / Menu - Options; F5 - Save"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   E / X - Use; Right drag / right stick - Look"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F1        - Toggle debug overlay"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F2        - Toggle wireframe mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F3        - Toggle render path"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F4        - Toggle depth visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F5        - Toggle normal visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F6        - Toggle mip level heat map"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F7        - Toggle benchmark mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F8        - Toggle controller (free-fly/character)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   F9        - Toggle uncapped/VSync presentation"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Escape    - Release mouse / Exit"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Wheel     - Select throwable object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Left click- Capture mouse / throw selected object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050]   Right click- Throw 128 selected objects"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.050] Starting Emscripten main loop..."
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:04.051] Started Capped Loop (RAF)"
+    },
+    {
+      "type": "warning",
+      "text": "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    },
+    {
+      "type": "log",
+      "text": "RIDGEBREAK initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000] Loading config: adventure.cfg"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001]   Voxy - Terrain Renderer"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001]   Build target: wasm"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001] [Application::init::GPU] WASM GPU context initialized from canvas: #voxy-canvas"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.010] [Application::init] WebGPU physics initialized: 64 usable body slots, 0 MiB resident, 32 MiB scratch"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.011] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.607] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (577.20 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.608] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 577.20 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.608] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.804] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.905] [Application::init] Coastal refraction field initialized: 1024x1024"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.906] [Application::init] FFT water simulation initialized: 2 cascades at 256x256"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.906] [Application::init::TrianglePath::init] TrianglePath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.937] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1280x800 output)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.291] [Application::init] Baked shadow height field: 4096x4096 (354.0 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.703] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.703] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.706] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.816] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.045] [Application::init::BlitPath::init] BlitPath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.046] [Application::init] LEGO layout: streamed world (4194304 bytes)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.496] Application initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   Window: 1280x800"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   Terrain: 8192x8192 (mips: 14)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497] Controls:"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   WASD / left stick - Walk; Space / A - Jump"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   B / View - Build; F2 / Menu - Options; F5 - Save"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   E / X - Use; Right drag / right stick - Look"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F1        - Toggle debug overlay"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F2        - Toggle wireframe mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F3        - Toggle render path"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F4        - Toggle depth visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F5        - Toggle normal visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F6        - Toggle mip level heat map"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F7        - Toggle benchmark mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.497]   F8        - Toggle controller (free-fly/character)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498]   F9        - Toggle uncapped/VSync presentation"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498]   Escape    - Release mouse / Exit"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498]   Wheel     - Select throwable object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498]   Left click- Capture mouse / throw selected object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498]   Right click- Throw 128 selected objects"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498] Starting Emscripten main loop..."
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.498] Started Capped Loop (RAF)"
+    },
+    {
+      "type": "warning",
+      "text": "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    },
+    {
+      "type": "log",
+      "text": "RIDGEBREAK initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000] Loading config: adventure.cfg"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000]   Voxy - Terrain Renderer"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000]   Build target: wasm"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.001] [Application::init::GPU] WASM GPU context initialized from canvas: #voxy-canvas"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.010] [Application::init] WebGPU physics initialized: 64 usable body slots, 0 MiB resident, 32 MiB scratch"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.010] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.663] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (637.50 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.664] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 637.50 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.664] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.854] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.958] [Application::init] Coastal refraction field initialized: 1024x1024"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.959] [Application::init] FFT water simulation initialized: 2 cascades at 256x256"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.960] [Application::init::TrianglePath::init] TrianglePath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:00.994] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1297x811 output)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.356] [Application::init] Baked shadow height field: 4096x4096 (360.9 ms)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.777] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.778] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.782] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:01.896] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.171] [Application::init::BlitPath::init] BlitPath initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.172] [Application::init] LEGO layout: streamed world (4194304 bytes)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.571] Application initialized successfully"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   Window: 1297x811"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   Terrain: 8192x8192 (mips: 14)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   Render path: raycast"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572] Controls:"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   WASD / left stick - Walk; Space / A - Jump"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   B / View - Build; F2 / Menu - Options; F5 - Save"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   E / X - Use; Right drag / right stick - Look"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F1        - Toggle debug overlay"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F2        - Toggle wireframe mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F3        - Toggle render path"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F4        - Toggle depth visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F5        - Toggle normal visualization"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F6        - Toggle mip level heat map"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F7        - Toggle benchmark mode"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F8        - Toggle controller (free-fly/character)"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   F9        - Toggle uncapped/VSync presentation"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.572]   Escape    - Release mouse / Exit"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573]   Wheel     - Select throwable object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573]   Left click- Capture mouse / throw selected object"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573]   Right click- Throw 128 selected objects"
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573] "
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573] Starting Emscripten main loop..."
+    },
+    {
+      "type": "log",
+      "text": "[INFO ] [00:00:03.573] Started Capped Loop (RAF)"
+    },
+    {
+      "type": "warning",
+      "text": "WebGPU canvas configured with a different format than is preferred by this device (\"rgba8unorm\"). This requires an extra copy, which may impact performance."
+    },
+    {
+      "type": "log",
+      "text": "RIDGEBREAK initialized successfully"
+    }
+  ],
+  "pageErrors": [],
+  "walks": [
+    {
+      "target": [
+        -84.58,
+        -893.75
+      ],
+      "tolerance": 0.08,
+      "trace": [
+        {
+          "player": {
+            "x": -84.07177086927366,
+            "y": -145.595,
+            "z": -895.4819612519374,
+            "yaw": -0.983248169564294,
+            "tick": "204"
+          },
+          "keys": [
+            "s",
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -84.24955888642413,
+            "y": -145.595,
+            "z": -894.9104389872892,
+            "yaw": 2.732242644886025,
+            "tick": "216"
+          },
+          "keys": [
+            "s",
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -84.60035238214984,
+            "y": -145.595,
+            "z": -894.4485900124654,
+            "yaw": -3.0479944968576342,
+            "tick": "231"
+          },
+          "keys": [
+            "d"
+          ],
+          "duration": 128.1168034597545
+        },
+        {
+          "player": {
+            "x": -84.5981597684464,
+            "y": -145.595,
+            "z": -894.0290832009218,
+            "yaw": 3.0763408091507207,
+            "tick": "242"
+          },
+          "keys": [
+            "d"
+          ],
+          "duration": 46.603160957891525
+        },
+        {
+          "player": {
+            "x": -84.62139961985355,
+            "y": -145.595,
+            "z": -893.8506326585995,
+            "yaw": 2.9887408084824036,
+            "tick": "249"
+          },
+          "keys": [
+            "w",
+            "d"
+          ],
+          "duration": 35
+        }
+      ]
+    },
+    {
+      "target": [
+        -85,
+        -894
+      ],
+      "tolerance": 0.24,
+      "trace": [
+        {
+          "player": {
+            "x": -84.55476379348396,
+            "y": -145.595,
+            "z": -893.7508398031756,
+            "yaw": -2.5613963357780616,
+            "tick": "255"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 75.87451712687532
+        },
+        {
+          "player": {
+            "x": -84.84948471044613,
+            "y": -145.595,
+            "z": -893.8057225921634,
+            "yaw": 1.43639448107954,
+            "tick": "263"
+          },
+          "keys": [
+            "s",
+            "a"
+          ],
+          "duration": 35
+        }
+      ]
+    },
+    {
+      "target": [
+        -85,
+        -890
+      ],
+      "tolerance": 0.24,
+      "trace": [
+        {
+          "player": {
+            "x": -84.92474971262848,
+            "y": -145.595,
+            "z": -893.8991785340717,
+            "yaw": 0.6869963179950158,
+            "tick": "268"
+          },
+          "keys": [
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -85.05019435111066,
+            "y": -145.595,
+            "z": -893.2533173953456,
+            "yaw": 2.830790809973265,
+            "tick": "283"
+          },
+          "keys": [
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -85.2199608822245,
+            "y": -145.62477179507144,
+            "z": -892.8697052677155,
+            "yaw": 2.657540809515054,
+            "tick": "296"
+          },
+          "keys": [
+            "w",
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -85.10826471077507,
+            "y": -146.05502807617188,
+            "z": -892.2221361315626,
+            "yaw": -3.10439633886819,
+            "tick": "311"
+          },
+          "keys": [
+            "w",
+            "d"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -85.19231885613142,
+            "y": -146.10887634277344,
+            "z": -891.5695396052381,
+            "yaw": 2.8958889697173213,
+            "tick": "323"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -84.87341354423403,
+            "y": -146.05502807617188,
+            "z": -890.9916993141161,
+            "yaw": -2.637298173999997,
+            "tick": "337"
+          },
+          "keys": [
+            "w",
+            "d"
+          ],
+          "duration": 171.06168292334743
+        },
+        {
+          "player": {
+            "x": -85.07451284425413,
+            "y": -146.07010375976563,
+            "z": -890.3867870136484,
+            "yaw": 2.6306889689953596,
+            "tick": "349"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 53.25812301461179
+        }
+      ]
+    },
+    {
+      "target": [
+        -77,
+        -890
+      ],
+      "tolerance": 0.24,
+      "trace": [
+        {
+          "player": {
+            "x": -85.02884841411732,
+            "y": -146.05502807617188,
+            "z": -890.212675670479,
+            "yaw": -2.8850981749432405,
+            "tick": "354"
+          },
+          "keys": [
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -84.41749316944498,
+            "y": -146.23502075195313,
+            "z": -890.4557537794576,
+            "yaw": -1.0675518482153992,
+            "tick": "368"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -83.76659631941034,
+            "y": -146.08397399902344,
+            "z": -890.3594159616863,
+            "yaw": -1.587300010258332,
+            "tick": "382"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -83.11450540958145,
+            "y": -146.10165893554688,
+            "z": -890.4461631233834,
+            "yaw": -1.3050000078510493,
+            "tick": "396"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -82.51131598278612,
+            "y": -145.99995910644532,
+            "z": -890.7088775389566,
+            "yaw": -1.0405500058550388,
+            "tick": "410"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -81.86725275113085,
+            "y": -145.92207824707032,
+            "z": -890.5647159850331,
+            "yaw": -1.7909981699498616,
+            "tick": "424"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -81.22318951947558,
+            "y": -146.09935485839844,
+            "z": -890.4205544311096,
+            "yaw": -1.7909981699498616,
+            "tick": "436"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -80.57912628782032,
+            "y": -146.03136169433594,
+            "z": -890.2763928771861,
+            "yaw": -1.7909981699498616,
+            "tick": "450"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -79.93506305616505,
+            "y": -146.05502807617188,
+            "z": -890.1322313232627,
+            "yaw": -1.7909981699498616,
+            "tick": "464"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -79.34955102738753,
+            "y": -145.739140625,
+            "z": -890.0011753651504,
+            "yaw": -1.7909981699498616,
+            "tick": "478"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -78.70548779573227,
+            "y": -145.73627197265625,
+            "z": -889.8570138112269,
+            "yaw": -1.7909981699498616,
+            "tick": "492"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -78.061424564077,
+            "y": -145.73502075195313,
+            "z": -889.7128522573034,
+            "yaw": -1.7909981699498616,
+            "tick": "506"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -77.55384643081486,
+            "y": -145.78455078125,
+            "z": -890.1314579270612,
+            "yaw": -0.7579500067513435,
+            "tick": "520"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 87.35100581284685
+        },
+        {
+          "player": {
+            "x": -77.25443589650547,
+            "y": -145.73502075195313,
+            "z": -890.150255053027,
+            "yaw": -1.508098169958802,
+            "tick": "526"
+          },
+          "keys": [
+            "w",
+            "d"
+          ],
+          "duration": 35
+        }
+      ]
+    },
+    {
+      "target": [
+        -76,
+        -895
+      ],
+      "tolerance": 0.24,
+      "trace": [
+        {
+          "player": {
+            "x": -77.16581644700287,
+            "y": -145.73502075195313,
+            "z": -890.0693700551815,
+            "yaw": -2.3276963325359414,
+            "tick": "532"
+          },
+          "keys": [
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -77.25228414494956,
+            "y": -145.74471008300782,
+            "z": -890.7216591608441,
+            "yaw": 0.2582981612371525,
+            "tick": "546"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -77.0007268480272,
+            "y": -145.73648559570313,
+            "z": -891.3296419503621,
+            "yaw": -0.26235000067390496,
+            "tick": "560"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.9253038819756,
+            "y": -145.73502075195313,
+            "z": -891.9832762633567,
+            "yaw": 0.0028500000480562687,
+            "tick": "574"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -77.03284637809142,
+            "y": -145.74307739257813,
+            "z": -892.6324502143364,
+            "yaw": 0.2840999986510724,
+            "tick": "588"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.73662297685493,
+            "y": -145.73836242675782,
+            "z": -893.2222397501538,
+            "yaw": -0.4654481641786417,
+            "tick": "602"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.44039957561844,
+            "y": -145.79416381835938,
+            "z": -893.8120292859712,
+            "yaw": -0.4654481641786417,
+            "tick": "614"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.14417617438195,
+            "y": -145.76317321777344,
+            "z": -894.4018188217887,
+            "yaw": -0.4654481641786417,
+            "tick": "628"
+          },
+          "keys": [
+            "w"
+          ],
+          "duration": 96.31045081328885
+        },
+        {
+          "player": {
+            "x": -75.9825997737075,
+            "y": -145.73502075195313,
+            "z": -894.7235222049618,
+            "yaw": -0.4654481641786417,
+            "tick": "637"
+          },
+          "keys": [
+            "w",
+            "a"
+          ],
+          "duration": 35
+        }
+      ]
+    },
+    {
+      "target": [
+        -77,
+        -890
+      ],
+      "tolerance": 0.24,
+      "trace": [
+        {
+          "player": {
+            "x": -76.02240508333455,
+            "y": -145.73502075195313,
+            "z": -894.8367068103009,
+            "yaw": 0.3564000001642853,
+            "tick": "650"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.20671657642217,
+            "y": -145.73502075195313,
+            "z": -894.2050423793816,
+            "yaw": 2.9776444899364174,
+            "tick": "664"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.23021502188178,
+            "y": -145.8524676513672,
+            "z": -893.4863524457501,
+            "yaw": 3.140544489815718,
+            "tick": "679"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.22906199224282,
+            "y": -145.73502075195313,
+            "z": -892.8264820688272,
+            "yaw": -3.138440817513625,
+            "tick": "693"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.22933974266749,
+            "y": -145.73502075195313,
+            "z": -892.1665793118511,
+            "yaw": -3.1190908196504514,
+            "tick": "707"
+          },
+          "keys": [
+            "s"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.2290055219473,
+            "y": -145.8602801513672,
+            "z": -891.5066968487863,
+            "yaw": -3.1153408176387947,
+            "tick": "721"
+          },
+          "keys": [
+            "s",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.6254529637942,
+            "y": -145.7445574951172,
+            "z": -890.9816513312722,
+            "yaw": 2.6138963297151516,
+            "tick": "735"
+          },
+          "keys": [
+            "s",
+            "a"
+          ],
+          "duration": 180
+        },
+        {
+          "player": {
+            "x": -76.86186425809984,
+            "y": -145.74973022460938,
+            "z": -890.3676913783262,
+            "yaw": 2.8966463341519724,
+            "tick": "749"
+          },
+          "keys": [
+            "s",
+            "a"
+          ],
+          "duration": 53.04112596745484
+        }
+      ]
+    }
+  ],
+  "continuedFrom": "/tmp/voxys-adventure-browser-r04",
+  "browser": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "heapBytes": 536870912
+  },
+  "elapsedSeconds": 34.05,
+  "currentStage": "gathered-pile-stayed-depleted-after-reload",
+  "exteriorView": {
+    "file": "home-exterior.png",
+    "state": {
+      "costText": "0 wood, 4 stone, 0 scrap",
+      "build": false,
+      "selected": "Foundation",
+      "piece": 1,
+      "status": "Move close to a bed, chest, workbench or supply pile.",
+      "previewReason": "Aim at nearby ground or a building.",
+      "interaction": "Use nearby",
+      "valid": false,
+      "wood": 568,
+      "stone": 304,
+      "scrap": 70,
+      "parts": 19,
+      "menu": "",
+      "saveStatus": "Saved adventure loaded",
+      "dirty": true,
+      "textScale": 1,
+      "highContrast": false,
+      "rows": [],
+      "observation": "1075",
+      "revision": "1002",
+      "menuSelected": 0,
+      "player": {
+        "x": -76.90378717854679,
+        "y": -145.73502075195313,
+        "z": -890.1314730465713,
+        "yaw": 3.0010463342212628,
+        "tick": "775"
+      },
+      "camera": {
+        "yaw": 0.6631518436757604,
+        "width": 1297,
+        "height": 811,
+        "eye": [
+          -74.09889341081998,
+          -143.02510126099577,
+          -886.5408304741903
+        ],
+        "viewTarget": [
+          -76.90378717854679,
+          -144.53502075195314,
+          -890.1314730465713
+        ],
+        "origin": [
+          0,
+          -256,
+          -768
+        ],
+        "viewProjection": [
+          -0.6085110902786255,
+          -0.23913761973381042,
+          -0.5843586325645447,
+          -0.5843527913093567,
+          -2.301238843926967e-8,
+          1.172207236289978,
+          -0.31457191705703735,
+          -0.31456875801086426,
+          0.47534963488578796,
+          -0.3061281144618988,
+          -0.7480572462081909,
+          -0.7480497360229492,
+          11.258342742919922,
+          -186.43850708007812,
+          -96.53692626953125,
+          -96.43595886230469
+        ]
+      },
+      "aimInput": {
+        "pointer": [
+          934,
+          125
+        ],
+        "usedPointer": [
+          934,
+          125
+        ],
+        "mouseCaptured": false,
+        "gamepadConnected": false,
+        "padOwnsAim": false
+      },
+      "aimRay": {
+        "from": [
+          -74.09889221191406,
+          -143.0251007080078,
+          -886.5408325195312
+        ],
+        "to": [
+          -96.40248731047203,
+          -138.78484024718543,
+          -897.0083936922193
+        ],
+        "complete": true,
+        "hit": false,
+        "distance": 25
+      },
+      "preview": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "kind": 1,
+        "yaw": 0
+      },
+      "world": "8a4a508fdaeca5112a7505ad3759226d",
+      "registeredBed": "21",
+      "hammerEquipped": true,
+      "structures": [
+        {
+          "id": "3",
+          "parts": [
+            {
+              "id": "4",
+              "kind": 1,
+              "x": -85,
+              "y": -145.92000000000002,
+              "z": -896,
+              "yaw": 0
+            },
+            {
+              "id": "5",
+              "kind": 1,
+              "x": -85,
+              "y": -145.92000000000002,
+              "z": -894,
+              "yaw": 0
+            },
+            {
+              "id": "6",
+              "kind": 1,
+              "x": -83,
+              "y": -145.92000000000002,
+              "z": -896,
+              "yaw": 0
+            },
+            {
+              "id": "7",
+              "kind": 1,
+              "x": -83,
+              "y": -145.92000000000002,
+              "z": -894,
+              "yaw": 0
+            },
+            {
+              "id": "8",
+              "kind": 3,
+              "x": -85,
+              "y": -145.6,
+              "z": -896.84,
+              "yaw": 0
+            },
+            {
+              "id": "9",
+              "kind": 3,
+              "x": -83,
+              "y": -145.6,
+              "z": -896.84,
+              "yaw": 0
+            },
+            {
+              "id": "10",
+              "kind": 4,
+              "x": -85,
+              "y": -145.6,
+              "z": -893.16,
+              "yaw": 0
+            },
+            {
+              "id": "11",
+              "kind": 3,
+              "x": -83,
+              "y": -145.6,
+              "z": -893.16,
+              "yaw": 0
+            },
+            {
+              "id": "12",
+              "kind": 3,
+              "x": -86.16,
+              "y": -145.6,
+              "z": -896,
+              "yaw": 1
+            },
+            {
+              "id": "13",
+              "kind": 3,
+              "x": -81.84,
+              "y": -145.6,
+              "z": -896,
+              "yaw": 1
+            },
+            {
+              "id": "14",
+              "kind": 3,
+              "x": -86.16,
+              "y": -145.6,
+              "z": -894,
+              "yaw": 1
+            },
+            {
+              "id": "15",
+              "kind": 3,
+              "x": -81.84,
+              "y": -145.6,
+              "z": -894,
+              "yaw": 1
+            },
+            {
+              "id": "16",
+              "kind": 5,
+              "x": -85,
+              "y": -142.72,
+              "z": -896,
+              "yaw": 0
+            },
+            {
+              "id": "17",
+              "kind": 5,
+              "x": -85,
+              "y": -142.72,
+              "z": -894,
+              "yaw": 0
+            },
+            {
+              "id": "18",
+              "kind": 5,
+              "x": -83,
+              "y": -142.72,
+              "z": -896,
+              "yaw": 0
+            },
+            {
+              "id": "19",
+              "kind": 5,
+              "x": -83,
+              "y": -142.72,
+              "z": -894,
+              "yaw": 0
+            },
+            {
+              "id": "20",
+              "kind": 11,
+              "x": -83.24,
+              "y": -145.6,
+              "z": -895.5,
+              "yaw": 0
+            },
+            {
+              "id": "22",
+              "kind": 12,
+              "x": -85.26,
+              "y": -145.6,
+              "z": -895.5,
+              "yaw": 0
+            },
+            {
+              "id": "24",
+              "kind": 13,
+              "x": -83.24,
+              "y": -145.6,
+              "z": -894,
+              "yaw": 0
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "id": "21",
+          "part": "20",
+          "kind": 1,
+          "wood": 0,
+          "stone": 0,
+          "scrap": 0
+        },
+        {
+          "id": "23",
+          "part": "22",
+          "kind": 2,
+          "wood": 10,
+          "stone": 0,
+          "scrap": 0
+        },
+        {
+          "id": "25",
+          "part": "24",
+          "kind": 3,
+          "wood": 0,
+          "stone": 0,
+          "scrap": 0
+        }
+      ]
+    }
+  },
+  "finalBrowser": {
+    "heapBytes": 536870912,
+    "canvas": [
+      1297,
+      811
+    ],
+    "pointerLocked": false
+  },
+  "gpuErrors": []
+}
