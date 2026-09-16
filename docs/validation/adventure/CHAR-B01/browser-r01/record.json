@@ -1,0 +1,67 @@
+{
+  "status": "Bounded integration passed; CHAR-B01/UI-B01/G-B remain open",
+  "packageDirectory": "build-adventure-g-b/web-r02",
+  "buildId": "adventure-1a49bcffb8919e9a",
+  "previewOrigin": "http://127.0.0.1:42753",
+  "previewServerSession": 11522,
+  "isolatedTestWorld": "8bd02028662e083a59cf734ddd700b22",
+  "character": {
+    "passed": true,
+    "files": [
+      {
+        "path": "/data/adventure/human-r01/manifest.json",
+        "bytes": 2566,
+        "sha256": "d08532cb292d4e996165d29746198adebe3d03eec6b72be62f338024e39e0af1"
+      },
+      {
+        "path": "/data/adventure/human-r01/human.vmesh",
+        "bytes": 504403,
+        "sha256": "2d86136c1ce5842a6e0da3dd3e890ef151f48a943ef7aca7b414186f1a43b1e2"
+      },
+      {
+        "path": "/data/adventure/human-r01/lod1.vmesh",
+        "bytes": 272323,
+        "sha256": "ea6182ae040181eeb04bfad4b42687b7f84e1336a15dfb1382a000adccb0c42c"
+      },
+      {
+        "path": "/data/adventure/human-r01/lod2.vmesh",
+        "bytes": 144723,
+        "sha256": "47b330077d922fe49cc7c72ea3a077d657c2c16b4a8a14124bc6387cb2026401"
+      }
+    ]
+  },
+  "steps": [
+    "Fresh adventure visibly renders the brick-person avatar and three base-figure residents",
+    "Explore shows one quest card, compact play controls, no duplicate native HUD",
+    "Ordinary Talk to Moss opens a focused dialogue with Accept and Leave choices",
+    "Accept changes dialogue to the real active sheltered-bed requirement",
+    "Escape restores exploration and canvas focus",
+    "Build opens compact aiming tray; Choose pieces opens illustrated catalog",
+    "Bricks category shows installed 1x2/2x2/2x4 choices and costs",
+    "Choosing Brick2x2 restores compact tray with4 stone cost and disabled invalid placement",
+    "Done restores exploration",
+    "Pause Save adventure confirms Saved adventure and replaces new URL with the actual world ID",
+    "Real reload restores accepted quest and Welcome home status",
+    "Journal shows active quest and different-layout semantics; Escape returns focus to canvas"
+  ],
+  "screenshots": {
+    "count": 1,
+    "purpose": "Inspect materially changed character + actual mesh catalog, displayed in conversation; no unchanged recaptures"
+  },
+  "limits": [
+    "One shared base figure; distinct resident appearances pending",
+    "Starting meadow still lacks the planned inhabited village",
+    "No new native ordinary-control/GPU journey in this checkpoint",
+    "No controller hardware, narrow viewport or large-text browser acceptance yet",
+    "Quest completion, new-character doorway/stair traversal, compass craft and reload require full G-B journey",
+    "Browser intro still contains inherited racing copy",
+    "No owner art approval, performance acceptance or new gate commit claimed"
+  ],
+  "files": {
+    "web/adventure_ui.js": "09c48f95760923d928e32a76ffe0097c76317576bdc1340a0f597871f81e7e94",
+    "web/adventure_ui.css": "250ddbcb25e40d61e32f1ee79d81bbdfb9517daa0e7bc4c31439d660f9ad9e05",
+    "web/adventure_piece_manifest.json": "bec172ca02dc3e72f1dc130d06ca17790b9dacb400e4dfca5e9b672147ab3595",
+    "src/game/adventure/adventure_runtime.cpp": "a93c4185a000489bf47d9eddec3eaf6a0874e47c9d5978ed6d8712e9f5819f5f",
+    "src/game/assets/robot_asset.cpp": "bae0470b9f0cae56cc3dca7831362871768526d62c263ee32001978dbef783e7"
+  }
+}

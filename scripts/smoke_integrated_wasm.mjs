@@ -13,7 +13,7 @@ const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
 if(!selected){
     const reports=[];
-    for(const experience of ['default','lego-world','lego','terrain','ridgebreak','salvage']){
+    for(const experience of ['default','build','lego-world','lego','terrain','ridgebreak','salvage']){
         const output=path.resolve(`startup-${experience}-report.json`);
         const child=spawn(process.execPath,[fileURLToPath(import.meta.url),root,experience],
             {stdio:'inherit',env:{...process.env,VOXY_SMOKE_REPORT:output}});
@@ -24,8 +24,9 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','lego-world','lego','terrain','ridgebreak','salvage','salvage-asset','salvage-materials','salvage-material-detail','salvage-cove','salvage-assembly','salvage-hierarchy','salvage-rotations-a','salvage-rotations-b','salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo','presentation'].includes(selected),'unknown scene');
-const isWorld=selected==='default'||selected==='lego-world';
+assert(['default','build','lego-world','lego','terrain','ridgebreak','salvage','salvage-asset','salvage-materials','salvage-material-detail','salvage-cove','salvage-assembly','salvage-hierarchy','salvage-rotations-a','salvage-rotations-b','salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo','presentation'].includes(selected),'unknown scene');
+const isCreative=selected==='default'||selected==='build';
+const isWorld=selected==='lego-world';
 const isLego=isWorld||selected==='lego';
 const isSalvageRotations=selected==='salvage-rotations-a'||selected==='salvage-rotations-b';
 const isSalvageKit=['salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo'].includes(selected);
@@ -297,6 +298,11 @@ try{
             if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
             const pointer=voxyModule._voxy_get_telemetry_json();const moto=voxyModule._voxy_get_moto_hud_json?.();
+            const isCreativeState=()=>{
+                if(!document.body.classList.contains('voxy-build'))return null;
+                const statePointer=voxyModule._get_adventure_state_json?.();
+                return statePointer?JSON.parse(voxyModule.UTF8ToString(statePointer)):null;
+            };
             return {telemetry:JSON.parse(voxyModule.UTF8ToString(pointer)),
                 moto:moto?JSON.parse(voxyModule.UTF8ToString(moto)):null,
                 errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost,
@@ -304,6 +310,9 @@ try{
                 heapBytes:voxyModule.HEAPU8?.byteLength,
                 heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
+                creative:isCreativeState(),
+                buildHotbarVisible:!!document.querySelector('#build-ui .bb-hotbar'),
+                buildUIFailed:!!document.querySelector('#build-ui .bb-error'),
                 legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false,
                 salvageControlsVisible:document.getElementById('salvage-preview')?.hidden===false,
                 salvage:voxyModule._voxy_get_salvage_preview_json
@@ -349,6 +358,17 @@ try{
         assert.equal(sample.telemetry.render.terrain_height,256);
         assert.equal(sample.telemetry.render.terrain_mips,9);
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
+    }
+    if(isCreative){
+        assert.equal(sample.title,'Voxys — Free Build');
+        assert.equal(sample.creative?.creative,true,'default route must use creative authority');
+        assert.equal(sample.creative?.mode,'build','default route must start building');
+        assert.equal(sample.creative?.piece,10,'default brick selection changed');
+        assert.equal(sample.buildHotbarVisible,true,'creative hotbar failed to mount');
+        assert.equal(sample.buildUIFailed,false,'creative UI failed to read runtime');
+        assert.equal(sample.telemetry.render.terrain_width,8192);
+        assert.equal(sample.telemetry.render.terrain_height,8192);
+        assert.equal(sample.legoControlsVisible,false);
     }
     if(isLego){
         assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');

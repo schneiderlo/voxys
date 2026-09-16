@@ -1,0 +1,25 @@
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureTrailSites
+[ RUN      ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+FACE 29 -923 crossed=0 final=29.195,-129.415,-923
+FACE 29 -922 crossed=0 final=29.195,-129.415,-922
+FACE 30 -924 crossed=0 final=30.195,-128.775,-924
+FACE 30 -925 crossed=0 final=30.195,-128.775,-925
+RECIPE 0.1 -0.64 accepted=1 reason= init=1 up=1,1 down=0 mid=29.1,-129.275,-923 top=30,-128.455,-923 final=29.1,-128.832,-923 mode=1
+RECIPE 0.1 -0.32 accepted=1 reason= init=1 up=1,1 down=1 mid=29.1,-128.955,-923 top=30,-128.455,-923 final=28,-130.055,-923 mode=0
+RECIPE 0.1 0 accepted=1 reason= init=1 up=0,0 down=0 mid=28.5557,-129.452,-923 top=28.5557,-129.452,-923 final=28.5557,-129.452,-923 mode=0
+RECIPE 0.2 -0.64 accepted=1 reason= init=1 up=0,0 down=0 mid=29.2,-129.275,-923 top=29.2,-129.275,-923 final=29.2,-129.275,-923 mode=1
+RECIPE 0.2 -0.32 accepted=1 reason= init=1 up=0,0 down=0 mid=29.2,-128.955,-923 top=29.2,-128.955,-923 final=29.2,-128.955,-923 mode=1
+RECIPE 0.2 0 accepted=1 reason= init=1 up=0,0 down=0 mid=28.66,-129.418,-923 top=28.66,-129.418,-923 final=28.66,-129.418,-923 mode=0
+RECIPE 0.24 -0.64 accepted=1 reason= init=1 up=0,0 down=0 mid=29.2,-129.275,-923 top=29.2,-129.275,-923 final=29.2,-129.275,-923 mode=1
+RECIPE 0.24 -0.32 accepted=1 reason= init=1 up=0,0 down=0 mid=29.2,-128.955,-923 top=29.2,-128.955,-923 final=29.2,-128.955,-923 mode=1
+RECIPE 0.24 0 accepted=1 reason= init=1 up=0,0 down=0 mid=28.695,-129.415,-923 top=28.695,-129.415,-923 final=28.695,-129.415,-923 mode=0
+[       OK ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour (3496 ms)
+[----------] 1 test from AdventureTrailSites (3496 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (3496 ms total)
+[  PASSED  ] 1 test.

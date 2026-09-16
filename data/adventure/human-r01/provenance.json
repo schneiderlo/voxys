@@ -1,0 +1,677 @@
+{
+  "schema": 1,
+  "asset": "original-warm-brick-minifigure",
+  "author": "Voxys original procedural artwork",
+  "license": "Original project asset; same project distribution terms; no external art inputs.",
+  "blender": "5.2.1 LTS",
+  "profile": "salvage-animated-rigid-v1",
+  "render_to_canonical": 12,
+  "canonical": {
+    "up": "+Y",
+    "forward": "-Z",
+    "units": "metres",
+    "height": 1.7,
+    "root_motion": false
+  },
+  "parameters": {
+    "height": 1.7,
+    "capsule_radius": 0.3,
+    "pelvis_y": 0.57225,
+    "knee_y": 0.3,
+    "ankle_y": 0.1,
+    "hip_x": 0.108,
+    "hip_y": 0.55,
+    "shoulder_x": 0.215,
+    "shoulder_y": 1.135,
+    "elbow_y": 0.82,
+    "wrist_y": 0.7,
+    "head_bottom": 1.20176,
+    "head_cylinder_top": 1.57616,
+    "visible_knees": false,
+    "visible_elbow_split": false,
+    "source_basis": "(-X, Z, Y)",
+    "render_to_canonical": 12
+  },
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "palette": {
+    "skin": "F1C94F",
+    "cream": "E9DCC1",
+    "moss": "60714B",
+    "rust": "AA5034",
+    "leather": "80583B",
+    "hair": "513827",
+    "dark": "29231F",
+    "brass": "BBA06A"
+  },
+  "inputs": {
+    "tools/adventure_assets/author_human_adventurer.py": "ec37c468f107f839c5f6bc080abd2deae2478c8901d2d8cf37a754e304ee37ac",
+    "tools/salvage_assets/author_cove_robot.py": "fd05335fb233456d562549c091db8a651e5617ce383e9f81dc546f245e5f7832",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "asset_id": "voxys-adventure-human-r01-lod0",
+      "glb": "human-lod-0.glb",
+      "glb_sha256": "84541d7429491a81fc4e771fd74be11de2d1358aaa19b16a3db71cf023a7ab01",
+      "blend": "human-lod-0.blend",
+      "blend_sha256": "08ab44624863b1e75cdeac2f75ac438fb09368a3a1c7c76db630f7e0368b8e3a",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 26,
+      "vertices": 6269,
+      "triangles": 4162,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.016445631518474807,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.047016691992182925,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02590875453443482,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005402141375408036,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001486411501471348,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00015573968215360783,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0054021413754080354,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001486411504261229,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00015573968490720152,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428924661054988,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425987e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589575040054,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428924661054988,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425993e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589575040044,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "asset_id": "voxys-adventure-human-r01-lod1",
+      "glb": "human-lod-1.glb",
+      "glb_sha256": "78ddcb18dcdb5fb2bf2d87924977748d13dec408b364f2829235c0afecba08f9",
+      "blend": "human-lod-1.blend",
+      "blend_sha256": "d21a4e8508c02cbd4de5746ea72d4f8c0f6d1038428f3feaa495352a1e1dbdc5",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 26,
+      "vertices": 3199,
+      "triangles": 2322,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.016339743277097397,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.04683328660739617,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.025428504069595254,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0052936785340952225,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014374385846512914,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014234036759017225,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0052936785340952225,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014374385846512955,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014234036759017208,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018373565155990926,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425987e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253233091138,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018373565155990926,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425993e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253233091138,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 2,
+      "asset_id": "voxys-adventure-human-r01-lod2",
+      "glb": "human-lod-2.glb",
+      "glb_sha256": "0ae5b95c2a72d5dd77163de6c8e309d7683d6281b007e50a5ae007a823c5feb7",
+      "blend": "human-lod-2.blend",
+      "blend_sha256": "6a8ead3c1cb67589cb31212bc60c7e80adcf5c6a169ea3de860c5815bdcaf4f1",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 25,
+      "vertices": 1521,
+      "triangles": 1194,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.016599778045998062,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.04711858053504456,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.024568094248302884,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0049909277053032585,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014445422402926475,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00012840281104747284,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0049909277053032585,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001444542240292653,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00012840281177945885,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018508673181217686,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425987e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00659511991615057,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.01850867318121769,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189455425993e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00659511991615057,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    }
+  ],
+  "reproduction": "/snap/blender/current/blender --background --factory-startup -noaudio --threads 2 --python-exit-code 1 --python tools/adventure_assets/author_human_adventurer.py -- --output-dir <new-directory>",
+  "export_cleanup": "Shared strict prune of constant rest channels and <=1e-6 unit-scale export roundoff; authored moving keys retained.",
+  "scope": "Original warm brick minifigure person: cylindrical yellow head, printed-style eyes/smile, molded hair, trapezoid clothed torso, block legs and open C hands. No logos, external model/texture inputs, robotic glow or organic fingers. Rigid articulated animation, not skinning. Compatibility node names retained; no gameplay/collision/save changes."
+}

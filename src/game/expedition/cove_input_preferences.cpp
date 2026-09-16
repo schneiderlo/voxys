@@ -276,6 +276,7 @@ void CoveInputRouter::tick(const CoveInputSample& s,CoveInputContext context,con
         blockedPad_=true;blockedMouse_=true;reelDirection_=0;orbitDrag_=false;
     }
     if(padChanged){blockedPad_=true;reelDirection_=0;}
+    const bool mouseWasArmed=!blockedMouse_;
     initialized_=true;context_=context;resetSerial_=s.resetSerial;focused_=s.focused;preferenceSignature_=currentSignature;
     padSerial_=s.padSerial;padConnected_=s.padConnected;padArmed_=s.padArmed;
     bool padNeutral=std::none_of(s.padDown.begin(),s.padDown.end(),[](bool b){return b;});
@@ -284,6 +285,7 @@ void CoveInputRouter::tick(const CoveInputSample& s,CoveInputContext context,con
     for(size_t i=0;i<blockedKeys_.size();++i)if(!s.physicalKeys[i]&&!s.keys[i]&&!s.pressed[i])blockedKeys_[i]=false;
     if(!s.mouseLeft&&!s.mouseRight&&!s.mouseMiddle&&!s.rightPressed)blockedMouse_=false;
     const bool allowed=s.focused&&context!=CoveInputContext::Menu;
+    mouseGesturesAllowed_=allowed&&mouseWasArmed;
     const bool padAllowed=allowed&&s.padConnected&&s.padArmed&&!blockedPad_;
     if(allowed)for(const auto& a:actions)if((a.contexts&static_cast<uint8_t>(context))!=0) {
         const auto& b=p.bindings[index(a.action)];auto& out=states_[index(a.action)];

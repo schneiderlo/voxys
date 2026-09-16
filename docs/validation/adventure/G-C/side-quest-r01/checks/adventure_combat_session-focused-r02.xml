@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="0.002" timestamp="2026-09-13T05:23:40.566" name="AllTests">
+  <testsuite name="AdventureCombatSessionTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.002" timestamp="2026-09-13T05:23:40.566">
+    <testcase name="StaffRecipeSpendsOnceAndCannotLoseInputsWhenOutputIsFull" file="tests/test_adventure_combat_session.cpp" line="73" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.566" classname="AdventureCombatSessionTest" />
+    <testcase name="FixedTicksRejectReplayForeignCommandsAndHealthBypassesAtomically" file="tests/test_adventure_combat_session.cpp" line="89" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.566" classname="AdventureCombatSessionTest" />
+    <testcase name="PendingImpactDodgeAndEnemyWindupSurviveExactReload" file="tests/test_adventure_combat_session.cpp" line="110" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.566" classname="AdventureCombatSessionTest" />
+    <testcase name="DeathLootAndUniqueCoreHavePermanentAtomicReceipts" file="tests/test_adventure_combat_session.cpp" line="128" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.566" classname="AdventureCombatSessionTest" />
+    <testcase name="DefeatReloadRecoveryPreservesPossessionsAndRejectsUnsafeRest" file="tests/test_adventure_combat_session.cpp" line="159" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.567" classname="AdventureCombatSessionTest" />
+    <testcase name="EnemyHealingRequiresCompletedReturnAndNeverRevivesTheDead" file="tests/test_adventure_combat_session.cpp" line="180" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.567" classname="AdventureCombatSessionTest" />
+    <testcase name="SchemaOneAndTwoMigrateWithoutHealingOrRegrantingItems" file="tests/test_adventure_combat_session.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.567" classname="AdventureCombatSessionTest" />
+    <testcase name="ForgedCheckpointBooleansAndUnsupportedFutureProgressRefuseAtomically" file="tests/test_adventure_combat_session.cpp" line="221" status="run" result="completed" time="0." timestamp="2026-09-13T05:23:40.568" classname="AdventureCombatSessionTest" />
+  </testsuite>
+</testsuites>

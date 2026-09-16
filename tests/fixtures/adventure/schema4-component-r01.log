@@ -1,0 +1,12 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+schema4 component fixture, not physical gameplay
+bytes=1542
+sha256=8493c01ec604f1bdd46f3fbcfd2328cc54560ba773b0816980b9320cf4b2da85
+content=0ca6be8bbc4285f4541aadc74d8cb7aeefb4b2ed078f45f86e7b0a2173ab1e93
+revision=22
+spawn1=-58,-146.3750048828125,-945
+spawn2=-55,-147.65500366210938,-967

@@ -1,0 +1,30 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:adventure (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:adventure (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:adventure (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:adventure (1 packages loaded, 2682 targets configured).
+[100 / 109] Compiling tests/test_adventure_world.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[103 / 109] Compiling tests/test_adventure_session.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[105 / 109] Compiling tests/test_adventure_construction_policy.cpp; 1s linux-sandbox ... (3 actions running)
+[108 / 109] [Prepa] Linking tests/adventure
+[109 / 110] 1 / 1 tests; Testing //tests:adventure; 1s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:adventure up-to-date:
+  bazel-bin/tests/adventure
+INFO: Elapsed time: 8.040s, Critical Path: 4.01s
+INFO: 17 processes: 93 action cache hit, 5 internal, 12 linux-sandbox.
+INFO: Build completed successfully, 17 total actions
+//tests:adventure                                                        PASSED in 1.0s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

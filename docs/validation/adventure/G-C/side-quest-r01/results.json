@@ -1,0 +1,273 @@
+{
+  "recordedUtc": "2026-09-13T05:35:14.642995+00:00",
+  "scope": "Quest5 paid recipe implementation; authoritative components, actual full-terrain construction/traversal, native/WASM builds and real headless runtime with synthetic library input. Not an ordinary playthrough, visual approval or full gate.",
+  "candidate": {
+    "buildId": "adventure-1b8f516c77d8d6d1",
+    "directory": "build-adventure-g-c/web-r03",
+    "url": "http://127.0.0.1:42757/index.html?experience=adventure",
+    "serverSession": 29221,
+    "browserTab": "7",
+    "browserStartup": "CUA tab7 reached live Moss/health/Use/Build/Bag/Journal HUD; no screenshots, movement, quest commands or save",
+    "schema": 5,
+    "contentIdentity": "b989f53fd82527a42f3e60582f9bb0cdcafced9cfea94b53074cccf37eca290c",
+    "packageManifestSha256": "4f59f0e89ba284cdf6bc94d8e148cf68baeff326eecf9af4b17428dc18331144",
+    "verifiedManifestFiles": 46,
+    "nativeDirectory": "build-adventure-g-c/native-r03",
+    "nativeSha256": "9a2a8cabba8f210e76da9db3a4f502e8b6cff9e9ecc6a6bdfb1e6e8d108defc2"
+  },
+  "quest": {
+    "id": 5,
+    "giver": 1,
+    "prerequisite": "completed firstHome",
+    "objective": "both accepted discovery arrival receipts; material claims optional; explicit acceptance and physical turn-in",
+    "reward": "permanent WideStoneStep recipe; no materials or automatic parts"
+  },
+  "recipe": {
+    "id": 2,
+    "piece": "Pier14",
+    "pieces": 3,
+    "cost": {
+      "stone": 6
+    },
+    "localGridTicks": [
+      [
+        0,
+        0,
+        -24
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        24
+      ]
+    ],
+    "scope": "generic bottom-centre placement; four quarter turns; one new structure; ordinary costs/collision/support/capacity/undo"
+  },
+  "migrationFixture": {
+    "path": "tests/fixtures/adventure/schema4-component-r01.bin",
+    "bytes": 1542,
+    "sha256": "8493c01ec604f1bdd46f3fbcfd2328cc54560ba773b0816980b9320cf4b2da85",
+    "scope": "actual old-code Session/codec component checkpoint; trusted isolated geometry; not a played journey"
+  },
+  "checks": {
+    "adventure_side_quest": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001
+    },
+    "adventure_blueprints": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.466
+    },
+    "adventure_trail_presentation": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006
+    },
+    "adventure_trail_session": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.002
+    },
+    "adventure": {
+      "tests": 72,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.998
+    },
+    "adventure_combat_session": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.002
+    },
+    "native_adventure_saves": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.19
+    },
+    "adventure_runtime": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.24
+    },
+    "browser_dom": {
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0,
+      "evidence": "adventure_kit direct node tools/adventure_assets/test_adventure_ui.mjs run; tool-reported result reused, no extra unchanged run"
+    },
+    "browser_storage": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0,
+      "seconds": 0.02695,
+      "evidence": "adventure_session direct node scripts/test_adventure_saves.mjs run; tool-reported result reused"
+    }
+  },
+  "builds": {
+    "native": "checks/native-runtime-final-r01.log",
+    "wasm": "checks/wasm-final-r01.log"
+  },
+  "reuse": "The initial focused7 targets passed before two display labels became ASCII and runtime checkpoint cleanup changed. The final native/runtime build and headless controls/restore test cover those final changes. Pure blueprint/full-terrain geometry and unchanged authority/DOM/storage evidence are reused. Existing field-home/route evidence remains in trail-r01. No full hook suite rerun or new gate claim.",
+  "headlessRuntime": {
+    "surface": false,
+    "displayedFrames": 0,
+    "screenshots": 0,
+    "ordinaryUIInput": false,
+    "acceptedIdleTicks": 1201,
+    "syntheticWalkingFrames": 90,
+    "exactSchema5SnapshotRestore": true,
+    "newCoverage": [
+      "fresh locked recipe",
+      "canonical component-only prior-receipt checkpoint",
+      "optional journal and enabled recipe intent",
+      "three-Pier six-stone metadata",
+      "rotation preserves recipe",
+      "synthetic GamepadInput RightShoulder changes to single piece",
+      "selected/queued/stale recipe cleared by restore"
+    ],
+    "fixtureScope": "coherent explicit prior receipts only; no invented played quest or physical controller claim"
+  },
+  "retainedFailures": [
+    "checks/focused-r01.log: new test misleading-indentation warning; corrected before first passing test run"
+  ],
+  "reviewFixes": [
+    "clear recipe when cycling to an individual piece",
+    "clear preview, undo target, pending actions and prior menu context on successful restore",
+    "ASCII apostrophe for the native HUD"
+  ],
+  "open": [
+    "ordinary browser/native full adventure and reload",
+    "actual completed G-B schema2 migration journey fixture",
+    "two house layouts in ordinary play",
+    "physical controllers and accessible sizes",
+    "owner/newcomer feedback",
+    "attack/audio polish",
+    "shared population scheduling",
+    "displayed frame budgets",
+    "G-B/G-C acceptance and successful-gate commits"
+  ],
+  "sourceSha256": {
+    "scripts/test_adventure_saves.mjs": "97f0811e6cb3748400fb1eef4fe271c9868ee2518d64dacad57e07393a773b74",
+    "src/CMakeLists.txt": "bb5cf246097f44f516a4b88d25454f6bfaae768c90c33b742e1f8d16b8341019",
+    "src/game/BUILD": "30d4014eab2a5ffdaf08a380e6016f7640c319d46e42ee036de2d0ecd9271f51",
+    "src/game/adventure/adventure_combat.cpp": "c78d48a276d63db007b27da2dffac0780d04d8fe9b55458c2a83f290bf6bf6d9",
+    "src/game/adventure/adventure_combat.hpp": "de863fe670adc1dae64402a034405cc3ab92a3e98cac67d6febfcd4a2ecf7f86",
+    "src/game/adventure/adventure_encounters.cpp": "958f46104403f790f77656f3d3b86b4799dc3e10b92f7b9455c843041550daf9",
+    "src/game/adventure/adventure_encounters.hpp": "615af762e6db22000ae840558c21c2d0803d0344e63b1318a8ce5b620e5fb56b",
+    "src/game/adventure/adventure_input.hpp": "b1cdd049cd3ad6608d04d6aece5d86e7dad354227f3262168cdd44e184ca84f4",
+    "src/game/adventure/adventure_player.cpp": "c992d503e20723238911975a7fc298f7b3b0204e811bc55443b949a9038f4c43",
+    "src/game/adventure/adventure_player.hpp": "abf4f18c6b2607c24ab6c0c4211769ab835f9200505d31dee90322c075ceec41",
+    "src/game/adventure/adventure_pointer.hpp": "568d40907f376223e0d762e56d75b1a56c495c263c61fe93786f9bb7b34f5bf8",
+    "src/game/adventure/adventure_presentation.cpp": "ca40636b935606e11321ae3db4e2c76647215a51c5e3675e708842605e6cf568",
+    "src/game/adventure/adventure_presentation.hpp": "4001f4512e2c10026fb6f527e166e8776218455b9a78f7166c94ff25a669bec3",
+    "src/game/adventure/adventure_progress.cpp": "37a709df53245b0ce9d1ed4eb5ef448791c1248062c504243802e0d6d1eb6520",
+    "src/game/adventure/adventure_progress.hpp": "33fef1f26d0912e0c60b87e459b17a0d8eeae6cfdca74d63033a82ebd35f80d5",
+    "src/game/adventure/adventure_runtime.cpp": "c3ad645b18c5410ed9ca0d47c024d5c99786027edc99f21eddbae0851fe7db0c",
+    "src/game/adventure/adventure_runtime.hpp": "d44aa9bde75bbb8576497222cc0d1b89c4f0e8c5e6b713c2b23d1405b2c2014d",
+    "src/game/adventure/adventure_save.cpp": "89cc7a7de79df0c57c395ee61310082b9a5fdee7fcbf704d0c63ef163dcfd6e1",
+    "src/game/adventure/adventure_save.hpp": "a925d41155070ce37cae8ec26d4aa333a7ef49fa6bddef8c132256a5ea879026",
+    "src/game/adventure/adventure_session.cpp": "411dfecd54ea1634c58637dda4450fa5dc11cb23807276dd3f83ec0d4bcc5b13",
+    "src/game/adventure/adventure_session.hpp": "4da5eeb9f5d8311cc9c06a80fe757434b42591c0990bfb71b64a34b08dcdb3a8",
+    "src/game/adventure/adventure_trail_content.cpp": "7c8c178fa9695a140ee2b8b850e3a6033989bf6ef8b35bc9afd9b7be55f55db9",
+    "src/game/adventure/adventure_trail_content.hpp": "681b5c2f7bcd0a1622817897a1806f1ef37c173d6cec4f6d78dba94a4e10c09c",
+    "src/game/adventure/building_blueprints.cpp": "793f86998f90a4730f2f4896be2e9776532235f7017371917952e3c21576e590",
+    "src/game/adventure/building_blueprints.hpp": "70564618308a4ec9ebfebf4b85c17011a50a3cdd671803403b41b7724bc9c54d",
+    "src/game/adventure/building_catalog.cpp": "082fa6ced6e3c36a287b185533841fc562167323273314f3a0b0c4d31b8405b8",
+    "src/game/adventure/building_catalog.hpp": "0ec7c78ccdfbf1b62a6c946b46f1dd495444bca7f38279ff546fed13194836c5",
+    "src/game/adventure/construction_policy.cpp": "5e15b030d9d8976d70488dfd998e24c2f27846d4e7b1d37bfdb3d915273ff111",
+    "src/game/adventure/construction_policy.hpp": "0f530e24c2b1127c98e1cbeb7d94b01297c468b4f05e4c7f882fac9058fa5876",
+    "src/game/adventure/field_home_access.cpp": "5ea3f833db61f51e53594d686e2bb1e99e357973db0dcf834241faabde636573",
+    "src/game/adventure/field_home_access.hpp": "b9e065cec2fd3821dacace8a2a1401c1985f79ce5b1c166727848b7db4a7e918",
+    "src/game/adventure/item_catalog.cpp": "918207046193db4339dea61bb870ae48b7cbc81c7f19b2dca2733d5d3ac83b73",
+    "src/game/adventure/item_catalog.hpp": "0745fd6566df9792408e51be59977aab604f4a5c55c4d3301ac9e5cc77e531c6",
+    "src/game/adventure/layered_navigation.cpp": "02515dc09ad2e4f859ab95e8fc209e56cb99fa605b45c992cdba893872e870fc",
+    "src/game/adventure/layered_navigation.hpp": "1e7ffdb651ad10d52546f6593eadc69b7ae81af039b4377a02c95b2de9683b4a",
+    "src/game/adventure/menu_intent.hpp": "33fc2cdfb4daa6938a4de2f8b1ea94cddecd24fa1359702cc0d7cf15459629be",
+    "src/game/adventure/quests.cpp": "69efb41bcd4cf24627e35e5cb22af5e6bdfe39bbe54b72aafe7c3e3eb8c8e4c8",
+    "src/game/adventure/quests.hpp": "d001dcf822f6a4a89d54760b86da989352a2c9de65148fe1395387022bc3be6a",
+    "src/game/adventure/spatial_queries.cpp": "1ce5e29350177c04e43b945c7864a98b854664e8bbb91739637fce8d6087841d",
+    "src/game/adventure/spatial_queries.hpp": "47c6cbcedfa3c2b19535e85b6486b2b965895832b5df7ca9f6cd5bd9be0362c7",
+    "src/game/adventure/town_residents.cpp": "abc058adebf91d59f77cc7a6f84765c972cac71b2f5f8003c909c9a9cf9c799f",
+    "src/game/adventure/town_residents.hpp": "ceeb1f039c6492f251643032e9f403130a9c3c5188f461513b0c376bf30b5dcb",
+    "src/game/adventure/trail_presentation.cpp": "7078ae0f8e72ed1ddac4f20ba5e018ed2ed6d273e156e74f07f81ac03c5f511a",
+    "src/game/adventure/trail_presentation.hpp": "204aa0603e9bae57d2a9a1b772de96b552ca6db7c76d1868240f353d6a262558",
+    "src/game/adventure/trail_sites.cpp": "c63bd90959c3646cbd9077318db86d963075f6f05544b3830c691d3775031ebd",
+    "src/game/adventure/trail_sites.hpp": "1b47ea7ee9c16004102ef768e15b565df065fc3fc60014ed33054226db30bd11",
+    "src/game/adventure/village_layout.cpp": "9da68f44afbffce8af219c1bc6e95fea2819d4f2a3e6769f12589bfce0c72e21",
+    "src/game/adventure/village_layout.hpp": "1c4af76926441f464b74141b43e5b7a36cb4083399007e270fe6df81e769630a",
+    "src/game/adventure/world_definition.cpp": "77ae29f654eea069f68501a2f933d9dcc7d108c47c33c38f2a507271bb26a0ad",
+    "src/game/adventure/world_definition.hpp": "13739e0bd35a68378f12d0f09bbba25b1e2c5df8b7b47635c60598afc84335a1",
+    "tests/BUILD": "4a60c276c079dec37b6ba42a05ee408882e33cb865a4a9bb80a4c8b2ef46750e",
+    "tests/CMakeLists.txt": "03d9bae60ab734fb70fdb65cdc870f9460396fe0c3fc81c28beda17f4bd84b42",
+    "tests/test_adventure_blueprints.cpp": "586ee907db8352e7c55e371fb33565ff1f15460e48f6ee5463f07f3eb1ea5841",
+    "tests/test_adventure_combat.cpp": "9d580cf84d2abb823888c6aea2c777a224ef39efecdac4533c77f870028dad98",
+    "tests/test_adventure_combat_session.cpp": "09636265a79805c5c6fda3acf6403a2abbd9743509860959a55cf156a78b2211",
+    "tests/test_adventure_construction_policy.cpp": "78e4b08a631dc28b4b51cd1111760365bcbb9527fcfe64098c1e6cdda2c023a5",
+    "tests/test_adventure_encounters.cpp": "429e256b4b620050e5889908c0ddeca3b969f83d5e40485862eaba1040757cd8",
+    "tests/test_adventure_field_home_access.cpp": "1ef395f7dc2ce75023e1308a33fa158b399078268a843876bc6dc9465814859c",
+    "tests/test_adventure_hud.cpp": "c8c75a7280e8bfb4dc3385dac99b876c67e6fd48465bc1255672a91c4ee67cec",
+    "tests/test_adventure_menu.cpp": "a308525ff982af205266ba4a41d6967f71474d67a3c582617c2c9047a4110509",
+    "tests/test_adventure_movement.cpp": "3423f9e2cb6b721bdc0603729d1ec5c006a17bd169363156f0337a89f822dd7e",
+    "tests/test_adventure_navigation.cpp": "56234efc6c278395142a1d708b397d8165ee6db758fc737ab6ab436dd8946abd",
+    "tests/test_adventure_pointer.cpp": "0e26f977850b12f7b3c44604f06eb030d8b2bb7bfba91d1943cc751183f74fa6",
+    "tests/test_adventure_presentation.cpp": "9b2ad39e9f3a583f5a14d13181ea2617ef6c190d87fea12d10e0d78529a91d69",
+    "tests/test_adventure_runtime.cpp": "2dd9eca6f36eb0e7a36d7b548e7f7811529d1a69f66a6a9555a75464e5baa7ba",
+    "tests/test_adventure_session.cpp": "c914f6ab3b951f508518e30f7b2c8bb89a2c44e87fe4804884342319d009be71",
+    "tests/test_adventure_side_quest.cpp": "4661da3d6020a1afe2c6f8b6bb3f2e0101ad819f4eb1bc5252dca6ddc972e66d",
+    "tests/test_adventure_town.cpp": "4d8c4be0e072778c7bb7aa8671aa7b285750b25b3bad2b10802a34a5ccb2b248",
+    "tests/test_adventure_trail_presentation.cpp": "af192ad17336ea50dc5670e9e1e4efa9143993b0c6e6a99a5e1e3ffd1187e7ae",
+    "tests/test_adventure_trail_session.cpp": "cf9d53edea3f081c62c17b4f7a7a7d8fa8344f8d2bb9b84e2676200f5dc44d04",
+    "tests/test_adventure_trail_sites.cpp": "6c0421ed086637070a71d3dd7d5795f44a73658020f22a0cfc07dd1dfe32c0b6",
+    "tests/test_adventure_village.cpp": "3a35047d87da0684348c763c358893783379a2ed43fc0cb1cd2ef7e183ff722b",
+    "tests/test_adventure_walkable.cpp": "ef271d8470c487642f8aa30734b13c628b3b6829ff9540f096aa118556c17279",
+    "tests/test_adventure_world.cpp": "fec520c885d5c15ea7f8ab062fca8530b646fa03362cc8264b3276a4558c8699",
+    "tests/test_native_adventure_saves.cpp": "863bb6a5f0ca8975a684f3552014aab3f3163b0cc95c3e5b2b9af66ec584477a",
+    "tools/adventure_assets/test_adventure_ui.mjs": "d6ec53b09ef94e96128f7aa7c384bc562d6bcf3b1a548a4f586c44f24ecaa472",
+    "web/adventure_saves.js": "fbb9070f1254fb1cfd824392f94d190da82a8775c638821c974324fa37e045f7",
+    "web/adventure_ui.js": "22cd400469cf3c9b92ab6097eb0b4dbc0804e27ee6d8ad180bd280222c65278b"
+  },
+  "checkSha256": {
+    "checks/adventure-focused-r02.xml": "1e88bdd122471478d8efa9072526d8dadc929eb77cfe6d0981bd552a29171959",
+    "checks/adventure_blueprints-focused-r02.xml": "59ac7d2f2f4c27774510c82ce0ac32378d5a0e4422abaf41a9d2d547703f9335",
+    "checks/adventure_combat_session-focused-r02.xml": "40b212cf8f22c5eac99b5c19e3fe4b3d7f77d3ed9de62dd734d759cf0a06a3ae",
+    "checks/adventure_side_quest-focused-r02.xml": "ad3ee278f006febc0a9990584b8cb3909f5c321f3f664b58c611f859198ea85e",
+    "checks/adventure_trail_presentation-focused-r02.xml": "b74e9208868ced557ca3954e77682f664be0e9b3edb55536da429e571335d728",
+    "checks/adventure_trail_session-focused-r02.xml": "1caaad2a81b4853ee033740fcd65e6252f4d107fdbd5058171e61ff906608869",
+    "checks/blueprints-full-terrain-r01.log": "211c09c280be65d104fe519db5e05da28d617193718837dac68c4f65cdd0e3e9",
+    "checks/blueprints-full-terrain-r01.xml": "deba54e5754bdeda4b7b2f8a1337df17254b0bcce9b9e342738b6d9504fa4624",
+    "checks/focused-r01.log": "31b7cd4f54ea9316b979b7d70d8d78da06702444ce4d1ec4b70b6be1295e1a6c",
+    "checks/focused-r02.log": "bbdf39f4df438bacce51afdb0417349eed2953cea9b9f1fc7473d957e2da0532",
+    "checks/focused-summary-r02.json": "077fd1190753e8e7489d6a62ce820b62e350ba8eea5409c9f60772d5ebd0f5eb",
+    "checks/native-r01.log": "1792c4c4c25f0b031e82fe16bbbbd4c6cf96bdada471e58ed1fe651aa2ab6734",
+    "checks/native-runtime-final-r01.log": "5cbcc3406ab5b505d3492a5deafed8931410c04f00058e8dcd4b8099c739a40a",
+    "checks/native_adventure_saves-focused-r02.xml": "83ca9453a06c53bf255e41adc6e8752686e2f689a757662aa2c48b3a54f9f7c3",
+    "checks/runtime-final-r01.log": "4848044df1368d189c73fe33fa3138a9ecefd17a64f7711b022f63bc643dbb48",
+    "checks/runtime-final-r01.xml": "e2b8a33d1d2cbd83864598b832f074437e83b43aedd83baf26472890555b71e1",
+    "checks/wasm-final-r01.log": "e5a2e333d56846588e240d0da85a5aac9b1f29d97f8fd683f9875e99f5fd8cf5",
+    "checks/wasm-r01.log": "2f78d048e522bc96c26bad6ccc1182cc6250b8d9d8bf72cd899a46d394e70be6"
+  }
+}

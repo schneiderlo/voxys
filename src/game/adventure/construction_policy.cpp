@@ -1,4 +1,5 @@
 #include "game/adventure/construction_policy.hpp"
+#include "game/adventure/building_doors.hpp"
 #include "game/adventure/world_definition.hpp"
 #include <algorithm>
 #include <cmath>
@@ -70,23 +71,102 @@ const StructureComponent* componentFor(const AdventureState& state,uint64_t id) 
     for(const auto& c:state.components)if(c.id==id)return &c;
     return nullptr;
 }
+const StructureComponent* doorFor(const AdventureState& state,uint64_t part) noexcept {
+    const StructureComponent* found=nullptr;
+    for(const auto& component:state.components)if(component.part==part) {
+        if(found||component.kind!=FurnitureKind::Door)return nullptr;
+        found=&component;
+    }
+    return found;
 }
-
-bool compileSolids(const AdventureState& state,std::vector<Solid>& output,std::string& error) {
+bool compileGeometry(const AdventureState& state,std::vector<Solid>& output,std::vector<bool>* support,std::string& error) {
     if(!construction::isValid(state.world)||state.structures.size()>kMaximumStructures) {error="Invalid world construction";return false;}
+    if(state.components.size()>kMaximumComponents){error="Construction component capacity reached";return false;}
+    for(const auto& component:state.components)if(component.kind!=FurnitureKind::Door&&component.doorOpen) {
+        error="Only a door can have an open state";return false;
+    }
     std::vector<Solid> result;std::set<uint64_t> identifiers;size_t count=0;
+    std::vector<bool> supporting;
     for(const auto& structure:state.structures) {
         if(!structure.id||!identifiers.insert(structure.id).second){error="Invalid structure identity";return false;}
         for(const auto& part:structure.parts) {
             const auto* definition=buildingDefinition(part.kind);
             if(++count>kMaximumParts||!part.id||!identifiers.insert(part.id).second||!definition
                 ||part.yawQuarterTurns>3||!construction::isValid(part.position)) {error="Invalid building piece";return false;}
-            for(const auto& box:definition->solids) {
+            const auto boxes=part.kind==PieceKind::HingedDoor?buildingDefinition(PieceKind::Doorway)->solids:definition->solids;
+            for(const auto& box:boxes) {
                 if(result.size()==AdventureSpatialQueries::maximumSolids) {error="Construction collision capacity reached";return false;}
                 result.push_back(worldBox(state,structure,part,box));
+                if(support)supporting.push_back(true);
+            }
+            if(part.kind==PieceKind::HingedDoor) {
+                const auto* door=doorFor(state,part.id);
+                if(!door||door->structure!=structure.id||door->owner!=structure.owner) {error="Door state is missing or invalid";return false;}
+                if(result.size()==AdventureSpatialQueries::maximumSolids) {error="Construction collision capacity reached";return false;}
+                result.push_back(worldBox(state,structure,part,doorLeafBox(door->doorOpen)));
+                if(support)supporting.push_back(false);
             }
         }
     }
+    if(support)*support=std::move(supporting);
+    output=std::move(result);error.clear();return true;
+}
+bool partMoved(const WorldPart* old,const WorldPart& part) noexcept {
+    return !old||old->kind!=part.kind||old->position!=part.position||old->yawQuarterTurns!=part.yawQuarterTurns;
+}
+bool validateDoorClearance(const AdventureState& before,const AdventureState& after,
+    const AdventureSpatialQueries& accepted,std::span<const Solid> solids,std::string& error,bool freeBuild) {
+    const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
+    const Solid player{{},{},feet+glm::dvec3(-.3,0,-.3),feet+glm::dvec3(.3,1.7,.3)};
+    for(const auto& structure:after.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor) {
+        const auto* door=doorFor(after,part.id);const auto* oldDoor=doorFor(before,part.id);
+        if(!door){error="Door state is unavailable";return false;}
+        const bool moved=partMoved(partFor(before,part.id),part);
+        const bool toggled=oldDoor&&oldDoor->doorOpen!=door->doorOpen;
+        if(toggled&&!reachableComponent(before,oldDoor->id,accepted,error))return false;
+        for(const auto& local:doorSweepBoxes()) {
+            const auto sweep=worldBox(after,structure,part,local);
+            const auto [lowest,highest]=terrainRange(accepted.terrain(),sweep);(void)lowest;
+            if(!std::isfinite(highest)||sweep.minimum.y<highest-.021) {error="Leave level ground clear for the door to swing";return false;}
+            if(!freeBuild&&protectedConstruction(sweep.minimum,sweep.maximum)) {error="Keep the door swing away from town and landmark access";return false;}
+            // The frame is intentionally inside its own leaf envelope. Every
+            // other accepted owned part must leave the future swing clear.
+            for(const auto& solid:solids)if(solid.part.counter!=part.id&&overlaps(sweep,solid)) {
+                error="Leave the door's swing clear of building pieces";return false;
+            }
+            if(moved||toggled) {
+                if(overlaps(sweep,player)){error="Step outside the door's swing before using it";return false;}
+                for(const auto& solid:accepted.solids()) {
+                    // Old owned boxes are replaced by the full candidate above.
+                    // Installed actors and scenery remain authoritative here.
+                    if(partFor(before,solid.part.counter)||partFor(after,solid.part.counter))continue;
+                    if(overlaps(sweep,solid)){error="The door's swing is blocked by a character or scenery";return false;}
+                }
+            }
+        }
+    }
+    error.clear();return true;
+}
+}
+
+bool compileSolids(const AdventureState& state,std::vector<Solid>& output,std::string& error) {
+    return compileGeometry(state,output,nullptr,error);
+}
+bool buildingGeometryChanged(const AdventureState& before,const AdventureState& after,uint64_t id) noexcept {
+    const auto* old=partFor(before,id),*part=partFor(after,id);
+    if(!part||partMoved(old,*part))return true;
+    if(part->kind!=PieceKind::HingedDoor)return false;
+    const auto* a=doorFor(before,id),*b=doorFor(after,id);
+    return !a||!b||a->doorOpen!=b->doorOpen;
+}
+bool compileDoorSwingSolids(const AdventureState& state,std::vector<Solid>& output,std::string& error) {
+    std::vector<Solid> checked;if(!compileSolids(state,checked,error))return false;
+    std::vector<Solid> result;
+    for(const auto& structure:state.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor)
+        for(const auto& box:doorSweepBoxes()) {
+            if(result.size()==AdventureSpatialQueries::maximumSolids){error="Door clearance capacity reached";return false;}
+            result.push_back(worldBox(state,structure,part,box));
+        }
     output=std::move(result);error.clear();return true;
 }
 std::optional<double> terrainPlacementHeight(PieceKind kind,uint8_t yaw,glm::dvec2 p,
@@ -103,18 +183,19 @@ std::optional<double> terrainPlacementHeight(PieceKind kind,uint8_t yaw,glm::dve
     return definition->terrainAnchor?std::ceil((highest+.025-height)/.32)*.32
         :std::ceil(highest/.02)*.02;
 }
-bool validateInstalledGeometry(const AdventureState& state,const AdventureSpatialQueries& queries,std::string& error) {
-    if(!validateConstruction(state,state,queries,error))return false;
+bool validateInstalledGeometry(const AdventureState& state,const AdventureSpatialQueries& queries,std::string& error,bool freeBuild) {
+    if(!validateConstruction(state,state,queries,error,freeBuild))return false;
     std::vector<Solid> solids;if(!compileSolids(state,solids,error))return false;
-    for(const auto& solid:solids)if(protectedConstruction(solid.minimum,solid.maximum)) {
+    for(const auto& solid:solids)if(!freeBuild&&protectedConstruction(solid.minimum,solid.maximum)) {
         error="A building blocks protected town access";return false;
     }
     return true;
 }
 bool validateConstruction(const AdventureState& before,const AdventureState& after,
-    const AdventureSpatialQueries& accepted,std::string& error) {
+    const AdventureSpatialQueries& accepted,std::string& error,bool freeBuild) {
     if(!accepted.terrain().valid()||before.world!=after.world) {error="World geometry unavailable";return false;}
-    std::vector<Solid> solids;if(!compileSolids(after,solids,error))return false;
+    std::vector<Solid> solids;std::vector<bool> supports;
+    if(!compileGeometry(after,solids,&supports,error)||!validateDoorClearance(before,after,accepted,solids,error,freeBuild))return false;
     const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
     const Solid player{{},{},feet+glm::dvec3(-.3,0,-.3),feet+glm::dvec3(.3,1.7,.3)};
     std::map<uint64_t,std::vector<size_t>> partSolids;
@@ -122,7 +203,7 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
     for(size_t i=0;i<solids.size();++i)partSolids[solids[i].part.counter].push_back(i);
     for(const auto& structure:after.structures)for(const auto& part:structure.parts) {
         const auto* definition=buildingDefinition(part.kind);const auto* old=partFor(before,part.id);
-        const bool moved=!old||old->kind!=part.kind||old->position!=part.position||old->yawQuarterTurns!=part.yawQuarterTurns;
+        const bool moved=partMoved(old,part);
         bool terrainAnchor=false;
         for(const auto index:partSolids[part.id]) {
             const auto& solid=solids[index];const auto [lowest,highest]=terrainRange(accepted.terrain(),solid);
@@ -132,9 +213,10 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
                     &&solid.minimum.y>=lowest-4)terrainAnchor=true;
                 if(solid.maximum.y<highest+.025) {error="Raise the foundation above the terrain";return false;}
             } else if(solid.minimum.y<highest-.021) {error="This piece intersects the terrain";return false;}
+            if(freeBuild&&supports[index]&&std::abs(solid.minimum.y-highest)<=contactTolerance)terrainAnchor=true;
             if(moved) {
                 if(glm::length(glm::clamp(feet+glm::dvec3(0,.85,0),solid.minimum,solid.maximum)-(feet+glm::dvec3(0,.85,0)))>12) {error="Move closer to build";return false;}
-                if(protectedConstruction(solid.minimum,solid.maximum)) {error="Keep the town and landmark access clear";return false;}
+                if(!freeBuild&&protectedConstruction(solid.minimum,solid.maximum)) {error="Keep the town and landmark access clear";return false;}
                 if(overlaps(solid,player)) {error="Move out of the building preview";return false;}
             }
         }
@@ -152,14 +234,14 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
         if(solids[b].minimum.x>solids[a].maximum.x+contactTolerance)break;
         if(solids[a].part==solids[b].part)continue;
         if(overlaps(solids[a],solids[b])) {error="Building pieces overlap";return false;}
-        if(solids[a].structure==solids[b].structure&&contact(solids[a],solids[b])) {
+        if(supports[a]&&supports[b]&&solids[a].structure==solids[b].structure&&contact(solids[a],solids[b])) {
             neighbors[solids[a].part.counter].push_back(solids[b].part.counter);
             neighbors[solids[b].part.counter].push_back(solids[a].part.counter);
         }
     }
     std::vector<uint64_t> queue(supported.begin(),supported.end());
     for(size_t i=0;i<queue.size();++i)for(const auto neighbor:neighbors[queue[i]])if(supported.insert(neighbor).second)queue.push_back(neighbor);
-    if(supported.size()!=partSolids.size()) {error="Connect every piece to a grounded foundation";return false;}
+    if(supported.size()!=partSolids.size()) {error=freeBuild?"Connect this piece to the ground or a supported brick":"Connect every piece to a grounded foundation";return false;}
     // An edit may remove a roof used by a registered bed. Keep the bed record;
     // recovery revalidates shelter/clearance and falls back to town if needed.
     error.clear();return true;
@@ -168,7 +250,13 @@ bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureS
     const auto* component=componentFor(state,id);const auto* part=component?partFor(state,component->part):nullptr;
     if(!part) {error="This furniture is unavailable";return false;}
     const auto* definition=buildingDefinition(part->kind);if(!definition) {error="Unknown furniture";return false;}
-    const auto center=metres(part->position)+glm::dvec3(0,double(definition->bounds.maximum.y)*.02+.08,0);
+    glm::dvec3 local(0,double(definition->bounds.maximum.y)*.02+.08,0);
+    if(component->kind==FurnitureKind::Door) {
+        if(part->kind!=PieceKind::HingedDoor){error="This door is unavailable";return false;}
+        local=doorHandlePoint(component->doorOpen);
+        for(uint8_t i=0;i<part->yawQuarterTurns;++i)local={local.z,local.y,-local.x};
+    }
+    const auto center=metres(part->position)+local;
     const glm::dvec3 eye(state.player.x,state.player.y+1.55,state.player.z);const auto delta=center-eye;
     const double distance=glm::length(delta);
     if(distance>3.2) {error="Move closer to use it";return false;}
@@ -205,7 +293,7 @@ bool usableBed(const AdventureState& state,uint64_t id,const AdventureSpatialQue
     for(const auto direction:std::array<glm::dvec3,4>{{{1,0,0},{-1,0,0},{0,0,1},{0,0,-1}}}) {
         const auto ray=queries.raycast({center.x,bed->minimum.y+1.2,center.z},direction,8);
         const auto* wall=ray.hit&&!ray.terrain?partFor(state,ray.part.counter):nullptr;
-        if(ray.complete&&wall&&(wall->kind==PieceKind::Wall||wall->kind==PieceKind::Doorway))++walls;
+        if(ray.complete&&wall&&(wall->kind==PieceKind::Wall||wall->kind==PieceKind::Doorway||wall->kind==PieceKind::HingedDoor))++walls;
     }
     if(walls<3) {error="Shelter the bed with walls on three sides";return false;}
     for(const auto p:std::array<glm::dvec2,4>{{{bed->minimum.x-.5,center.z},{bed->maximum.x+.5,center.z},
@@ -235,14 +323,17 @@ bool validateInteractions(const AdventureState& before,const AdventureState& aft
             if(!ray.complete||(ray.hit&&ray.distance<glm::length(delta)-.05)) {error="The supplies are blocked";return false;}
         }
     }
-    const auto hammers=[](const AdventureState& state) {
-        unsigned count=state.equippedTool.kind==ItemKind::FieldHammer?state.equippedTool.quantity:0;
-        for(const auto& stack:state.backpack)if(stack.kind==ItemKind::FieldHammer)count+=stack.quantity;
+    const auto ownedItems=[](const AdventureState& state,ItemKind kind) {
+        unsigned count=state.equippedTool.kind==kind?state.equippedTool.quantity:0;
+        if(state.equippedUtility.kind==kind)count+=state.equippedUtility.quantity;
+        for(const auto& stack:state.backpack)if(stack.kind==kind)count+=stack.quantity;
         for(const auto& component:state.components)for(const auto& stack:component.slots)
-            if(stack.kind==ItemKind::FieldHammer)count+=stack.quantity;
+            if(stack.kind==kind)count+=stack.quantity;
         return count;
     };
-    if(hammers(after)>hammers(before)) {
+    if(ownedItems(after,ItemKind::FieldHammer)>ownedItems(before,ItemKind::FieldHammer)
+        ||ownedItems(after,ItemKind::TrailCompass)>ownedItems(before,ItemKind::TrailCompass)
+        ||ownedItems(after,ItemKind::TrailStaff)>ownedItems(before,ItemKind::TrailStaff)) {
         bool reachable=false;std::string reason;
         for(const auto& component:before.components)if(component.kind==FurnitureKind::Workbench
             &&reachableComponent(before,component.id,queries,reason)) {reachable=true;break;}

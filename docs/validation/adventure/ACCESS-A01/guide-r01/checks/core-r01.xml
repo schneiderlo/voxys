@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="75" failures="0" disabled="0" errors="0" time="0.995" timestamp="2026-09-13T06:25:30.448" name="AllTests">
+  <testsuite name="AdventureInventoryTest" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.448">
+    <testcase name="FailedAdditionAndMaterialRefundAreAtomic" file="tests/test_adventure_session.cpp" line="119" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureInventoryTest" />
+    <testcase name="StackSplittingMergingAndBounds" file="tests/test_adventure_session.cpp" line="127" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureInventoryTest" />
+  </testsuite>
+  <testsuite name="AdventureSessionTest" tests="22" failures="0" disabled="0" skipped="0" errors="0" time="0.177" timestamp="2026-09-13T06:25:30.448">
+    <testcase name="StarterSuppliesCannotBeReclaimedOnRestore" file="tests/test_adventure_session.cpp" line="133" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="GeometryRefusalAndCancelledPreparationDoNotSpendOrIssueIds" file="tests/test_adventure_session.cpp" line="139" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="StaleDuplicateAndForeignPreparedChangesCannotPublish" file="tests/test_adventure_session.cpp" line="149" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="MovementInvalidatesPendingEditAndRejectsNonFinitePose" file="tests/test_adventure_session.cpp" line="159" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="ChestCreationTransferAndNonemptyRemovalShareOwnership" file="tests/test_adventure_session.cpp" line="165" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="FullAndStaleChestTransfersPreserveBothContainers" file="tests/test_adventure_session.cpp" line="175" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="FullBackpackCraftAndRemoveRefusalsDoNotLoseInputs" file="tests/test_adventure_session.cpp" line="184" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="BenchCraftEquipAndGatherGiveOnePersistentUsefulYield" file="tests/test_adventure_session.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="ShelteredBedRestAndRemovalResolveRecoverySafely" file="tests/test_adventure_session.cpp" line="202" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="FourStructuresAnd1024PartsAreBoundedWithoutPartialDebit" file="tests/test_adventure_session.cpp" line="212" status="run" result="completed" time="0.133" timestamp="2026-09-13T06:25:30.448" classname="AdventureSessionTest" />
+    <testcase name="BlueprintPublishesWholeLayoutWithOneRevisionAndStableFurniture" file="tests/test_adventure_session.cpp" line="224" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.582" classname="AdventureSessionTest" />
+    <testcase name="BlueprintLastPieceAndWholeCandidateRefusalsLeaveAllOwnershipUnchanged" file="tests/test_adventure_session.cpp" line="261" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.582" classname="AdventureSessionTest" />
+    <testcase name="WholeStructureUndoRefusesFilledChestThenRefundsAndRemovesAtomically" file="tests/test_adventure_session.cpp" line="288" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.582" classname="AdventureSessionTest" />
+    <testcase name="CapacityWorldKeepsFourUsableHousesAnd32ComponentsAcrossExactSave" file="tests/test_adventure_session.cpp" line="316" status="run" result="completed" time="0.041" timestamp="2026-09-13T06:25:30.583" classname="AdventureSessionTest">
+      <properties>
+        <property name="structures" value="4"/>
+        <property name="parts" value="1024"/>
+        <property name="components" value="32"/>
+        <property name="usable_homes" value="4"/>
+        <property name="collision_solids" value="1068"/>
+        <property name="snapshot_bytes" value="31759"/>
+      </properties>
+    </testcase>
+    <testcase name="CodecPreservesHomePossessionsAndLosslessCounters" file="tests/test_adventure_session.cpp" line="379" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="CodecRejectsCorruptionForeignIdentityTrailingAndWrongSchemaAtomically" file="tests/test_adventure_session.cpp" line="388" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="InvalidComponentIdsOrdersHorizonsAndContentsRefuseRestore" file="tests/test_adventure_session.cpp" line="399" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="GreetingAndQuestAcceptanceNeedKnownNpcAndTrustedAdmission" file="tests/test_adventure_session.cpp" line="409" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="PriorHomeFullBackpackAndDuplicateClaimsKeepOnePermanentReceipt" file="tests/test_adventure_session.cpp" line="431" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="RemovedHomeAndStaleCompletionCannotClaimARecipe" file="tests/test_adventure_session.cpp" line="456" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures" file="tests/test_adventure_session.cpp" line="464" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+    <testcase name="UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore" file="tests/test_adventure_session.cpp" line="494" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSessionTest" />
+  </testsuite>
+  <testsuite name="AdventureSaveMigration" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-09-13T06:25:30.625">
+    <testcase name="FrozenActualHomePreservesEveryV1FieldAndNamespace" file="tests/test_adventure_session.cpp" line="509" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.625" classname="AdventureSaveMigration" />
+    <testcase name="LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal" file="tests/test_adventure_session.cpp" line="530" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.626" classname="AdventureSaveMigration" />
+  </testsuite>
+  <testsuite name="AdventureWorld" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.627">
+    <testcase name="InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity" file="tests/test_adventure_world.cpp" line="22" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.627" classname="AdventureWorld" />
+  </testsuite>
+  <testsuite name="AdventureSpatialQueries" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.627">
+    <testcase name="PublicationIsAtomicBoundedAndRejectsStaleRevision" file="tests/test_adventure_world.cpp" line="30" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.627" classname="AdventureSpatialQueries" />
+    <testcase name="BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead" file="tests/test_adventure_world.cpp" line="38" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.627" classname="AdventureSpatialQueries" />
+    <testcase name="DoorwayPickingWalkingAndCameraReadTheSameSolids" file="tests/test_adventure_world.cpp" line="49" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.627" classname="AdventureSpatialQueries" />
+    <testcase name="CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery" file="tests/test_adventure_world.cpp" line="57" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.627" classname="AdventureSpatialQueries" />
+  </testsuite>
+  <testsuite name="AdventurePlayer" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.003" timestamp="2026-09-13T06:25:30.627">
+    <testcase name="WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall" file="tests/test_adventure_world.cpp" line="62" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.627" classname="AdventurePlayer" />
+    <testcase name="WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge" file="tests/test_adventure_world.cpp" line="75" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.629" classname="AdventurePlayer" />
+    <testcase name="InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight" file="tests/test_adventure_world.cpp" line="84" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventurePlayer" />
+    <testcase name="IdleConnectedControllerDoesNotStealMouseBuildingAim" file="tests/test_adventure_world.cpp" line="92" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventurePlayer" />
+  </testsuite>
+  <testsuite name="AdventureInput" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.630">
+    <testcase name="ControllerMatchesHudAndPlacementCannotAlsoJump" file="tests/test_adventure_world.cpp" line="100" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventureInput" />
+  </testsuite>
+  <testsuite name="AdventureConstructionPolicy" tests="10" failures="0" disabled="0" skipped="0" errors="0" time="0.009" timestamp="2026-09-13T06:25:30.630">
+    <testcase name="GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate" file="tests/test_adventure_construction_policy.cpp" line="24" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventureConstructionPolicy" />
+    <testcase name="TerrainProtectedAccessPlayerAndReachFailBeforePublication" file="tests/test_adventure_construction_policy.cpp" line="34" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventureConstructionPolicy" />
+    <testcase name="QuarterTurnsPreserveOpeningAndActualFurnitureBounds" file="tests/test_adventure_construction_policy.cpp" line="42" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventureConstructionPolicy" />
+    <testcase name="BedNeedsRoofWallsAndClearRecoveryBesideFurniture" file="tests/test_adventure_construction_policy.cpp" line="50" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.630" classname="AdventureConstructionPolicy" />
+    <testcase name="LargerHouseAndRotatedBedUseTheSameShelterRule" file="tests/test_adventure_construction_policy.cpp" line="69" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.631" classname="AdventureConstructionPolicy" />
+    <testcase name="TransfersAndCraftingRequireReachableUnblockedFurniture" file="tests/test_adventure_construction_policy.cpp" line="81" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.631" classname="AdventureConstructionPolicy" />
+    <testcase name="GatherRequiresRealNodeReachAndUnblockedSight" file="tests/test_adventure_construction_policy.cpp" line="92" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.631" classname="AdventureConstructionPolicy" />
+    <testcase name="TerrainPlacementIncludesAllRectangularCorners" file="tests/test_adventure_construction_policy.cpp" line="102" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.631" classname="AdventureConstructionPolicy" />
+    <testcase name="OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture" file="tests/test_adventure_construction_policy.cpp" line="111" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.631" classname="AdventureConstructionPolicy" />
+    <testcase name="PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts" file="tests/test_adventure_construction_policy.cpp" line="128" status="run" result="completed" time="0.008" timestamp="2026-09-13T06:25:30.632" classname="AdventureConstructionPolicy" />
+  </testsuite>
+  <testsuite name="AdventureTown" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0.017" timestamp="2026-09-13T06:25:30.640">
+    <testcase name="CanonicalResidentsHaveGroundHeadroomApproachAndMatchingColliders" file="tests/test_adventure_town.cpp" line="44" status="run" result="completed" time="0.003" timestamp="2026-09-13T06:25:30.640" classname="AdventureTown" />
+    <testcase name="NewResidentsNeverReplaceOrBlockAnOldPlayerAtTheirAnchor" file="tests/test_adventure_town.cpp" line="74" status="run" result="completed" time="0.006" timestamp="2026-09-13T06:25:30.644" classname="AdventureTown" />
+    <testcase name="UnsafeCandidatesDeferVisualAndSolidWithoutInvalidatingState" file="tests/test_adventure_town.cpp" line="89" status="run" result="completed" time="0.002" timestamp="2026-09-13T06:25:30.650" classname="AdventureTown" />
+    <testcase name="ResidentsPreserveTownRecoveryEvenWhenTheSavedPlayerIsFarAway" file="tests/test_adventure_town.cpp" line="103" status="run" result="completed" time="0.002" timestamp="2026-09-13T06:25:30.652" classname="AdventureTown" />
+    <testcase name="LegacyHighPartIdentityDefersOnlyTheConflictingResident" file="tests/test_adventure_town.cpp" line="111" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.654" classname="AdventureTown" />
+    <testcase name="InteractionRequiresAdmittedResidentRangeAndUnblockedSight" file="tests/test_adventure_town.cpp" line="120" status="run" result="completed" time="0.002" timestamp="2026-09-13T06:25:30.656" classname="AdventureTown" />
+  </testsuite>
+  <testsuite name="AdventureQuestFacts" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.003" timestamp="2026-09-13T06:25:30.658">
+    <testcase name="ExistingHomeCountsWithoutHammerOrChestContentsAndRechecksMissingParts" file="tests/test_adventure_town.cpp" line="136" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.658" classname="AdventureQuestFacts" />
+    <testcase name="ChestInAnotherStructureDoesNotCompleteTheRegisteredHome" file="tests/test_adventure_town.cpp" line="167" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.660" classname="AdventureQuestFacts" />
+    <testcase name="NewCompassNeedsReachableBenchButEquippingOwnedCompassDoesNot" file="tests/test_adventure_town.cpp" line="185" status="run" result="completed" time="0.001" timestamp="2026-09-13T06:25:30.661" classname="AdventureQuestFacts" />
+    <testcase name="ProgressReceiptsArePermanentAndBoundedByAcceptedRevision" file="tests/test_adventure_town.cpp" line="200" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventureQuestFacts" />
+  </testsuite>
+  <testsuite name="AdventurePresentation" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.662">
+    <testcase name="PriorHomeStillNeedsAcceptanceAndCompletedReceiptWins" file="tests/test_adventure_presentation.cpp" line="7" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+    <testcase name="CompassRequiresEquipmentAndUsesActualBearing" file="tests/test_adventure_presentation.cpp" line="21" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+    <testcase name="QuestGuidanceFollowsCraftStorageAndEquipment" file="tests/test_adventure_presentation.cpp" line="39" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+    <testcase name="GuideControlHintsFollowBindingsDeviceAndMouseLookPreference" file="tests/test_adventure_presentation.cpp" line="49" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+    <testcase name="GuideExplainsBuildRefusalManualSavingAndCurrentQuestInstructions" file="tests/test_adventure_presentation.cpp" line="70" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+    <testcase name="GuideCardsRemainBoundedAtCustomBindingsAndRejectUnknownTopics" file="tests/test_adventure_presentation.cpp" line="87" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventurePresentation" />
+  </testsuite>
+  <testsuite name="AdventureMenuIntents" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-13T06:25:30.662">
+    <testcase name="StablePublicationKeepsIntentButNewReplyCannotReuseOldClick" file="tests/test_adventure_menu.cpp" line="6" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventureMenuIntents" />
+    <testcase name="ContainerTargetOwnershipAndEligibilityAreBoundToThePublishedChoice" file="tests/test_adventure_menu.cpp" line="18" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventureMenuIntents" />
+    <testcase name="SameFrameDoubleActivationCannotAcceptThenCompleteOrEquipThenUnequip" file="tests/test_adventure_menu.cpp" line="27" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventureMenuIntents" />
+    <testcase name="UnscopedRowsMalformedValuesAndOverCapacityFailClosed" file="tests/test_adventure_menu.cpp" line="35" status="run" result="completed" time="0." timestamp="2026-09-13T06:25:30.662" classname="AdventureMenuIntents" />
+  </testsuite>
+  <testsuite name="AdventureVillage" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.781" timestamp="2026-09-13T06:25:30.662">
+    <testcase name="TwoSheltersGardensTreesAndPathsShareBoundedRenderedCollision" file="tests/test_adventure_village.cpp" line="33" status="run" result="completed" time="0.082" timestamp="2026-09-13T06:25:30.662" classname="AdventureVillage" />
+    <testcase name="ExistingPlayerInsideAProposedHouseDefersTheEntireHouse" file="tests/test_adventure_village.cpp" line="53" status="run" result="completed" time="0.027" timestamp="2026-09-13T06:25:30.744" classname="AdventureVillage" />
+    <testcase name="ReloadInsideAnExistingCottageKeepsItsFloorAndExactSavedPose" file="tests/test_adventure_village.cpp" line="59" status="run" result="completed" time="0.139" timestamp="2026-09-13T06:25:30.771" classname="AdventureVillage" />
+    <testcase name="AnExistingHouseAndLegacyReservedIdsWinWithoutChangingTheirState" file="tests/test_adventure_village.cpp" line="72" status="run" result="completed" time="0.049" timestamp="2026-09-13T06:25:30.911" classname="AdventureVillage" />
+    <testcase name="NewBuildingCollisionsRefuseButUnchangedPartsAndRemoteBuildingRemain" file="tests/test_adventure_village.cpp" line="82" status="run" result="completed" time="0.072" timestamp="2026-09-13T06:25:30.961" classname="AdventureVillage" />
+    <testcase name="NearbyOldDoorwayKeepsApproachClearanceWithoutDirectOverlap" file="tests/test_adventure_village.cpp" line="89" status="run" result="completed" time="0.092" timestamp="2026-09-13T06:25:31.034" classname="AdventureVillage" />
+    <testcase name="NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority" file="tests/test_adventure_village.cpp" line="103" status="run" result="completed" time="0.165" timestamp="2026-09-13T06:25:31.126" classname="AdventureVillage" />
+    <testcase name="RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend" file="tests/test_adventure_village.cpp" line="146" status="run" result="completed" time="0.073" timestamp="2026-09-13T06:25:31.291" classname="AdventureVillage" />
+    <testcase name="TownRecoveryNpcApproachesAndResourcePointsRemainUsable" file="tests/test_adventure_village.cpp" line="155" status="run" result="completed" time="0.078" timestamp="2026-09-13T06:25:31.365" classname="AdventureVillage" />
+  </testsuite>
+</testsuites>

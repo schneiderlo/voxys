@@ -1,0 +1,43 @@
+{
+  "scope": "CPU input-router, orbit and rendered Camera projection integration; no UI or controller device journey",
+  "tests": 2,
+  "passed": 2,
+  "elapsed_test_ms": 10,
+  "orbit_yaws": 8,
+  "elevations": [
+    -0.25,
+    0.32,
+    1.1
+  ],
+  "aspect_ratios": [
+    0.8,
+    1.6
+  ],
+  "input_devices": [
+    "keyboard router sample",
+    "controller router sample"
+  ],
+  "directions_per_device": 8,
+  "projected_direction_checks": 768,
+  "source_sha256": {
+    "src/game/adventure/adventure_input.hpp": "b1cdd049cd3ad6608d04d6aece5d86e7dad354227f3262168cdd44e184ca84f4",
+    "tests/test_adventure_movement.cpp": "3423f9e2cb6b721bdc0603729d1ec5c006a17bd169363156f0337a89f822dd7e",
+    "src/camera/camera.cpp": "fc4a5cc32a75d70df01e697f0daa4062a3799b4510204ca31925a119358c15f2",
+    "src/game/expedition/cove_camera.cpp": "21e1a05108ef8dea43c8da5964404bbf8ae527f884f2e74b93cdea0c6a2b7301",
+    "src/game/expedition/cove_input_preferences.cpp": "6ef48d2bc94bb86d41d148447e6c60b5d23d67282394fae66085abc74a80d1f0"
+  },
+  "attempts": [
+    {
+      "log": "checks/movement-projection-r01.log.gz",
+      "result": "Nix daemon socket inaccessible in sandbox; no compilation or tests"
+    },
+    {
+      "log": "checks/movement-projection-r02.log.gz",
+      "result": "Duplicate generated Bazel target registration; no compilation or tests"
+    },
+    {
+      "log": "checks/movement-projection-r03.log.gz",
+      "result": "Corrected focused target build and both tests passed"
+    }
+  ]
+}

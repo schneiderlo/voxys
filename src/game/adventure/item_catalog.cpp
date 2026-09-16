@@ -4,11 +4,14 @@
 
 namespace voxy::game::adventure {
 namespace {
-constexpr std::array<ItemDefinition,4> definitions{{
+constexpr std::array<ItemDefinition,7> definitions{{
     {ItemKind::Wood,"adventure.wood.v1","Wood",999},
     {ItemKind::Stone,"adventure.stone.v1","Stone",999},
     {ItemKind::Scrap,"adventure.scrap.v1","Scrap",999},
     {ItemKind::FieldHammer,"adventure.field-hammer.v1","Field hammer",1},
+    {ItemKind::TrailCompass,"adventure.trail-compass.v1","Trail compass",1},
+    {ItemKind::TrailStaff,"adventure.trail-staff.v1","Trail staff",1},
+    {ItemKind::RelayCore,"adventure.relay-core.v1","Relay core",1},
 }};
 constexpr size_t maximumSlots = 32;
 }

@@ -1,0 +1,142 @@
+{
+  "status": "Focused foundation evidence only; no gameplay or gate claim",
+  "capturedDate": "2026-09-13",
+  "scope": [
+    "Atomic combat checkpoint, staff crafting, defeat/recovery, permanent death and loot receipts, unique core ownership",
+    "Schema3 encoding and strict installed schema1/2 migration; frozen real G-A fixture preserved",
+    "Browser bootstrap confirmation semantics and DOM combat focus/readiness behavior"
+  ],
+  "checks": {
+    "authority": {
+      "cases": 8,
+      "failures": 0,
+      "reportedCaseSeconds": 0.001
+    },
+    "existingAdventure": {
+      "cases": 72,
+      "failures": 0,
+      "reportedCaseSeconds": 0.956
+    },
+    "browserStorage": {
+      "cases": 13,
+      "failures": 0,
+      "reportedMilliseconds": 20.68404,
+      "command": "node scripts/test_adventure_saves.mjs",
+      "capture": "Original direct tool stdout; reconstructed verbatim in checks/browser-storage-r01.log.gz, no repeat execution"
+    },
+    "dom": {
+      "cases": 30,
+      "failures": 0,
+      "reportedMilliseconds": 61.474128,
+      "command": "node tools/adventure_assets/test_adventure_ui.mjs"
+    }
+  },
+  "limitations": [
+    "Authority callbacks in the new session test intentionally isolate transaction logic; they do not certify physical attacks or player journeys.",
+    "Synthetic schema1/2 packets complement the frozen real schema1 home. Acceptance of an actual completed G-B schema2 archive remains open.",
+    "No GPU, browser interaction, native interaction, accessibility layout or frame-rate evidence is claimed.",
+    "The later root native storage, character and integrated build checks are separate results and are not included here.",
+    "Discovery/quest/relay fields default unearned only; those transitions are not implemented by this foundation."
+  ],
+  "format": {
+    "writerSchema": 3,
+    "additionalBytesAfterSchema2": 298,
+    "schema1Identity": "1471b647cb7e8a02c06ae5bba53c7f9f835d432d6da598e8338825b845e448b8",
+    "schema2Identity": "11383554b461917c507d21b20adad88c24989fc3e1272baec5e6d6bba840c431",
+    "frozenActualSchema1Bytes": 1231,
+    "frozenActualSchema1Sha256": "7d022bec04d1f834370c48cfd4ae498b6fb574d5ff2fddc41412e47aa34a9a02"
+  },
+  "sourceSha256": {
+    "src/game/adventure/adventure_progress.hpp": "4256417330a04923f8536296804489e2241ee3f3b50ee37148fc9810f82613be",
+    "src/game/adventure/adventure_progress.cpp": "63bcb336fe2dfc41b5473e0f545ca3da8613b14f8145a93bcfcce9fd75b60e73",
+    "src/game/adventure/adventure_session.hpp": "570ad04523612f52275271348e0a22d8e0e1afdb8e3a321cfc082e68fe45ff51",
+    "src/game/adventure/adventure_session.cpp": "4de6635a1d48a151784da456ad7fb6fb13af465466059e65eb2d638f480380e6",
+    "src/game/adventure/adventure_save.hpp": "be7873fa8f7b0f0f41fa49d29acec3b9bab7100953a89fb353ff0d63411282d7",
+    "src/game/adventure/adventure_save.cpp": "9f24ac6eca498c6339816b5d7ab3fb746781e1a49e84cea3c29c0f638999b043",
+    "src/game/adventure/item_catalog.hpp": "0745fd6566df9792408e51be59977aab604f4a5c55c4d3301ac9e5cc77e531c6",
+    "src/game/adventure/item_catalog.cpp": "918207046193db4339dea61bb870ae48b7cbc81c7f19b2dca2733d5d3ac83b73",
+    "tests/test_adventure_combat_session.cpp": "c5a102e39753222a901ce6a921e0d2467d3562dc9eeb526fdb4f843878e6f7b9",
+    "tests/test_adventure_session.cpp": "adc48bd18c126ae038e806cab1345572dd4d1f941574d4a4ba9cf8caaa8904bb",
+    "tests/test_native_adventure_saves.cpp": "d8fd431b138be76fb64670908970bd701c1c123984bc4c3ed46bf084a29614b5",
+    "web/adventure_saves.js": "b5740caa01283b540c0c6b6b48730798439d623a37e9604475a1e0a83d77842f",
+    "scripts/test_adventure_saves.mjs": "dc7cca0caa6a2a83dc549611f7796cec9fdb47c3cc92f9363e93277a492ae8d0",
+    "web/adventure_ui.js": "cc857d4409d1022ab87ef9fdf134876664151fe6c702c865a2b95e4dbe5e4bc1",
+    "web/adventure_ui.css": "ddb3c9254cf135783a0e212635fe558345b23c71bfedd79acc7e928c34c49e5d",
+    "tools/adventure_assets/test_adventure_ui.mjs": "41dab88b33618c2749b6e85ab54a79e8e7c122d980b6c490435987e8c2b1cacd"
+  },
+  "artifacts": [
+    {
+      "file": "checks/combat-authority-r03.log.gz",
+      "source": "build-adventure-g-b/combat-authority-r03.log",
+      "uncompressedBytes": 1569,
+      "uncompressedSha256": "df414900f30b278e3f0aa5532d2f015178a3a43000d3a0f86661203ef924947f",
+      "compressedSha256": "3e32e576e8c71745bd596a991ef7b489d7a41eb9d6f31ccc69670f78f6b5068e"
+    },
+    {
+      "file": "checks/combat-session-test.log.gz",
+      "source": "bazel-testlogs/tests/adventure_combat_session/test.log",
+      "uncompressedBytes": 2175,
+      "uncompressedSha256": "9a5b709917fe98335644f921de6e04003994406d657adc48a07b77170a71fdfa",
+      "compressedSha256": "50f9395c9c524acf9f5c5dcf1c37cf692b2458c27e1be85559f44d31df92490d"
+    },
+    {
+      "file": "checks/combat-session-test.xml.gz",
+      "source": "bazel-testlogs/tests/adventure_combat_session/test.xml",
+      "uncompressedBytes": 2404,
+      "uncompressedSha256": "d2f16a6dbd0ceb012cf9345a8c367956403a2171d592d02ebff3507dc49fff59",
+      "compressedSha256": "33342789506ca7188905803d1d6ab05441590e793d5152ea5c8fa922b49261e6"
+    },
+    {
+      "file": "checks/existing-adventure-test.log.gz",
+      "source": "bazel-testlogs/tests/adventure/test.log",
+      "uncompressedBytes": 15278,
+      "uncompressedSha256": "44862ae0303cae383b4336775e9630056c4b0bf00982d4ad7669cea76483dc44",
+      "compressedSha256": "31f5a32947693b3c72d071e7f4c6b4e51a2178f108955f1d8c3065740fa9b5de"
+    },
+    {
+      "file": "checks/existing-adventure-test.xml.gz",
+      "source": "bazel-testlogs/tests/adventure/test.xml",
+      "uncompressedBytes": 20179,
+      "uncompressedSha256": "e3892ca53c7a4951071f83f4058b495520953b5e9f72eecd936f4d3439217f99",
+      "compressedSha256": "4563f8583559150ab4d3e070a6055d9a82c146328a239f0b325d9c181669c4ee"
+    },
+    {
+      "file": "checks/combat-dom-r01.log.gz",
+      "source": "build-adventure-g-b/combat-dom-r01.log",
+      "uncompressedBytes": 6713,
+      "uncompressedSha256": "6f7a2b7a9edbd075d698ad340dcdda4080c21dcb2ecdd9878c22a272f5620736",
+      "compressedSha256": "539c5feb7ebad4676419ce1210704670f186687513b71cf86bf02042c22f1bf0"
+    },
+    {
+      "file": "checks/browser-storage-r01.log.gz",
+      "source": "Direct functions.exec tool output from node scripts/test_adventure_saves.mjs; retained verbatim without rerunning",
+      "uncompressedBytes": 3053,
+      "uncompressedSha256": "65c5f92acbef031103a206b10fecb307121ee291ce19c3cf399fe9d48ec414d8",
+      "compressedSha256": "62a68b09a3eb4e2477b9f91bf9a73fcb9fd03eff7e02e96793ca06d621248d9f"
+    },
+    {
+      "file": "checks/combat-dom-use-focus-r02.log.gz",
+      "source": "build-adventure-g-b/combat-dom-use-focus-r02.log",
+      "uncompressedBytes": 6958,
+      "uncompressedSha256": "1520decc11fff73a0d7a91633a3dd4b0a6b7858c1a1795ff0a8259e1ddbdffd0",
+      "compressedSha256": "201e4fe9b39b9cbada29df2fb7ca3de8175051057979cd1cea07d6cadcec1e50"
+    }
+  ],
+  "followups": [
+    {
+      "name": "Use returns world focus",
+      "scope": "Action7 immediately releases DOM ownership after dispatch. Later accepted dialogue snapshots retain their normal menu focus. No other UI behavior changed.",
+      "previousDomCheck": {
+        "cases": 29,
+        "failures": 0,
+        "reportedMilliseconds": 55.41341,
+        "command": "node tools/adventure_assets/test_adventure_ui.mjs"
+      },
+      "previousSourceSha256": {
+        "web/adventure_ui.js": "a8039535d7e54da252b0a4901127caf0f86a8c0260e6b877f30e749d07fbdad2",
+        "tools/adventure_assets/test_adventure_ui.mjs": "826e3986c8b2e9c588b950872c4c255556b2e2d25234672a5a24ee9788ed083c"
+      },
+      "check": "checks/combat-dom-use-focus-r02.log.gz"
+    }
+  ]
+}

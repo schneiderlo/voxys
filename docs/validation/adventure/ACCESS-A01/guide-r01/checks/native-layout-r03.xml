@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="0.306" timestamp="2026-09-13T02:38:29.887" name="AllTests">
+  <testsuite name="AdventureHud" tests="10" failures="0" disabled="0" skipped="0" errors="0" time="0.306" timestamp="2026-09-13T02:38:29.887">
+    <testcase name="ExploreLeavesWorldClearAndCarriesExactActionIdentity" file="tests/test_adventure_hud.cpp" line="83" status="run" result="completed" time="0." timestamp="2026-09-13T02:38:29.887" classname="AdventureHud" />
+    <testcase name="EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize" file="tests/test_adventure_hud.cpp" line="96" status="run" result="completed" time="0.064" timestamp="2026-09-13T02:38:29.887" classname="AdventureHud" />
+    <testcase name="FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible" file="tests/test_adventure_hud.cpp" line="111" status="run" result="completed" time="0.008" timestamp="2026-09-13T02:38:29.951" classname="AdventureHud" />
+    <testcase name="CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize" file="tests/test_adventure_hud.cpp" line="127" status="run" result="completed" time="0.205" timestamp="2026-09-13T02:38:29.960" classname="AdventureHud" />
+    <testcase name="GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls" file="tests/test_adventure_hud.cpp" line="155" status="run" result="completed" time="0.007" timestamp="2026-09-13T02:38:30.165" classname="AdventureHud" />
+    <testcase name="CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable" file="tests/test_adventure_hud.cpp" line="176" status="run" result="completed" time="0." timestamp="2026-09-13T02:38:30.172" classname="AdventureHud" />
+    <testcase name="SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis" file="tests/test_adventure_hud.cpp" line="185" status="run" result="completed" time="0." timestamp="2026-09-13T02:38:30.173" classname="AdventureHud" />
+    <testcase name="MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity" file="tests/test_adventure_hud.cpp" line="196" status="run" result="completed" time="0.002" timestamp="2026-09-13T02:38:30.173" classname="AdventureHud" />
+    <testcase name="WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders" file="tests/test_adventure_hud.cpp" line="215" status="run" result="completed" time="0.018" timestamp="2026-09-13T02:38:30.175" classname="AdventureHud" />
+    <testcase name="ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent" file="tests/test_adventure_hud.cpp" line="240" status="run" result="completed" time="0." timestamp="2026-09-13T02:38:30.193" classname="AdventureHud" />
+  </testsuite>
+</testsuites>

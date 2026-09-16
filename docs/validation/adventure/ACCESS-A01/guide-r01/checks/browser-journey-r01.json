@@ -1,0 +1,18 @@
+{
+  "driver": "official CUA",
+  "tab": "12",
+  "build": "adventure-0a43174f2b40d3c1",
+  "steps": [
+    "Startup presents health100, Talk to Moss, Build, Bag and Journal.",
+    "Build -> Starter room selected: cost70 wood /16 stone /8 scrap; stock640/320/80; Place disabled because no ground aimed.",
+    "Building help -> Build something useful; Next tip -> Make a home.",
+    "Return to building restores checked Starter room, same cost and stock; focus is game canvas. No placement.",
+    "Done -> Menu -> How to play shows all six topic titles.",
+    "Keep your adventure explains explicit Save adventure, confirmation and retry; Back to menu returns Paused and focuses How to play."
+  ],
+  "screenshots": 0,
+  "developerStateInjection": false,
+  "worldSaveOperation": false,
+  "rotationProof": "headless runtime only; browser journey does not expose yaw",
+  "finalState": "Paused"
+}

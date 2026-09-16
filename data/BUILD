@@ -142,6 +142,6 @@ filegroup(
 
 filegroup(
     name = "adventure_runtime",
-    srcs = glob(["adventure/building-kit-r01/cooked/*.vmesh", "adventure/building-kit-r01/cooked/manifest.json"]),
+    srcs = glob(["adventure/building-kit-r01/cooked/*.vmesh", "adventure/building-kit-r01/cooked/manifest.json", "adventure/door-r01/cooked/*.vmesh", "adventure/door-r01/cooked/manifest.json", "adventure/human-r01/*.vmesh", "adventure/human-r01/manifest.json", "adventure/residents-r01/*/*.vmesh", "adventure/residents-r01/*/manifest.json", "adventure/village-props-r01/*.vmesh", "adventure/village-props-r01/manifest.json", "adventure/raider-r01/*.vmesh", "adventure/raider-r01/manifest.json"]),
     visibility = ["//visibility:public"],
 )

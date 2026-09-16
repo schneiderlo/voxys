@@ -1,0 +1,712 @@
+{
+  "schema": "voxys.adventure.town-authoring.v1",
+  "status": "Original G-B authoring/reference content. Runtime uses compiled definitions; this JSON is not dynamically interpreted.",
+  "scope": "G-B: three residents, one home quest, one genuinely new utility recipe. No enemies, relay repair, patrol navigation or new asset pipeline.",
+  "world": {
+    "profile": "voxys.adventure.main.v1",
+    "town_center_xz": [
+      -63.0,
+      -895.0
+    ],
+    "existing_protected_radius_m": 5,
+    "new_exclusion_area": false,
+    "heightmap": "data/generated/td_seed_1234_8192.ldh",
+    "ldh_sha256": "09fdfe368187cb2214bab5ceaf93c1c6abb79b492d9c3b8704378c5c40188dc7",
+    "sample_sha256": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+    "height_scale_m": 600,
+    "cell_scale_m": 1,
+    "water_height_m": -200,
+    "terrain_edits": false,
+    "retained_marker": {
+      "position_xz": [
+        -63,
+        -898
+      ],
+      "half_extent_xz": [
+        0.5,
+        0.5
+      ],
+      "policy": "Retain existing G-A geometry for this first draft; do not erase or reinterpret old house parts."
+    },
+    "relay": {
+      "id": "landmark.relay.v1",
+      "name": "Old relay",
+      "position_xz": [
+        -63,
+        -975
+      ],
+      "repair_implemented_in_this_gate": false
+    }
+  },
+  "preflight": {
+    "executed": "Pure X/Z geometry checks only: all three capsule footprints and both optional seat footprints lie inside existing protection; resident capsules are separated and clear of the retained marker footprint.",
+    "terrain_and_full_capsule_status": "Required integration preflight; not claimed performed by this draft.",
+    "failure_policy": "Preserve a valid restored G-A/v1 player pose and every saved house. Never fail save admission because a newly installed resident or optional prop overlaps the restored player. Try the bounded transient resident-admission candidates; if none are clear, defer that actor and its collider. Omit overlapping optional seats. Do not shift terrain, expand protection or move saved geometry/player state.",
+    "required_integration_checks": [
+      "verify installed terrain hashes before sampling",
+      "sample ground at each locked anchor and any bounded transient admission candidate",
+      "check full standing capsules against existing solids and the unchanged restored player before publishing new colliders",
+      "sweep a player-sized capsule from plaza to each admitted interaction approach",
+      "check headroom and line of sight at each talk position",
+      "restore valid v1 player poses at each future NPC anchor; admit/defer new residents without changing or rejecting those poses",
+      "verify existing native/browser G-A saved houses still load unchanged"
+    ],
+    "resident_admission": {
+      "canonical_definition": "The locked resident position_xz remains the immutable content anchor. A transient admitted_position_xz is runtime-only and is not written to saves or back into the definition.",
+      "candidate_offsets_m": [
+        [
+          0,
+          0
+        ],
+        [
+          0.75,
+          0
+        ],
+        [
+          -0.75,
+          0
+        ],
+        [
+          0,
+          0.75
+        ],
+        [
+          0,
+          -0.75
+        ],
+        [
+          0.75,
+          0.75
+        ],
+        [
+          0.75,
+          -0.75
+        ],
+        [
+          -0.75,
+          0.75
+        ],
+        [
+          -0.75,
+          -0.75
+        ]
+      ],
+      "maximum_candidates_per_resident": 9,
+      "candidate_validation": "Resample ground at each candidate. Its full capsule must remain inside existing 5 m protection, clear the restored player with at least .05 m margin, clear admitted actors/static/player construction, and retain a valid plaza approach. Ignore only this resident own unpublished collider during its test.",
+      "on_success": "Publish this resident visual and collider together at the admitted candidate. Keep that admitted position stable for this load; do not repeatedly teleport back toward the canonical anchor.",
+      "on_no_clear_candidate": "Defer both this new resident and its collider; continue loading the valid saved game. Retry only after relevant player/geometry changes, at no more than 4 checks per second and the same nine-candidate budget.",
+      "optional_prop_policy": "Use its canonical preflighted position only, or defer/omit it. Never make a saved player or house move to fit camp decoration.",
+      "save_admission_order": "Restore and validate v1 player/house state under its compatible schema first. Admit new G-B resident/prop colliders afterward around that restored state.",
+      "non_overlap_authoring_failure": "Invalid terrain or content clearance is a G-B authoring/preflight failure, not permission to invalidate an otherwise valid G-A save."
+    }
+  },
+  "residents": [
+    {
+      "name": "Moss",
+      "role": "Builder",
+      "position_xz": [
+        -65.5,
+        -893.5
+      ],
+      "accent_srgb": [
+        0.29,
+        0.58,
+        0.4
+      ],
+      "idle": "Small head glance toward the nearby beam bench, then back to the plaza.",
+      "gesture": "One slow nod when offering or recognizing a home.",
+      "facing_target_xz": [
+        -63.0,
+        -895.0
+      ],
+      "asset": "existing original adventure robot rig",
+      "body_height_m": 1.7,
+      "capsule_radius_m": 0.3,
+      "grounding": {
+        "method": "terrain::lego::supportHeight(surface, admitted_position_xz, 0.3 * sqrt(2)) + 0.005",
+        "y_is_authored": false,
+        "required_before_publish": [
+          "finite terrain support at the admitted candidate",
+          "dry support above installed water",
+          "full 1.7 m capsule clear against existing solids, restored player and other admitted residents",
+          "clear approach from plaza using shared capsule sweep",
+          "no accepted save geometry or player pose is moved, removed or rejected"
+        ],
+        "reason": "Compiled resident collision uses a .6 m square standing box enclosing the .3 m capsule. The diagonal support footprint also clears stud contacts beneath box corners."
+      },
+      "behavior": {
+        "root_translation": "Fixed after transient admission for this load; no patrol.",
+        "patrol": false,
+        "physics_simulation": false,
+        "head_yaw_limit_degrees": 12,
+        "head_pitch_limit_degrees": 6,
+        "dialogue": "pause idle gesture; turn toward player; restore idle after close"
+      },
+      "interaction": {
+        "maximum_distance_m": 3,
+        "line_of_sight_required": true,
+        "prompt": "Talk to Moss"
+      },
+      "xz_preflight": {
+        "distance_from_town_center_m": 2.915476,
+        "capsule_margin_inside_existing_protection_m": 1.784524
+      },
+      "position_semantics": "Locked canonical content anchor; see preflight.resident_admission for bounded transient fallback around a restored player.",
+      "content_key": "npc.moss.v1",
+      "id": 1,
+      "collision_identity": {
+        "structure": 1,
+        "part": "UINT64_MAX - 1",
+        "legacy_collision_policy": "Defer this actor if the reserved identifier collides with any legacy saved structure/part/component; preserve the save unchanged."
+      }
+    },
+    {
+      "name": "Rivet",
+      "role": "Outfitter",
+      "position_xz": [
+        -60.5,
+        -893.5
+      ],
+      "accent_srgb": [
+        0.86,
+        0.37,
+        0.24
+      ],
+      "idle": "Small hand-check gesture while standing at the same anchor.",
+      "gesture": "One open-hand gesture while explaining the compass recipe.",
+      "facing_target_xz": [
+        -63.0,
+        -895.0
+      ],
+      "asset": "existing original adventure robot rig",
+      "body_height_m": 1.7,
+      "capsule_radius_m": 0.3,
+      "grounding": {
+        "method": "terrain::lego::supportHeight(surface, admitted_position_xz, 0.3 * sqrt(2)) + 0.005",
+        "y_is_authored": false,
+        "required_before_publish": [
+          "finite terrain support at the admitted candidate",
+          "dry support above installed water",
+          "full 1.7 m capsule clear against existing solids, restored player and other admitted residents",
+          "clear approach from plaza using shared capsule sweep",
+          "no accepted save geometry or player pose is moved, removed or rejected"
+        ],
+        "reason": "Compiled resident collision uses a .6 m square standing box enclosing the .3 m capsule. The diagonal support footprint also clears stud contacts beneath box corners."
+      },
+      "behavior": {
+        "root_translation": "Fixed after transient admission for this load; no patrol.",
+        "patrol": false,
+        "physics_simulation": false,
+        "head_yaw_limit_degrees": 12,
+        "head_pitch_limit_degrees": 6,
+        "dialogue": "pause idle gesture; turn toward player; restore idle after close"
+      },
+      "interaction": {
+        "maximum_distance_m": 3,
+        "line_of_sight_required": true,
+        "prompt": "Talk to Rivet"
+      },
+      "xz_preflight": {
+        "distance_from_town_center_m": 2.915476,
+        "capsule_margin_inside_existing_protection_m": 1.784524
+      },
+      "position_semantics": "Locked canonical content anchor; see preflight.resident_admission for bounded transient fallback around a restored player.",
+      "content_key": "npc.rivet.v1",
+      "id": 2,
+      "collision_identity": {
+        "structure": 1,
+        "part": "UINT64_MAX - 2",
+        "legacy_collision_policy": "Defer this actor if the reserved identifier collides with any legacy saved structure/part/component; preserve the save unchanged."
+      }
+    },
+    {
+      "name": "Lumen",
+      "role": "Relay keeper",
+      "position_xz": [
+        -65.0,
+        -898.0
+      ],
+      "accent_srgb": [
+        0.16,
+        0.54,
+        0.6
+      ],
+      "visor_accent_srgb": [
+        1.0,
+        0.69,
+        0.28
+      ],
+      "idle": "Looks toward the relay without translating the actor.",
+      "gesture": "A brief arm gesture toward the relay; face the player during dialogue.",
+      "facing_target_xz": [
+        -63.0,
+        -975.0
+      ],
+      "asset": "existing original adventure robot rig",
+      "body_height_m": 1.7,
+      "capsule_radius_m": 0.3,
+      "grounding": {
+        "method": "terrain::lego::supportHeight(surface, admitted_position_xz, 0.3 * sqrt(2)) + 0.005",
+        "y_is_authored": false,
+        "required_before_publish": [
+          "finite terrain support at the admitted candidate",
+          "dry support above installed water",
+          "full 1.7 m capsule clear against existing solids, restored player and other admitted residents",
+          "clear approach from plaza using shared capsule sweep",
+          "no accepted save geometry or player pose is moved, removed or rejected"
+        ],
+        "reason": "Compiled resident collision uses a .6 m square standing box enclosing the .3 m capsule. The diagonal support footprint also clears stud contacts beneath box corners."
+      },
+      "behavior": {
+        "root_translation": "Fixed after transient admission for this load; no patrol.",
+        "patrol": false,
+        "physics_simulation": false,
+        "head_yaw_limit_degrees": 12,
+        "head_pitch_limit_degrees": 6,
+        "dialogue": "pause idle gesture; turn toward player; restore idle after close"
+      },
+      "interaction": {
+        "maximum_distance_m": 3,
+        "line_of_sight_required": true,
+        "prompt": "Talk to Lumen"
+      },
+      "xz_preflight": {
+        "distance_from_town_center_m": 3.605551,
+        "capsule_margin_inside_existing_protection_m": 1.094449
+      },
+      "position_semantics": "Locked canonical content anchor; see preflight.resident_admission for bounded transient fallback around a restored player.",
+      "content_key": "npc.lumen.v1",
+      "id": 3,
+      "collision_identity": {
+        "structure": 1,
+        "part": "UINT64_MAX - 3",
+        "legacy_collision_policy": "Defer this actor if the reserved identifier collides with any legacy saved structure/part/component; preserve the save unchanged."
+      }
+    }
+  ],
+  "optional_props": [
+    {
+      "id": "town.moss.bench.v1",
+      "role": "Low public seat",
+      "piece_kind": "Beam",
+      "position_xz": [
+        -65.5,
+        -891.8
+      ],
+      "half_extent_xz": [
+        1,
+        0.16
+      ],
+      "interaction": "none",
+      "component": "none",
+      "xz_preflight": {
+        "farthest_corner_from_town_center_m": 4.851763
+      },
+      "grounding": "Bottom follows maximum terrain height over its actual rectangular footprint. Add short canonical Pier supports only if separately preflighted inside this same protected circle; otherwise omit this optional seat.",
+      "optional": true,
+      "admission": "Keep only if it clears the restored player and existing geometry; otherwise omit/defer this new optional collider and visual together."
+    },
+    {
+      "id": "town.rivet.bench.v1",
+      "role": "Low public seat",
+      "piece_kind": "Beam",
+      "position_xz": [
+        -60.5,
+        -891.8
+      ],
+      "half_extent_xz": [
+        1,
+        0.16
+      ],
+      "interaction": "none",
+      "component": "none",
+      "xz_preflight": {
+        "farthest_corner_from_town_center_m": 4.851763
+      },
+      "grounding": "Bottom follows maximum terrain height over its actual rectangular footprint. Add short canonical Pier supports only if separately preflighted inside this same protected circle; otherwise omit this optional seat.",
+      "optional": true,
+      "admission": "Keep only if it clears the restored player and existing geometry; otherwise omit/defer this new optional collider and visual together."
+    }
+  ],
+  "prop_rules": [
+    "No Bed, Chest or Workbench meshes are decorative camp props.",
+    "No town prop contributes to the player home quest.",
+    "No loot-looking crate grants imaginary supplies.",
+    "Installed NPC/prop IDs are typed content IDs, separate from the saved player PartId allocator."
+  ],
+  "quest": {
+    "id": "quest.a-place-to-return.v1",
+    "name": "A Place to Return",
+    "giver_npc": 1,
+    "accepted_semantics": "Accept explicitly through Moss. Permitted prior work counts immediately. Resolve dialogue Completed first, then NotAccepted, then readiness of an accepted quest. Ready is never persisted.",
+    "objective_semantics": "The registered bed identifies its saved StructureId. It must still satisfy actual shelter and recovery-space validation. At least one Chest and one Workbench must belong to that same accepted structure. Empty chest is sufficient.",
+    "objectives": [
+      {
+        "id": "home.registered_usable_bed",
+        "label": "Use a bed in a sheltered home",
+        "semantics": "current-state; registered bed still usable"
+      },
+      {
+        "id": "home.chest",
+        "label": "Add a chest to that house",
+        "semantics": "current-state; same StructureId; contents may be empty"
+      },
+      {
+        "id": "home.workbench",
+        "label": "Add a workbench to that house",
+        "semantics": "current-state; same StructureId"
+      }
+    ],
+    "not_required": [
+      "Field hammer",
+      "Nonempty chest",
+      "Starter room blueprint",
+      "House built after acceptance",
+      "Material delivery",
+      "Specific house plot",
+      "A new house when an old valid one exists"
+    ],
+    "turn_in": "At Moss, revalidate an accepted quest and all current home facts, then atomically persist its permanent completion/reward receipt using the existing command stamp and accepted-state transaction. This receipt is the sole authority for completed status and Trail Compass recipe availability; do not store duplicate recipe-unlock bits.",
+    "completed_semantics": "The permanent receipt keeps completion and recipe availability earned after later building changes. Current-state readiness is evaluated only for accepted quests without that receipt.",
+    "reward": {
+      "kind": "permanent_quest_receipt",
+      "grants_recipe": "recipe.trail-compass.v1",
+      "one_time": true,
+      "requires_inventory_slot": false,
+      "recipe_availability": "Derived from this permanent receipt; no separately persisted recipe flag."
+    },
+    "persistent_fields": [
+      "accepted quest instance, if accepted",
+      "permanent completion/reward receipt, if turned in"
+    ],
+    "dialogue_phase_precedence": [
+      {
+        "phase": "completed",
+        "condition": "Permanent completion/reward receipt exists. This wins regardless of current house contents or later changes."
+      },
+      {
+        "phase": "not-accepted",
+        "condition": "No permanent receipt and no accepted quest instance."
+      },
+      {
+        "phase": "ready",
+        "condition": "Accepted, no permanent receipt, and all current-state home facts pass. Ready is transient display state only."
+      },
+      {
+        "phase": "active",
+        "condition": "Accepted, no permanent receipt, and at least one current-state home fact is missing."
+      }
+    ]
+  },
+  "recipe": {
+    "id": "recipe.trail-compass.v1",
+    "name": "Trail compass",
+    "station": "reachable player Workbench",
+    "cost": {
+      "wood": 2,
+      "stone": 0,
+      "scrap": 4
+    },
+    "output": {
+      "item_kind": 5,
+      "item_id": "adventure.trail-compass.v1",
+      "name": "Trail compass",
+      "quantity": 1,
+      "maximum_stack": 1,
+      "category": "utility"
+    },
+    "craft_semantics": "Prepare one candidate that consumes 2 wood + 4 scrap and adds one compass to the backpack. Validate station reach, permanent quest receipt, materials and output capacity before committing. A failed craft changes nothing. Crafting or backpack possession alone does not activate the compass.",
+    "utility_semantics": "Only actual owned ItemKind 5 quantity 1 in equippedUtility activates compass guidance. The equipped utility is separate from equippedTool, so the field hammer remains equipped. Backpack/chest possession alone never activates guidance.",
+    "capability": "While equippedUtility owns the Trail Compass, show bearing relative to actual camera yaw and horizontal distance from actual player position to the known Old relay. No hidden loot reveal, automatic navigation or relay-repair reward.",
+    "availability": "Permanent completion/reward receipt for quest.a-place-to-return.v1 exists. Do not persist a second recipe-unlock flag.",
+    "equip_semantics": "In one accepted candidate, remove one compass from its backpack source and transfer its ownership into equippedUtility. Unequip or swap transfers the old utility back into a valid inventory destination and validates all capacity before committing. Refusal preserves both equipment and inventory. Do not leave a duplicated source stack as a proxy for equipment ownership."
+  },
+  "dialogue": {
+    "1": [
+      {
+        "phase": "completed",
+        "text": "Your home is a place to return to. Rivet can explain the compass. Lumen knows the relay.",
+        "choices": [
+          {
+            "id": "home.journal",
+            "label": "Show my journal.",
+            "action": "open_home_journal"
+          },
+          {
+            "id": "talk.close",
+            "label": "See you soon.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "not-accepted",
+        "text": "The relay is dark. First, make a home with a roofed bed, a chest and a workbench. Already built one? It counts.",
+        "choices": [
+          {
+            "id": "home.accept",
+            "label": "I will make a home.",
+            "action": "accept_home_quest"
+          },
+          {
+            "id": "talk.later",
+            "label": "Later.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "ready",
+        "text": "A safe bed, storage and a place to work. Your home is ready. Take the trail compass pattern.",
+        "choices": [
+          {
+            "id": "home.claim",
+            "label": "Learn the compass recipe.",
+            "action": "claim_home_reward"
+          },
+          {
+            "id": "talk.later",
+            "label": "Later.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "active",
+        "text": "Use a sheltered bed, then keep a chest and a workbench in that same house. Your journal shows what is missing.",
+        "choices": [
+          {
+            "id": "home.journal",
+            "label": "Show my home task.",
+            "action": "open_home_journal"
+          },
+          {
+            "id": "talk.close",
+            "label": "Back to building.",
+            "action": "close_dialogue"
+          }
+        ]
+      }
+    ],
+    "2": [
+      {
+        "phase": "before_reward",
+        "text": "Moss has a compass pattern. Set up your home first; then we can prepare for the trail.",
+        "choices": [
+          {
+            "id": "rivet.home_hint",
+            "label": "What does my home need?",
+            "action": "show_home_requirements"
+          },
+          {
+            "id": "talk.close",
+            "label": "I will speak to Moss.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "recipe_known_compass_absent",
+        "text": "Two wood and four scrap. Craft a trail compass at your own workbench, then equip it in your utility slot.",
+        "choices": [
+          {
+            "id": "rivet.recipe",
+            "label": "Show the recipe.",
+            "action": "show_compass_recipe"
+          },
+          {
+            "id": "talk.close",
+            "label": "Back to my workbench.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "compass_in_backpack_unequipped",
+        "text": "Your compass is in your pack. Equip it in the utility slot to see its bearing.",
+        "choices": [
+          {
+            "id": "rivet.equip_help",
+            "label": "How do I equip it?",
+            "action": "show_utility_help"
+          },
+          {
+            "id": "talk.close",
+            "label": "I will equip it.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "compass_equipped",
+        "text": "Your equipped compass points toward the relay. Your field hammer stays ready in its own slot.",
+        "choices": [
+          {
+            "id": "rivet.recipe",
+            "label": "Show the recipe.",
+            "action": "show_compass_recipe"
+          },
+          {
+            "id": "talk.close",
+            "label": "Ready for the trail.",
+            "action": "close_dialogue"
+          }
+        ]
+      }
+    ],
+    "3": [
+      {
+        "phase": "before_reward",
+        "text": "The old relay stands north of town. Make a safe home before you head out.",
+        "choices": [
+          {
+            "id": "lumen.relay",
+            "label": "Tell me about the relay.",
+            "action": "show_relay_hint"
+          },
+          {
+            "id": "talk.close",
+            "label": "I will get ready.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "recipe_known_compass_absent",
+        "text": "Make a compass at your workbench, then equip it. The relay is the first place it will guide you.",
+        "choices": [
+          {
+            "id": "lumen.relay",
+            "label": "Which way is the relay?",
+            "action": "show_relay_hint"
+          },
+          {
+            "id": "talk.close",
+            "label": "Back to my workbench.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "compass_in_backpack_unequipped",
+        "text": "Equip the compass from your pack. Then its bearing will lead you toward the old relay.",
+        "choices": [
+          {
+            "id": "lumen.equip_help",
+            "label": "How do I equip it?",
+            "action": "show_utility_help"
+          },
+          {
+            "id": "talk.close",
+            "label": "I will get ready.",
+            "action": "close_dialogue"
+          }
+        ]
+      },
+      {
+        "phase": "compass_equipped",
+        "text": "Follow your equipped compass north. The relay is still silent; its repair comes next.",
+        "choices": [
+          {
+            "id": "lumen.relay",
+            "label": "Show the destination.",
+            "action": "show_relay_hint"
+          },
+          {
+            "id": "talk.close",
+            "label": "I will take a look.",
+            "action": "close_dialogue"
+          }
+        ]
+      }
+    ]
+  },
+  "short_info_panels": {
+    "show_home_requirements": "Use a sheltered bed. Add a chest and a workbench to the same house. An existing home counts.",
+    "show_compass_recipe": "Trail compass: 2 wood + 4 scrap. Craft at your workbench after Moss teaches the pattern, then equip it in the utility slot.",
+    "show_relay_hint": "Old relay: north of town. Equip a trail compass for its bearing and distance. Repairing it is the next chapter.",
+    "show_utility_help": "Open your pack, choose Trail compass, then Equip utility. This keeps your field hammer equipped too."
+  },
+  "ui_suggestions": {
+    "runtime_contract": "Presentation reads the following runtime JSON. It never grants progress from local display state.",
+    "fields": {
+      "quest": {
+        "phase": "not-accepted | active | completed",
+        "ready": "boolean; derived only",
+        "objective": "short player-facing string",
+        "recipeUnlocked": "boolean derived from permanent receipt"
+      },
+      "dialogue": "null or {npcId,name,role,text}",
+      "compass": "{equipped,target:relay|home,label,bearing,distance,available,reason,backpackSlot:0..23|null}",
+      "equippedUtility": "{kind,quantity}; kind5 quantity1 owns compass",
+      "residents": "[{id,name,role,x,y,z,available}]",
+      "menu": "Dialogue | Workbench | Journal | existing titles | empty",
+      "rows": "[{label,enabled}], authoritative menu choices; maximum64"
+    },
+    "actions": {
+      "10": "Choose current common menu row by value index; root validates actual current choice.",
+      "16": "Open journal.",
+      "17": "Equip actual compass backpack slot0..23, or unequip utility with value255.",
+      "18": "Toggle compass target between relay and home.",
+      "15": "Existing DOM focus/input ownership, unchanged.",
+      "7": "Existing nearby interaction, now also residents and real workbench menu."
+    },
+    "bearing_units": "Degrees clockwise from north(-Z). Distance is horizontal metres. The browser arrow may subtract the actual viewing heading using the existing camera.yaw observation; no camera mutation.",
+    "presentation": [
+      "One compact objective and Journal button.",
+      "Dialogue name/role/text directly above the existing common menu rows.",
+      "Workbench costs and eligibility come from those same rows.",
+      "Only real equippedUtility kind5 quantity1 enables navigation.",
+      "Missing home target shows its reason; an equipped player can switch back to relay.",
+      "No world resident list is exposed as teleport buttons or distant interactions.",
+      "No optimistic quest, reward, recipe or inventory changes in the browser."
+    ]
+  },
+  "persistence": {
+    "required": "Explicitly migrate known G-A saves when adding ItemKind5, equippedUtility ownership, accepted quest instance and permanent completion/reward receipt. Existing v1 saves default these new fields to empty. Preserve all old parts, IDs, backpack/chest contents, equippedTool, bed, player pose and depleted-node facts. Derive recipe availability from the permanent receipt; no duplicate recipe bits.",
+    "never": "Do not weaken arbitrary content-hash validation or accept unknown item/quest IDs to make migration pass.",
+    "derived_not_saved": [
+      "NPC idle pose/time",
+      "readiness booleans",
+      "compass bearing/distance",
+      "render labels",
+      "recipe-availability projection",
+      "Ready display state",
+      "runtime resident admission fallback positions"
+    ]
+  },
+  "acceptance": [
+    "Talk to all three residents with ordinary controls and close safely.",
+    "Restore a valid v1 player pose on a new NPC anchor: bounded admission fallback/defer preserves that exact player pose and house.",
+    "Accept with an existing G-A home and see current facts recognized.",
+    "A fresh custom home also qualifies without a hammer or nonempty chest.",
+    "Removing the required chest/bench before turn-in makes an accepted unfinished quest incomplete.",
+    "Completed dialogue takes precedence after later home changes; Ready is never serialized.",
+    "Repeated claim/reload cannot grant another permanent receipt or an independent recipe bit.",
+    "A full backpack still receives permanent quest completion and derived recipe availability; a failed full-backpack compass craft consumes nothing.",
+    "Without the permanent receipt the recipe is unavailable; afterward craft spends exactly 2 wood + 4 scrap and adds actual item5 to the backpack.",
+    "Backpack possession alone leaves guidance off; atomic equip transfers ownership to equippedUtility and enables guidance without changing equippedTool.",
+    "Unequip/swap checks capacity first; refusal cannot duplicate, drop or destroy the utility.",
+    "Native/browser reload retains permanent quest receipt, actual utility ownership and existing home state; recipe availability is derived.",
+    "One representative town interaction image after meaningful implementation; no screenshot loop."
+  ],
+  "dialogue_selection": {
+    "moss": "Use quest.dialogue_phase_precedence exactly: Completed, NotAccepted, then Active readiness. Do not let a later missing chest or bed demote a completed dialogue.",
+    "rivet_and_lumen": [
+      "If no permanent home-quest receipt: before_reward.",
+      "Otherwise if equippedUtility owns item5: compass_equipped.",
+      "Otherwise if backpack contains item5: compass_in_backpack_unequipped.",
+      "Otherwise: recipe_known_compass_absent."
+    ],
+    "ready": "Transient presentation branch of an accepted unfinished quest; recompute and revalidate on choice submission."
+  },
+  "provenance": {
+    "author": "Original Voxys town authored for this project",
+    "external_assets": false,
+    "image_generation": false,
+    "source_draft_sha256": "f159be7c5b497521a5f49c904da18b6337cd50ba6eb09a11f08235d94b4ba95f",
+    "g_a_base_commit": "2d6d0bc154169fc8d73d744ad9392b9c481d0bfd",
+    "geometry_source": "Existing original robot rig and canonical building kit; no new mesh pipeline."
+  },
+  "optional_props_status": "Optional authored ideas only. Do not claim these seats are installed until runtime publishes their visuals and collision together after admission."
+}

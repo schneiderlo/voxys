@@ -92,6 +92,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Build and test the creative interface
+        if: ${{ hashFiles('ui/package-lock.json') != '' }}
+        run: |
+          npm --prefix ui ci
+          npm --prefix ui run build
+          npm --prefix ui test
+          git diff --exit-code -- web/build_ui.js web/build_ui.css web/build_ui_licenses.txt web/build_ui_manifest.json
       - name: Prepare deployment directory
         env:
           VOXY_BUILD_ID: ${{ steps.source.outputs.sha }}

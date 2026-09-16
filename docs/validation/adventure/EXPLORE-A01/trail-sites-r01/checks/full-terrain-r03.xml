@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="0" disabled="0" errors="0" time="3.714" timestamp="2026-09-13T00:50:11.943" name="AllTests">
+  <testsuite name="AdventureTrailSites" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="3.714" timestamp="2026-09-13T00:50:11.943">
+    <testcase name="FourBoundedGroupsUseIdenticalCatalogRenderPiecesAndAcceptedSolids" file="tests/test_adventure_trail_sites.cpp" line="89" status="run" result="completed" time="0.073" timestamp="2026-09-13T00:50:11.943" classname="AdventureTrailSites" />
+    <testcase name="DiscoveryAndRelayUseAdmittedRangeAndSightAndAppendPreservesOldNodes" file="tests/test_adventure_trail_sites.cpp" line="115" status="run" result="completed" time="0.003" timestamp="2026-09-13T00:50:12.017" classname="AdventureTrailSites" />
+    <testcase name="OldPlayerHomeRecoveryAndReservedIdentityDeferWholeGroupsWithoutRewrites" file="tests/test_adventure_trail_sites.cpp" line="142" status="run" result="completed" time="0.018" timestamp="2026-09-13T00:50:12.021" classname="AdventureTrailSites" />
+    <testcase name="FieldHomeUsesLiveOwnedShelterChestAndBenchWithoutChangingRecoveryRegistration" file="tests/test_adventure_trail_sites.cpp" line="170" status="run" result="completed" time="0.003" timestamp="2026-09-13T00:50:12.039" classname="AdventureTrailSites" />
+    <testcase name="FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour" file="tests/test_adventure_trail_sites.cpp" line="191" status="run" result="completed" time="3.614" timestamp="2026-09-13T00:50:12.043" classname="AdventureTrailSites">
+      <properties>
+        <property name="fullTerrainSha256" value="2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965"/>
+        <property name="sceneryGroups" value="4"/>
+        <property name="sceneryPieces" value="23"/>
+        <property name="paidPiers" value="3"/>
+        <property name="stoneCost" value="6"/>
+        <property name="terraceRiseMetres" value="0.95999999999999996"/>
+        <property name="detourEachDirectionMetres" value="37"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

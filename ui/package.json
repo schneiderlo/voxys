@@ -1,0 +1,17 @@
+{
+  "name": "voxys-building-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test-ui.mjs"
+  },
+  "dependencies": {
+    "lucide-preact": "1.46.0",
+    "preact": "10.29.8"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "jsdom": "30.0.1"
+  }
+}

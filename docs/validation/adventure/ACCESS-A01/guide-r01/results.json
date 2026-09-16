@@ -1,0 +1,99 @@
+{
+  "status": "implemented-and-partially-verified",
+  "baseCommit": "2d6d0bc154169fc8d73d744ad9392b9c481d0bfd",
+  "scope": "ACCESS-A01 optional short guide; full onboarding, human accessibility and gameplay gates remain open",
+  "package": {
+    "buildId": "adventure-0a43174f2b40d3c1",
+    "verifiedManifestFiles": 47,
+    "packageManifestSha256": "47b44eeeb49e779e0eb6be4cf7da83cacac63ebda92aaa4db192b4ba40fb863a",
+    "nativeSha256": "18923a8f2324813abf8014deceaa8fce9a4e5d63699f11ed6b6c5a4048a659af",
+    "status": "candidate-quick-guide-verified-ordinary-play-open",
+    "directory": "build-adventure-g-c/web-r07",
+    "url": "http://127.0.0.1:42761/index.html?experience=adventure&telemetry=0",
+    "serverSession": 34181,
+    "browserTab": "12",
+    "schema": 5,
+    "contentIdentity": "b989f53fd82527a42f3e60582f9bb0cdcafced9cfea94b53074cccf37eca290c",
+    "nativeDirectory": "build-adventure-g-c/native-r06",
+    "evidence": "docs/validation/adventure/ACCESS-A01/guide-r01/README.md",
+    "completedGate": false,
+    "browserStartup": "CUA tab12: real startup; Building help -> Home -> selected Starter room restored with unchanged stock; Pause -> How to play -> Saving -> Pause"
+  },
+  "checks": {
+    "core": {
+      "tests": "75",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.995",
+      "log": "checks/core-r01.xml"
+    },
+    "native_layout": {
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.306",
+      "log": "checks/native-layout-r03.xml"
+    },
+    "runtime": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "time": "5.988",
+      "log": "checks/runtime-r02.xml"
+    },
+    "browser_ui": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "duration_ms": 84.711483,
+      "log": "checks/browser-ui-r01.log",
+      "scope": "controlled DOM fixture"
+    }
+  },
+  "buildLogs": [
+    "checks/native-r02.log",
+    "checks/wasm-r02.log"
+  ],
+  "browserInteraction": {
+    "driver": "official CUA",
+    "tab": "12",
+    "build": "adventure-0a43174f2b40d3c1",
+    "steps": [
+      "Startup presents health100, Talk to Moss, Build, Bag and Journal.",
+      "Build -> Starter room selected: cost70 wood /16 stone /8 scrap; stock640/320/80; Place disabled because no ground aimed.",
+      "Building help -> Build something useful; Next tip -> Make a home.",
+      "Return to building restores checked Starter room, same cost and stock; focus is game canvas. No placement.",
+      "Done -> Menu -> How to play shows all six topic titles.",
+      "Keep your adventure explains explicit Save adventure, confirmation and retry; Back to menu returns Paused and focuses How to play."
+    ],
+    "screenshots": 0,
+    "developerStateInjection": false,
+    "worldSaveOperation": false,
+    "rotationProof": "headless runtime only; browser journey does not expose yaw",
+    "finalState": "Paused"
+  },
+  "sourceSha256": {
+    "src/game/adventure/adventure_presentation.hpp": "99781edda8b10194415ed7e5d1341596bf381f04d32c4e948f62a388a2e87492",
+    "src/game/adventure/adventure_presentation.cpp": "e1d404bf4b8f8342532244f9451c886325630dfb0679edb41279851a50dee71c",
+    "src/game/adventure/adventure_runtime.hpp": "9b08acb78b6b9e06b2ebb88d4df3c07ade7564bc76bea8299e61612e4be4e7ce",
+    "src/game/adventure/adventure_runtime.cpp": "90046c5f833b20696647e7d6c14b2c86282fd145490771851bca01d61dc52c57",
+    "src/render/adventure_hud.hpp": "8bf4640051c1dddef2da93dbdf60be9dda8106125e51d8522849a30f85cea74e",
+    "src/render/adventure_hud.cpp": "bcd060d906be73344108cc68e4c013e3acdbb126edb1074cd6c94c83d707ac15",
+    "web/adventure_ui.js": "729937264ca931074f584b6c305989a34911b94cc23ffdd7ca7f0cafc5270c46",
+    "web/adventure_ui.css": "bf84508331f221af66b9cf5e48430acc59336317e13eeb51420943800d34b325",
+    "tests/test_adventure_presentation.cpp": "8015a873bfff5fe13bb62b9dd2b641c37d35b5e6c81bc79a97bf777e463e498c",
+    "tests/test_adventure_runtime.cpp": "f05ced5ee20c4a8521b4f7e325d95213255a50ec649d038d0de583969dc33c05",
+    "tests/test_adventure_hud.cpp": "b104bddd3fe9b90310243203916a06ef3ba4100773a3b668c0bde68e0a15561c",
+    "tools/adventure_assets/test_adventure_ui.mjs": "55640b870839bc99862d12848396e287d1238b5ffd5bfd0cdf5984cd79bc51b6"
+  },
+  "retainedFailures": [
+    "native-layout-r01.xml: invalid assumption that actual short cards exceed160 characters; removed assertion and retained complete actual glyph checks."
+  ],
+  "limits": [
+    "Library input is synthetic, not physical controller acceptance.",
+    "CPU native layout checks are not an ordinary native rendered journey.",
+    "No ordinary walking, paid placement, quest completion or save journey in this checkpoint.",
+    "Human dyslexia/accessibility and visual acceptance remain open.",
+    "No new gate or commit."
+  ]
+}

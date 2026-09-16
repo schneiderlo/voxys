@@ -1,0 +1,535 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-raider-r01",
+  "author": "Voxys original procedural artwork",
+  "license": "Original project artwork; same project distribution terms. No external character/texture inputs or logos.",
+  "profile": "salvage-animated-rigid-v1",
+  "render_to_canonical": 12,
+  "blender": "5.2.1 LTS",
+  "canonical": {
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z",
+    "height": 1.7,
+    "capsule_radius": 0.3,
+    "root_motion": false
+  },
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "palette": {
+    "skin": "F1C94F",
+    "cream": "70794F",
+    "moss": "514E39",
+    "rust": "B66038",
+    "leather": "68442D",
+    "hair": "654A31",
+    "dark": "29231F",
+    "brass": "B89C61"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "glb": "character-lod-0.glb",
+      "glb_sha256": "494f930aa683fe21c89ead9b869d7b43c0488bdb169f816f1ad68dbd41a6769e",
+      "blend": "character-lod-0.blend",
+      "blend_sha256": "9527e5816f603ba22062e0120227149381ad1f3d4aa67c37eb8c099accfe16e6",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 31,
+      "vertices": 9486,
+      "triangles": 5618,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013320961810613527
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06043939317712406
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06737922279056387
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005402141375408035
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014864115014713523
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001557396821536078
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0054021413754080354
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014864115042612262
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0018644421653355074
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428925097504694
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589605000568
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428925097504694
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589605000564
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "glb": "character-lod-1.glb",
+      "glb_sha256": "155edb5baada95a941fefe47a84c7043b65fb522032be7b1459ab958eedc326f",
+      "blend": "character-lod-1.blend",
+      "blend_sha256": "fc735b0b9ad3932fc3cddb7cdbde1fd73def5f87204e03250fba4f009fc0f8bb",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 31,
+      "vertices": 4859,
+      "triangles": 3098,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013235192345927876
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06020382012292319
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06599865472845419
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005293678534095223
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001437438584651293
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001423403675901726
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005293678534095223
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014374385846512927
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0018196708751061941
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018373565581476837
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253281005825
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.01837356558147683
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253281005826
+        }
+      ]
+    },
+    {
+      "lod": 2,
+      "glb": "character-lod-2.glb",
+      "glb_sha256": "2ca92a5c712675f26b634011ea756681b109af5b807f0161dadaeb101b75ec61",
+      "blend": "character-lod-2.blend",
+      "blend_sha256": "4eb366125097992b29adac3207d0a19a3fc153af948128cff563ad6f39b87558",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 31,
+      "vertices": 2471,
+      "triangles": 1658,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013445820488226852
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.060571898528924625
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06334636071702862
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00499092770530326
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014445422402926467
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00012840281104747295
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004990927705303261
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014445422402926465
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0017548223040167277
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018508673660856286
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006595119978631138
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018508673660856286
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006595119978631138
+        }
+      ]
+    }
+  ],
+  "silhouette": "Original open-front brown toy hood, yellow cylinder head with determined printed eyes/grin, moss sleeves, earthy trapezoid jerkin, rust strap, short block legs and C-shaped toy hands.",
+  "staff": {
+    "parent": "robot_hand_r",
+    "geometry": "Solid wood cylinder, wrapped grip and blunt cap; 0.806 m full axial span.",
+    "role": "Fixed cosmetic geometry riding the existing rigid right-hand pose. No weapon collider, damage timing or gameplay authority."
+  },
+  "animation": "Existing eight rigid toy clips unchanged. Tool is a preliminary lifted-staff gesture; authored combat wind-up/recovery timing remains future work.",
+  "frozen_character_files": {
+    "data/adventure/human-r01/README.md": "4722e2d304fe1a14addf34d925fc0fe76e15223d7ead049e6f7a43a162a0e9da",
+    "data/adventure/human-r01/geometry-check.json": "d475164f3518c2c2919c21532ae47c9f52bf33159f7bc5c399485633a8715c62",
+    "data/adventure/human-r01/human.vmesh": "2d86136c1ce5842a6e0da3dd3e890ef151f48a943ef7aca7b414186f1a43b1e2",
+    "data/adventure/human-r01/lod1.vmesh": "ea6182ae040181eeb04bfad4b42687b7f84e1336a15dfb1382a000adccb0c42c",
+    "data/adventure/human-r01/lod2.vmesh": "47b330077d922fe49cc7c72ea3a077d657c2c16b4a8a14124bc6387cb2026401",
+    "data/adventure/human-r01/manifest.json": "d08532cb292d4e996165d29746198adebe3d03eec6b72be62f338024e39e0af1",
+    "data/adventure/human-r01/proof.json": "248fc53baf28530a80ef5dc0996ec5de1346fd1e9e9514feb226ada83f7a654b",
+    "data/adventure/human-r01/proof.png": "0a45be9a333e3278047a176f646f0e9a1131e84a6a2680f3a94ce6c48ce0a583",
+    "data/adventure/human-r01/provenance.json": "97311fc468b341208a423589da3fbbfdf175d3e2fbc41129c1ee018695677b10",
+    "data/adventure/human-r01/source/human-lod-0.blend": "08ab44624863b1e75cdeac2f75ac438fb09368a3a1c7c76db630f7e0368b8e3a",
+    "data/adventure/human-r01/source/human-lod-0.glb": "84541d7429491a81fc4e771fd74be11de2d1358aaa19b16a3db71cf023a7ab01",
+    "data/adventure/human-r01/source/human-lod-1.blend": "d21a4e8508c02cbd4de5746ea72d4f8c0f6d1038428f3feaa495352a1e1dbdc5",
+    "data/adventure/human-r01/source/human-lod-1.glb": "78ddcb18dcdb5fb2bf2d87924977748d13dec408b364f2829235c0afecba08f9",
+    "data/adventure/human-r01/source/human-lod-2.blend": "6a8ead3c1cb67589cb31212bc60c7e80adcf5c6a169ea3de860c5815bdcaf4f1",
+    "data/adventure/human-r01/source/human-lod-2.glb": "0ae5b95c2a72d5dd77163de6c8e309d7683d6281b007e50a5ae007a823c5feb7",
+    "data/adventure/residents-r01/README.md": "f362277077f60e3f0d4b6784e771bd6e23a28fac1ec6db0fc07d15416f0a1baa",
+    "data/adventure/residents-r01/geometry-check.json": "808c4ab3d863e4b65f35e65e14a6fc844dda09aad727defef96050ebd8c7b14e",
+    "data/adventure/residents-r01/lumen/character.vmesh": "1a3c4dcde427a80290145bd639afe67bb7876b0f87f59aafdae1086fd198d4cf",
+    "data/adventure/residents-r01/lumen/lod1.vmesh": "1889c264d361e8a23b46f72addae2556518469414153757905f9fcae59beceec",
+    "data/adventure/residents-r01/lumen/lod2.vmesh": "4e8b4009e0ea97cc8eb962d52034c911b4973104df7329b7657c8a4e7d6d65a5",
+    "data/adventure/residents-r01/lumen/manifest.json": "b3c35b373f6b1a0b54257d0cabb321189595ec9d2f5346df7b8c2b9fc59d1a4c",
+    "data/adventure/residents-r01/lumen/provenance.json": "ee41de714446ec1e345fb6f008033097479c76c56ee8bd4663849fc2b77e1ee9",
+    "data/adventure/residents-r01/lumen/source/character-lod-0.blend": "da57b3816be66b58f0d57be457d574ecaf2d6646163913080763d8b5fd71fb80",
+    "data/adventure/residents-r01/lumen/source/character-lod-0.glb": "7ecb986c1fbdc88579363babcd3f5615f479f6726896d860ec30e180b1f58cf8",
+    "data/adventure/residents-r01/lumen/source/character-lod-1.blend": "fd8c15128f14ee1028cc021e60c33e7028e01e9c151ceb299fe6981410a630f6",
+    "data/adventure/residents-r01/lumen/source/character-lod-1.glb": "a5792e85d9657211f0d5977c53e07d267109bf4b527233241fd9dd94267acdf6",
+    "data/adventure/residents-r01/lumen/source/character-lod-2.blend": "c68b5b5f614d1a6ef50159b27b43ab67076558b90e8d794d86977d60236d911d",
+    "data/adventure/residents-r01/lumen/source/character-lod-2.glb": "e0abeb18f2f2d2599971fc8a1d749c15d2355d743319d3e4b66f3870d49dc167",
+    "data/adventure/residents-r01/moss/character.vmesh": "cddf90a84bd77ab563ea3424f7cb69c6de329db4e127a9a6b8de059a87c81c9c",
+    "data/adventure/residents-r01/moss/lod1.vmesh": "0a65a8a87d9411b1ccabda2f28aa0acf97c41acabc2221b302112e0240946e14",
+    "data/adventure/residents-r01/moss/lod2.vmesh": "08475abcf35bb13bb5e528d98002051efa30ec87cfd3cd747a80735bae774594",
+    "data/adventure/residents-r01/moss/manifest.json": "ebac0383c140e4bdd7d879842cd15819ebfe4123ed47adc636eec01ef1555d97",
+    "data/adventure/residents-r01/moss/provenance.json": "ab54e40b930268b7fe2972861e006d2175e7249fae5335984b0f6ba2e4c992fc",
+    "data/adventure/residents-r01/moss/source/character-lod-0.blend": "c24a4a76aca848cb08ccfdae3aedf3bec72849c5fd97656201d38900e611e8ac",
+    "data/adventure/residents-r01/moss/source/character-lod-0.glb": "d8fc460fa5be7618545b4b3f4b2430eb0f97a1da9566dbe6dbf4dd0484d75d2f",
+    "data/adventure/residents-r01/moss/source/character-lod-1.blend": "7bfb133cbee6ea5110de532a917e144b0a52de33110214641843a31b62e64eec",
+    "data/adventure/residents-r01/moss/source/character-lod-1.glb": "d64dcb9c497858c043944e94b1a78d35fa30a31cc11e980d13a2ddbfeb1f551d",
+    "data/adventure/residents-r01/moss/source/character-lod-2.blend": "28317d509d8f97a0869366872f12ec1e416856852282060d4374a295b8a97bcd",
+    "data/adventure/residents-r01/moss/source/character-lod-2.glb": "7de36433a84063550499d1c7ad933f3aad0eb7ac42ac70ae757aac733c856185",
+    "data/adventure/residents-r01/proof.json": "1a8f8146027b258332634fbe499277fd525ca73ab58faa70b829d66d776026cb",
+    "data/adventure/residents-r01/proof.png": "dba349fd284cf40c7ecf09ef8649c80b29ba890dba3efde3e6446a2147eaa867",
+    "data/adventure/residents-r01/rivet/character.vmesh": "df7ed40c7874b8e60753079630dd659a4d2f200cdb49bb63419e9ec2a1cf9c4c",
+    "data/adventure/residents-r01/rivet/lod1.vmesh": "0517d6ea102a88dc76cf6abb9baf18e7d3be684acb5228faa658c0fc4ebf4c01",
+    "data/adventure/residents-r01/rivet/lod2.vmesh": "997c0fd844c88c29c62daa3412622f5d466c1c1d983701bd88106ee743b6ef05",
+    "data/adventure/residents-r01/rivet/manifest.json": "70edf394b0bae7fa795472c47bc29fa39de97ac71aa5c23f0d1518697544feb1",
+    "data/adventure/residents-r01/rivet/provenance.json": "c3363c2616cf6f9ceb817d106892015bbb81e4c2f36019147561c368a12b4ade",
+    "data/adventure/residents-r01/rivet/source/character-lod-0.blend": "4098026aef38bd5f0cef152cf642b0f15662f5564cf0848d8839a0b22de777bf",
+    "data/adventure/residents-r01/rivet/source/character-lod-0.glb": "228f952c81bcf3da3907608ea5e8eb99d8311dda00e4807c5e68bd8765713af7",
+    "data/adventure/residents-r01/rivet/source/character-lod-1.blend": "8929185f2281e31cd89a5ee6bc3d6af739ff1d3a3ebd334f168ad0b69827a5b3",
+    "data/adventure/residents-r01/rivet/source/character-lod-1.glb": "3dd700403c637f46a5a0e413fd21ebd6040993958a7f764417531f9754fb28ca",
+    "data/adventure/residents-r01/rivet/source/character-lod-2.blend": "e03d6794ac4ca4b75c8ae7c112a59494487db3db32094d1d092c4fbff526d4c3",
+    "data/adventure/residents-r01/rivet/source/character-lod-2.glb": "c63f1c6365f69b798ebae584be995cfb5c546471986a52e602a1a879f3069f0b"
+  },
+  "inputs": {
+    "tools/adventure_assets/author_human_adventurer.py": "ec37c468f107f839c5f6bc080abd2deae2478c8901d2d8cf37a754e304ee37ac",
+    "tools/adventure_assets/author_resident_minifigures.py": "d9cfe04bc520a1dc22df74a67557156f6ea0b69ee3ce699f6f7e58729ec14a2b",
+    "tools/adventure_assets/check_human_adventurer.py": "3d68f7afc3b1b49a9af602f61b03529bf3c580ad74f80b752501b4c0064eceec",
+    "tools/salvage_assets/check_cove_robot.py": "d38c4fe0ee057f63c160a01963bb67d6106b14102fec26b927bd55e6276777ef",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_robot.py": "fd05335fb233456d562549c091db8a651e5617ce383e9f81dc546f245e5f7832"
+  },
+  "generator_sha256": "cd28f1d3583e0a82f163bb8e871daea2a077c0d3963a7b35d22c5fc625381ffc",
+  "scope": "Original first trail enemy appearance only. Does not alter player/resident packages, movement, saves, actor IDs, runtime registry or gameplay."
+}

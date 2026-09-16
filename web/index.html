@@ -504,7 +504,10 @@
     <script src="expedition_store.js"></script>
     <script src="cove_saves.js"></script>
     <script src="adventure_saves.js"></script>
+    <script src="adventure_preferences.js"></script>
     <script src="adventure_ui.js"></script>
+    <script src="build_ui.js"></script>
+    <link rel="stylesheet" href="build_ui.css">
     <link rel="stylesheet" href="adventure_ui.css">
     <script src="controller_menu.js"></script>
     <script src="design_library.js"></script>
@@ -523,10 +526,11 @@
     <script>
         // Global module reference
         let voxyModule = null;
-        // The building adventure is the main entry. Legacy scene URLs retain
+        // Free building is the main entry. Legacy scene URLs retain
         // their own content and saved-world identities.
-        const experience = new URLSearchParams(location.search).get('experience') || 'adventure';
-        const adventure = experience === 'adventure';
+        const experience = new URLSearchParams(location.search).get('experience') || 'build';
+        const creative = experience === 'build';
+        const adventure = creative || experience === 'adventure';
         const legoShore = experience === 'lego';
         const legoWorld = experience === 'lego-world';
         const salvageAssembly = experience === 'salvage-assembly';
@@ -869,7 +873,17 @@
         }
 
         // Short, in-world loading messages keep the first impression focused.
-        const loadingPhrases = [
+        const loadingPhrases = creative ? [
+            "Opening your building space...",
+            "Preparing the bricks...",
+            "Making room for your ideas..."
+        ] : adventure ? [
+            "Opening the meadow...",
+            "Preparing your building pieces...",
+            "Finding a path into town...",
+            "Getting your supplies ready...",
+            "Making room for your next adventure..."
+        ] : [
             "Cutting the first racing line...",
             "Packing the berms...",
             "Reading the ruts...",
@@ -1067,7 +1081,7 @@
 
                 // Set the text of the landing face
                 if (this.faces[targetIndex]) {
-                    this.faces[targetIndex].textContent = "READY_TO_RENDER";
+                    this.faces[targetIndex].textContent = creative ? "READY TO BUILD" : adventure ? "ADVENTURE READY" : "READY_TO_RENDER";
                     this.faces[targetIndex].style.color = "var(--color-accent)";
                 }
             }
@@ -1314,6 +1328,7 @@
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
+                            : creative ? ['--config', 'free_build.cfg']
                             : adventure ? ['--config', 'adventure.cfg']
                             : salvageCove ? ['--config', 'salvage_cove.cfg']
                             : salvageKit ? ['--config', salvageKitConfigs[experience]]
@@ -1381,18 +1396,18 @@
 
                 if(coveWorld!==null)await VoxyCoveSaves.resume(voxyModule,coveWorld,coveArguments);
                 if(adventure) {
-                    document.title='Voxys — Building Adventure';
+                    document.title=creative?'Voxys — Free Build':'Voxys — Building Adventure';
                     canvas.tabIndex=0;canvas.addEventListener('pointerdown',()=>{canvas.focus({preventScroll:true});voxyModule._adventure_action(15,0);});
                     const params=new URLSearchParams(location.search);
-                    const store=await VoxyAdventureSaves.open({newWorld:params.get('new')==='1',world:params.get('world')||undefined});
+                    const store=await VoxyAdventureSaves.open({profile:creative?'build':'adventure',newWorld:params.get('new')==='1',world:params.get('world')||undefined});
                     const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
                     try {
                         if(voxyModule.ccall('adventure_stage','number',['string','string'],[store.world,hex(store.loadedBytes)])!==1)
-                            throw Error('The adventure could not be prepared.');
+                            throw Error('The world could not be prepared.');
                         voxyModule.callMain(coveArguments);
                         const deadline=Date.now()+120000;
                         while(voxyModule._voxy_is_initialized()!==1&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,50));
-                        if(voxyModule._voxy_is_initialized()!==1)throw Error('The adventure did not start. Your saves are kept.');
+                        if(voxyModule._voxy_is_initialized()!==1)throw Error('The world did not start. Your saves are kept.');
                         await store.setValidator(bytes=>voxyModule.ccall('adventure_validate_hex','number',['string'],[hex(bytes)])===1);
                     }
                     catch(error){await store.close();throw error;}
@@ -1402,7 +1417,7 @@
                         try {
                             voxyModule.ccall('adventure_save_completed',null,['string'],['Saving...']);
                             const text=voxyModule.ccall('adventure_snapshot_hex','string',[],[]);
-                            if(!text)throw Error('The adventure is not ready to save.');
+                            if(!text)throw Error('The world is not ready to save.');
                             const bytes=Uint8Array.from(text.match(/../g),v=>parseInt(v,16));
                             await store.publish(bytes);
                             // Bookmark metadata is optional; it cannot change a
@@ -1410,14 +1425,14 @@
                             try {
                                 const savedUrl=new URL(location.href);savedUrl.searchParams.delete('new');savedUrl.searchParams.set('world',store.world);history.replaceState(null,'',savedUrl);
                             }catch{}
-                            voxyModule.ccall('adventure_save_completed',null,['string'],['Saved adventure']);
+                            voxyModule.ccall('adventure_save_completed',null,['string'],[creative?'Saved build':'Saved adventure']);
                         }catch(error){voxyModule.ccall('adventure_save_completed',null,['string'],[String(error.message||error)]);}
                         finally {
                             if(saveAgain&&!store.closed){saveAgain=false;void window.voxyAdventureSaveRequested();}
                         }
                     };
                     VoxyCoveSaves.installContinue();
-                    window.VoxyAdventureUI.install(voxyModule,window);
+                    (creative ? window.VoxyBuildUI : window.VoxyAdventureUI).install(voxyModule,window);
                 }
 
                 setupPhysicsBackendSwitcher();
@@ -1776,7 +1791,7 @@
                 // Touch input support for mobile devices
                 setupTouchControls(canvas);
 
-                console.log('RIDGEBREAK initialized successfully');
+                console.log(adventure ? 'Building adventure initialized successfully' : 'Voxys initialized successfully');
 
             } catch (err) {
                 console.error('Initialization failed:', err);

@@ -1,0 +1,29 @@
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureTrailSites
+[ RUN      ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+tests/test_adventure_trail_sites.cpp:207: Failure
+Value of: walk(installed,blocked,{22,-923},120)
+  Actual: true
+Expected: false
+
+tests/test_adventure_trail_sites.cpp:207: Failure
+Expected: (blocked.feet().x) < (21.7), actual: 22 vs 21.7
+
+tests/test_adventure_trail_sites.cpp:228: Failure
+Value of: walk(built,walker,{21.2,-923})
+  Actual: false
+Expected: true
+
+[  FAILED  ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour (3611 ms)
+[----------] 1 test from AdventureTrailSites (3611 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (3611 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+
+ 1 FAILED TEST

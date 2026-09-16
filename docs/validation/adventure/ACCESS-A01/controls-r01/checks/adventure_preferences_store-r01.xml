@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="6" failures="0" disabled="0" errors="0" time="0.025" timestamp="2026-09-13T05:52:22.342" name="AllTests">
+  <testsuite name="AdventurePreferencesStore" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0.025" timestamp="2026-09-13T05:52:22.342">
+    <testcase name="CreatesMissingParentsAndFreshObjectReopensExactAtomicReplacement" file="tests/test_adventure_preferences_store.cpp" line="40" status="run" result="completed" time="0.011" timestamp="2026-09-13T05:52:22.342" classname="AdventurePreferencesStore" />
+    <testcase name="EmptyCorruptOversizedAndMissingReadsPreserveActiveSettings" file="tests/test_adventure_preferences_store.cpp" line="62" status="run" result="completed" time="0." timestamp="2026-09-13T05:52:22.353" classname="AdventurePreferencesStore" />
+    <testcase name="SymlinkFileAndDirectParentAreNeverFollowedOrReplaced" file="tests/test_adventure_preferences_store.cpp" line="75" status="run" result="completed" time="0.008" timestamp="2026-09-13T05:52:22.354" classname="AdventurePreferencesStore" />
+    <testcase name="DirectoryAndFifoRefuseWithoutBlockingOrReplacingTheirEntries" file="tests/test_adventure_preferences_store.cpp" line="93" status="run" result="completed" time="0." timestamp="2026-09-13T05:52:22.362" classname="AdventurePreferencesStore" />
+    <testcase name="InvalidSettingsAndUnavailableDestinationsPreserveConfirmedBytes" file="tests/test_adventure_preferences_store.cpp" line="105" status="run" result="completed" time="0.004" timestamp="2026-09-13T05:52:22.362" classname="AdventurePreferencesStore" />
+    <testcase name="InvalidPathsCannotRedirectReadsOrWrites" file="tests/test_adventure_preferences_store.cpp" line="118" status="run" result="completed" time="0." timestamp="2026-09-13T05:52:22.367" classname="AdventurePreferencesStore" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,107 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 3 targets (1 packages loaded, 0 targets configured)
+Analyzing: 3 targets (1 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (1 packages loaded, 924 targets configured)
+
+INFO: Analyzed 3 targets (4 packages loaded, 2683 targets configured).
+[81 / 108] Compiling tests/test_cove_input_preferences.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[82 / 108] Compiling tests/test_cove_input_preferences.cpp; 2s linux-sandbox ... (4 actions running)
+[93 / 109] Compiling src/game/adventure/village_layout.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[98 / 109] Compiling src/game/adventure/construction_policy.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[106 / 117] 1 / 3 tests; Compiling src/game/adventure/layered_navigation.cpp; 1s linux-sandbox ... (4 actions running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:1520:8: Compiling tests/test_adventure_preferences_store.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:adventure_preferences_store) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 96 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_adventure_preferences_store.cpp: In member function 'virtual void {anonymous}::AdventurePreferencesStore_EmptyCorruptOversizedAndMissingReadsPreserveActiveSettings_Test::TestBody()':
+tests/test_adventure_preferences_store.cpp:64:123: error: expected ')' before '}' token
+   64 |     for(const auto& payload:std::array<std::string,3>{{"","{broken",std::string(kMaximumAdventurePreferencesBytes+1,' ')}}}) {
+      |        ~                                                                                                                  ^
+      |                                                                                                                           )
+tests/test_adventure_preferences_store.cpp:64:123: error: expected primary-expression before '}' token
+tests/test_adventure_preferences_store.cpp:64:21: error: unused variable 'payload' [-Werror=unused-variable]
+   64 |     for(const auto& payload:std::array<std::string,3>{{"","{broken",std::string(kMaximumAdventurePreferencesBytes+1,' ')}}}) {
+      |                     ^~~~~~~
+tests/test_adventure_preferences_store.cpp: At global scope:
+tests/test_adventure_preferences_store.cpp:64:124: error: expected unqualified-id before ')' token
+   64 |     for(const auto& payload:std::array<std::string,3>{{"","{broken",std::string(kMaximumAdventurePreferencesBytes+1,' ')}}}) {
+      |                                                                                                                            ^
+In file included from external/googletest+/googletest/include/gtest/gtest-message.h:57,
+                 from external/googletest+/googletest/include/gtest/gtest-assertion-result.h:46,
+                 from external/googletest+/googletest/include/gtest/gtest.h:64,
+                 from tests/test_adventure_preferences_store.cpp:2:
+tests/test_adventure_preferences_store.cpp:68:5: error: expected unqualified-id before 'switch'
+   68 |     ASSERT_TRUE(std::filesystem::remove(path));
+      |     ^~~~~~~~~~~
+In file included from external/googletest+/googletest/include/gtest/gtest-printers.h:122,
+                 from external/googletest+/googletest/include/gtest/gtest-matchers.h:49,
+                 from external/googletest+/googletest/include/gtest/internal/gtest-death-test-internal.h:47,
+                 from external/googletest+/googletest/include/gtest/gtest-death-test.h:43,
+                 from external/googletest+/googletest/include/gtest/gtest.h:65:
+tests/test_adventure_preferences_store.cpp:68:5: error: expected unqualified-id before 'else'
+   68 |     ASSERT_TRUE(std::filesystem::remove(path));
+      |     ^~~~~~~~~~~
+tests/test_adventure_preferences_store.cpp:69:5: error: expected unqualified-id before 'switch'
+   69 |     EXPECT_EQ(loadNativeAdventurePreferences(path,active,message),AdventurePreferencesStatus::Missing);EXPECT_EQ(active,initial);
+      |     ^~~~~~~~~
+In file included from external/googletest+/googletest/include/gtest/gtest.h:72:
+tests/test_adventure_preferences_store.cpp:69:5: error: expected unqualified-id before 'else'
+   69 |     EXPECT_EQ(loadNativeAdventurePreferences(path,active,message),AdventurePreferencesStatus::Missing);EXPECT_EQ(active,initial);
+      |     ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:69:104: error: expected unqualified-id before 'switch'
+   69 |     EXPECT_EQ(loadNativeAdventurePreferences(path,active,message),AdventurePreferencesStatus::Missing);EXPECT_EQ(active,initial);
+      |                                                                                                        ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:69:104: error: expected unqualified-id before 'else'
+   69 |     EXPECT_EQ(loadNativeAdventurePreferences(path,active,message),AdventurePreferencesStatus::Missing);EXPECT_EQ(active,initial);
+      |                                                                                                        ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:70:24: error: 'directory' was not declared in this scope; did you mean 'std::filesystem::file_type::directory'?
+   70 |     const auto blocked=directory/"parent-is-file";write(blocked,"retained parent bytes");
+      |                        ^~~~~~~~~
+      |                        std::filesystem::file_type::directory
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/filesystem:53,
+                 from src/engine/platform/native/adventure_preferences_store.hpp:4,
+                 from tests/test_adventure_preferences_store.cpp:1:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/fs_fwd.h:79:46: note: 'std::filesystem::file_type::directory' declared here
+   79 |       none = 0, not_found = -1, regular = 1, directory = 2, symlink = 3,
+      |                                              ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:70:56: error: expected constructor, destructor, or type conversion before '(' token
+   70 |     const auto blocked=directory/"parent-is-file";write(blocked,"retained parent bytes");
+      |                                                        ^
+tests/test_adventure_preferences_store.cpp:71:5: error: expected unqualified-id before 'switch'
+   71 |     EXPECT_EQ(loadNativeAdventurePreferences(blocked/"settings.json",active,message),AdventurePreferencesStatus::Unavailable);
+      |     ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:71:5: error: expected unqualified-id before 'else'
+   71 |     EXPECT_EQ(loadNativeAdventurePreferences(blocked/"settings.json",active,message),AdventurePreferencesStatus::Unavailable);
+      |     ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:72:5: error: expected unqualified-id before 'switch'
+   72 |     EXPECT_EQ(active,initial);EXPECT_EQ(bytes(blocked),"retained parent bytes");
+      |     ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:72:5: error: expected unqualified-id before 'else'
+   72 |     EXPECT_EQ(active,initial);EXPECT_EQ(bytes(blocked),"retained parent bytes");
+      |     ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:72:31: error: expected unqualified-id before 'switch'
+   72 |     EXPECT_EQ(active,initial);EXPECT_EQ(bytes(blocked),"retained parent bytes");
+      |                               ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:72:31: error: expected unqualified-id before 'else'
+   72 |     EXPECT_EQ(active,initial);EXPECT_EQ(bytes(blocked),"retained parent bytes");
+      |                               ^~~~~~~~~
+tests/test_adventure_preferences_store.cpp:136:1: error: expected declaration before '}' token
+  136 | }
+      | ^
+tests/test_adventure_preferences_store.cpp:70:16: error: '{anonymous}::blocked' defined but not used [-Werror=unused-variable]
+   70 |     const auto blocked=directory/"parent-is-file";write(blocked,"retained parent bytes");
+      |                ^~~~~~~
+cc1plus: all warnings being treated as errors
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 8.590s, Critical Path: 2.64s
+INFO: 39 processes: 72 action cache hit, 12 internal, 27 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:adventure_preferences                                         NO STATUS
+//tests:adventure_preferences_store                             FAILED TO BUILD
+//tests:cove_input_preferences                                           PASSED in 0.1s
+
+Executed 1 out of 3 tests: 1 test passes, 1 fails to build, and 1 was skipped.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

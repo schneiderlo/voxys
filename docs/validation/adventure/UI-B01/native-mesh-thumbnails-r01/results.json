@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "scope": "Native actual-mesh thumbnail geometry, clipping, upload capacity and GPU lifecycle; not frame-rate evidence.",
+  "cpu": {
+    "target": "//tests:adventure_hud_layout",
+    "filter": "AdventureHud.*",
+    "passed": 8,
+    "milliseconds": 88
+  },
+  "gpu": {
+    "target": "//tests:adventure_hud_layout",
+    "filter": "AdventureHudGpu.*",
+    "passed": 1,
+    "milliseconds": 378,
+    "adapter": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "backend": "Vulkan",
+    "viewport": [
+      1920,
+      480
+    ],
+    "meshColorSamples": 454,
+    "validationErrors": 0
+  },
+  "limits": {
+    "visibleCards": 7,
+    "installedVisibleTriangles": 3350,
+    "largestPieceTriangles": 812,
+    "triangleInstances": 5684,
+    "drawVertices": 17052,
+    "iconBufferBytes": 159152,
+    "hudGpuResidentBytes": 327088
+  },
+  "generatorCheck": "python3 tools/adventure_assets/generate_piece_thumbnails.py --check passed; existing browser SVG bytes unchanged.",
+  "sourceSha256": {
+    "src/render/adventure_hud.hpp": "5d9498f99f96efdc8daa8ca8f21b20dfa6bc1ddc7fec0b1d4faca0deddcccffa",
+    "src/render/adventure_hud.cpp": "eec962fdedb8b0ce6e8070255aae6e5ebb01e8f75e9ea193171269858f4a4e0f",
+    "src/render/generated/adventure_piece_thumbnails.hpp": "1e44a8551ad849a7769db1b0ecedd2e9ad95d5a1162073c53c68687d1100513d",
+    "shaders/adventure_hud_triangles.wgsl": "8db8e718f106de487c8d32e4a497c37166659289750fc9650ee2824374e39ab2",
+    "tests/test_adventure_hud.cpp": "c8c75a7280e8bfb4dc3385dac99b876c67e6fd48465bc1255672a91c4ee67cec",
+    "tools/adventure_assets/generate_piece_thumbnails.py": "5495ad44b657787913033c669e4bb9e8f9661dbddbead334f44fd388a046cfde",
+    "web/adventure_piece_manifest.json": "a38688893b3d6cad63f1fa0e6be84b6826af5bf3f30f7f859d60279cf143cbe9",
+    "web/index.html": "70f4d11a7dd391ebfe8f7e78e8d419021607ac54c10327f91fb43bcf8bada6fd"
+  }
+}

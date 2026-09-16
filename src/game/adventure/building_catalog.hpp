@@ -10,15 +10,16 @@
 
 namespace voxy::game::adventure {
 
-// Frozen content IDs. The installed mesh index is uint32_t(kind) - 1.
+// Frozen content IDs. IDs 1–14 use legacy mesh kind-1. HingedDoor reuses
+// Doorway's frame plus the separate articulated leaf add-on.
 enum class PieceKind : uint8_t {
     Foundation = 1, Floor, Wall, Doorway, Roof, Stair, Beam,
-    Brick1x2, Brick2x2, Brick2x4, Bed, Chest, Workbench, Pier, Count
+    Brick1x2, Brick2x2, Brick2x4, Bed, Chest, Workbench, Pier, HingedDoor, Count
 };
-enum class FurnitureKind : uint8_t { None, Bed, Chest, Workbench };
+enum class FurnitureKind : uint8_t { None, Bed, Chest, Workbench, Door };
 using GridBox = geometry::GridBox;
 using BuildingCost = MaterialCost;
-inline constexpr size_t kBuildingPieceCount = 14;
+inline constexpr size_t kBuildingPieceCount = 15;
 
 struct BuildingDefinition {
     PieceKind kind{};
@@ -36,8 +37,9 @@ struct BuildingDefinition {
 [[nodiscard]] std::span<const BuildingDefinition> buildingCatalog() noexcept;
 [[nodiscard]] const BuildingDefinition* buildingDefinition(PieceKind) noexcept;
 [[nodiscard]] bool pieceKindValid(uint32_t) noexcept;
-// SHA-256 of the installed canonical JSON source. Part of adventure content
-// identity; change both generated catalog and installed geometry together.
+// Domain-separated SHA-256 of the frozen legacy JSON plus the door add-on.
+// Legacy identity remains explicit for exact schema1–5 migration.
 [[nodiscard]] std::string_view buildingCatalogFingerprint() noexcept;
+[[nodiscard]] std::string_view legacyBuildingCatalogFingerprint() noexcept;
 
 } // namespace voxy::game::adventure

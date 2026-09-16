@@ -1,0 +1,32 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 7 targets (0 packages loaded, 0 targets configured)
+Analyzing: 7 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 7 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 7 targets (1 packages loaded, 62 targets configured).
+[25 / 133] Compiling src/game/adventure/layered_navigation.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[27 / 133] Compiling tests/test_adventure_village.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[98 / 150] Compiling tests/test_adventure_session.cpp; 2s linux-sandbox ... (4 actions running)
+[111 / 150] Compiling tests/test_adventure_world.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[115 / 150] Compiling tests/test_adventure_town.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[117 / 150] Compiling tests/test_adventure_construction_policy.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[136 / 150] Compiling tests/test_adventure_trail_presentation.cpp; 1s linux-sandbox ... (4 actions running)
+[147 / 154] Linking tests/adventure_blueprints; 0s linux-sandbox ... (4 actions running)
+[156 / 157] 7 / 7 tests; Testing //tests:adventure; 1s linux-sandbox
+INFO: Found 7 test targets...
+INFO: Elapsed time: 12.176s, Critical Path: 3.76s
+INFO: 45 processes: 112 action cache hit, 2 internal, 43 linux-sandbox.
+INFO: Build completed successfully, 45 total actions
+//tests:adventure                                                        PASSED in 1.0s
+//tests:adventure_blueprints                                             PASSED in 0.0s
+//tests:adventure_combat_session                                         PASSED in 0.0s
+//tests:adventure_side_quest                                             PASSED in 0.0s
+//tests:adventure_trail_presentation                                     PASSED in 0.0s
+//tests:adventure_trail_session                                          PASSED in 0.0s
+//tests:native_adventure_saves                                           PASSED in 0.2s
+
+Executed 7 out of 7 tests: 7 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

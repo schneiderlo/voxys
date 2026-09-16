@@ -1,0 +1,475 @@
+{
+  "recordVersion": 1,
+  "archivedUtc": "2026-09-13T03:36:54.405135+00:00",
+  "status": "foundation checks passed; AI-A01 and G-C remain open",
+  "baseCommit": "2d6d0bc154169fc8d73d744ad9392b9c481d0bfd",
+  "sourceState": "working tree; source hashes below identify this foundation",
+  "limits": {
+    "cellMetres": 0.5,
+    "tileMetres": 4,
+    "maximumTiles": 64,
+    "maximumTilesPerAxis": 8,
+    "maximumRegionMetresPerAxis": 32,
+    "maximumLayersPerColumn": 8,
+    "maximumNodes": 32768,
+    "walkableQueryDistinctSupportLimit": 64,
+    "defaultColumnsPerAdvance": 16,
+    "defaultCombinedEndpointChecksAndExpansionsPerAdvance": 4,
+    "maximumColumnsPerAdvance": 64,
+    "maximumCombinedEndpointChecksAndExpansionsPerAdvance": 32,
+    "maximumAStarExpansionsPerRequest": 4096,
+    "maximumWaypoints": 512,
+    "maximumControllerTicksPerEdge": 24
+  },
+  "finalBuilds": [
+    {
+      "name": "focused native library/test target",
+      "target": "//tests:adventure_navigation",
+      "exitCode": 0,
+      "exitCodeProvenance": "parent task execution result",
+      "testResultCached": true,
+      "fullNativeApplication": false,
+      "log": "checks/navigation-final-native.log.gz"
+    },
+    {
+      "name": "full WASM target",
+      "target": "voxy_wasm",
+      "exitCode": 0,
+      "exitCodeProvenance": "parent task execution result",
+      "packaged": false,
+      "previewChanged": false,
+      "browserExecuted": false,
+      "log": "checks/navigation-final-wasm.log.gz"
+    }
+  ],
+  "parentExecutionSessions": [
+    67356,
+    90278
+  ],
+  "testResults": [
+    {
+      "name": "navigation",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "seconds": 0.155,
+      "timestampAsRecorded": "2026-09-13T03:30:59.664",
+      "timestampTimezone": "not specified in XML",
+      "cases": [
+        {
+          "suite": "AdventureNavigation",
+          "name": "RealFollowerCrossesBridgeAndGroundBelowWithoutChangingLayers",
+          "seconds": 0.017,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "RealFollowerClimbsAndDescendsAllEighteenCatalogStairTreads",
+          "seconds": 0.055,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "NewWallStopsTheOldPathBeforeMovementAndRepathWalksAroundIt",
+          "seconds": 0.02,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "RemovingBridgeDeckRefusesCrossingAndRestoringItRestoresTraversal",
+          "seconds": 0.029,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "DistantEditedTilePreservesTheAcceptedPathAndItsTileGenerations",
+          "seconds": 0.014,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "WorkBudgetsAreBoundedAndInvalidConfigurationOrStaleQueriesCannotMoveAnActor",
+          "seconds": 0.005,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "MoreThanEightRealWalkableLayersRefuseCapacityInsteadOfDroppingAFloor",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "TerrainRebindAtTheSameRevisionStopsAnExistingFollowerBeforeItsNextTick",
+          "seconds": 0.005,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureNavigation",
+          "name": "FollowerRejectsAnotherActorsGeometryOrWaterPolicyEvenWithAValidNavQuery",
+          "seconds": 0.004,
+          "result": "completed"
+        }
+      ]
+    },
+    {
+      "name": "walkable",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "seconds": 0.001,
+      "timestampAsRecorded": "2026-09-13T03:24:15.071",
+      "timestampTimezone": "not specified in XML",
+      "cases": [
+        {
+          "suite": "AdventureWalkable",
+          "name": "GroundAndRaisedBridgeAreDistinctDescendingPhysicalSpans",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "LowBridgeCeilingBlocksGroundButItsDeckRemainsUsable",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "PhysicalStairTreadsUseTheirActualSupportHeights",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "InclusiveFeetLimitsExcludeOutOfRangeSupportAndPreserveEmptyResults",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "ExactDistinctLevelsAreNotLostToTheSupportQueryTolerance",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "OutputOverflowIsIncompleteAndCannotPublishPartialLayers",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "SixtyFourDistinctSupportsFitButTheNextOneMakesTheColumnIncomplete",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "DuplicatePrimitivesDoNotSpendTheDistinctSurfaceBudget",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureWalkable",
+          "name": "InvalidArgumentsAndUnsupportedTerrainExtentsNeverPublishFeet",
+          "seconds": 0.0,
+          "result": "completed"
+        }
+      ]
+    },
+    {
+      "name": "existingSelectedRegressions",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "seconds": 0.026,
+      "timestampAsRecorded": "2026-09-13T03:27:09.626",
+      "timestampTimezone": "not specified in XML",
+      "cases": [
+        {
+          "suite": "AdventureSpatialQueries",
+          "name": "PublicationIsAtomicBoundedAndRejectsStaleRevision",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureSpatialQueries",
+          "name": "BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureSpatialQueries",
+          "name": "DoorwayPickingWalkingAndCameraReadTheSameSolids",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureSpatialQueries",
+          "name": "CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventurePlayer",
+          "name": "WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall",
+          "seconds": 0.003,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventurePlayer",
+          "name": "WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge",
+          "seconds": 0.002,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventurePlayer",
+          "name": "InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventurePlayer",
+          "name": "IdleConnectedControllerDoesNotStealMouseBuildingAim",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "TerrainProtectedAccessPlayerAndReachFailBeforePublication",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "QuarterTurnsPreserveOpeningAndActualFurnitureBounds",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "BedNeedsRoofWallsAndClearRecoveryBesideFurniture",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "LargerHouseAndRotatedBedUseTheSameShelterRule",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "TransfersAndCraftingRequireReachableUnblockedFurniture",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "GatherRequiresRealNodeReachAndUnblockedSight",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "TerrainPlacementIncludesAllRectangularCorners",
+          "seconds": 0.0,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture",
+          "seconds": 0.001,
+          "result": "completed"
+        },
+        {
+          "suite": "AdventureConstructionPolicy",
+          "name": "PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts",
+          "seconds": 0.016,
+          "result": "completed"
+        }
+      ]
+    }
+  ],
+  "initialFailures": [
+    {
+      "log": "checks/navigation-r01.log.gz",
+      "reason": "Test incorrectly required constant ground foot height over physical LEGO studs.",
+      "correction": "Compare lower traversal with actual terrain/stud support + skin and keep full capsule below bridge; preserve constant upper deck height."
+    },
+    {
+      "log": "checks/navigation-spans-r01.log.gz",
+      "reason": "Undefined PROJECT_DEFAULT_COPTS in initial test BUILD registration prevented execution.",
+      "correction": "Correct target compiler-option registration; retain subsequent passing walkable tests."
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/game/adventure/layered_navigation.hpp",
+      "bytes": 5244,
+      "sha256": "5be2bcdd4c0752e3bca679cfc62bb6804188ac41987d93405bc0fda2c31fa352"
+    },
+    {
+      "path": "src/game/adventure/layered_navigation.cpp",
+      "bytes": 18441,
+      "sha256": "320960f6141d44f3a574ab68e982da36c90e8ce5f436b50dc579d153482dd831"
+    },
+    {
+      "path": "src/game/adventure/spatial_queries.hpp",
+      "bytes": 3420,
+      "sha256": "47c6cbcedfa3c2b19535e85b6486b2b965895832b5df7ca9f6cd5bd9be0362c7"
+    },
+    {
+      "path": "src/game/adventure/spatial_queries.cpp",
+      "bytes": 13276,
+      "sha256": "1ce5e29350177c04e43b945c7864a98b854664e8bbb91739637fce8d6087841d"
+    },
+    {
+      "path": "src/game/adventure/adventure_player.hpp",
+      "bytes": 2223,
+      "sha256": "10d45a5c059bce0c3cd4f1ba8906c70f3879ab39384f9a509171110f51b96d5f"
+    },
+    {
+      "path": "src/game/adventure/adventure_player.cpp",
+      "bytes": 6684,
+      "sha256": "a9591d485d651e6d123827302d3adae4eca266f3b2b198b09420d5eb71d4774b"
+    },
+    {
+      "path": "tests/test_adventure_navigation.cpp",
+      "bytes": 18150,
+      "sha256": "2747022c4ac10d3dcfa859fbddb889ab590b1d086ab3c89c7adf212bfceaf767"
+    },
+    {
+      "path": "tests/test_adventure_walkable.cpp",
+      "bytes": 7597,
+      "sha256": "ef271d8470c487642f8aa30734b13c628b3b6829ff9540f096aa118556c17279"
+    },
+    {
+      "path": "tests/test_adventure_world.cpp",
+      "bytes": 9236,
+      "sha256": "fec520c885d5c15ea7f8ab062fca8530b646fa03362cc8264b3276a4558c8699"
+    },
+    {
+      "path": "tests/test_adventure_construction_policy.cpp",
+      "bytes": 12076,
+      "sha256": "78e4b08a631dc28b4b51cd1111760365bcbb9527fcfe64098c1e6cdda2c023a5"
+    },
+    {
+      "path": "src/game/adventure/building_catalog.hpp",
+      "bytes": 1584,
+      "sha256": "0ec7c78ccdfbf1b62a6c946b46f1dd495444bca7f38279ff546fed13194836c5"
+    },
+    {
+      "path": "src/game/adventure/building_catalog.cpp",
+      "bytes": 3955,
+      "sha256": "082fa6ced6e3c36a287b185533841fc562167323273314f3a0b0c4d31b8405b8"
+    }
+  ],
+  "archives": [
+    {
+      "source": "build-adventure-g-b/navigation-final-native.log",
+      "archive": "checks/navigation-final-native.log.gz",
+      "uncompressedBytes": 1405,
+      "uncompressedSha256": "7b83d002d499d343281b55d17d5f94dfe2186433ada4b8f02463867a56739cd4",
+      "compressedBytes": 617,
+      "compressedSha256": "6b3d5421491729d21addd7df26844d6276634c373e3aa6a891392ed813992c27"
+    },
+    {
+      "source": "build-adventure-g-b/navigation-final-wasm.log",
+      "archive": "checks/navigation-final-wasm.log.gz",
+      "uncompressedBytes": 26695,
+      "uncompressedSha256": "2da47072f180f343a0c89476c024106d2cfc68a410707ee061e5bea6b4d1f08f",
+      "compressedBytes": 3703,
+      "compressedSha256": "e10c4f83e6e1c856fea594948848ba903fc1e5880680ba2c804ff745809b5ed0"
+    },
+    {
+      "source": "build-adventure-g-b/navigation-r01.log",
+      "archive": "checks/navigation-r01.log.gz",
+      "uncompressedBytes": 32159,
+      "uncompressedSha256": "c844d63054925f167394f3d04ace536103e710eb67b523dd23310a490d72a07b",
+      "compressedBytes": 2119,
+      "compressedSha256": "0efef24801b48648a027a2bd2daecefb140754a671b43eabbcf9f250edbdf3ee"
+    },
+    {
+      "source": "build-adventure-g-b/navigation-spans-r01.log",
+      "archive": "checks/navigation-spans-r01.log.gz",
+      "uncompressedBytes": 876,
+      "uncompressedSha256": "e5bc1b0da3d3a146d84722296213fd91261c9f75c6732b9f40e6d1af5b19f7a4",
+      "compressedBytes": 430,
+      "compressedSha256": "c9c0edad4534ce8a34dfab3a5b7c22308326b3123821025f5fd30f4c75685abc"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure_navigation/test.log",
+      "archive": "checks/navigation-test.log.gz",
+      "uncompressedBytes": 2387,
+      "uncompressedSha256": "406466d57d5e41385adcb235f3b070032e8c1cf6d105d620b3b0f6caf754302b",
+      "compressedBytes": 713,
+      "compressedSha256": "b0840f170b310ff3c2fa74a6cc60e7fc6583add0b855eb4c93e5c6fc10ce6a0c"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure_navigation/test.xml",
+      "archive": "checks/navigation-test.xml.gz",
+      "uncompressedBytes": 2651,
+      "uncompressedSha256": "04e3be0eb3a07cdccf84a4f0ccdc10465febff4f6eb87ce7f3870358ace9aa63",
+      "compressedBytes": 743,
+      "compressedSha256": "50d90f9e30b37034efa30a991e8281c5c81ecca28347c4b15b4950728ccddbdb"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure_walkable/test.log",
+      "archive": "checks/walkable-test.log.gz",
+      "uncompressedBytes": 2178,
+      "uncompressedSha256": "f5227644fa355cae090f14782f671772e01e84f838b7486c7e43537bdbb5c003",
+      "compressedBytes": 638,
+      "compressedSha256": "9973e0f60044f23f5092e2bf8a56b86d7780212e0c48d49e8292d8ff704ae2ce"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure_walkable/test.xml",
+      "archive": "checks/walkable-test.xml.gz",
+      "uncompressedBytes": 2504,
+      "uncompressedSha256": "23841a925b3f638d5f6792396317630f0b2838c1abd67d6329140d646a7d6cad",
+      "compressedBytes": 643,
+      "compressedSha256": "8df3ea4ff706cd8d079f290df42f04c7ab09d2ab2365e95caa74e1dce478ec0d"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure/test.log",
+      "archive": "checks/existing-regressions-test.log.gz",
+      "uncompressedBytes": 4281,
+      "uncompressedSha256": "4146f39f581a9fb49386ce90f349e9dfd37069bff17e613f40d7913964a59eaf",
+      "compressedBytes": 1070,
+      "compressedSha256": "5552a3f54adfd257a9ed55c3b2ec68e4f89c7680a20df013a8327e53baaf9dac"
+    },
+    {
+      "source": "bazel-testlogs/tests/adventure/test.xml",
+      "archive": "checks/existing-regressions-test.xml.gz",
+      "uncompressedBytes": 5151,
+      "uncompressedSha256": "9d04fadcc167fbe12acc299c409bd10da4bae9d1bba1c2cbbae7e7a94d6d573c",
+      "compressedBytes": 1058,
+      "compressedSha256": "639be86fb2d0753ad196b2dd4fd660ce26686b6916aecc0660d3d6b43629f99d"
+    }
+  ],
+  "limitations": [
+    "No runtime NPC/enemy integration",
+    "No multi-actor scheduler or population performance evidence",
+    "No frame-p95 or GPU performance claim",
+    "No ordinary native/browser gameplay journey",
+    "Final native target was focused library/test dependencies, not full application",
+    "WASM build was not packaged or opened in a browser",
+    "No combat, discovery reward or outpost acceptance",
+    "No player enjoyment or gate approval"
+  ],
+  "archiveOperation": {
+    "newTests": false,
+    "newBuilds": false,
+    "newUi": false,
+    "newGpu": false
+  }
+}

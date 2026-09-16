@@ -1,0 +1,16 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965  /tmp/voxys-adventure-world.r16
+spawn -63 -145.735020752 -895
+resident 1 available 1 feet -65.5 -145.915013428 -893.5
+approach 1 ticks 31 feet -64.5949368418 -145.754887695 -894.043037895 clear 1 talk 1 error 
+resident 2 available 1 feet -60.5 -145.915013428 -893.5
+approach 2 ticks 31 feet -61.4050631582 -145.754887695 -894.043037895 clear 1 talk 1 error 
+resident 3 available 1 feet -65 -145.735020752 -898
+approach 3 ticks 43 feet -64.4311265063 -145.778401489 -897.146689759 clear 1 talk 1 error 
+legacy-player 1 exact 1 clear 1 recovery-clear 1 actor-available 1
+legacy-player 2 exact 1 clear 1 recovery-clear 1 actor-available 1
+legacy-player 3 exact 1 clear 1 recovery-clear 1 actor-available 1

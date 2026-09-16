@@ -53,6 +53,12 @@ bool capsuleArguments(glm::dvec3 from,glm::dvec3 to,double radius,double height)
     return inRange(from)&&inRange(to)&&std::isfinite(radius)&&radius>0&&radius<=4
         &&std::isfinite(height)&&height>=2*radius&&height<=10&&glm::length(to-from)<=128;
 }
+double solidSupport(glm::dvec2 position,double radius,const AdventureSpatialQueries::Solid& box) noexcept {
+    const auto nearest=glm::clamp(position,glm::dvec2(box.minimum.x,box.minimum.z),glm::dvec2(box.maximum.x,box.maximum.z));
+    const double distance=glm::length(position-nearest);
+    if(distance>radius)return -infinity;
+    return box.maximum.y+std::sqrt(std::max(0.,radius*radius-distance*distance))-radius;
+}
 }
 
 bool AdventureSpatialQueries::bindTerrain(terrain::lego::Surface value) noexcept {
@@ -108,14 +114,60 @@ double AdventureSpatialQueries::supportHeight(glm::dvec2 p,double radius,double 
     std::array<uint16_t,maximumSolids> found{};size_t count=0;
     if(!candidates({p.x-radius,-100000,p.y-radius},{p.x+radius,limit+radius,p.y+radius},found,count))return -infinity;
     for(size_t i=0;i<count;++i) {
-        const auto& b=solids_[found[i]];
-        const auto nearest=glm::clamp(p,glm::dvec2(b.minimum.x,b.minimum.z),glm::dvec2(b.maximum.x,b.maximum.z));
-        const double distance=glm::length(p-nearest);
-        if(distance>radius)continue;
-        const double top=b.maximum.y+std::sqrt(std::max(0.,radius*radius-distance*distance))-radius;
+        const double top=solidSupport(p,radius,solids_[found[i]]);
         if(top<=limit+1e-6)result=std::max(result,top);
     }
     return result;
+}
+AdventureSpatialQueries::WalkableColumn AdventureSpatialQueries::walkableFeet(glm::dvec2 p,double minimumFeet,
+    double maximumFeet,std::span<double> output,double radius,double height) const noexcept {
+    constexpr double skin=.005;
+    constexpr size_t maximumLevels=64;
+    if(!terrain_.valid()||!std::isfinite(minimumFeet)||!std::isfinite(maximumFeet)||minimumFeet>maximumFeet
+        ||!capsuleArguments({p.x,minimumFeet,p.y},{p.x,minimumFeet,p.y},radius,height)
+        ||!capsuleArguments({p.x,maximumFeet,p.y},{p.x,maximumFeet,p.y},radius,height)
+        ||!inRange({p.x-radius,minimumFeet-skin,p.y-radius})
+        ||!inRange({p.x+radius,maximumFeet+height,p.y+radius}))return {};
+    // Terrain support outside the finite heightfield has a fallback height;
+    // that value is not proof of physical ground. Require the whole footprint.
+    const glm::dvec2 extent(terrain_.origin());
+    if(glm::any(glm::lessThan(p-glm::dvec2(radius),-extent))
+        ||glm::any(glm::greaterThan(p+glm::dvec2(radius),extent)))return {};
+
+    std::array<double,maximumLevels> supports{};size_t supportCount=0;
+    const auto addSupport=[&](double support) {
+        if(!std::isfinite(support))return true;
+        const double feet=support+skin;
+        if(feet<minimumFeet||feet>maximumFeet)return true;
+        for(size_t i=0;i<supportCount;++i)if(supports[i]==support)return true;
+        if(supportCount==supports.size())return false;
+        supports[supportCount++]=support;return true;
+    };
+    if(!addSupport(double(terrain::lego::supportHeight(terrain_,glm::vec2(p),float(radius)))))return {};
+    std::array<uint16_t,maximumSolids> found{};size_t foundCount=0;
+    // Rounded-down/up bounds include candidates exactly at a caller endpoint.
+    // A hemisphere may touch an AABB corner up to radius above its feet.
+    const double low=std::nextafter(minimumFeet-skin,-infinity);
+    const double high=std::nextafter(maximumFeet-skin+radius,infinity);
+    if(!candidates({p.x-radius,low,p.y-radius},{p.x+radius,high,p.y+radius},found,foundCount))return {};
+    for(size_t i=0;i<foundCount;++i)if(!addSupport(solidSupport(p,radius,solids_[found[i]])))return {};
+    std::sort(supports.begin(),supports.begin()+supportCount,[](double a,double b){return a>b;});
+
+    std::array<double,maximumLevels> accepted{};size_t count=0;
+    for(size_t i=0;i<supportCount;++i) {
+        const double support=supports[i],feet=support+skin;
+        // Use the same authoritative support/clearance queries as movement.
+        // supportHeight's 1e-6 admission tolerance can select a very slightly
+        // higher neighbour; exact candidate collection retains both levels.
+        const double actual=supportHeight(p,radius,support);
+        if(!std::isfinite(actual)||actual<support||actual>support+1e-6)return {};
+        if(!clearCapsule({p.x,feet,p.y},radius,height))continue;
+        if(count&&accepted[count-1]==feet)continue;
+        if(count==output.size())return {};
+        accepted[count++]=feet;
+    }
+    std::copy_n(accepted.begin(),count,output.begin());
+    return {true,count};
 }
 AdventureSpatialQueries::SweepResult AdventureSpatialQueries::sweepCapsule(glm::dvec3 from,glm::dvec3 to,double radius,double height) const noexcept {
     if(!terrain_.valid()||!capsuleArguments(from,to,radius,height))return {};

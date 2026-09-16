@@ -1,0 +1,240 @@
+{
+  "recordedUtc": "2026-09-13T05:06:39.727291+00:00",
+  "scope": "Implemented trail quest/discovery/field-home/relay authority and runtime; focused CPU, actual-terrain controller and headless-runtime evidence. No ordinary full journey, displayed frame-time, visual acceptance or complete gate claim.",
+  "candidate": {
+    "buildId": "adventure-1118f4f0b2c23938",
+    "directory": "build-adventure-g-c/web-r02",
+    "url": "http://127.0.0.1:42756/index.html?experience=adventure",
+    "serverSession": 55630,
+    "browserTab": "6",
+    "schema": 4,
+    "contentIdentity": "0ca6be8bbc4285f4541aadc74d8cb7aeefb4b2ed078f45f86e7b0a2173ab1e93",
+    "packageManifestSha256": "d45e2083b72771127d73ba3e99ac6f5ef0dedb3e59fcbbaaa048fabd111816e0",
+    "verifiedPackageFiles": 46,
+    "nativeDirectory": "build-adventure-g-c/native-r02",
+    "nativeSha256": "8f401713298c6f9c344762533ed5b923e7dc5cece88fe9368d54db6ebb8b242b"
+  },
+  "tests": {
+    "adventure_trail_session": {
+      "tests": 6,
+      "failures": 0,
+      "seconds": 0.002,
+      "skipped": 0
+    },
+    "adventure_trail_presentation": {
+      "tests": 7,
+      "failures": 0,
+      "seconds": 0.007,
+      "skipped": 0
+    },
+    "adventure_field_home_access": {
+      "tests": 5,
+      "failures": 0,
+      "seconds": 0.117,
+      "skipped": 0
+    },
+    "adventure": {
+      "tests": 72,
+      "failures": 0,
+      "seconds": 0.977,
+      "skipped": 0
+    },
+    "adventure_combat_session": {
+      "tests": 8,
+      "failures": 0,
+      "seconds": 0.002,
+      "skipped": 0
+    },
+    "native_adventure_saves": {
+      "tests": 7,
+      "failures": 0,
+      "seconds": 0.303,
+      "skipped": 0
+    },
+    "adventure_trail_sites": {
+      "tests": 5,
+      "failures": 0,
+      "seconds": 3.794,
+      "skipped": 0
+    },
+    "adventure_runtime": {
+      "tests": 1,
+      "failures": 0,
+      "seconds": 5.355,
+      "skipped": 0
+    },
+    "browser_dom": {
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser_storage": {
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "reuse": "The 72 existing adventure,8 combat-session and7 native storage tests passed during schema4 authority integration. Later changes added field access, relocated only unpublished new discovery1/scenery and updated presentation/runtime; the focused final tests, whole native/WASM builds, actual terrain and headless runtime cover those changes. No unchanged full hook suite was repeated.",
+  "headlessRuntime": {
+    "adapter": "AMD Radeon890M/RADV STRIX1/Vulkan",
+    "surface": false,
+    "displayedFrames": 0,
+    "screenshots": 0,
+    "ordinaryUIInput": false,
+    "acceptedIdleTicks": 1201,
+    "syntheticWalkingFrames": 90,
+    "exactSchema4SnapshotRestore": true,
+    "allFourSitesAvailableAtFreshStartup": true
+  },
+  "fieldFurnitureAccess": {
+    "verifiedLayouts": "paid starter; paid connected annex with doorway; otherwise identical sealed annex",
+    "sameOwnedBedAnchor": true,
+    "mutatesStateOrQueries": false,
+    "regionMetres": [
+      16,
+      16
+    ],
+    "globalReadinessLimits": {
+      "bedChecks": 8,
+      "furnitureChecks": 32,
+      "approaches": 24,
+      "sampledColumns": 1024,
+      "controllerTicks": 8192,
+      "navigationSteps": 512
+    },
+    "exhaustion": "conservative refusal with compact-home guidance",
+    "cacheInvalidation": "accepted owned structure changes; initialization; restore; static scenery/resident retry; no path rebuild on HUD/combat/inventory/quest-only changes"
+  },
+  "schema3Fixture": {
+    "path": "tests/fixtures/adventure/schema3-component-r01.bin",
+    "bytes": 1542,
+    "sha256": "6ff640f312f07d54b4c16c35de29caa8be426ccd7a9015c4dcdde7d2679f6753",
+    "scope": "actual old-code encoder component fixture, not a player journey"
+  },
+  "browserStartup": {
+    "tool": "CUA",
+    "tab": "6",
+    "url": "http://127.0.0.1:42756/index.html?experience=adventure",
+    "observed": [
+      "Voxys \u2014 Building Adventure",
+      "Meet Moss in the meadow square.",
+      "Health100/100",
+      "Talk to Moss",
+      "Attack disabled until staff equipped",
+      "Dodge Q",
+      "Use/Build/Bag/Journal"
+    ],
+    "screenshotCount": 0,
+    "movementOrQuestCommands": 0,
+    "savedWorld": false
+  },
+  "remaining": [
+    "ordinary native/browser full journey and schema2 played fixture",
+    "controller/accessibility and owner feedback",
+    "side quest5 useful capability",
+    "combat/audio polish",
+    "region/population scheduling",
+    "displayed performance",
+    "G-B/G-C gates and normal gate commit"
+  ],
+  "sourceSha256": {
+    "src/game/adventure/adventure_combat.hpp": "de863fe670adc1dae64402a034405cc3ab92a3e98cac67d6febfcd4a2ecf7f86",
+    "src/game/adventure/adventure_encounters.hpp": "615af762e6db22000ae840558c21c2d0803d0344e63b1318a8ce5b620e5fb56b",
+    "src/game/adventure/adventure_input.hpp": "b1cdd049cd3ad6608d04d6aece5d86e7dad354227f3262168cdd44e184ca84f4",
+    "src/game/adventure/adventure_player.hpp": "abf4f18c6b2607c24ab6c0c4211769ab835f9200505d31dee90322c075ceec41",
+    "src/game/adventure/adventure_pointer.hpp": "568d40907f376223e0d762e56d75b1a56c495c263c61fe93786f9bb7b34f5bf8",
+    "src/game/adventure/adventure_presentation.hpp": "4001f4512e2c10026fb6f527e166e8776218455b9a78f7166c94ff25a669bec3",
+    "src/game/adventure/adventure_progress.hpp": "096aed6106044f19d8ee3ab0934290d7580c7fa286aa4c5223092105339e085d",
+    "src/game/adventure/adventure_runtime.hpp": "87a143a97cc757f9166e7f5e6e6cafb5c8953d9f06ceeebc14de16db9d2b3f99",
+    "src/game/adventure/adventure_save.hpp": "9b1dc242a1513d21f1970f58deab26820437bbbc79df29172c574fca6eef52bc",
+    "src/game/adventure/adventure_session.hpp": "a19d9607906efb4a7f5b51312b20e91de20686ed273d4c7d311c7fb031c9559f",
+    "src/game/adventure/adventure_trail_content.hpp": "9a310a16a08c3e67bc75c10056a6a9cd63feea4536663943ece928e48d007157",
+    "src/game/adventure/building_catalog.hpp": "0ec7c78ccdfbf1b62a6c946b46f1dd495444bca7f38279ff546fed13194836c5",
+    "src/game/adventure/construction_policy.hpp": "0f530e24c2b1127c98e1cbeb7d94b01297c468b4f05e4c7f882fac9058fa5876",
+    "src/game/adventure/field_home_access.hpp": "b9e065cec2fd3821dacace8a2a1401c1985f79ce5b1c166727848b7db4a7e918",
+    "src/game/adventure/item_catalog.hpp": "0745fd6566df9792408e51be59977aab604f4a5c55c4d3301ac9e5cc77e531c6",
+    "src/game/adventure/layered_navigation.hpp": "1e7ffdb651ad10d52546f6593eadc69b7ae81af039b4377a02c95b2de9683b4a",
+    "src/game/adventure/menu_intent.hpp": "33fc2cdfb4daa6938a4de2f8b1ea94cddecd24fa1359702cc0d7cf15459629be",
+    "src/game/adventure/quests.hpp": "d001dcf822f6a4a89d54760b86da989352a2c9de65148fe1395387022bc3be6a",
+    "src/game/adventure/spatial_queries.hpp": "47c6cbcedfa3c2b19535e85b6486b2b965895832b5df7ca9f6cd5bd9be0362c7",
+    "src/game/adventure/town_residents.hpp": "ceeb1f039c6492f251643032e9f403130a9c3c5188f461513b0c376bf30b5dcb",
+    "src/game/adventure/trail_presentation.hpp": "d409b893cf0703c99295b785f873015758f3962b36c1323b9149ae1cf172b0fb",
+    "src/game/adventure/trail_sites.hpp": "1b47ea7ee9c16004102ef768e15b565df065fc3fc60014ed33054226db30bd11",
+    "src/game/adventure/village_layout.hpp": "1c4af76926441f464b74141b43e5b7a36cb4083399007e270fe6df81e769630a",
+    "src/game/adventure/world_definition.hpp": "13739e0bd35a68378f12d0f09bbba25b1e2c5df8b7b47635c60598afc84335a1",
+    "src/game/adventure/adventure_combat.cpp": "c78d48a276d63db007b27da2dffac0780d04d8fe9b55458c2a83f290bf6bf6d9",
+    "src/game/adventure/adventure_encounters.cpp": "958f46104403f790f77656f3d3b86b4799dc3e10b92f7b9455c843041550daf9",
+    "src/game/adventure/adventure_player.cpp": "c992d503e20723238911975a7fc298f7b3b0204e811bc55443b949a9038f4c43",
+    "src/game/adventure/adventure_presentation.cpp": "ca40636b935606e11321ae3db4e2c76647215a51c5e3675e708842605e6cf568",
+    "src/game/adventure/adventure_progress.cpp": "37a709df53245b0ce9d1ed4eb5ef448791c1248062c504243802e0d6d1eb6520",
+    "src/game/adventure/adventure_runtime.cpp": "67b12f2b2e95c756c66c48894897ad3a14197d8629b97ff4f058be83e1e3c6b3",
+    "src/game/adventure/adventure_save.cpp": "7382dfb4062b7b5f6f2ef8e03fedf8db6bdbd49ce4b58d01b070c0f55cf055ec",
+    "src/game/adventure/adventure_session.cpp": "c039e1b8171d4467948e76eaecbfd607fd32c4b0935e2e48e1ccd8bc82702d76",
+    "src/game/adventure/adventure_trail_content.cpp": "5fcb1d1eafaae450ab220e933941692eceb6dd496a393d79b5015dcb1e65c17a",
+    "src/game/adventure/building_catalog.cpp": "082fa6ced6e3c36a287b185533841fc562167323273314f3a0b0c4d31b8405b8",
+    "src/game/adventure/construction_policy.cpp": "5e15b030d9d8976d70488dfd998e24c2f27846d4e7b1d37bfdb3d915273ff111",
+    "src/game/adventure/field_home_access.cpp": "5ea3f833db61f51e53594d686e2bb1e99e357973db0dcf834241faabde636573",
+    "src/game/adventure/item_catalog.cpp": "918207046193db4339dea61bb870ae48b7cbc81c7f19b2dca2733d5d3ac83b73",
+    "src/game/adventure/layered_navigation.cpp": "02515dc09ad2e4f859ab95e8fc209e56cb99fa605b45c992cdba893872e870fc",
+    "src/game/adventure/quests.cpp": "69efb41bcd4cf24627e35e5cb22af5e6bdfe39bbe54b72aafe7c3e3eb8c8e4c8",
+    "src/game/adventure/spatial_queries.cpp": "1ce5e29350177c04e43b945c7864a98b854664e8bbb91739637fce8d6087841d",
+    "src/game/adventure/town_residents.cpp": "abc058adebf91d59f77cc7a6f84765c972cac71b2f5f8003c909c9a9cf9c799f",
+    "src/game/adventure/trail_presentation.cpp": "8376465c2ed038b6c2aa767c49c481a41b26d1c1a4a9f0f44d58285f008a7146",
+    "src/game/adventure/trail_sites.cpp": "c63bd90959c3646cbd9077318db86d963075f6f05544b3830c691d3775031ebd",
+    "src/game/adventure/village_layout.cpp": "9da68f44afbffce8af219c1bc6e95fea2819d4f2a3e6769f12589bfce0c72e21",
+    "src/game/adventure/world_definition.cpp": "77ae29f654eea069f68501a2f933d9dcc7d108c47c33c38f2a507271bb26a0ad",
+    "tests/test_adventure_combat.cpp": "9d580cf84d2abb823888c6aea2c777a224ef39efecdac4533c77f870028dad98",
+    "tests/test_adventure_combat_session.cpp": "a5d9ef24cb5cd71b9c2c1c29198d5db786beada95d416cbed32e94d4c153d1d2",
+    "tests/test_adventure_construction_policy.cpp": "78e4b08a631dc28b4b51cd1111760365bcbb9527fcfe64098c1e6cdda2c023a5",
+    "tests/test_adventure_encounters.cpp": "429e256b4b620050e5889908c0ddeca3b969f83d5e40485862eaba1040757cd8",
+    "tests/test_adventure_field_home_access.cpp": "1ef395f7dc2ce75023e1308a33fa158b399078268a843876bc6dc9465814859c",
+    "tests/test_adventure_hud.cpp": "c8c75a7280e8bfb4dc3385dac99b876c67e6fd48465bc1255672a91c4ee67cec",
+    "tests/test_adventure_menu.cpp": "a308525ff982af205266ba4a41d6967f71474d67a3c582617c2c9047a4110509",
+    "tests/test_adventure_movement.cpp": "3423f9e2cb6b721bdc0603729d1ec5c006a17bd169363156f0337a89f822dd7e",
+    "tests/test_adventure_navigation.cpp": "56234efc6c278395142a1d708b397d8165ee6db758fc737ab6ab436dd8946abd",
+    "tests/test_adventure_pointer.cpp": "0e26f977850b12f7b3c44604f06eb030d8b2bb7bfba91d1943cc751183f74fa6",
+    "tests/test_adventure_presentation.cpp": "9b2ad39e9f3a583f5a14d13181ea2617ef6c190d87fea12d10e0d78529a91d69",
+    "tests/test_adventure_runtime.cpp": "c84b7d034649b00adca264ce8ce4186de47b571d3c992a049ea20a1db2648a11",
+    "tests/test_adventure_session.cpp": "64640f0ac035303ea93e02d49c8f59c5a475127d6ce98df9f2770ba72e009072",
+    "tests/test_adventure_town.cpp": "4d8c4be0e072778c7bb7aa8671aa7b285750b25b3bad2b10802a34a5ccb2b248",
+    "tests/test_adventure_trail_presentation.cpp": "66253a34fba6d7f4ced3a30d051846b0c05a259d30cd5040efc287ddf044eeef",
+    "tests/test_adventure_trail_session.cpp": "6445e07e01c8780e85b694505982a2d4c1536835d59e00790494b13e1c9c69a8",
+    "tests/test_adventure_trail_sites.cpp": "6c0421ed086637070a71d3dd7d5795f44a73658020f22a0cfc07dd1dfe32c0b6",
+    "tests/test_adventure_village.cpp": "3a35047d87da0684348c763c358893783379a2ed43fc0cb1cd2ef7e183ff722b",
+    "tests/test_adventure_walkable.cpp": "ef271d8470c487642f8aa30734b13c628b3b6829ff9540f096aa118556c17279",
+    "tests/test_adventure_world.cpp": "fec520c885d5c15ea7f8ab062fca8530b646fa03362cc8264b3276a4558c8699",
+    "web/adventure_ui.js": "0e4ac3b118e072650691e61c88fe8727d575f3c4322a2565d9e587bcf5e6074b",
+    "web/adventure_ui.css": "ddb3c9254cf135783a0e212635fe558345b23c71bfedd79acc7e928c34c49e5d",
+    "web/adventure_saves.js": "dcaa8168a5ba19474797a4fc49f4b41c5053d9f5b4722de71b19cacbb19e1dd3",
+    "scripts/test_adventure_saves.mjs": "d16a3b089103929f903fd8dbe56598ea177b5ccf9910465849b93d5fe19ae83a",
+    "tools/adventure_assets/test_adventure_ui.mjs": "e8caf24929ebfba3213e8cbb69b7d82aa83afc4948b8f5b93eede534e4bdfa89",
+    "src/game/BUILD": "925d52b9d3be208594d6948f90c65d18c6713eccf7a10268957918b691570b3e",
+    "src/CMakeLists.txt": "d7bf1eb19e4f7aae5b90f287f59c4959ddea642059caba9dfaa6640e30c8dd95",
+    "tests/BUILD": "840c40850ba1c2db18dda3efc14806ea1041ad9eaee1d8e41e5fb6d321d04964",
+    "tests/CMakeLists.txt": "60f0872d32e17bafdc81bd810518a9270819a3d3b0dc1a59bae2677e217e7056"
+  },
+  "checks": {
+    "checks/native-final.log.gz": "8d75b80e0d2bd2d4449f34fefb003d6d6f3025bfeab4069a3532a3233a72591c",
+    "checks/wasm-final.log.gz": "8e0b8ac6157ef464541f45da77ecff7de39c0a0ac3718deebf94ff8036f36a5f",
+    "checks/focused-final.log.gz": "d64ed08e35b6e14f96f98d44054d049be3d837539b274a59ad5075e30fecdb7c",
+    "checks/baseline-authority.log.gz": "ffd9c05e5eedb646a2ac266e41f55f9dca5142ff2d3d07ca24c7d9e4d7f86a68",
+    "checks/full-terrain-final.log.gz": "4831c103322c04aced03343c88d87537a8a8f20fd6e1a2c8afad08b64fc346ac",
+    "checks/full-terrain-final.xml.gz": "74d529505988e6425f34079c8d6059f6350642a71323cc3674a5a38d2fbb0de4",
+    "checks/runtime-final.log.gz": "5ae8e04ee5ffafc187748c76b6cabc95e486d37880730acd7556f70976d516fd",
+    "checks/runtime-final.xml.gz": "efdf4b73250c37cd2085c921df2586264fd00700d7e536228cf251c9c2a8a5a8",
+    "checks/dom.log.gz": "0cd347d640199e4fa005e09eb98403240977621a3177f39d235c87b9a5a8fe2c",
+    "checks/browser-storage.log.gz": "d294a214d5c807334720f87f9e447ea18b6e9b0058f59b4180a07018caedc0c1",
+    "checks/failed-initial-route.log.gz": "5481d425535b56d2776fe49ce83a50d994103c4b415286036328b20f93c8547f",
+    "checks/failed-initial-native.log.gz": "0a3730ae1e5085c04fe7d71080c9c14fd1d8ab3c1c84b705cbeb822137a96e98",
+    "checks/failed-runtime-variable.log.gz": "4903861bc36fa3b0d6cda4ba069da0ff3e605fb48bea271517457bc2ce87368b",
+    "checks/failed-helper-portable-cast.log.gz": "2e130d7522a872c198f4b4530b10735edc77c752815e071c69f038021c731742",
+    "checks/adventure_trail_session.xml.gz": "236cfbaa848d478f08e18a7a6b15d6e3615b61a25f85418363588217017acaa9",
+    "checks/adventure_trail_presentation.xml.gz": "19f77bf445532111a6efd40a80337a61b55ab8f7064021ced9182cc1b9c899a9",
+    "checks/adventure_field_home_access.xml.gz": "98cbe045656b3bd5c7aa83393aeb291c56f3627023747b91728b4b1e6ea2927d",
+    "checks/adventure.xml.gz": "b1bfb092f8c22604c743f105a946d66b683754419ec9cac2508f2c45b4a4c18d",
+    "checks/adventure_combat_session.xml.gz": "7bffb8964b8310544e105abb93256206ba9b17bf5543092ad451268a4d1b3779",
+    "checks/native_adventure_saves.xml.gz": "d9d56832d4694cf2d2db3497f7f296bbe1be185ed371222af42f87feca2bac8d"
+  }
+}

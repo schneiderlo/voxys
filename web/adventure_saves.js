@@ -3,10 +3,13 @@
 })(globalThis,function(){
     'use strict';
     const databaseName='voxys-adventure-v1',metadataKey='voxys-adventure-current-v1';
+    const profiles={adventure:{databaseName,metadataKey},build:{databaseName:'voxys-free-build-v1',metadataKey:'voxys-free-build-current-v1'}};
+    function profileFor(name='adventure'){if(!Object.hasOwn(profiles,name))throw Error('Unknown save profile.');return profiles[name];}
     const maximumPayloadBytes=1024*1024;
     const validWorld=value=>typeof value==='string'&&/^[0-9a-f]{32}$/.test(value)&&!/^[0]+$/.test(value);
     const equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
-    function confirmedWorld(environment=globalThis){
+    function confirmedWorld(environment=globalThis,profile='adventure'){
+        const {metadataKey}=profileFor(profile);
         try{const value=environment.localStorage?.getItem(metadataKey);return validWorld(value)?value:null;}catch{return null;}
     }
     function randomWorld(environment){
@@ -20,16 +23,18 @@
     async function checkArchive(input,world,environment=globalThis){
         if(!validWorld(world)||!(input instanceof Uint8Array)||input.length<288||input.length>maximumPayloadBytes)return false;
         const bytes=input.slice(),view=new DataView(bytes.buffer);
-        if(!equal(bytes.subarray(0,8),new TextEncoder().encode('VXADHOME'))||view.getUint32(8,true)!==1)return false;
+        const schema=view.getUint32(8,true);
+        if(!equal(bytes.subarray(0,8),new TextEncoder().encode('VXADHOME'))||(schema!==1&&schema!==2&&schema!==3&&schema!==4&&schema!==5&&schema!==6))return false;
         if(Array.from(bytes.subarray(12,28),v=>v.toString(16).padStart(2,'0')).join('')!==world)return false;
         const digest=new Uint8Array(await environment.crypto.subtle.digest('SHA-256',bytes.subarray(0,-32)));
         return equal(digest,bytes.subarray(-32));
     }
     async function open(options={}){
         const environment=options.environment||globalThis;
+        const {databaseName,metadataKey}=profileFor(options.profile);
         if(options.newWorld&&options.world)throw Error('Choose either a new or a saved adventure.');
         if(options.world!==undefined&&!validWorld(options.world))throw Error('The adventure world identity is invalid.');
-        const selected=options.world||(!options.newWorld?confirmedWorld(environment):null);
+        const selected=options.world||(!options.newWorld?confirmedWorld(environment,options.profile):null);
         const world=selected||randomWorld(environment);
         const storeApi=options.storeApi||environment.VoxyExpeditionStore;
         if(!storeApi?.openStore)throw Error('Adventure storage is unavailable.');

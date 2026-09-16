@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: Explore has a sparse play bar; polling never runs gameplay commands
+ok 1 - Explore has a sparse play bar; polling never runs gameplay commands
+  ---
+  duration_ms: 4.868987
+  type: 'test'
+  ...
+# Subtest: inert DOM observation requires local opt-in and shares only the validated UI read
+ok 2 - inert DOM observation requires local opt-in and shares only the validated UI read
+  ---
+  duration_ms: 6.582401
+  type: 'test'
+  ...
+# Subtest: named play actions enter explicit modes and do not fabricate accepted state
+ok 3 - named play actions enter explicit modes and do not fabricate accepted state
+  ---
+  duration_ms: 1.28079
+  type: 'test'
+  ...
+# Subtest: Use releases world focus for same-mode actions and later dialogue still receives focus
+ok 4 - Use releases world focus for same-mode actions and later dialogue still receives focus
+  ---
+  duration_ms: 2.147029
+  type: 'test'
+  ...
+# Subtest: combat controls require accepted health, equipment, readiness and Explore mode
+ok 5 - combat controls require accepted health, equipment, readiness and Explore mode
+  ---
+  duration_ms: 1.299234
+  type: 'test'
+  ...
+# Subtest: combat dispatch immediately releases UI ownership and waits for accepted cooldown state
+ok 6 - combat dispatch immediately releases UI ownership and waits for accepted cooldown state
+  ---
+  duration_ms: 0.956538
+  type: 'test'
+  ...
+# Subtest: defeat exposes safe recovery and does not change health until runtime accepts it
+ok 7 - defeat exposes safe recovery and does not change health until runtime accepts it
+  ---
+  duration_ms: 1.542076
+  type: 'test'
+  ...
+# Subtest: unavailable or refused combat leaves controls safe and returns keyboard focus
+ok 8 - unavailable or refused combat leaves controls safe and returns keyboard focus
+  ---
+  duration_ms: 0.73711
+  type: 'test'
+  ...
+# Subtest: Build only enables placement for an authoritative valid preview
+ok 9 - Build only enables placement for an authoritative valid preview
+  ---
+  duration_ms: 1.082732
+  type: 'test'
+  ...
+# Subtest: starter room selection is a paid preview and shared menu intent
+ok 10 - starter room selection is a paid preview and shared menu intent
+  ---
+  duration_ms: 1.664263
+  type: 'test'
+  ...
+# Subtest: building tray exposes Starter room without Pause and selects only a paid preview
+ok 11 - building tray exposes Starter room without Pause and selects only a paid preview
+  ---
+  duration_ms: 0.713546
+  type: 'test'
+  ...
+# Subtest: paid stone step uses its Pier picture, three-piece count and captured catalog intent
+ok 12 - paid stone step uses its Pier picture, three-piece count and captured catalog intent
+  ---
+  duration_ms: 0.96894
+  type: 'test'
+  ...
+# Subtest: locked blueprint details remain readable while old and disabled commands cannot activate
+ok 13 - locked blueprint details remain readable while old and disabled commands cannot activate
+  ---
+  duration_ms: 0.910532
+  type: 'test'
+  ...
+# Subtest: explicit unknown or mismatched blueprint metadata cannot offer a misleading placement
+ok 14 - explicit unknown or mismatched blueprint metadata cannot offer a misleading placement
+  ---
+  duration_ms: 1.01159
+  type: 'test'
+  ...
+# Subtest: catalog categories and actual piece thumbnail IDs match installed piece kinds
+ok 15 - catalog categories and actual piece thumbnail IDs match installed piece kinds
+  ---
+  duration_ms: 0.713095
+  type: 'test'
+  ...
+# Subtest: pending row activation cannot Accept then Complete on a double click
+ok 16 - pending row activation cannot Accept then Complete on a double click
+  ---
+  duration_ms: 0.863275
+  type: 'test'
+  ...
+# Subtest: unchanged polling preserves row focus; publishing new choices focuses only on mode entry
+ok 17 - unchanged polling preserves row focus; publishing new choices focuses only on mode entry
+  ---
+  duration_ms: 1.474079
+  type: 'test'
+  ...
+# Subtest: disabled or malformed rows never activate and all 64 bounded choices remain reachable
+ok 18 - disabled or malformed rows never activate and all 64 bounded choices remain reachable
+  ---
+  duration_ms: 1.319832
+  type: 'test'
+  ...
+# Subtest: Journal displays the authoritative objective and Dialogue isolates its text
+ok 19 - Journal displays the authoritative objective and Dialogue isolates its text
+  ---
+  duration_ms: 0.741919
+  type: 'test'
+  ...
+# Subtest: compass bearing appears only for a truly owned equipped item and a finite target
+ok 20 - compass bearing appears only for a truly owned equipped item and a finite target
+  ---
+  duration_ms: 0.775862
+  type: 'test'
+  ...
+# Subtest: Pause contains manual save status; save is the core published immutable choice
+ok 21 - Pause contains manual save status; save is the core published immutable choice
+  ---
+  duration_ms: 0.562385
+  type: 'test'
+  ...
+# Subtest: Escape closes the current mode and focused UI keys do not reach world input
+ok 22 - Escape closes the current mode and focused UI keys do not reach world input
+  ---
+  duration_ms: 0.640591
+  type: 'test'
+  ...
+# Subtest: Tab wraps within an open sheet and polling does not steal the focus
+ok 23 - Tab wraps within an open sheet and polling does not steal the focus
+  ---
+  duration_ms: 1.414708
+  type: 'test'
+  ...
+# Subtest: status loss disables controls, hides directions and retains dirty-leave protection
+ok 24 - status loss disables controls, hides directions and retains dirty-leave protection
+  ---
+  duration_ms: 0.604142
+  type: 'test'
+  ...
+# Subtest: invalid snapshots fail closed, while a real-capacity world and literal text are accepted
+ok 25 - invalid snapshots fail closed, while a real-capacity world and literal text are accepted
+  ---
+  duration_ms: 5.045686
+  type: 'test'
+  ...
+# Subtest: confirmed Cove shortcut is reused unchanged and restored on cleanup
+ok 26 - confirmed Cove shortcut is reused unchanged and restored on cleanup
+  ---
+  duration_ms: 0.5058
+  type: 'test'
+  ...
+# Subtest: void WASM dispatch retains its pending latch and always detaches the owned HUD
+ok 27 - void WASM dispatch retains its pending latch and always detaches the owned HUD
+  ---
+  duration_ms: 0.776703
+  type: 'test'
+  ...
+# Subtest: an explicitly refused dispatch releases the pending latch without inventing acceptance
+ok 28 - an explicitly refused dispatch releases the pending latch without inventing acceptance
+  ---
+  duration_ms: 1.608479
+  type: 'test'
+  ...
+# Subtest: piece and crafting details use exact authoritative costs as literal text
+ok 29 - piece and crafting details use exact authoritative costs as literal text
+  ---
+  duration_ms: 0.76967
+  type: 'test'
+  ...
+# Subtest: published controller selection is visible without programmatic focus overriding it
+ok 30 - published controller selection is visible without programmatic focus overriding it
+  ---
+  duration_ms: 1.081961
+  type: 'test'
+  ...
+# Subtest: a replaced reply keeps keyboard focus and ignores physical double-click or held Enter
+ok 31 - a replaced reply keeps keyboard focus and ignores physical double-click or held Enter
+  ---
+  duration_ms: 0.902076
+  type: 'test'
+  ...
+# Subtest: entering building returns hidden play-button focus and input ownership to the world
+ok 32 - entering building returns hidden play-button focus and input ownership to the world
+  ---
+  duration_ms: 0.561373
+  type: 'test'
+  ...
+# Subtest: Pause Tab order includes Help summary and open world links while closed details stay hidden
+ok 33 - Pause Tab order includes Help summary and open world links while closed details stay hidden
+  ---
+  duration_ms: 1.951056
+  type: 'test'
+  ...
+# Subtest: trail compass cycles a runtime destination without fabricating a new bearing
+ok 34 - trail compass cycles a runtime destination without fabricating a new bearing
+  ---
+  duration_ms: 0.72628
+  type: 'test'
+  ...
+# Subtest: trail journal keeps selection separate from NPC turn-in and displays core-owned guidance
+ok 35 - trail journal keeps selection separate from NPC turn-in and displays core-owned guidance
+  ---
+  duration_ms: 0.627336
+  type: 'test'
+  ...
+# Subtest: choosing a compass destination releases keyboard focus for walking
+ok 36 - choosing a compass destination releases keyboard focus for walking
+  ---
+  duration_ms: 0.629771
+  type: 'test'
+  ...
+# Subtest: settings and binding modes reuse one focused sheet with published choices and core status
+ok 37 - settings and binding modes reuse one focused sheet with published choices and core status
+  ---
+  duration_ms: 1.971774
+  type: 'test'
+  ...
+# Subtest: combat and look help describe the current core bindings and preserve action focus handling
+ok 38 - combat and look help describe the current core bindings and preserve action focus handling
+  ---
+  duration_ms: 1.107948
+  type: 'test'
+  ...
+# Subtest: preferences bridge starts once after readiness, receives accepted observations and is disposed once
+ok 39 - preferences bridge starts once after readiness, receives accepted observations and is disposed once
+  ---
+  duration_ms: 0.796861
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74.455264

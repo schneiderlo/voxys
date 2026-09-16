@@ -1,0 +1,65 @@
+{
+  "scope": "CPU full-terrain admission/traversal and strict focused adventure tests; no rendered village acceptance claimed",
+  "adventure_tests": {
+    "tests": "70",
+    "failures": "0",
+    "disabled": "0",
+    "errors": "0",
+    "time": "0.731",
+    "timestamp": "2026-09-13T02:18:49.472",
+    "name": "AllTests"
+  },
+  "full_terrain_exit": 0,
+  "samples_sha256": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+  "groups_admitted": 8,
+  "catalog_pieces": 44,
+  "props": 22,
+  "instances": 66,
+  "collision_boxes": 94,
+  "two_shelter_route_segment_ticks": [
+    [
+      87,
+      62,
+      26,
+      57
+    ],
+    [
+      87,
+      62,
+      26,
+      57
+    ]
+  ],
+  "both_saved_interiors_keep_exact_floor": true,
+  "npc_approaches_clear": [
+    31,
+    31,
+    43
+  ],
+  "legacy_player_and_building_conflicts_preserve_exact_state": true,
+  "source_sha256": {
+    "src/game/adventure/village_layout.hpp": "1c4af76926441f464b74141b43e5b7a36cb4083399007e270fe6df81e769630a",
+    "src/game/adventure/village_layout.cpp": "7c41c62749441e4ff17f5ed8f20edab7acf0aa6b707ef10fcfa88d3ae946cfbe",
+    "src/game/adventure/town_residents.cpp": "abc058adebf91d59f77cc7a6f84765c972cac71b2f5f8003c909c9a9cf9c799f",
+    "tests/test_adventure_village.cpp": "a2f0b4a424f889da075185420157bd0d5ac7ca574a0b8239ddcdfec63f862ee0"
+  },
+  "doorway_clearance_followup": {
+    "scope": "single focused saved-doorway approach regression; prior empty-world terrain routes retained unchanged",
+    "tests": {
+      "tests": "1",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.09",
+      "timestamp": "2026-09-13T02:24:56.165",
+      "name": "AllTests"
+    },
+    "clearance_horizontal_m": 0.75,
+    "fixture_direct_wall_gap_m": 0.12,
+    "source_sha256": {
+      "src/game/adventure/village_layout.hpp": "1c4af76926441f464b74141b43e5b7a36cb4083399007e270fe6df81e769630a",
+      "src/game/adventure/village_layout.cpp": "d77a75fa217b20a07f3a1b22d1998c66c13db8371d06f18236f1dd40e5666ebe",
+      "tests/test_adventure_village.cpp": "9a9e786752b9fa520a4ddedec4302579342f7925923fee3f2cd1c5264ec92754"
+    }
+  }
+}

@@ -1024,7 +1024,8 @@ int main(int argc, char* argv[]) {
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
-    appConfig.adventureEnabled = gameMode.mode == voxy::config::GameMode::Adventure;
+    appConfig.freeBuildEnabled = gameMode.mode == voxy::config::GameMode::FreeBuild;
+    appConfig.adventureEnabled = appConfig.freeBuildEnabled || gameMode.mode == voxy::config::GameMode::Adventure;
     appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
     appConfig.salvageAssetFixtureCatalog = config.game.assetFixtureCatalog;
     appConfig.salvageAssetFixtureGuides = config.game.assetFixtureGuides;
@@ -1418,6 +1419,10 @@ void voxy_cove_save_completed() { if(g_app)g_app->noteCoveSaveCompleted(); }
 
 EMSCRIPTEN_KEEPALIVE
 void adventure_action(int action,int value){if(g_app)g_app->adventureAction(action,value);}
+EMSCRIPTEN_KEEPALIVE
+const char* adventure_preferences_action(int action,const char* text){
+    static std::string value;value=g_app&&text?g_app->adventurePreferencesAction(action,text):"Settings are not ready.";return value.c_str();
+}
 EMSCRIPTEN_KEEPALIVE
 const char* get_adventure_state_json(){static std::string value;value=g_app?g_app->adventureJson():"{}";return value.c_str();}
 EMSCRIPTEN_KEEPALIVE

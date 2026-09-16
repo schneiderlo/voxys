@@ -17,8 +17,28 @@ enable_testing()
 # ─────────────────────────────────────────────────────────────────────────────
 set(TEST_SOURCES
     test_adventure_session.cpp
+    test_adventure_doors.cpp
+    test_adventure_door_geometry.cpp
     test_adventure_world.cpp
+    test_adventure_movement.cpp
+    test_adventure_pointer.cpp
+    test_adventure_walkable.cpp
+    test_adventure_navigation.cpp
+    test_adventure_encounters.cpp
+    test_adventure_combat.cpp
+    test_adventure_combat_session.cpp
+    test_adventure_trail_session.cpp
+    test_adventure_trail_sites.cpp
+    test_adventure_field_home_access.cpp
+    test_adventure_trail_presentation.cpp
+    test_adventure_side_quest.cpp
+    test_adventure_blueprints.cpp
+    test_adventure_preferences.cpp
     test_adventure_construction_policy.cpp
+    test_adventure_town.cpp
+    test_adventure_presentation.cpp
+    test_adventure_menu.cpp
+    test_adventure_village.cpp
     test_cooked_part_directory.cpp
     test_fixture_registry.cpp
     test_functional_kit.cpp
@@ -134,6 +154,7 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_blit_path.cpp
         test_scene_sun_shadows.cpp
         test_cove_hud.cpp
+        test_adventure_hud.cpp
         test_water_simulation.cpp
         test_debug_visualizer.cpp
     test_mip_pipeline.cpp
@@ -156,7 +177,7 @@ endif()
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT EMSCRIPTEN)
-    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_adventure_saves.cpp test_native_design_library.cpp test_native_workshop_menu.cpp test_cove_preferences_store.cpp)
+    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_adventure_saves.cpp test_native_design_library.cpp test_native_workshop_menu.cpp test_cove_preferences_store.cpp test_adventure_preferences_store.cpp)
     add_executable(native_save_store_tests test_native_save_store.cpp test_native_save_worker.cpp test_save_generation.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_store.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_worker.cpp
@@ -1084,10 +1105,62 @@ target_link_libraries(cove_water_clock_tests PRIVATE voxy_core gtest gtest_main)
 set_project_warnings(cove_water_clock_tests)
 gtest_discover_tests(cove_water_clock_tests DISCOVERY_MODE PRE_TEST TEST_PREFIX "cove_water_clock.")
 
-add_executable(adventure_tests test_adventure_session.cpp test_adventure_world.cpp test_adventure_construction_policy.cpp)
+add_executable(adventure_tests test_adventure_session.cpp test_adventure_world.cpp test_adventure_construction_policy.cpp test_adventure_town.cpp test_adventure_presentation.cpp test_adventure_menu.cpp test_adventure_village.cpp)
 target_link_libraries(adventure_tests PRIVATE voxy_core gtest gtest_main)
+
+add_executable(adventure_movement_tests test_adventure_movement.cpp)
+target_link_libraries(adventure_movement_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_movement_tests)
+gtest_discover_tests(adventure_movement_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_movement.")
+
+add_executable(adventure_pointer_tests test_adventure_pointer.cpp)
+target_link_libraries(adventure_pointer_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_pointer_tests)
+gtest_discover_tests(adventure_pointer_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_pointer.")
+
+add_executable(adventure_navigation_tests test_adventure_navigation.cpp test_adventure_walkable.cpp)
+target_link_libraries(adventure_navigation_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_navigation_tests)
+gtest_discover_tests(adventure_navigation_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_navigation.")
 
 if(NOT EMSCRIPTEN)
 add_executable(native_adventure_save_tests test_native_adventure_saves.cpp)
 target_link_libraries(native_adventure_save_tests PRIVATE voxy_core gtest gtest_main)
+endif()
+
+add_executable(adventure_combat_tests test_adventure_encounters.cpp test_adventure_combat.cpp test_adventure_combat_session.cpp)
+target_link_libraries(adventure_combat_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_combat_tests)
+gtest_discover_tests(adventure_combat_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_combat.")
+
+if(UNIX AND NOT EMSCRIPTEN)
+    add_executable(adventure_runtime_tests test_adventure_runtime.cpp)
+    target_link_libraries(adventure_runtime_tests PRIVATE voxy_core gtest gtest_main)
+    target_compile_definitions(adventure_runtime_tests PRIVATE VOXY_NATIVE=1)
+    set_project_warnings(adventure_runtime_tests)
+    gtest_discover_tests(adventure_runtime_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_runtime.")
+endif()
+
+add_executable(adventure_trail_tests test_adventure_trail_session.cpp test_adventure_trail_sites.cpp test_adventure_trail_presentation.cpp test_adventure_field_home_access.cpp test_adventure_side_quest.cpp test_adventure_blueprints.cpp)
+target_link_libraries(adventure_trail_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_trail_tests)
+gtest_discover_tests(adventure_trail_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_trail.")
+
+add_executable(adventure_preferences_tests test_adventure_preferences.cpp)
+target_link_libraries(adventure_preferences_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_preferences_tests)
+gtest_discover_tests(adventure_preferences_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_preferences.")
+if(NOT EMSCRIPTEN)
+    add_executable(adventure_preferences_store_tests test_adventure_preferences_store.cpp)
+    target_link_libraries(adventure_preferences_store_tests PRIVATE voxy_core gtest gtest_main)
+    set_project_warnings(adventure_preferences_store_tests)
+    gtest_discover_tests(adventure_preferences_store_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_preferences_store.")
 endif()

@@ -1,0 +1,68 @@
+{
+  "scope": "Native/WASM builds; headless runtime component startup and exact snapshot restore; focused asset, navigation, movement and native storage. Not ordinary player journeys or frame-time acceptance.",
+  "checks": {
+    "robot_asset": {
+      "cases": 9,
+      "failures": 0,
+      "seconds": 0.968
+    },
+    "native_adventure_saves": {
+      "cases": 7,
+      "failures": 0,
+      "seconds": 0.242
+    },
+    "adventure_navigation": {
+      "cases": 9,
+      "failures": 0,
+      "seconds": 0.186
+    },
+    "adventure_movement": {
+      "cases": 2,
+      "failures": 0,
+      "seconds": 0.014
+    },
+    "adventure_combat": {
+      "cases": 8,
+      "failures": 0,
+      "seconds": 0.881
+    },
+    "headlessRuntime": {
+      "cases": 1,
+      "failures": 0,
+      "seconds": 5.065,
+      "adapter": "AMD Radeon 890M Graphics (RADV STRIX1), Vulkan",
+      "acceptedIdleTicks": 1201,
+      "syntheticWalkingFrames": 90,
+      "scope": "No window, surface, frame render, screenshot or external UI driver; actual installed terrain/resources and AdventureRuntime. Exact schema3 canonical snapshot bytes after restore."
+    }
+  },
+  "files": {
+    "src/game/adventure/adventure_runtime.cpp": "bace5b396f6c8f49c7cd86b15319416043bd94243bccdb36ef18e7af3d88ac08",
+    "src/game/adventure/adventure_runtime.hpp": "d86924f9d77bb409cc9f219a4df9644ad6a2fa5548a087862778e38568bf06ba",
+    "src/game/adventure/adventure_combat.cpp": "c78d48a276d63db007b27da2dffac0780d04d8fe9b55458c2a83f290bf6bf6d9",
+    "src/game/adventure/adventure_combat.hpp": "de863fe670adc1dae64402a034405cc3ab92a3e98cac67d6febfcd4a2ecf7f86",
+    "src/game/adventure/adventure_encounters.cpp": "958f46104403f790f77656f3d3b86b4799dc3e10b92f7b9455c843041550daf9",
+    "src/game/adventure/adventure_encounters.hpp": "615af762e6db22000ae840558c21c2d0803d0344e63b1318a8ce5b620e5fb56b",
+    "src/game/adventure/layered_navigation.cpp": "02515dc09ad2e4f859ab95e8fc209e56cb99fa605b45c992cdba893872e870fc",
+    "src/game/adventure/layered_navigation.hpp": "1e7ffdb651ad10d52546f6593eadc69b7ae81af039b4377a02c95b2de9683b4a",
+    "src/game/adventure/adventure_player.cpp": "c992d503e20723238911975a7fc298f7b3b0204e811bc55443b949a9038f4c43",
+    "src/game/adventure/adventure_presentation.cpp": "ca40636b935606e11321ae3db4e2c76647215a51c5e3675e708842605e6cf568",
+    "src/game/adventure/adventure_presentation.hpp": "4001f4512e2c10026fb6f527e166e8776218455b9a78f7166c94ff25a669bec3",
+    "src/game/adventure/construction_policy.cpp": "5e15b030d9d8976d70488dfd998e24c2f27846d4e7b1d37bfdb3d915273ff111",
+    "src/game/assets/robot_asset.cpp": "532fb038fb2856918aa87a1310188428c632426694c98c60ad228ace4a1fa390",
+    "src/game/assets/robot_asset.hpp": "aeb07144875f7fe33a3fa580f19870756fc6cdcbdec057e739a691000eaa6615",
+    "tests/test_robot_asset.cpp": "23a242d05c008dd84c3954d6e00409c2ae34519be7ca5d1b27160fa32a482e02",
+    "tests/test_adventure_runtime.cpp": "07f90939b835475159cd8adac686b5aab2e2581eda7fc1131ba9f5a42c7af8db",
+    "tests/test_adventure_combat.cpp": "9d580cf84d2abb823888c6aea2c777a224ef39efecdac4533c77f870028dad98",
+    "tests/test_adventure_navigation.cpp": "56234efc6c278395142a1d708b397d8165ee6db758fc737ab6ab436dd8946abd",
+    "data/adventure/raider-r01/manifest.json": "5e1306b0e6a4465d9c9b7d6db940da95b4e6c3dcfa40162d6e8eeb0de92a27fd"
+  },
+  "runtimeFollowup": "The headless runtime test ran before the final native information-panel mouse-click guard. Final native and WASM builds include that guard; no other runtime code changed afterward.",
+  "candidate": {
+    "buildId": "adventure-162877127ade6230",
+    "directory": "build-adventure-g-c/web-r01",
+    "url": "http://127.0.0.1:42755/index.html?experience=adventure",
+    "serverSession": 75898,
+    "nativeSha256": "4979619f3f7182d2f04f422d6bbcc718f6291eeccbc74c240b2c46518e785b0c"
+  }
+}

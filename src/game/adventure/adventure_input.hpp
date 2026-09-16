@@ -2,8 +2,21 @@
 
 #include "engine/platform/gamepad.hpp"
 #include "game/expedition/cove_input_preferences.hpp"
+#include <array>
+#include <cmath>
+#include <glm/vec2.hpp>
 
 namespace voxy::game::adventure {
+
+// The orbit uses authored -Z forward. The renderer's left-handed view makes
+// screen-right cross(worldUp, forward), so yaw zero moves right toward -X.
+// Preserve the router's analog magnitude; AdventurePlayer caps diagonal speed.
+[[nodiscard]] inline glm::dvec2 adventureCameraRelativeMovement(
+    std::array<double,2> movement,double orbitYaw) noexcept {
+    const double sine=std::sin(orbitYaw),cosine=std::cos(orbitYaw);
+    const glm::dvec2 forward(-sine,-cosine),right(-cosine,sine);
+    return right*movement[0]+forward*movement[1];
+}
 
 [[nodiscard]] inline expedition::CoveInputPreferences adventureInputDefaults() {
     using A=expedition::CoveAction;

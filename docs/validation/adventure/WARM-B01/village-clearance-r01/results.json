@@ -1,0 +1,128 @@
+{
+  "status": "passed",
+  "scope": "Archive of completed CPU village admission/placement regression and completed native/WASM builds; no new checks executed while archiving",
+  "source_sha256": {
+    "src/game/adventure/village_layout.cpp": "9da68f44afbffce8af219c1bc6e95fea2819d4f2a3e6769f12589bfce0c72e21",
+    "tests/test_adventure_village.cpp": "3a35047d87da0684348c763c358893783379a2ed43fc0cb1cd2ef7e183ff722b"
+  },
+  "cpu": {
+    "target": "//tests:adventure",
+    "filter": "AdventureVillage.*",
+    "tests": 9,
+    "passed": 9,
+    "failures": 0,
+    "errors": 0,
+    "elapsed_test_ms": 769,
+    "timestamp_as_recorded_by_gtest": "2026-09-13T03:04:28.589",
+    "cases": [
+      {
+        "name": "AdventureVillage.TwoSheltersGardensTreesAndPathsShareBoundedRenderedCollision",
+        "milliseconds": 82
+      },
+      {
+        "name": "AdventureVillage.ExistingPlayerInsideAProposedHouseDefersTheEntireHouse",
+        "milliseconds": 25
+      },
+      {
+        "name": "AdventureVillage.ReloadInsideAnExistingCottageKeepsItsFloorAndExactSavedPose",
+        "milliseconds": 139
+      },
+      {
+        "name": "AdventureVillage.AnExistingHouseAndLegacyReservedIdsWinWithoutChangingTheirState",
+        "milliseconds": 49
+      },
+      {
+        "name": "AdventureVillage.NewBuildingCollisionsRefuseButUnchangedPartsAndRemoteBuildingRemain",
+        "milliseconds": 70
+      },
+      {
+        "name": "AdventureVillage.NearbyOldDoorwayKeepsApproachClearanceWithoutDirectOverlap",
+        "milliseconds": 91
+      },
+      {
+        "name": "AdventureVillage.NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority",
+        "milliseconds": 165
+      },
+      {
+        "name": "AdventureVillage.RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend",
+        "milliseconds": 70
+      },
+      {
+        "name": "AdventureVillage.TownRecoveryNpcApproachesAndResourcePointsRemainUsable",
+        "milliseconds": 74
+      }
+    ]
+  },
+  "regression": {
+    "name": "AdventureVillage.NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority",
+    "horizontal_part_expansion_metres": 0.75,
+    "overlap_margin_metres": 0.01,
+    "near_gap_metres": 0.2,
+    "near_new_geometry_passes_general_construction_check": true,
+    "near_new_village_placement_refused": true,
+    "same_near_legacy_state_preserved_exactly": true,
+    "same_near_legacy_fresh_admission_defers_market": true,
+    "unchanged_legacy_construction_remains_allowed": true,
+    "clear_gap_metres": 0.9,
+    "clear_new_geometry_and_village_checks_pass": true,
+    "fresh_admission_preserves_all_8_group_availability_and_bounds": true,
+    "fixture": "256 by 2048 constant-sample CPU terrain; no full-landscape journey rerun"
+  },
+  "builds": [
+    {
+      "platform": "WASM",
+      "build_system": "CMake",
+      "target": "voxy_wasm",
+      "exit_code": 0,
+      "exit_code_provenance": "parent task reported completed command exit 0; retained log confirms Built target voxy_wasm",
+      "warnings": {
+        "double_promotion_count": 7,
+        "retained_in_full_log": true
+      },
+      "log": "checks/village-consistency-wasm-r01.log.gz"
+    },
+    {
+      "platform": "native",
+      "build_system": "Bazel",
+      "target": "//:voxy_native",
+      "exit_code": 0,
+      "exit_code_provenance": "parent task reported completed command exit 0; retained log confirms Build completed successfully",
+      "output": "bazel-bin/voxy_native",
+      "log": "checks/village-consistency-native-r01.log.gz"
+    }
+  ],
+  "not_claimed": [
+    "new actual-full-terrain execution",
+    "native or browser input journey",
+    "real save/process reload by this CPU fixture",
+    "rendered visual approval",
+    "GPU performance",
+    "completed gameplay gate"
+  ],
+  "artifacts": {
+    "checks/adventure-test.log.gz": {
+      "original_path": "bazel-testlogs/tests/adventure/test.log",
+      "uncompressed_bytes": 2300,
+      "uncompressed_sha256": "1cd627fd5c14d5a6a2003f95763d8fd1b71871ae9b92d82ae48b53a26897e8d2",
+      "compressed_sha256": "c7be1c05d5815e93e243cfe3e93f9f9f49666f7d00c3097ec3f9a4ae5a39c8a5"
+    },
+    "checks/adventure-test.xml.gz": {
+      "original_path": "bazel-testlogs/tests/adventure/test.xml",
+      "uncompressed_bytes": 2557,
+      "uncompressed_sha256": "3cd6770f419c7d31108b02903ec54e9a56b9866fa41df7208d4bf2ab69d9643c",
+      "compressed_sha256": "eabe4f72419c6ad582319f2a02f58abf9c557ee37421087537b3b0198d542e01"
+    },
+    "checks/village-consistency-wasm-r01.log.gz": {
+      "original_path": "build-adventure-g-b/village-consistency-wasm-r01.log",
+      "uncompressed_bytes": 3769,
+      "uncompressed_sha256": "a3ce5fe22fcde10063d357da3efd8e5094e09c4e20d807e9b201a8b3039275a2",
+      "compressed_sha256": "0d947b9308871f22851f2c45ccffef6ef47e2873604f55d4a79bd1f4f335887b"
+    },
+    "checks/village-consistency-native-r01.log.gz": {
+      "original_path": "build-adventure-g-b/village-consistency-native-r01.log",
+      "uncompressed_bytes": 1057,
+      "uncompressed_sha256": "acebf111bcacee6d8af512c351167d6794d18e9c215f2f18b597a5faa94dccd1",
+      "compressed_sha256": "0874b8ce7b55910d8ae2d24eab75db8307328259a0cd7f4e0ab934296872ab2b"
+    }
+  }
+}

@@ -41,7 +41,7 @@ std::unique_ptr<NativeAdventureSaves> NativeAdventureSaves::open(const std::file
     std::optional<std::string> selectedWorld,bool fresh,const game::adventure::AdventureContent& content,std::string& error,SaveIoObserver* observer) {
     try {
         if(!root.is_absolute() || (fresh&&selectedWorld)){error="Choose an absolute save folder and either a new or saved adventure.";return nullptr;}
-        const auto profile=root/"adventure-v1";
+        const auto profile=root/(content.freeBuilding?"free-build-v1":"adventure-v1");
         std::error_code ec;std::filesystem::create_directories(profile,ec);
         if(ec){error="The adventure save folder could not be opened.";return nullptr;}
         std::vector<std::pair<std::filesystem::file_time_type,std::string>> candidates;

@@ -1,0 +1,13 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin/ld.bfd: /tmp/nix-shell-853674-3263548000/ccNK4cci.o: in function `voxy::game::adventure::TownResidents::admit(voxy::game::adventure::AdventureState const&, voxy::game::adventure::AdventureSpatialQueries const&, voxy::game::adventure::TownResidents const*)':
+town_residents.cpp:(.text._ZN4voxy4game9adventure13TownResidents5admitERKNS1_14AdventureStateERKNS1_23AdventureSpatialQueriesEPKS2_+0x8a): undefined reference to `voxy::game::construction::isValid(voxy::game::construction::WorldNamespace)'
+/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin/ld.bfd: /tmp/nix-shell-853674-3263548000/ccNK4cci.o: in function `voxy::game::adventure::TownResidents::appendSolids(voxy::game::construction::WorldNamespace, std::vector<voxy::game::adventure::AdventureSpatialQueries::Solid, std::allocator<voxy::game::adventure::AdventureSpatialQueries::Solid> >&) const':
+town_residents.cpp:(.text._ZNK4voxy4game9adventure13TownResidents12appendSolidsENS0_12construction14WorldNamespaceERSt6vectorINS1_23AdventureSpatialQueries5SolidESaIS7_EE+0x40): undefined reference to `voxy::game::construction::isValid(voxy::game::construction::WorldNamespace)'
+/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin/ld.bfd: /tmp/nix-shell-853674-3263548000/cc8y5KDf.o: in function `voxy::game::adventure::AdventureSpatialQueries::publish(std::span<voxy::game::adventure::AdventureSpatialQueries::Solid const, 18446744073709551615ul>, unsigned long)':
+spatial_queries.cpp:(.text._ZN4voxy4game9adventure23AdventureSpatialQueries7publishESt4spanIKNS2_5SolidELm18446744073709551615EEm+0x10b): undefined reference to `voxy::game::construction::isValid(voxy::game::construction::DurableId)'
+/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin/ld.bfd: spatial_queries.cpp:(.text._ZN4voxy4game9adventure23AdventureSpatialQueries7publishESt4spanIKNS2_5SolidELm18446744073709551615EEm+0x139): undefined reference to `voxy::game::construction::isValid(voxy::game::construction::DurableId)'
+collect2: error: ld returned 1 exit status

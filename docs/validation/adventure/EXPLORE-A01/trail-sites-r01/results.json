@@ -1,0 +1,115 @@
+{
+  "scope": "CPU component integration; no UI, camera, GPU rendering, full-loop play or gate completion claim",
+  "tests": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "milliseconds": 3714,
+    "fullTerrainMilliseconds": 3614
+  },
+  "terrain": {
+    "width": 8192,
+    "height": 8192,
+    "rawBytes": 134217728,
+    "sha256": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+    "heightScale": 600,
+    "cellScale": 1,
+    "waterHeight": -200,
+    "modified": false
+  },
+  "installed": {
+    "villageGroups": 8,
+    "townResidents": 3,
+    "existingMarkers": 2,
+    "trailGroups": 4,
+    "trailSites": 4,
+    "trailPieces": 23,
+    "trailSolids": 23,
+    "resourcesOldPrefixUnchanged": 18,
+    "appendedResourceIds": [
+      19,
+      20,
+      21
+    ]
+  },
+  "obstacle": {
+    "faceX": 29.5,
+    "z": -923,
+    "riseMetres": 0.96,
+    "unbuiltWalkingBlocked": true,
+    "discoveryPositionXZ": [
+      30,
+      -923
+    ],
+    "signalFrameCenterXZ": [
+      30,
+      -920.5
+    ],
+    "paidPierBottomCenters": [
+      [
+        29.1,
+        -129.92,
+        -923.48
+      ],
+      [
+        29.1,
+        -129.92,
+        -923
+      ],
+      [
+        29.1,
+        -129.92,
+        -922.52
+      ]
+    ],
+    "stoneCost": 6,
+    "woodCost": 0,
+    "topY": -128.96,
+    "ascentAndDescentWalking": true,
+    "jumpUsed": false,
+    "detourXZ": [
+      [
+        29,
+        -923
+      ],
+      [
+        29,
+        -941
+      ],
+      [
+        30,
+        -941
+      ],
+      [
+        30,
+        -923
+      ]
+    ],
+    "detourMetresEachDirection": 37,
+    "detourBothDirectionsWalking": true
+  },
+  "rejectedProposal": {
+    "faceXZ": [
+      21.5,
+      -923
+    ],
+    "riseMetres": 0.64,
+    "unbuiltActuallyWalkable": true,
+    "originalPaidLayoutFailed": true,
+    "boundedDiagnosticTerrainFaces": 4,
+    "boundedDiagnosticPaidLayouts": 9,
+    "probeIsAcceptanceEvidence": false
+  },
+  "sourceSha256": {
+    "src/game/adventure/trail_sites.hpp": "1b47ea7ee9c16004102ef768e15b565df065fc3fc60014ed33054226db30bd11",
+    "src/game/adventure/trail_sites.cpp": "d1ea0cc9291211aff584541724380b6da6919e0d0e7604c9bd163ec787a81206",
+    "tests/test_adventure_trail_sites.cpp": "6c0421ed086637070a71d3dd7d5795f44a73658020f22a0cfc07dd1dfe32c0b6"
+  },
+  "checksSha256": {
+    "checks/bounded-geometry-diagnostic-r01.log": "ffc560de8283cb38d8c2088310b5539c27a653b6ef97835d944d4d2c5367e3c3",
+    "checks/focused-build-r04.log": "843407950b9e5c05dc4a7a06a48330fdbebf024200412d2c71f9e841dfd41c32",
+    "checks/full-terrain-r03.log": "59c1f3d328e759fdff26a27d671e3ec172f7930a6b86ddc2f342da498bb89057",
+    "checks/full-terrain-r03.xml": "3499d575791d7a22ec82372e547cb1424e9a822ee57b8034dece515118d33d6b",
+    "checks/rejected-first-proposal-r01.log": "764cff9722f42f3df689adb17e647526df5a76c0cc548df5d042f8688603ece5"
+  }
+}

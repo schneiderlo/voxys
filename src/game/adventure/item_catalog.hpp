@@ -8,7 +8,7 @@
 namespace voxy::game::adventure {
 
 // Version 1 IDs are serialized. Append new IDs only with a schema/content migration.
-enum class ItemKind : uint8_t { None, Wood, Stone, Scrap, FieldHammer, Count };
+enum class ItemKind : uint8_t { None, Wood, Stone, Scrap, FieldHammer, TrailCompass = 5, TrailStaff = 6, RelayCore = 7, Count };
 struct ItemDefinition {
     ItemKind kind = ItemKind::None;
     std::string_view id;

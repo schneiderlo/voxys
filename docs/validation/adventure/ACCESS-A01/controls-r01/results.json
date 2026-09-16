@@ -1,0 +1,123 @@
+{
+  "status": "implemented-and-partially-verified",
+  "baseCommit": "2d6d0bc154169fc8d73d744ad9392b9c481d0bfd",
+  "scope": "ACCESS-A01 comfort persistence and semantic combat bindings; no complete gameplay/human gate",
+  "package": {
+    "status": "candidate-controls-persistence-verified-ordinary-play-open",
+    "buildId": "adventure-8dda99b275e01b17",
+    "directory": "build-adventure-g-c/web-r05",
+    "url": "http://127.0.0.1:42759/index.html?experience=adventure&telemetry=0",
+    "serverSession": 72611,
+    "browserTab": "10",
+    "browserStartup": "CUA tab9 ordinary text125/Dodge F changes confirmed saved; fresh same-origin tab10 independently loaded Dodge F and text125; first-tab reload not counted",
+    "schema": 5,
+    "contentIdentity": "b989f53fd82527a42f3e60582f9bb0cdcafced9cfea94b53074cccf37eca290c",
+    "packageManifestSha256": "081400dbbf89e646cfe0a3436d04c657e798432f62b71883f6587b9d6186f245",
+    "verifiedManifestFiles": 47,
+    "nativeDirectory": "build-adventure-g-c/native-r04",
+    "nativeSha256": "a99c6db70194e67871950e78f45242cfe9e5bb1681f2552fb3232d02dde92b6a",
+    "evidence": "docs/validation/adventure/ACCESS-A01/controls-r01/README.md",
+    "completedGate": false
+  },
+  "checks": {
+    "adventure_preferences": {
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.002",
+      "log": "checks/adventure_preferences-r01.xml"
+    },
+    "adventure_preferences_store": {
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.025",
+      "log": "checks/adventure_preferences_store-r01.xml"
+    },
+    "cove_input_preferences": {
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.031",
+      "log": "checks/cove_input_preferences-r01.xml"
+    },
+    "runtime": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "time": "5.347",
+      "log": "checks/runtime-r01.xml"
+    },
+    "browser_preferences": {
+      "tests": "11",
+      "pass": "11",
+      "fail": "0",
+      "duration_ms": "14.507729",
+      "log": "checks/browser-preferences-r02.log"
+    },
+    "browser_ui": {
+      "tests": "40",
+      "pass": "40",
+      "fail": "0",
+      "duration_ms": "72.117832",
+      "log": "checks/browser-ui-r03.log"
+    }
+  },
+  "buildLogs": [
+    "checks/native-runtime-final-r01.log",
+    "checks/wasm-r01.log"
+  ],
+  "browserInteraction": {
+    "driver": "official CUA",
+    "editTab": "9",
+    "restoreTab": "10",
+    "textScale": 1.25,
+    "dodgeKey": "F",
+    "savedStatus": "Settings saved on this device.",
+    "restoredHud": "Dodge \u00b7 F",
+    "restoreMethod": "fresh same-origin tab and newly initialized engine",
+    "firstTabReload": "left existing menu unchanged; not counted",
+    "screenshots": 0,
+    "developerStateInjection": false,
+    "worldSaveOperation": false
+  },
+  "limits": [
+    "synthetic library input in runtime integration is not physical controller acceptance",
+    "Linux store fresh-object reopen is not a native window/process restart",
+    "Windows settings persistence unsupported",
+    "human dyslexia/accessibility sessions pending",
+    "ordinary complete G-B/G-C journeys pending",
+    "no new gate or commit"
+  ],
+  "retainedFailures": [
+    "checks/preferences-focused-r01.log: extra brace in test initializer, corrected",
+    "r04 browser preference bridge required absent top-level ready field, corrected; integration fixture now matches production"
+  ],
+  "sourceSha256": {
+    "src/game/adventure/adventure_preferences.hpp": "e29d2879044bd67702ddb8918ae4e60d60b9c87e760416a83e86307f79fc8dcc",
+    "src/game/adventure/adventure_preferences.cpp": "576c8f9e60ba53ef6bab3d3d29365a475587140df27c2eda2df9bb9fd05ed21e",
+    "src/game/adventure/adventure_runtime.hpp": "b49df2fb634a36b14323f0fdef57b2478b0f2e41313f104d51a49d8d5f25371a",
+    "src/game/adventure/adventure_runtime.cpp": "17576285eeb61c255daa130ef1903d9119946f536722ec17b182164563b2d50f",
+    "src/game/expedition/cove_input_preferences.hpp": "906ab50281249c03c3197b68120ad6483179202d13ed1a7fd5fee81a250d994a",
+    "src/game/expedition/cove_input_preferences.cpp": "9a290c5b298b05d73886a68d33f94c94fe7d603b1a5a4a66dcb6d5bc71710c2a",
+    "src/engine/platform/native/adventure_preferences_store.hpp": "4133e44147e2764bc34c1e353650082f844cc3989dd449cef1050a50290b46dc",
+    "src/engine/platform/native/adventure_preferences_store.cpp": "3b8f3c65502ef8fa428f2b396d3c8f8d32ca138f6f775fc117d4fa7a7642c758",
+    "src/app/application.hpp": "587edb44778740842fb6cb7127f35e2b035e2f56dd140b3c636c239b3e01cc7d",
+    "src/app/application.cpp": "ea8420037fe7d0492b1d187b621ae91ba32f9ece64f5ac981aab8da9c0b315a4",
+    "src/engine/platform/wasm/entry.cpp": "4303cdb63e00cb1e0003439289dbdd4752be761f2f6f867a05f0163c5e58bdf4",
+    "web/adventure_preferences.js": "cd97e1c00f2f9d8d7fa0f994eb1968b42826a4d959ae09d050089b0dbb7c10f4",
+    "web/adventure_ui.js": "de48c197c53e5e96c7e8f75bfaf4e5374f16a6afe863753a33a9e2d469c885ad",
+    "web/index.html": "b50277bb29dcd3fb60028489dad355361da78ccf6ac3ce2e8078c069c46cb876",
+    "scripts/test_adventure_preferences.mjs": "e8a59d5d7e9ea1869c860a402ccf2808cfd9bb7403abaaf55a2e0a87401a96bc",
+    "tools/adventure_assets/test_adventure_ui.mjs": "c3a897f54101b110ecf33c9e87d6a27706cfb2b99cc963748e95eb219712f6bf",
+    "tests/test_adventure_preferences.cpp": "7555e59869caf2829a8b0bc58bd7a797b6e62b03820b8c434d98b377ed8b3883",
+    "tests/test_adventure_preferences_store.cpp": "195dfe33bc2bfd323c1410fa641f93ceba8dc3942e9ab05d24c74f781e49b3fa",
+    "tests/test_adventure_runtime.cpp": "90f2eb4419819028eef0d8e4459b08e110d327a1989ed7cedfbcc9378e14f05b",
+    "scripts/package_adventure_preview.py": "427ff967868c99ddff152d65bd6114870b4320cb7a1a4dfe569eb1b6b5f18957",
+    "src/game/BUILD": "dbad4d1fc96422280cba331c189ebe6b2a46423483073adad3c390d54aa48345",
+    "src/engine/platform/BUILD": "099f5b4474438440ad96fa28fceebe09249f4d04b107d48144c2bc4c92b7102c",
+    "src/CMakeLists.txt": "9acab75f4de9cfa9498df1bf72ebfca71ccde78bf8ea8660ec451547a67665c4",
+    "tests/BUILD": "542fd1d3e73f36065f9b5952c35dca65e1900af6fb5381273e1f815bb91b1131",
+    "tests/CMakeLists.txt": "148cc18563be6ca5d8fc261939f86da0617f04fd4c4be7811580d278666f9094"
+  }
+}

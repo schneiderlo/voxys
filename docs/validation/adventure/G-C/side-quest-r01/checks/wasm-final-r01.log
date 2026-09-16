@@ -1,0 +1,57 @@
+[  0%] Built target miniz
+[ 13%] Built target box3d
+[ 21%] Built target libzstd_static
+[ 22%] Built target tinygltf
+[ 54%] Built target Jolt
+[ 55%] Building CXX object src/CMakeFiles/voxy_core.dir/game/adventure/adventure_session.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/voxy_core.dir/game/adventure/adventure_runtime.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/voxy_core.dir/game/adventure/adventure_trail_content.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.hpp:16:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:16:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:183:52: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  183 |         content_.resourceNodes.push_back({i+1,{p.x,y,p.y,0},{ItemKind(1+i%3),uint16_t(i%3==0?12:8)}});
+      |                                               ~    ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:206:63: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  206 |         ||!player_.initialize(queries_,spawn,installedWorld().waterHeight)) {error="Could not start on safe ground.";return false;}
+      |                    ~~~~~~~~~~                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:249:67: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  249 |     if(!combat_.initialize(content_,walkQueries_,installedWorld().waterHeight)) {error="The trail navigation is unavailable.";return false;}
+      |                 ~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:637:64: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  637 |     if(!checked.initialize(queries_,pose.feet,installedWorld().waterHeight,pose.facingYaw)) {
+      |                 ~~~~~~~~~~                    ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:781:36: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  781 |         orbitInput.zoomSteps=input.scrollDelta();orbitInput.active=input.focused();
+      |                             ~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:785:90: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  785 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~                                   ~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:785:69: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  785 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~              ~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:785:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  785 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~~~~~~~~^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1327:86: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1327 |     if(!checkedPlayer.initialize(actors,townSpawn(actors.terrain()),installedWorld().waterHeight)
+      |                       ~~~~~~~~~~                                    ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1:
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.hpp:127:12: warning: private field 'observationSeconds_' is not used [-Wunused-private-field]
+  127 |     double observationSeconds_=0;
+      |            ^
+11 warnings generated.
+[ 55%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm

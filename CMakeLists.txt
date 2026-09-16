@@ -288,6 +288,7 @@ if(VOXY_BUILD_NATIVE)
                 "${CMAKE_SOURCE_DIR}/lego_shore.cfg"
                 "${CMAKE_SOURCE_DIR}/lego_world.cfg"
                 "${CMAKE_SOURCE_DIR}/adventure.cfg"
+                "${CMAKE_SOURCE_DIR}/free_build.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_asset_fixture.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_assembly_fixture.cfg"
@@ -525,9 +526,29 @@ if(VOXY_BUILD_WASM)
             salvage_material_fixture.cfg
             salvage_metric_fixture.cfg
             adventure.cfg
+            free_build.cfg
             data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh
             data/adventure/building-kit-r01/cooked/building-kit-lod1.vmesh
             data/adventure/building-kit-r01/cooked/manifest.json
+            data/adventure/door-r01/cooked/door-leaf-lod0.vmesh
+            data/adventure/door-r01/cooked/door-leaf-lod1.vmesh
+            data/adventure/door-r01/cooked/manifest.json
+            data/adventure/human-r01/manifest.json
+            data/adventure/human-r01/human.vmesh
+            data/adventure/human-r01/lod1.vmesh
+            data/adventure/human-r01/lod2.vmesh
+            data/adventure/residents-r01/moss/manifest.json
+            data/adventure/residents-r01/moss/character.vmesh
+            data/adventure/residents-r01/rivet/manifest.json
+            data/adventure/residents-r01/rivet/character.vmesh
+            data/adventure/residents-r01/lumen/manifest.json
+            data/adventure/residents-r01/lumen/character.vmesh
+            data/adventure/raider-r01/manifest.json
+            data/adventure/raider-r01/character.vmesh
+            data/adventure/raider-r01/lod1.vmesh
+            data/adventure/raider-r01/lod2.vmesh
+            data/adventure/village-props-r01/manifest.json
+            data/adventure/village-props-r01/village-props-lod0.vmesh
             salvage_cove.cfg
             data/salvage/fixture-cove-r01.json
             data/salvage/robot-r01/manifest.json

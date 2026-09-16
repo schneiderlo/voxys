@@ -1,0 +1,32 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (1 packages loaded, 175 targets configured).
+[522 / 527] Compiling src/game/adventure/adventure_runtime.cpp; 1s linux-sandbox
+[523 / 527] [Prepa] Linking src/game/libadventure_runtime.so
+INFO: Found 2 targets...
+INFO: Elapsed time: 4.924s, Critical Path: 3.24s
+INFO: 6 processes: 522 action cache hit, 2 internal, 4 linux-sandbox.
+INFO: Build completed successfully, 6 total actions
+Running main() from gmock_main.cc
+Note: Google Test filter = FreeBuildRuntimeIntegration.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FreeBuildRuntimeIntegration
+[ RUN      ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[32m[INFO ] [00:58:14.904] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:58:14.904] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:58:14.904] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:58:14.904] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:58:14.906] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore (4516 ms)
+[----------] 1 test from FreeBuildRuntimeIntegration (4516 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4516 ms total)
+[  PASSED  ] 1 test.

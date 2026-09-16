@@ -40,7 +40,8 @@ glm::dvec3 AdventurePlayer::move(glm::dvec3 from,glm::dvec3 displacement) const 
     return from;
 }
 void AdventurePlayer::advance(double seconds,Input input) noexcept {
-    if(!queries_||!std::isfinite(seconds)||seconds<0||!std::isfinite(input.movement.x)||!std::isfinite(input.movement.y))return;
+    if(!queries_||!std::isfinite(seconds)||seconds<0||!std::isfinite(input.movement.x)||!std::isfinite(input.movement.y)||!std::isfinite(input.speedScale))return;
+    input.speedScale=std::clamp(input.speedScale,1.,2.);
     const double magnitude=glm::length(input.movement);if(magnitude>1)input.movement/=magnitude;
     pendingJump_=pendingJump_||input.jump;accumulator_+=std::min(seconds,.25);
     for(int steps=0;steps<15&&accumulator_+1e-12>=fixedStep;++steps) {
@@ -56,7 +57,7 @@ void AdventurePlayer::step(Input input) noexcept {
         if(!std::isfinite(support)||before.y-support>.03)state_.mode=Mode::Airborne;
         else if(input.jump){state_.mode=Mode::Airborne;state_.velocity=wanted*3.6+glm::dvec3(0,6,0);}
         else {
-            const auto displacement=wanted*(3.6*fixedStep);auto point=move(before,displacement);
+            const auto displacement=wanted*(3.6*fixedStep*input.speedScale);auto point=move(before,displacement);
             const double wantedDistance=glm::length(displacement),actual=glm::length(glm::dvec2(point.x-before.x,point.z-before.z));
             if(wantedDistance>1e-8&&actual+1e-6<wantedDistance) {
                 const auto raised=move(before,{0,stepHeight,0});

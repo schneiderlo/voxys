@@ -1,0 +1,44 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureHud.*
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from AdventureHud
+[ RUN      ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity
+[       OK ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity (0 ms)
+[ RUN      ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize
+[       OK ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize (66 ms)
+[ RUN      ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible
+[       OK ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible (8 ms)
+[ RUN      ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize
+tests/test_adventure_hud.cpp:153: Failure
+Value of: sawLongCard
+  Actual: false
+Expected: true
+
+[  FAILED  ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize (214 ms)
+[ RUN      ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls
+[       OK ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls (6 ms)
+[ RUN      ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable
+[       OK ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable (0 ms)
+[ RUN      ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis
+[       OK ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis (0 ms)
+[ RUN      ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity
+[       OK ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity (2 ms)
+[ RUN      ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders
+[       OK ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders (17 ms)
+[ RUN      ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent
+[       OK ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent (0 ms)
+[----------] 10 tests from AdventureHud (317 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (317 ms total)
+[  PASSED  ] 9 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize
+
+ 1 FAILED TEST

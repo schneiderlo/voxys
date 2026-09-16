@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: startup accepts the runtime revision without a ready field and never stores untouched defaults
+ok 1 - startup accepts the runtime revision without a ready field and never stores untouched defaults
+  ---
+  duration_ms: 2.531995
+  type: 'test'
+  ...
+# Subtest: accepted stored settings establish their post-apply baseline before any menu change is saved
+ok 2 - accepted stored settings establish their post-apply baseline before any menu change is saved
+  ---
+  duration_ms: 0.352495
+  type: 'test'
+  ...
+# Subtest: identical valid saved values retain original bytes without a startup rewrite
+ok 3 - identical valid saved values retain original bytes without a startup rewrite
+  ---
+  duration_ms: 0.233413
+  type: 'test'
+  ...
+# Subtest: malformed and oversized saved blobs remain intact and are not retried by polling
+ok 4 - malformed and oversized saved blobs remain intact and are not retried by polling
+  ---
+  duration_ms: 0.414781
+  type: 'test'
+  ...
+# Subtest: storage denial keeps visit settings usable and later explicit edits retry once
+ok 5 - storage denial keeps visit settings usable and later explicit edits retry once
+  ---
+  duration_ms: 0.196084
+  type: 'test'
+  ...
+# Subtest: a denied storage getter or absent storage cannot stop the game or trigger frame retries
+ok 6 - a denied storage getter or absent storage cannot stop the game or trigger frame retries
+  ---
+  duration_ms: 0.334792
+  type: 'test'
+  ...
+# Subtest: explicit Save again or Reset revision can replace bad storage even at default values
+ok 7 - explicit Save again or Reset revision can replace bad storage even at default values
+  ---
+  duration_ms: 0.176357
+  type: 'test'
+  ...
+# Subtest: a menu edit before the post-load observation persists the latest canonical settings
+ok 8 - a menu edit before the post-load observation persists the latest canonical settings
+  ---
+  duration_ms: 0.137326
+  type: 'test'
+  ...
+# Subtest: bad canonical transport output never overwrites storage and each revision gets one attempt
+ok 9 - bad canonical transport output never overwrites storage and each revision gets one attempt
+  ---
+  duration_ms: 0.417486
+  type: 'test'
+  ...
+# Subtest: decimal revisions stay exact above Number precision and stale observations do not write
+ok 10 - decimal revisions stay exact above Number precision and stale observations do not write
+  ---
+  duration_ms: 0.322489
+  type: 'test'
+  ...
+# Subtest: cleanup stops every startup, read, write and status notification without a timer
+ok 11 - cleanup stops every startup, read, write and status notification without a timer
+  ---
+  duration_ms: 0.187128
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14.507729

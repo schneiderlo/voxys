@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "profile": "salvage-animated-rigid-v1",
+  "asset_id": "voxys-adventure-raider-r01",
+  "render_to_canonical": 12,
+  "filename": "character.vmesh",
+  "sha256": "a359cb38a4473e173239451881fed662566519a7ba6c9944294eab3fead1b2eb",
+  "maximum_nodes": 32,
+  "maximum_meshes": 24,
+  "maximum_draws": 48,
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "source_sha256": "494f930aa683fe21c89ead9b869d7b43c0488bdb169f816f1ad68dbd41a6769e",
+  "provenance_sha256": "7c30e0108c074380f41dd3a954d039d722b6a62ea9beeb41b193a013f2e5f700",
+  "cooker_sha256": "8bd2e7eb6922f9839ba63d2e051a29377c559571c278a10b3d05e855ec1f8dc0",
+  "generator_sha256": "cd28f1d3583e0a82f163bb8e871daea2a077c0d3963a7b35d22c5fc625381ffc",
+  "lods": [
+    {
+      "lod": 0,
+      "filename": "character.vmesh",
+      "sha256": "a359cb38a4473e173239451881fed662566519a7ba6c9944294eab3fead1b2eb",
+      "bytes": 744851,
+      "gpu_bytes": 750920,
+      "vertex_count": 9486,
+      "index_count": 16854,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 31,
+      "clips": 8,
+      "channels": 37,
+      "source_sha256": "494f930aa683fe21c89ead9b869d7b43c0488bdb169f816f1ad68dbd41a6769e",
+      "cook_exit": 0
+    },
+    {
+      "lod": 1,
+      "filename": "lod1.vmesh",
+      "sha256": "431602ba40b9e064e496b771eea18e88c2c83aed3c7015eb992bb104b6a8d258",
+      "bytes": 396587,
+      "gpu_bytes": 387536,
+      "vertex_count": 4859,
+      "index_count": 9294,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 31,
+      "clips": 8,
+      "channels": 37,
+      "source_sha256": "155edb5baada95a941fefe47a84c7043b65fb522032be7b1459ab958eedc326f",
+      "cook_exit": 0
+    },
+    {
+      "lod": 2,
+      "filename": "lod2.vmesh",
+      "sha256": "9f21685c79bb7630279c96994963e8b1e5605230fff78503e26137eb6c149555",
+      "bytes": 216011,
+      "gpu_bytes": 198320,
+      "vertex_count": 2471,
+      "index_count": 4974,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 31,
+      "clips": 8,
+      "channels": 37,
+      "source_sha256": "2ca92a5c712675f26b634011ea756681b109af5b807f0161dadaeb101b75ec61",
+      "cook_exit": 0
+    }
+  ]
+}

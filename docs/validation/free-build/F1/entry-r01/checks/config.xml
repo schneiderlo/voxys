@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="65" failures="0" disabled="0" errors="0" time="0.007" timestamp="2026-09-16T02:26:30.861" name="AllTests">
+  <testsuite name="ConfigUtilsTest" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-16T02:26:30.861">
+    <testcase name="Trim" file="tests/test_config.cpp" line="20" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+    <testcase name="ParseBool" file="tests/test_config.cpp" line="28" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+    <testcase name="ParseFloat" file="tests/test_config.cpp" line="51" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+    <testcase name="ParseInt" file="tests/test_config.cpp" line="65" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+    <testcase name="GenericParseSupportsItsAdvertisedTypes" file="tests/test_config.cpp" line="77" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+    <testcase name="WreckwaterKeyParserIsExactAndTransactional" file="tests/test_config.cpp" line="272" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigUtilsTest" />
+  </testsuite>
+  <testsuite name="ConfigDefaultsTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-16T02:26:30.861">
+    <testcase name="RenderConfig" file="tests/test_config.cpp" line="92" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="TerrainConfig" file="tests/test_config.cpp" line="100" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="WaterConfig" file="tests/test_config.cpp" line="107" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="PhysicsConfig" file="tests/test_config.cpp" line="123" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="CameraConfig" file="tests/test_config.cpp" line="134" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="LightingConfig" file="tests/test_config.cpp" line="143" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="DebugConfig" file="tests/test_config.cpp" line="151" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+    <testcase name="WindowConfig" file="tests/test_config.cpp" line="159" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="ConfigDefaultsTest" />
+  </testsuite>
+  <testsuite name="CommandLineArgsTest" tests="22" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-16T02:26:30.861">
+    <testcase name="DefaultValues" file="tests/test_config.cpp" line="171" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="CompleteWreckwaterBootstrapParsesBinaryKey" file="tests/test_config.cpp" line="200" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail" file="tests/test_config.cpp" line="243" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="HelpFlag" file="tests/test_config.cpp" line="292" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="ConfigPath" file="tests/test_config.cpp" line="302" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="RenderPath" file="tests/test_config.cpp" line="308" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="PhysicsBackendAndCpuSchedulers" file="tests/test_config.cpp" line="315" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="WindowSize" file="tests/test_config.cpp" line="345" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="Fullscreen" file="tests/test_config.cpp" line="358" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="LogLevel" file="tests/test_config.cpp" line="364" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="NoValidation" file="tests/test_config.cpp" line="371" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="Benchmark" file="tests/test_config.cpp" line="377" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="BenchmarkBodiesEnableBenchmark" file="tests/test_config.cpp" line="383" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="BenchmarkMinimumFpsEnablesBenchmark" file="tests/test_config.cpp" line="392" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="BenchmarkFixedHzEnablesBenchmark" file="tests/test_config.cpp" line="401" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="ScreenshotTourCountIsBoundedBeforeAllocation" file="tests/test_config.cpp" line="410" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="InspectionMotionRetainsPairedPathsAndMissingValueForStartupRejection" file="tests/test_config.cpp" line="426" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="MultipleArgs" file="tests/test_config.cpp" line="440" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="PresentationOverrides" file="tests/test_config.cpp" line="458" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="InvalidArgcAndNullEntriesAreSafe" file="tests/test_config.cpp" line="472" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.861" classname="CommandLineArgsTest" />
+    <testcase name="HeightmapPath" file="tests/test_config.cpp" line="1166" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="CommandLineArgsTest" />
+    <testcase name="AllOverridesTogether" file="tests/test_config.cpp" line="1173" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="CommandLineArgsTest" />
+  </testsuite>
+  <testsuite name="ConfigGameModeTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-16T02:26:30.862">
+    <testcase name="AbsentModePreservesLegacyTitleRoutes" file="tests/test_config.cpp" line="519" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="ConfigGameModeTest" />
+    <testcase name="AdventureUsesFullLegoTerrainAndSeparateBootstrap" file="tests/test_config.cpp" line="530" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="ConfigGameModeTest" />
+    <testcase name="ExplicitModeOverridesTitleAndRejectsUnknownOrConflict" file="tests/test_config.cpp" line="543" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="ConfigGameModeTest" />
+    <testcase name="CreativeBuildingSelectsLegoTerrainExplicitly" file="tests/test_config.cpp" line="1208" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.862" classname="ConfigGameModeTest" />
+  </testsuite>
+  <testsuite name="ConfigFileTest" tests="25" failures="0" disabled="0" skipped="0" errors="0" time="0.006" timestamp="2026-09-16T02:26:30.862">
+    <testcase name="ExplicitModeRoundTripsAndMalformedModeNeverFallsBack" file="tests/test_config.cpp" line="563" status="run" result="completed" time="0.002" timestamp="2026-09-16T02:26:30.862" classname="ConfigFileTest" />
+    <testcase name="AssetFixtureRegistryRequiresExplicitSalvageAndRoundTrips" file="tests/test_config.cpp" line="578" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.864" classname="ConfigFileTest" />
+    <testcase name="AdditiveFixtureCatalogRoundTripsAndRequiresAnInstalledBase" file="tests/test_config.cpp" line="609" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.864" classname="ConfigFileTest" />
+    <testcase name="AssetFixtureInitialDetailRejectsMalformedOrUnscopedSelection" file="tests/test_config.cpp" line="628" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.865" classname="ConfigFileTest" />
+    <testcase name="AssetFixtureLightingRejectsMalformedOrUnscopedSelection" file="tests/test_config.cpp" line="647" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.866" classname="ConfigFileTest" />
+    <testcase name="AssetFixtureAnchorRejectsMalformedOrUnscopedSelection" file="tests/test_config.cpp" line="664" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.866" classname="ConfigFileTest" />
+    <testcase name="LoadNonexistentFile" file="tests/test_config.cpp" line="681" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="LoadBasicConfig" file="tests/test_config.cpp" line="689" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState" file="tests/test_config.cpp" line="710" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="CommandLineCanCompleteWreckwaterFileAtomically" file="tests/test_config.cpp" line="751" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="ZeroWreckwaterKeyAndIdentityFailValidation" file="tests/test_config.cpp" line="776" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="LoadAllSections" file="tests/test_config.cpp" line="799" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="IgnoresComments" file="tests/test_config.cpp" line="848" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="CommandLineOverrides" file="tests/test_config.cpp" line="860" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.867" classname="ConfigFileTest" />
+    <testcase name="CommandLineBenchmarkEnablesAutomation" file="tests/test_config.cpp" line="886" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="SaveAndReload" file="tests/test_config.cpp" line="905" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="InvalidWaterNumbersKeepCurrentDefaults" file="tests/test_config.cpp" line="938" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="InvalidBroadPhaseCellSizesKeepCurrentValue" file="tests/test_config.cpp" line="951" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="InvalidDuplicateValuesKeepEarlierValidValues" file="tests/test_config.cpp" line="963" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="MalformedVectorsAndQuotesPreserveEarlierValues" file="tests/test_config.cpp" line="984" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="SaveAndReloadEscapedStrings" file="tests/test_config.cpp" line="1005" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="ReflectionStrengthIsClampedToDocumentedRange" file="tests/test_config.cpp" line="1024" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="SaveReportsDeviceWriteFailure" file="tests/test_config.cpp" line="1038" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="AllSettingsPreserved" file="tests/test_config.cpp" line="1047" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+    <testcase name="CommandLineOverridesAllSettings" file="tests/test_config.cpp" line="1124" status="run" result="completed" time="0." timestamp="2026-09-16T02:26:30.868" classname="ConfigFileTest" />
+  </testsuite>
+</testsuites>

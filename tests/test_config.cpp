@@ -1205,4 +1205,10 @@ TEST(CommandLineArgsTest, AllOverridesTogether) {
     EXPECT_TRUE(args.benchmark);
 }
 
+TEST(ConfigGameModeTest, CreativeBuildingSelectsLegoTerrainExplicitly) {
+    Config config;config.game.mode="free-build";
+    const auto resolved=resolveGameMode(config);ASSERT_TRUE(resolved.ready());
+    EXPECT_EQ(resolved.mode,GameMode::FreeBuild);EXPECT_TRUE(resolved.legoTerrain());
+}
+
 } // namespace voxy::config

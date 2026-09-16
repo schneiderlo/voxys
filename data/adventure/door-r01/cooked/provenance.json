@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-hinged-door-r01",
+  "profile": "salvage-rigid-v1",
+  "render_to_canonical": 0,
+  "catalog_sha256": "099b9e53adbdf0cc222d28744256529b678b8b97ec30e92b16d409fd09c272b8",
+  "blender_version": "5.2.1 LTS",
+  "author_sha256": "4e022874d31a57503e9ee961798ae497ed1fc9f8bb174d3e4ea5d4565324fc11",
+  "helper_sha256": "c8b27e4d5c8730c5c07e321d0fceb1f1afe9ed0b66c00684ef8b62f1458037f0",
+  "leaf_mesh_index": 0,
+  "leaf_node": "15_hinged_door_leaf",
+  "hinge_ticks": [
+    -32,
+    2,
+    0
+  ],
+  "closed_leaf_ticks": {
+    "minimum": [
+      -32,
+      2,
+      -2
+    ],
+    "maximum": [
+      32,
+      110,
+      2
+    ]
+  },
+  "open_leaf_ticks": {
+    "minimum": [
+      -34,
+      2,
+      0
+    ],
+    "maximum": [
+      -30,
+      110,
+      64
+    ]
+  },
+  "open_yaw_degrees": -90,
+  "palette_srgb": {
+    "terracotta": "B85C45",
+    "brass": "C69A49"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "blend": "door-leaf-lod0.blend",
+      "glb": "door-leaf-lod0.glb",
+      "blend_sha256": "f437ee6da6823796bb72059a55e7c405984cb960ae114603d7e9197505d5586a",
+      "glb_sha256": "827e3ce3c11b55b1e70c5605cfe373ffb489c1b6a412f4ed5c4b89db524642dd",
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.23167507078825614,
+        "bounds": {
+          "minimum": [
+            -0.6399999856948853,
+            0.03999999910593033,
+            -0.05900000035762787
+          ],
+          "maximum": [
+            0.6399999856948853,
+            2.200000047683716,
+            0.05900000035762787
+          ]
+        }
+      }
+    },
+    {
+      "lod": 1,
+      "blend": "door-leaf-lod1.blend",
+      "glb": "door-leaf-lod1.glb",
+      "blend_sha256": "fcf4bfe12c5123aa953ed97b77d20e04951bcf722eb9b38731b33ca127d1d168",
+      "glb_sha256": "1fb13a668f42dfa9ad699fda7b214ccce5b18393b0f1e10654355c4b55121ef0",
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.23144108166058266,
+        "bounds": {
+          "minimum": [
+            -0.6399999856948853,
+            0.03999999910593033,
+            -0.05900000035762787
+          ],
+          "maximum": [
+            0.6399999856948853,
+            2.200000047683716,
+            0.05900000035762787
+          ]
+        }
+      }
+    }
+  ],
+  "provenance": "Original molded construction-toy door leaf. Reuses the unchanged original doorway frame. No downloaded models, generated images, textures, armature or animation channels.",
+  "collision": "Body .08m thick; molded panels and handle relief extend at most .019m beyond its front/back faces. No relief extends past the leaf width or height. Closed/open authority is supplied by the session."
+}

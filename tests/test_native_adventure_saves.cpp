@@ -107,4 +107,52 @@ TEST(NativeAdventureSavesTest, NewPrimaryWithoutMatchingMirrorNeverAcknowledgesU
     EXPECT_EQ(copy("current").payload,newer);EXPECT_EQ(copy("mirror").payload,newer);
 }
 
+TEST(NativeAdventureSavesTest, LegacyLoadKeepsDiskBytesUntilExplicitCurrentPublication) {
+    AdventureFolder folder;auto oldContent=testContent();std::string error;
+    auto initialOwner=NativeAdventureSaves::open(folder.root,{},true,oldContent,error);ASSERT_TRUE(initialOwner)<<error;
+    const auto world=initialOwner->world();const auto identity=initialOwner->worldIdentity();initialOwner.reset();
+    auto original=AdventureSession::create(identity,oldContent,error);ASSERT_TRUE(original);
+    auto oldState=original->state();oldState.backpack[0].quantity=17;oldState.revision=41;oldState.lastRequestSequence=9;
+    std::vector<std::byte> legacy;ASSERT_TRUE(AdventureSaveCodec::encode(oldState,oldContent,legacy,error));
+    // Isolated transport fixture: keep the v1 prefix and remove both later extensions.
+    legacy.erase(legacy.end()-static_cast<ptrdiff_t>(45+kAdventureSchema3ExtensionBytes),legacy.end()-32);legacy[8]=std::byte{1};
+    const auto hash=voxy::core::sha256(std::span<const std::byte>(legacy).first(legacy.size()-32));
+    std::copy(hash.bytes.begin(),hash.bytes.end(),legacy.end()-32);
+    StoreIssue issue;auto transport=NativeSaveStore::open(folder.root/"adventure-v1"/world,identity,issue);ASSERT_TRUE(transport);
+    StoredGeneration loaded;ASSERT_TRUE(transport->load(loaded,issue));ASSERT_TRUE(transport->publish(0,legacy,issue));transport.reset();
+    auto current=oldContent;current.legacyIdentity=oldContent.identity;current.identity.bytes[0]=std::byte{98};
+    auto withoutMigration=current;withoutMigration.legacyIdentity.reset();
+    EXPECT_FALSE(NativeAdventureSaves::open(folder.root,world,false,withoutMigration,error));
+    auto owner=NativeAdventureSaves::open(folder.root,world,false,current,error);ASSERT_TRUE(owner)<<error;
+    EXPECT_EQ(owner->loadedBytes(),legacy);EXPECT_EQ(owner->generation(),1u);
+    AdventureState migrated;AdventureSaveLoadMetadata metadata;
+    ASSERT_TRUE(AdventureSaveCodec::decode(owner->loadedBytes(),identity,current,migrated,error,&metadata));
+    EXPECT_EQ(metadata,(AdventureSaveLoadMetadata{1,true}));auto expected=oldState;expected.content=current.identity;EXPECT_EQ(migrated,expected);
+    owner.reset(); // Read-only migration must leave the prior confirmed bytes intact.
+    transport=NativeSaveStore::open(folder.root/"adventure-v1"/world,identity,issue);ASSERT_TRUE(transport);
+    ASSERT_TRUE(transport->load(loaded,issue));EXPECT_EQ(loaded.generation,1u);EXPECT_EQ(loaded.payload,legacy);transport.reset();
+    owner=NativeAdventureSaves::open(folder.root,world,false,current,error);ASSERT_TRUE(owner);
+    std::vector<std::byte> upgraded;ASSERT_TRUE(AdventureSaveCodec::encode(migrated,current,upgraded,error));
+    ASSERT_TRUE(owner->requestSave(upgraded,error));const auto saved=wait(*owner);ASSERT_TRUE(saved);ASSERT_TRUE(saved->saved);EXPECT_EQ(saved->generation,2u);owner.reset();
+    owner=NativeAdventureSaves::open(folder.root,world,false,current,error);ASSERT_TRUE(owner);
+    EXPECT_EQ(owner->world(),world);EXPECT_EQ(owner->loadedBytes(),upgraded);
+    ASSERT_TRUE(AdventureSaveCodec::decode(owner->loadedBytes(),identity,current,migrated,error,&metadata));
+    EXPECT_EQ(metadata,(AdventureSaveLoadMetadata{6,false}));EXPECT_EQ(migrated,expected);
+}
+
+
+TEST(NativeAdventureSavesTest, CreativeNamespaceNeverSelectsOrOverwritesAdventure) {
+    AdventureFolder folder;auto legacy=testContent();auto creative=legacy;creative.freeBuilding=true;creative.identity.bytes[0]^=std::byte{0x40};std::string error;
+    auto old=NativeAdventureSaves::open(folder.root,{},true,legacy,error);ASSERT_TRUE(old)<<error;
+    const auto oldId=old->world();const auto oldBytes=freshBytes(*old,legacy);
+    ASSERT_TRUE(old->requestSave(oldBytes,error));ASSERT_TRUE(wait(*old)->saved);old.reset();
+    auto build=NativeAdventureSaves::open(folder.root,{},false,creative,error);ASSERT_TRUE(build)<<error;
+    EXPECT_NE(build->world(),oldId);EXPECT_TRUE(build->loadedBytes().empty());
+    const auto id=build->world();const auto bytes=freshBytes(*build,creative);
+    ASSERT_TRUE(build->requestSave(bytes,error));ASSERT_TRUE(wait(*build)->saved);build.reset();
+    EXPECT_TRUE(std::filesystem::is_regular_file(folder.root/"free-build-v1"/id/"current"));
+    auto reopened=NativeAdventureSaves::open(folder.root,{},false,creative,error);ASSERT_TRUE(reopened)<<error;EXPECT_EQ(reopened->loadedBytes(),bytes);
+    auto oldAgain=NativeAdventureSaves::open(folder.root,{},false,legacy,error);ASSERT_TRUE(oldAgain)<<error;EXPECT_EQ(oldAgain->world(),oldId);EXPECT_EQ(oldAgain->loadedBytes(),oldBytes);
+    EXPECT_FALSE(NativeAdventureSaves::open(folder.root,oldId,false,creative,error));
+}
 }

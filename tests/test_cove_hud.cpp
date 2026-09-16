@@ -41,6 +41,17 @@ TEST(CoveHud, ReadableBoundsKeepTheBuildAndPaletteClear) {
     }
 }
 
+TEST(CoveHud, AdventureDialogueRetainsInstructionsAndChoicesAtLargeText) {
+    CoveHudContent content;content.title="Voxys";content.textScale=1.5f;content.menu.emplace();
+    auto& menu=*content.menu;menu.title="Moss / Builder";menu.subtitleLineLimit=4;
+    menu.subtitle="The relay is dark. First, make somewhere safe to return to: a sheltered bed, a chest and a workbench. A home you already built counts.";
+    menu.rows={{"Accept: A Place to Return",true},{"Leave conversation",true}};
+    for(const auto size:{glm::uvec2(960,600),glm::uvec2(1280,720)}) {
+        const auto layout=layoutCoveHud(content,size.x,size.y);
+        EXPECT_FALSE(layout.truncated);EXPECT_GE(layout.bodyPixels,30.f);
+        EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[](const auto& hit){return hit.row==1;}));
+    }
+}
 TEST(CoveHud, MenuKeepsSelectedRowsVisibleWithinViewportAndGlyphBudget) {
     for(const auto size:std::array<glm::uvec2,3>{{{640,480},{960,540},{1920,1080}}})
     for(bool naming:{false,true}) {

@@ -1,0 +1,38 @@
+{
+  "buildId": "free-build-bbc98fd5c35efbd0",
+  "packageFilesVerified": 52,
+  "nativeBuild": "pass",
+  "wasmBuild": "pass",
+  "uiComponentCases": 4,
+  "creativeRuntimeCases": 1,
+  "runtimeScope": "full installed terrain, headless GPU; synthetic wheel/paint/placement/pause/exact archive restore",
+  "ordinaryBrowserChecks": [
+    "minimal hotbar at 483x998",
+    "colour popup open, choose Coral, closes",
+    "ordinary pointer placement accepted",
+    "manual Save confirmed",
+    "pause and comfort settings accessible",
+    "reload shows Saved build loaded and coral brick",
+    "full wheel step selects Floor from Brick 2x4",
+    "final r04 loaded same saved world; Saved build loaded and compact controls visible"
+  ],
+  "browserCheckBuild": "free-build-d441935104e341b4; final r04 changes only Saved label logic",
+  "sourceSha256": {
+    "ui/src/main.jsx": "75d785db970b801ab8ad5374b3aff7937c86d78f749dd0e327a237c3b489c0c8",
+    "ui/src/bridge.js": "81d69f9410cba205a28605040aada8ed3d816f7cc09a533abd03e4bd3688d0f2",
+    "ui/src/style.css": "b100c8027c476d99e80b62fe0417232747a72d3794ed8232cd0a92e3a92a4e54",
+    "ui/package-lock.json": "efdd35bf6064b3e2cd1620828f73bf6277370023beef8205a53dabc2ef5ed414",
+    "src/game/adventure/adventure_runtime.cpp": "2bbcfac0cc7f52b3ffb8993f2308c379cf89af91c701993d6858dc9e402ef50e",
+    "src/game/adventure/adventure_runtime.hpp": "e9b917cdbee17bc9507bf4eb1890022ba04a54ae1dcb1892b38e179b38bdd865",
+    "tests/test_adventure_runtime.cpp": "4f887075c410d95a02d84a88e6e1e9f267d5abf1e27c940940d2b0b80f380da7",
+    "web/index.html": "145eab157ca7b428eacd965c6cf048a0a9e54acacf55d78f12d0fc1cc465d2b7",
+    "scripts/package_adventure_preview.py": "ee9286de97225df140a44fee2e6107b6e5d6f969e0114391a5da12bbc9e7f444"
+  },
+  "gateF1Complete": false,
+  "open": [
+    "ordinary native interaction",
+    "full browser rotate/remove journey",
+    "owner evaluation of feel",
+    "existing-piece repaint and multi-step undo/redo"
+  ]
+}

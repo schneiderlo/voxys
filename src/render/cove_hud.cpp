@@ -73,6 +73,61 @@ std::vector<uint8_t> decodeCoveHudAtlas() {
     return bytes;
 }
 
+float measureCoveHudText(std::string_view source,float pixels) {
+    if(!std::isfinite(pixels)||pixels<=0)return 0;
+    float result=0;
+    for(const auto c:printable(source))result+=advance(c,pixels/32.f);
+    return result;
+}
+
+CoveHudTextResult appendCoveHudText(CoveHudLayout& layout,std::string_view source,
+    glm::vec4 bounds,float pixels,glm::vec4 color,size_t maximumLines) {
+    CoveHudTextResult result;
+    if(bounds.z<=0||bounds.w<=0||!std::isfinite(pixels)||pixels<=0||!maximumLines)return result;
+    auto value=printable(source);
+    const float scale=pixels/32.f,pitch=pixels*1.3f;
+    const size_t lines=std::min(maximumLines,static_cast<size_t>(std::max(0.f,std::floor(bounds.w/pitch))));
+    size_t begin=0;
+    for(size_t line=0;begin<value.size()&&line<lines;++line) {
+        size_t end=begin,lastSpace=begin;float measured=0;
+        while(end<value.size()) {
+            const float next=advance(value[end],scale);
+            if(measured+next>bounds.z)break;
+            measured+=next;if(value[end]==' ')lastSpace=end;++end;
+        }
+        const bool overflow=end<value.size();
+        if(overflow&&line+1<lines&&lastSpace>begin)end=lastSpace;
+        std::string current=value.substr(begin,end-begin);
+        if(overflow&&line+1==lines) {
+            result.clipped=true;
+            while(!current.empty()&&measureCoveHudText(current+"...",pixels)>bounds.z)current.pop_back();
+            if(measureCoveHudText("...",pixels)<=bounds.z)current+="...";
+        }
+        float x=bounds.x;const float y=bounds.y+static_cast<float>(line)*pitch;
+        for(const auto c:current) {
+            const auto& g=hudGlyphs[static_cast<size_t>(c-32)];
+            if(g.width&&g.height) {
+                const glm::vec4 original{x+static_cast<float>(g.left)*scale,y+static_cast<float>(g.top)*scale,
+                    static_cast<float>(g.width)*scale,static_cast<float>(g.height)*scale};
+                const float left=std::max(original.x,bounds.x),top=std::max(original.y,bounds.y);
+                const float right=std::min(original.x+original.z,bounds.x+bounds.z),bottom=std::min(original.y+original.w,bounds.y+bounds.w);
+                if(right>left&&bottom>top) {
+                    if(layout.count==layout.quads.size()){layout.truncated=true;return result;}
+                    layout.quads[layout.count++]={{left,top,right-left,bottom-top},
+                        {(static_cast<float>(g.x)+(left-original.x)/scale)/512.f,
+                         (static_cast<float>(g.y)+(top-original.y)/scale)/256.f,
+                         (right-left)/(scale*512.f),(bottom-top)/(scale*256.f)},color};
+                }
+            }
+            x+=advance(c,scale);
+        }
+        ++result.lines;begin=end;while(begin<value.size()&&value[begin]==' ')++begin;
+        if(end==begin&&current.empty())break;
+    }
+    result.clipped|=begin<value.size();
+    return result;
+}
+
 CoveHudLayout layoutCoveHud(const CoveHudContent& content,uint32_t width,uint32_t height) {
     CoveHudLayout layout;
     if(width<160||height<160||content.title.empty())return layout;
@@ -126,7 +181,7 @@ CoveHudLayout layoutCoveHud(const CoveHudContent& content,uint32_t width,uint32_
     };
     if(content.menu) {
         const auto& model=*content.menu;
-        size_t subtitleLines=2,statusLines=2,nameLines=2,keyRows=4;
+        size_t subtitleLines=std::clamp(model.subtitleLineLimit,size_t{1},size_t{4}),statusLines=2,nameLines=2,keyRows=4;
         if(model.naming) {
             // Keep a readable name, the selected letter row and a selected
             // button visible at150% on short windows. The40-key grid keeps its
@@ -276,14 +331,20 @@ bool CoveHudPath::needsContentUpdate() const noexcept {
     return std::chrono::steady_clock::now()-contentUpdated_>=std::chrono::milliseconds(100);
 }
 void CoveHudPath::setContent(CoveHudContent content) {
+    if(layoutFactory_){layoutFactory_={};dirty_=true;}
     if(content_!=content){content_=std::move(content);dirty_=true;}
+    contentUpdated_=std::chrono::steady_clock::now();
+}
+void CoveHudPath::setLayoutFactory(std::function<CoveHudLayout(uint32_t,uint32_t)> factory) {
+    layoutFactory_=std::move(factory);dirty_=true;
     contentUpdated_=std::chrono::steady_clock::now();
 }
 bool CoveHudPath::render(WGPUCommandEncoder encoder,WGPUTextureView target,uint32_t width,uint32_t height) {
     clearEncodedObservation();
     if(!pipeline_||!encoder||!target||width==0||height==0)return false;
     if(dirty_||width_!=width||height_!=height){
-        layout_=layoutCoveHud(content_,width,height);width_=width;height_=height;dirty_=false;
+        layout_=layoutFactory_?layoutFactory_(width,height):layoutCoveHud(content_,width,height);
+        width_=width;height_=height;dirty_=false;
         auto vertices=layout_.quads;
         for(size_t i=0;i<layout_.count;++i){
             auto& b=vertices[i].bounds;

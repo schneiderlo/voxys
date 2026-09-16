@@ -1,8 +1,14 @@
 # List of test source files
 TEST_SRCS = [
     "test_adventure_session.cpp",
+    "test_adventure_doors.cpp",
+    "test_adventure_door_geometry.cpp",
     "test_adventure_world.cpp",
     "test_adventure_construction_policy.cpp",
+    "test_adventure_town.cpp",
+    "test_adventure_presentation.cpp",
+    "test_adventure_menu.cpp",
+    "test_adventure_village.cpp",
 
     "test_bike.cpp",
     "test_log.cpp",
@@ -48,6 +54,7 @@ TEST_SRCS = [
     "test_blit_path.cpp",
     "test_scene_sun_shadows.cpp",
     "test_cove_hud.cpp",
+    "test_adventure_hud.cpp",
     "test_benchmark.cpp",
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
@@ -111,8 +118,8 @@ cc_test(
     name = "robot_asset",
     srcs = ["test_robot_asset.cpp"],
     copts = PROJECT_TEST_COPTS,
-    deps = ["//src/game:robot_asset", "//src/core:sha256", "//third_party:tinygltf", "@googletest//:gtest_main"],
-    data = ["//data:salvage_robot"],
+    deps = ["//src/game:robot_asset", "//src/game:adventure_core", "//src/core:sha256", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    data = ["//data:salvage_robot", "//data:adventure_runtime"],
 )
 
 cc_test(
@@ -317,7 +324,7 @@ cc_test(
         "//:tsan_suppressions",
         "//:msan_suppressions",
     ] + (["//data:ocean_environment"] if src == "test_blit_path.cpp" else []),
-) for src in TEST_SRCS]
+) for src in TEST_SRCS if src not in ["test_adventure_doors.cpp", "test_adventure_door_geometry.cpp"]]
 
 cc_test(
     name = "ridgebreak_authority",
@@ -924,6 +931,20 @@ cc_test(
     size = "large",
     timeout = "eternal",
     srcs = TEST_SRCS + [
+        "test_adventure_movement.cpp",
+        "test_adventure_pointer.cpp",
+        "test_adventure_walkable.cpp",
+        "test_adventure_navigation.cpp",
+        "test_adventure_encounters.cpp",
+        "test_adventure_combat.cpp",
+        "test_adventure_combat_session.cpp",
+        "test_adventure_trail_session.cpp",
+        "test_adventure_trail_sites.cpp",
+        "test_adventure_field_home_access.cpp",
+        "test_adventure_trail_presentation.cpp",
+        "test_adventure_side_quest.cpp",
+        "test_adventure_blueprints.cpp",
+        "test_adventure_preferences.cpp",
         "test_design_library.cpp",
         "test_cove_workshop_editing.cpp",
         "test_workshop_camera.cpp",
@@ -995,7 +1016,7 @@ cc_test(
         "test_wreckwater_client_replication.cpp",
         "test_wreckwater_client_runtime.cpp",
         "test_wreckwater_protocol.cpp",
-    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_adventure_saves.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp"], "//conditions:default": []}),
+    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_adventure_saves.cpp", "test_adventure_runtime.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp", "test_adventure_preferences_store.cpp"], "//conditions:default": []}),
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/game:cove_rigid_roots",
@@ -1015,7 +1036,7 @@ cc_test(
         "//src/game:fixture_registry",
         "//src/game:workshop_camera",
         "//src/game:cove_player",
-        "//src/game:adventure_core",
+        "//src/game:adventure_core", "//src/game:adventure_runtime",
         "//src/game:cove_camera",
         "//src/game:cove_environment",
         "//src/game:cove_environment_collision",
@@ -1024,6 +1045,7 @@ cc_test(
         "//src/game:cove_test_session",
         "//src/game:cove_input_preferences",
         "//src/engine/platform:native_cove_preferences",
+        "//src/engine/platform:native_adventure_preferences",
         "//src/render:cove_effects_path",
         "//src/game:cove_character",
         "//src/game:rigid_animation",
@@ -1042,13 +1064,16 @@ cc_test(
         "@googletest//:gtest_main",
     ],
     data = [
+        "fixtures/adventure/schema3-component-r01.bin",
+        "fixtures/adventure/schema4-component-r01.bin",
+        "fixtures/adventure/schema5-component-r01.bin",
         "//data:data",
         "//shaders:shaders",
         "//tools:gameplay_sidecar_fixture",
         "//data:salvage_runtime_probe",
         "//data:salvage_asset_fixture",
         "//data:salvage_functional_kit",
-        "//data:salvage_robot", "//data:salvage_environment",
+        "//data:salvage_robot", "//data:salvage_environment", "//data:adventure_runtime",
         "//data:salvage_hierarchy_probe",
         "//data:salvage_material_metric",
         "//:asan_suppressions",
@@ -1305,6 +1330,14 @@ cc_test(
 )
 
 cc_test(
+    name = "adventure_hud_layout",
+    srcs = ["test_adventure_hud.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/render:render", "//src/game:adventure_core", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
     name = "cove_environment",
     srcs = ["test_cove_environment.cpp"],
     copts = PROJECT_TEST_COPTS,
@@ -1367,7 +1400,137 @@ cc_test(
 )
 cc_test(
     name = "adventure",
-    srcs = ['test_adventure_session.cpp', 'test_adventure_world.cpp', 'test_adventure_construction_policy.cpp'],
+    srcs = ['test_adventure_session.cpp', 'test_adventure_world.cpp', 'test_adventure_construction_policy.cpp', 'test_adventure_town.cpp', 'test_adventure_presentation.cpp', 'test_adventure_menu.cpp', 'test_adventure_village.cpp'],
     copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_movement",
+    srcs = ["test_adventure_movement.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "//src/camera:camera", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_pointer",
+    srcs = ["test_adventure_pointer.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:adventure_core", "//src/camera:camera", "//src/render:render", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_walkable",
+    srcs = ["test_adventure_walkable.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_navigation",
+    srcs = ["test_adventure_navigation.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_encounters",
+    srcs = ["test_adventure_encounters.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_combat",
+    srcs = ["test_adventure_combat.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_combat_session",
+    srcs = ["test_adventure_combat_session.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "native_adventure_saves",
+    srcs = ["test_native_adventure_saves.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/engine/platform:native_adventure_saves", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_runtime",
+    srcs = ["test_adventure_runtime.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:adventure_runtime", "//src/game:adventure_core", "//src/gpu:gpu", "//src/camera:camera", "//src/engine/platform:input", "@googletest//:gtest_main"],
+    data = ["//data:adventure_runtime", "//shaders:shaders"],
+)
+
+cc_test(
+    name = "adventure_trail_session",
+    srcs = ["test_adventure_trail_session.cpp"],
+    data = ["fixtures/adventure/schema3-component-r01.bin"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_trail_sites",
+    srcs = ["test_adventure_trail_sites.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_trail_presentation",
+    srcs = ["test_adventure_trail_presentation.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_field_home_access",
+    srcs = ["test_adventure_field_home_access.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_side_quest",
+    srcs = ["test_adventure_side_quest.cpp"],
+    data = ["fixtures/adventure/schema4-component-r01.bin"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_blueprints",
+    srcs = ["test_adventure_blueprints.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_preferences",
+    srcs = ["test_adventure_preferences.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_preferences_store",
+    srcs = ["test_adventure_preferences_store.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/engine/platform:native_adventure_preferences", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_doors",
+    srcs = ["test_adventure_doors.cpp", "test_adventure_door_geometry.cpp"],
+    data = ["fixtures/adventure/schema5-component-r01.bin"],
+    copts = ["-std=c++20"],
     deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
 )

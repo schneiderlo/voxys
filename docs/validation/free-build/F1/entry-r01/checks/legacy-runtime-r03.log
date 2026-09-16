@@ -1,0 +1,39 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:adventure_runtime (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:adventure_runtime (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:adventure_runtime (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:adventure_runtime (1 packages loaded, 83 targets configured).
+[430 / 432] Compiling tests/test_adventure_runtime.cpp; 1s linux-sandbox
+[431 / 432] [Prepa] Linking tests/adventure_runtime
+INFO: Found 1 target...
+Target //tests:adventure_runtime up-to-date:
+  bazel-bin/tests/adventure_runtime
+INFO: Elapsed time: 7.891s, Critical Path: 6.25s
+INFO: 3 processes: 429 action cache hit, 1 internal, 2 linux-sandbox.
+INFO: Build completed successfully, 3 total actions
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureRuntimeIntegration.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureRuntimeIntegration
+[ RUN      ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+[32m[INFO ] [00:29:16.092] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:29:16.092] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:29:16.092] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:29:16.092] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:29:16.094] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative (6544 ms)
+[----------] 1 test from AdventureRuntimeIntegration (6544 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6544 ms total)
+[  PASSED  ] 1 test.

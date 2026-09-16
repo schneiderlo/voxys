@@ -3,6 +3,10 @@
 #include "core/sha256.hpp"
 #include "game/adventure/building_catalog.hpp"
 #include "game/adventure/item_catalog.hpp"
+#include "game/adventure/quests.hpp"
+#include "game/adventure/adventure_progress.hpp"
+#include "game/adventure/adventure_trail_content.hpp"
+#include "game/adventure/building_blueprints.hpp"
 #include "game/construction/construction_types.hpp"
 
 #include <array>
@@ -19,10 +23,6 @@ inline constexpr size_t kMaximumResourceNodes=256;
 inline constexpr size_t kMaximumBlueprintParts=64;
 using GridPosition=construction::GridPosition;
 
-struct PlayerPose {
-    double x=0,y=0,z=0,yaw=0;
-    bool operator==(const PlayerPose&) const = default;
-};
 struct WorldPart {
     uint64_t id=0;
     PieceKind kind=PieceKind::Foundation;
@@ -40,7 +40,8 @@ struct WorldStructure {
 struct StructureComponent {
     uint64_t id=0, structure=0, part=0, owner=1, revision=0;
     FurnitureKind kind=FurnitureKind::None;
-    std::array<ItemStack,kChestSlots> slots{}; // Empty for beds/benches.
+    std::array<ItemStack,kChestSlots> slots{}; // Empty for beds/benches/doors.
+    bool doorOpen=false; // Only FurnitureKind::Door may be open.
     bool operator==(const StructureComponent&) const = default;
 };
 struct AdventureState {
@@ -58,6 +59,11 @@ struct AdventureState {
     std::vector<WorldStructure> structures;
     std::vector<StructureComponent> components;
     std::vector<uint32_t> depletedNodes; // Installed content node IDs, ascending.
+    uint8_t metNpcMask=0; // Moss/Rivet/Lumen use bits 0/1/2. No other bits exist.
+    FirstHomeProgress firstHome{};
+    ItemStack equippedUtility{};
+    AdventureCombatProgress combat{};
+    AdventureTrailProgress trail{};
     bool operator==(const AdventureState&) const = default;
 };
 struct ResourceNode {
@@ -67,9 +73,19 @@ struct ResourceNode {
     bool operator==(const ResourceNode&) const = default;
 };
 struct AdventureContent {
+    // Installed creative profile rule; never read from save-supplied flags.
+    bool freeBuilding=false;
     core::Sha256Digest identity{};
     PlayerPose town{};
     std::vector<ResourceNode> resourceNodes;
+    // Explicit installed compatibility identity, never taken from save bytes.
+    std::optional<core::Sha256Digest> legacyIdentity=std::nullopt;
+    // Source schemas1/2/3/4/5, respectively. Only the installed host supplies these.
+    // legacyIdentity remains the source-compatible schema1 fallback.
+    std::array<std::optional<core::Sha256Digest>,5> compatibilityIdentities{};
+    std::array<EncounterContent,kAdventureEncounterCount> encounters{};
+    bool enableTrailProgress=false;
+    std::array<DiscoveryContent,2> discoveries{};
 };
 struct CommandStamp { uint64_t expectedRevision=0, sequence=0, caller=1; };
 struct PlacePart {
@@ -128,20 +144,40 @@ public:
     [[nodiscard]] std::optional<PreparedChange> prepareTransfer(CommandStamp,TransferItems,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareCraftHammer(CommandStamp,uint64_t bench,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareUseBed(CommandStamp,uint64_t bed,PlayerPose recovery,const CandidateValidator&,std::string&) const;
+    // Desired state and observed component revision make stale/duplicate input
+    // harmless. The trusted validator checks handle reach and complete sweep.
+    [[nodiscard]] std::optional<PreparedChange> prepareSetDoorOpen(CommandStamp,uint64_t component,bool open,
+        uint64_t expectedComponentRevision,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareGather(CommandStamp,uint32_t node,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareEquipTool(CommandStamp,uint8_t backpackSlot,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareGreet(CommandStamp,uint8_t npcId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareAcceptHomeQuest(CommandStamp,uint8_t npcId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCompleteHomeQuest(CommandStamp,uint8_t npcId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCraftCompass(CommandStamp,uint64_t bench,const CandidateValidator&,std::string&) const;
+    // Slot 255 returns the utility to the backpack; failure preserves ownership.
+    [[nodiscard]] std::optional<PreparedChange> prepareEquipUtility(CommandStamp,uint8_t backpackSlot,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCraftStaff(CommandStamp,uint64_t bench,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCombatTick(CommandStamp,const CombatTick&,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareClaimEncounterLoot(CommandStamp,uint8_t encounterId,uint32_t generation,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareRecover(CommandStamp,PlayerPose,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareAcceptTrailQuest(CommandStamp,uint8_t questId,uint8_t npcId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCompleteTrailQuest(CommandStamp,uint8_t questId,uint8_t npcId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareDiscover(CommandStamp,uint8_t discoveryId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareClaimDiscovery(CommandStamp,uint8_t discoveryId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareActivateRelay(CommandStamp,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareBuildRecipe(CommandStamp,BlueprintKind,GridPosition origin,uint8_t yaw,const CandidateValidator&,std::string&) const;
     // Geometry/renderer must be ready before commit. Commit performs no work that
     // can fail after its validation; old state is untouched on stale/refused input.
     [[nodiscard]] bool commit(PreparedChange&&,std::string&);
-    // Trusted accepted locomotion/checkpoint boundary. Bounded, finite pose;
-    // advances revision so a pending edit cannot overwrite newer movement.
+    // Accepted locomotion only: health must stay unchanged, and a defeated
+    // player cannot move. Revision prevents edits overwriting newer movement.
     [[nodiscard]] bool updatePlayer(PlayerPose,uint16_t health,std::string&);
     [[nodiscard]] static bool validPose(PlayerPose) noexcept;
     [[nodiscard]] static const WorldPart* findPart(const AdventureState&,uint64_t) noexcept;
     [[nodiscard]] static const StructureComponent* findComponent(const AdventureState&,uint64_t) noexcept;
 private:
     AdventureSession()=default;
-    [[nodiscard]] std::optional<PreparedChange> begin(CommandStamp,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> begin(CommandStamp,std::string&,bool allowDefeated=false) const;
     [[nodiscard]] bool finish(PreparedChange&,const CandidateValidator&,std::string&) const;
     [[nodiscard]] bool addPart(PreparedChange&,PlacePart,std::string&) const;
     AdventureState state_;

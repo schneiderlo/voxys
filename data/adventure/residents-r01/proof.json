@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "kind": "One CPU contact sheet of actual installed resident models; not a game screenshot",
+  "file": "proof.png",
+  "sha256": "dba349fd284cf40c7ecf09ef8649c80b29ba890dba3efde3e6446a2147eaa867",
+  "order_left_to_right": [
+    "Moss",
+    "Rivet",
+    "Lumen"
+  ],
+  "sources": [
+    {
+      "file": "moss/source/character-lod-0.blend",
+      "sha256": "c24a4a76aca848cb08ccfdae3aedf3bec72849c5fd97656201d38900e611e8ac"
+    },
+    {
+      "file": "rivet/source/character-lod-0.blend",
+      "sha256": "4098026aef38bd5f0cef152cf642b0f15662f5564cf0848d8839a0b22de777bf"
+    },
+    {
+      "file": "lumen/source/character-lod-0.blend",
+      "sha256": "da57b3816be66b58f0d57be457d574ecaf2d6646163913080763d8b5fd71fb80"
+    }
+  ],
+  "renderer": "Blender 5.2.1 LTS / Cycles CPU / 2 threads / 24 samples",
+  "resolution": [
+    1500,
+    900
+  ],
+  "recipe": "tools/adventure_assets/author_resident_proof.py",
+  "recipe_sha256": "316920c7b10b5e27f181b2f07cc1fdfab8a91cf56f948b732fbcbae1a3669632",
+  "limitation": "Static bind poses in studio lighting. Real gameplay animation/rendering, dialogue readability and owner art acceptance remain separate checks."
+}

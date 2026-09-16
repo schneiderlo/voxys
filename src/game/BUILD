@@ -611,11 +611,11 @@ cc_library(
 
 cc_library(
     name = "adventure_core",
-    srcs = ['adventure/building_catalog.cpp', 'adventure/item_catalog.cpp', 'adventure/adventure_session.cpp', 'adventure/adventure_save.cpp', 'adventure/world_definition.cpp', 'adventure/spatial_queries.cpp', 'adventure/adventure_player.cpp', 'adventure/construction_policy.cpp'],
-    hdrs = ['adventure/building_catalog.hpp', 'adventure/item_catalog.hpp', 'adventure/adventure_session.hpp', 'adventure/adventure_save.hpp', 'adventure/world_definition.hpp', 'adventure/spatial_queries.hpp', 'adventure/adventure_player.hpp', 'adventure/construction_policy.hpp', 'adventure/adventure_input.hpp'],
+    srcs = ['adventure/adventure_preferences.cpp', 'adventure/building_catalog.cpp', 'adventure/building_doors.cpp', 'adventure/building_blueprints.cpp', 'adventure/item_catalog.cpp', 'adventure/adventure_session.cpp', 'adventure/adventure_save.cpp', 'adventure/world_definition.cpp', 'adventure/spatial_queries.cpp', 'adventure/adventure_player.cpp', 'adventure/layered_navigation.cpp', 'adventure/adventure_progress.cpp', 'adventure/adventure_encounters.cpp', 'adventure/adventure_combat.cpp', 'adventure/construction_policy.cpp', 'adventure/quests.cpp', 'adventure/town_residents.cpp', 'adventure/village_layout.cpp', 'adventure/adventure_presentation.cpp', 'adventure/adventure_trail_content.cpp', 'adventure/trail_sites.cpp', 'adventure/field_home_access.cpp', 'adventure/trail_presentation.cpp'],
+    hdrs = ['adventure/adventure_preferences.hpp', 'adventure/building_catalog.hpp', 'adventure/building_doors.hpp', 'adventure/building_blueprints.hpp', 'adventure/item_catalog.hpp', 'adventure/adventure_session.hpp', 'adventure/adventure_save.hpp', 'adventure/world_definition.hpp', 'adventure/spatial_queries.hpp', 'adventure/adventure_player.hpp', 'adventure/layered_navigation.hpp', 'adventure/adventure_progress.hpp', 'adventure/adventure_encounters.hpp', 'adventure/adventure_combat.hpp', 'adventure/construction_policy.hpp', 'adventure/adventure_input.hpp', 'adventure/adventure_pointer.hpp', 'adventure/quests.hpp', 'adventure/town_residents.hpp', 'adventure/village_layout.hpp', 'adventure/adventure_presentation.hpp', 'adventure/adventure_trail_content.hpp', 'adventure/trail_sites.hpp', 'adventure/field_home_access.hpp', 'adventure/trail_presentation.hpp', 'adventure/menu_intent.hpp'],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":construction_types", ":cove_camera", ":cove_player", ":cove_input_preferences", "//src/engine/platform:input", "//src/core:sha256", "//src/terrain:lego_surface", "//third_party:glm"],
+    deps = [":construction_types", ":cove_camera", ":cove_player", ":cove_input_preferences", "//src/engine/platform:input", "//src/core:sha256", "//src/terrain:lego_surface", "//third_party:glm", "//third_party:tinygltf"],
 )
 
 cc_library(
@@ -624,5 +624,5 @@ cc_library(
     hdrs = ["adventure/adventure_runtime.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":adventure_core", ":robot_asset", ":cove_character", ":cove_input_preferences", "//src/camera:camera", "//src/render:render", "//src/engine/platform:input"] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_adventure_saves"]}),
+    deps = [":adventure_core", ":robot_asset", ":cove_character", ":cove_input_preferences", "//src/camera:camera", "//src/render:render", "//src/engine/platform:input"] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_adventure_saves", "//src/engine/platform:native_adventure_preferences"]}),
 )

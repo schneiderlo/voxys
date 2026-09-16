@@ -1,0 +1,1015 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-raider-r01",
+  "generator_sha256": "cd28f1d3583e0a82f163bb8e871daea2a077c0d3963a7b35d22c5fc625381ffc",
+  "sampler_sha256": "d38c4fe0ee057f63c160a01963bb67d6106b14102fec26b927bd55e6276777ef",
+  "frozen_character_files_unchanged": true,
+  "lods": [
+    {
+      "file": "/home/modkin/workspace/schneiderlo/voxys/data/adventure/raider-r01/source/character-lod-0.glb",
+      "maximum_normal_length_error": 1.1040805936168852e-07,
+      "bind": {
+        "minimum": [
+          -0.2919999957084656,
+          -7.450580596923828e-09,
+          -0.7720000147819519
+        ],
+        "maximum": [
+          0.2919999957084656,
+          1.7000000476837158,
+          0.20999999344348907
+        ],
+        "width": 0.5839999914169312,
+        "horizontal_radius": 0.8090259389029093,
+        "core_horizontal_radius": 0.26233082471401814
+      },
+      "bind_node_horizontal_radius": {
+        "robot_foot_l": 0.26233082471401814,
+        "robot_shin_l": 0.2237073948564512,
+        "robot_thigh_l": 0.22722578204643862,
+        "robot_foot_r": 0.26233082471401814,
+        "robot_shin_r": 0.2237073948564512,
+        "robot_thigh_r": 0.22722578204643862,
+        "robot_hand_l": 0.29016719774331456,
+        "robot_forearm_l": 0.248068532866822,
+        "robot_arm_l": 0.2919999957084656,
+        "robot_hand_r": 0.8090259389029093,
+        "robot_forearm_r": 0.248068532866822,
+        "robot_arm_r": 0.2919999957084656,
+        "robot_head": 0.18700000643730164,
+        "robot_torso": 0.2509297478585818,
+        "robot_pelvis": 0.23478476814888521
+      },
+      "core_capsule_distance": {
+        "robot_pelvis": 0.23478476814888521,
+        "robot_torso": 0.2509297478585818,
+        "robot_head": 0.3000000476837159
+      },
+      "clips": {
+        "idle": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.7730826261074635
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.2111821108170348
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8099304760564077,
+          "core_horizontal_radius": 0.26233082471401814,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26233082471401814,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22722578204643862,
+            "robot_foot_r": 0.26233082471401814,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22722578204643862,
+            "robot_hand_l": 0.290254531245002,
+            "robot_forearm_l": 0.24813558122240434,
+            "robot_arm_l": 0.2920006173170279,
+            "robot_hand_r": 0.8099304760564077,
+            "robot_forearm_r": 0.24813558122240434,
+            "robot_arm_r": 0.2920006173170279,
+            "robot_head": 0.18796673027484903,
+            "robot_torso": 0.25134926476469344,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "walk": {
+          "duration": 0.800000011920929,
+          "samples": 121,
+          "minimum": [
+            -0.2924019411571742,
+            0.0006940547685500564,
+            -0.8825855154564191
+          ],
+          "maximum": [
+            0.2924019411571742,
+            1.7267527580230544,
+            0.27523111571277825
+          ],
+          "width": 0.5848038823143484,
+          "horizontal_radius": 0.9109849118189728,
+          "core_horizontal_radius": 0.38535488156945763,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.38535488156945763,
+            "robot_shin_l": 0.3090198387030501,
+            "robot_thigh_l": 0.3107325454289042,
+            "robot_foot_r": 0.38535488156945763,
+            "robot_shin_r": 0.3090198387030501,
+            "robot_thigh_r": 0.3107325454289042,
+            "robot_hand_l": 0.33137193109355245,
+            "robot_forearm_l": 0.28914266217546575,
+            "robot_arm_l": 0.3034358798637995,
+            "robot_hand_r": 0.9109849118189728,
+            "robot_forearm_r": 0.28914266217546575,
+            "robot_arm_r": 0.3034358798637995,
+            "robot_head": 0.18700000643730166,
+            "robot_torso": 0.25092974785858185,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "jump": {
+          "duration": 0.5,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -0.00919602573943877,
+            -0.9255485932920223
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9516174057593143,
+          "core_horizontal_radius": 0.3299562478196598,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.3299562478196598,
+            "robot_shin_l": 0.268558704318952,
+            "robot_thigh_l": 0.2707080625311614,
+            "robot_foot_r": 0.3299562478196598,
+            "robot_shin_r": 0.268558704318952,
+            "robot_thigh_r": 0.2707080625311614,
+            "robot_hand_l": 0.4546230503390985,
+            "robot_forearm_l": 0.39431942685456717,
+            "robot_arm_l": 0.39400731212765905,
+            "robot_hand_r": 0.9516174057593143,
+            "robot_forearm_r": 0.39431942685456717,
+            "robot_arm_r": 0.39400731212765905,
+            "robot_head": 0.18700000643730164,
+            "robot_torso": 0.2509297478585818,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "fall": {
+          "duration": 0.6000000238418579,
+          "samples": 17,
+          "minimum": [
+            -0.43098108123563683,
+            -7.450580596923828e-09,
+            -0.8254317040223536
+          ],
+          "maximum": [
+            0.43098108123563683,
+            1.6993898225375974,
+            0.20999999344348907
+          ],
+          "width": 0.8619621624712737,
+          "horizontal_radius": 0.9076545692277688,
+          "core_horizontal_radius": 0.26233082471401814,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26233082471401814,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22722578204643862,
+            "robot_foot_r": 0.26233082471401814,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22722578204643862,
+            "robot_hand_l": 0.43866867782628716,
+            "robot_forearm_l": 0.3807563581497838,
+            "robot_arm_l": 0.3884051225171828,
+            "robot_hand_r": 0.9076545692277688,
+            "robot_forearm_r": 0.3807563581497838,
+            "robot_arm_r": 0.3884051225171828,
+            "robot_head": 0.215174553675624,
+            "robot_torso": 0.2509297478585818,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "swim": {
+          "duration": 1.2000000476837158,
+          "samples": 17,
+          "minimum": [
+            -0.3464856719754508,
+            -0.008330221989201664,
+            -0.6239759502753487
+          ],
+          "maximum": [
+            0.3464856719754508,
+            1.9339110660842467,
+            0.5877189688640782
+          ],
+          "width": 0.6929713439509017,
+          "horizontal_radius": 0.6841277372878259,
+          "core_horizontal_radius": 0.5877189688640782,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.4294935831466912,
+            "robot_shin_l": 0.34328090350985585,
+            "robot_thigh_l": 0.3450321760285261,
+            "robot_foot_r": 0.4294935831466912,
+            "robot_shin_r": 0.34328090350985585,
+            "robot_thigh_r": 0.3450321760285261,
+            "robot_hand_l": 0.45718906597933673,
+            "robot_forearm_l": 0.3709075410696682,
+            "robot_arm_l": 0.36284135837409254,
+            "robot_hand_r": 0.6841277372878259,
+            "robot_forearm_r": 0.3709075411563851,
+            "robot_arm_r": 0.3628413583893428,
+            "robot_head": 0.5877189688640782,
+            "robot_torso": 0.386409986939242,
+            "robot_pelvis": 0.24343362206414978
+          }
+        },
+        "helm": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9197442817246606
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.6996141798535922,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9460603414652083,
+          "core_horizontal_radius": 0.26233082471401814,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26233082471401814,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22722578204643862,
+            "robot_foot_r": 0.26233082471401814,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22722578204643862,
+            "robot_hand_l": 0.45535924584343795,
+            "robot_forearm_l": 0.39431942685456717,
+            "robot_arm_l": 0.39400731212765905,
+            "robot_hand_r": 0.9460603414652083,
+            "robot_forearm_r": 0.39431942685456717,
+            "robot_arm_r": 0.39400731212765905,
+            "robot_head": 0.1975456869813998,
+            "robot_torso": 0.2509297478585818,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "tool": {
+          "duration": 1.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9673323916146919
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.698457193682271,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9922406096836685,
+          "core_horizontal_radius": 0.26233082471401814,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26233082471401814,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22722578204643862,
+            "robot_foot_r": 0.26233082471401814,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22722578204643862,
+            "robot_hand_l": 0.3198326142089188,
+            "robot_forearm_l": 0.278555066603401,
+            "robot_arm_l": 0.294560758014223,
+            "robot_hand_r": 0.9922406096836685,
+            "robot_forearm_r": 0.459209035611514,
+            "robot_arm_r": 0.4473318527856977,
+            "robot_head": 0.21173164791514348,
+            "robot_torso": 0.2509297478585818,
+            "robot_pelvis": 0.23478476814888521
+          }
+        },
+        "land": {
+          "duration": 0.4000000059604645,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.8535254389810021
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.23071220112069613
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8831891530236564,
+          "core_horizontal_radius": 0.26233082471401814,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26233082471401814,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22722578204643862,
+            "robot_foot_r": 0.26233082471401814,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22722578204643862,
+            "robot_hand_l": 0.3145611231395782,
+            "robot_forearm_l": 0.27255052406452784,
+            "robot_arm_l": 0.2928552668696704,
+            "robot_hand_r": 0.8831891530236564,
+            "robot_forearm_r": 0.27255052406452784,
+            "robot_arm_r": 0.2928552668696704,
+            "robot_head": 0.23071220112069613,
+            "robot_torso": 0.25642717684532,
+            "robot_pelvis": 0.23478476814888521
+          }
+        }
+      },
+      "limitation": "Sampled actual vertices; not a continuous sweep or visual/runtime acceptance.",
+      "source_sha256": "494f930aa683fe21c89ead9b869d7b43c0488bdb169f816f1ad68dbd41a6769e",
+      "grips": {
+        "robot_hand_l": {
+          "skin_vertices": 200,
+          "inner_radius": 0.04599996759787386,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 0
+        },
+        "robot_hand_r": {
+          "skin_vertices": 200,
+          "inner_radius": 0.04599996759787386,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 2347
+        }
+      },
+      "doorway_margin_m": {
+        "width": 0.7751961176856517,
+        "height": 0.5132472419769458
+      }
+    },
+    {
+      "file": "/home/modkin/workspace/schneiderlo/voxys/data/adventure/raider-r01/source/character-lod-1.glb",
+      "maximum_normal_length_error": 1.2395625614836092e-07,
+      "bind": {
+        "minimum": [
+          -0.2919999957084656,
+          -7.450580596923828e-09,
+          -0.7720000147819519
+        ],
+        "maximum": [
+          0.2919999957084656,
+          1.7000000476837158,
+          0.20999999344348907
+        ],
+        "width": 0.5839999914169312,
+        "horizontal_radius": 0.8090062709711906,
+        "core_horizontal_radius": 0.2602248994937388
+      },
+      "bind_node_horizontal_radius": {
+        "robot_foot_l": 0.2602248994937388,
+        "robot_shin_l": 0.2237073948564512,
+        "robot_thigh_l": 0.22685017053493878,
+        "robot_foot_r": 0.2602248994937388,
+        "robot_shin_r": 0.2237073948564512,
+        "robot_thigh_r": 0.22685017053493878,
+        "robot_hand_l": 0.29016719774331456,
+        "robot_forearm_l": 0.248068532866822,
+        "robot_arm_l": 0.2919999957084656,
+        "robot_hand_r": 0.8090062709711906,
+        "robot_forearm_r": 0.248068532866822,
+        "robot_arm_r": 0.2919999957084656,
+        "robot_head": 0.18700000643730164,
+        "robot_torso": 0.2504016299781814,
+        "robot_pelvis": 0.23420807920865466
+      },
+      "core_capsule_distance": {
+        "robot_pelvis": 0.23420807920865466,
+        "robot_torso": 0.2504016299781814,
+        "robot_head": 0.3000000476837159
+      },
+      "clips": {
+        "idle": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.773082297381635
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.2111821108170348
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8099108300905333,
+          "core_horizontal_radius": 0.2602248994937388,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.2602248994937388,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22685017053493878,
+            "robot_foot_r": 0.2602248994937388,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22685017053493878,
+            "robot_hand_l": 0.290254531245002,
+            "robot_forearm_l": 0.24813558122240434,
+            "robot_arm_l": 0.2920006173170279,
+            "robot_hand_r": 0.8099108300905333,
+            "robot_forearm_r": 0.24813558122240434,
+            "robot_arm_r": 0.2920006173170279,
+            "robot_head": 0.18789099324930905,
+            "robot_torso": 0.2507978981279017,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "walk": {
+          "duration": 0.800000011920929,
+          "samples": 121,
+          "minimum": [
+            -0.2924019411571742,
+            0.0006940547685500564,
+            -0.8825673467539332
+          ],
+          "maximum": [
+            0.2924019411571742,
+            1.7267527580230544,
+            0.27523111571277825
+          ],
+          "width": 0.5848038823143484,
+          "horizontal_radius": 0.9109605445217511,
+          "core_horizontal_radius": 0.3840642478953296,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.3840642478953296,
+            "robot_shin_l": 0.3090198387030501,
+            "robot_thigh_l": 0.3085268672163512,
+            "robot_foot_r": 0.3840642478953296,
+            "robot_shin_r": 0.3090198387030501,
+            "robot_thigh_r": 0.3085268672163512,
+            "robot_hand_l": 0.32984372910065296,
+            "robot_forearm_l": 0.2887640674902624,
+            "robot_arm_l": 0.3039387069289128,
+            "robot_hand_r": 0.9109605445217511,
+            "robot_forearm_r": 0.2887640674902624,
+            "robot_arm_r": 0.3039387069289128,
+            "robot_head": 0.18700000643730166,
+            "robot_torso": 0.25040162997818144,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "jump": {
+          "duration": 0.5,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -0.00919602573943877,
+            -0.9246314973439023
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9505899479106092,
+          "core_horizontal_radius": 0.32795787955956623,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.32795787955956623,
+            "robot_shin_l": 0.268558704318952,
+            "robot_thigh_l": 0.26863300719979644,
+            "robot_foot_r": 0.32795787955956623,
+            "robot_shin_r": 0.268558704318952,
+            "robot_thigh_r": 0.26863300719979644,
+            "robot_hand_l": 0.4537443034174576,
+            "robot_forearm_l": 0.393655857936843,
+            "robot_arm_l": 0.39288607837963213,
+            "robot_hand_r": 0.9505899479106092,
+            "robot_forearm_r": 0.393655857936843,
+            "robot_arm_r": 0.39288607837963213,
+            "robot_head": 0.18700000643730164,
+            "robot_torso": 0.2504016299781814,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "fall": {
+          "duration": 0.6000000238418579,
+          "samples": 17,
+          "minimum": [
+            -0.4312477363585192,
+            -7.450580596923828e-09,
+            -0.8253956703382381
+          ],
+          "maximum": [
+            0.4312477363585192,
+            1.6993898225375974,
+            0.20999999344348907
+          ],
+          "width": 0.8624954727170384,
+          "horizontal_radius": 0.9071871036340962,
+          "core_horizontal_radius": 0.2602248994937388,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.2602248994937388,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22685017053493878,
+            "robot_foot_r": 0.2602248994937388,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22685017053493878,
+            "robot_hand_l": 0.43871636103062356,
+            "robot_forearm_l": 0.380353420068615,
+            "robot_arm_l": 0.3880705423125708,
+            "robot_hand_r": 0.9071871036340962,
+            "robot_forearm_r": 0.380353420068615,
+            "robot_arm_r": 0.3880705423125708,
+            "robot_head": 0.215174553675624,
+            "robot_torso": 0.2504016299781814,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "swim": {
+          "duration": 1.2000000476837158,
+          "samples": 17,
+          "minimum": [
+            -0.34616910125891354,
+            -0.008330221989201664,
+            -0.6233004049967636
+          ],
+          "maximum": [
+            0.34616910125891354,
+            1.9339007182061496,
+            0.5879710967933732
+          ],
+          "width": 0.6923382025178271,
+          "horizontal_radius": 0.6838793555958681,
+          "core_horizontal_radius": 0.5879710967933732,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.4281491173163489,
+            "robot_shin_l": 0.34328090350985585,
+            "robot_thigh_l": 0.34312112195443817,
+            "robot_foot_r": 0.4281491173163489,
+            "robot_shin_r": 0.34328090350985585,
+            "robot_thigh_r": 0.34312112195443817,
+            "robot_hand_l": 0.45718906597933673,
+            "robot_forearm_l": 0.3692958907718276,
+            "robot_arm_l": 0.36284135837409254,
+            "robot_hand_r": 0.6838793555958681,
+            "robot_forearm_r": 0.36929589084429904,
+            "robot_arm_r": 0.3628413583893428,
+            "robot_head": 0.5879710967933732,
+            "robot_torso": 0.38626537470210537,
+            "robot_pelvis": 0.2420425240323986
+          }
+        },
+        "helm": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9182892299713737
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.6996141798535922,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9444949582620837,
+          "core_horizontal_radius": 0.2602248994937388,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.2602248994937388,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22685017053493878,
+            "robot_foot_r": 0.2602248994937388,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22685017053493878,
+            "robot_hand_l": 0.4544681243429436,
+            "robot_forearm_l": 0.393655857936843,
+            "robot_arm_l": 0.39288607837963213,
+            "robot_hand_r": 0.9444949582620837,
+            "robot_forearm_r": 0.393655857936843,
+            "robot_arm_r": 0.39288607837963213,
+            "robot_head": 0.1975456869813998,
+            "robot_torso": 0.2504016299781814,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "tool": {
+          "duration": 1.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9664601183482338
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.698457193682271,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.99129272964199,
+          "core_horizontal_radius": 0.2602248994937388,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.2602248994937388,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22685017053493878,
+            "robot_foot_r": 0.2602248994937388,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22685017053493878,
+            "robot_hand_l": 0.31906141250677045,
+            "robot_forearm_l": 0.27840463488561557,
+            "robot_arm_l": 0.2946989013771768,
+            "robot_hand_r": 0.99129272964199,
+            "robot_forearm_r": 0.45750701783576514,
+            "robot_arm_r": 0.44717536237464256,
+            "robot_head": 0.21173164791514348,
+            "robot_torso": 0.2504016299781814,
+            "robot_pelvis": 0.23420807920865466
+          }
+        },
+        "land": {
+          "duration": 0.4000000059604645,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.8535094923716555
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.23071220112069613
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8831659479563507,
+          "core_horizontal_radius": 0.2602248994937388,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.2602248994937388,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.22685017053493878,
+            "robot_foot_r": 0.2602248994937388,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.22685017053493878,
+            "robot_hand_l": 0.3141904530815274,
+            "robot_forearm_l": 0.2725729155389613,
+            "robot_arm_l": 0.2928552668696704,
+            "robot_hand_r": 0.8831659479563507,
+            "robot_forearm_r": 0.2725729155389613,
+            "robot_arm_r": 0.2928552668696704,
+            "robot_head": 0.23071220112069613,
+            "robot_torso": 0.2556165051725682,
+            "robot_pelvis": 0.23420807920865466
+          }
+        }
+      },
+      "limitation": "Sampled actual vertices; not a continuous sweep or visual/runtime acceptance.",
+      "source_sha256": "155edb5baada95a941fefe47a84c7043b65fb522032be7b1459ab958eedc326f",
+      "grips": {
+        "robot_hand_l": {
+          "skin_vertices": 114,
+          "inner_radius": 0.04599998186734051,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 0
+        },
+        "robot_hand_r": {
+          "skin_vertices": 114,
+          "inner_radius": 0.04599998186734051,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 992
+        }
+      },
+      "doorway_margin_m": {
+        "width": 0.7751961176856517,
+        "height": 0.5132472419769458
+      }
+    },
+    {
+      "file": "/home/modkin/workspace/schneiderlo/voxys/data/adventure/raider-r01/source/character-lod-2.glb",
+      "maximum_normal_length_error": 1.0112831128061828e-07,
+      "bind": {
+        "minimum": [
+          -0.2919999957084656,
+          -7.450580596923828e-09,
+          -0.7720000147819519
+        ],
+        "maximum": [
+          0.2919999957084656,
+          1.7000000476837158,
+          0.20999999344348907
+        ],
+        "width": 0.5839999914169312,
+        "horizontal_radius": 0.8108563502945442,
+        "core_horizontal_radius": 0.26645262246343715
+      },
+      "bind_node_horizontal_radius": {
+        "robot_foot_l": 0.26645262246343715,
+        "robot_shin_l": 0.2237073948564512,
+        "robot_thigh_l": 0.23076394983737827,
+        "robot_foot_r": 0.26645262246343715,
+        "robot_shin_r": 0.2237073948564512,
+        "robot_thigh_r": 0.23076394983737827,
+        "robot_hand_l": 0.29016719774331456,
+        "robot_forearm_l": 0.248068532866822,
+        "robot_arm_l": 0.2919999957084656,
+        "robot_hand_r": 0.8108563502945442,
+        "robot_forearm_r": 0.248068532866822,
+        "robot_arm_r": 0.2919999957084656,
+        "robot_head": 0.18700000643730164,
+        "robot_torso": 0.2561329264781376,
+        "robot_pelvis": 0.24027492723040164
+      },
+      "core_capsule_distance": {
+        "robot_pelvis": 0.24027492723040164,
+        "robot_torso": 0.2561329264781376,
+        "robot_head": 0.3000000476837159
+      },
+      "clips": {
+        "idle": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.7731048098853779
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.21118919079054368
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8117588478361131,
+          "core_horizontal_radius": 0.26645262246343715,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26645262246343715,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.23076394983737827,
+            "robot_foot_r": 0.26645262246343715,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.23076394983737827,
+            "robot_hand_l": 0.290254531245002,
+            "robot_forearm_l": 0.24813844991231532,
+            "robot_arm_l": 0.2920006173170279,
+            "robot_hand_r": 0.8117588478361131,
+            "robot_forearm_r": 0.24813844991231532,
+            "robot_arm_r": 0.2920006173170279,
+            "robot_head": 0.18796673027484903,
+            "robot_torso": 0.2565826066451624,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "walk": {
+          "duration": 0.800000011920929,
+          "samples": 121,
+          "minimum": [
+            -0.2924019411571742,
+            0.00040848297430695624,
+            -0.8838116146128332
+          ],
+          "maximum": [
+            0.2924019411571742,
+            1.7267527580230544,
+            0.2783767813277285
+          ],
+          "width": 0.5848038823143484,
+          "horizontal_radius": 0.9130693384759497,
+          "core_horizontal_radius": 0.3919351825032553,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.3919351825032553,
+            "robot_shin_l": 0.3090198387030501,
+            "robot_thigh_l": 0.3164937631112666,
+            "robot_foot_r": 0.3919351825032553,
+            "robot_shin_r": 0.3090198387030501,
+            "robot_thigh_r": 0.3164937631112666,
+            "robot_hand_l": 0.32946220872849313,
+            "robot_forearm_l": 0.29001701590285917,
+            "robot_arm_l": 0.30273333356272825,
+            "robot_hand_r": 0.9130693384759497,
+            "robot_forearm_r": 0.29001701590285917,
+            "robot_arm_r": 0.30273333356272825,
+            "robot_head": 0.18700000643730166,
+            "robot_torso": 0.2561329264781377,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "jump": {
+          "duration": 0.5,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -0.010986321348551473,
+            -0.92710373413995
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9540625094925737,
+          "core_horizontal_radius": 0.3354416173195475,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.3354416173195475,
+            "robot_shin_l": 0.268558704318952,
+            "robot_thigh_l": 0.27546726974232355,
+            "robot_foot_r": 0.3354416173195475,
+            "robot_shin_r": 0.268558704318952,
+            "robot_thigh_r": 0.27546726974232355,
+            "robot_hand_l": 0.45240223231807813,
+            "robot_forearm_l": 0.396382946473443,
+            "robot_arm_l": 0.39400731212765905,
+            "robot_hand_r": 0.9540625094925737,
+            "robot_forearm_r": 0.396382946473443,
+            "robot_arm_r": 0.39400731212765905,
+            "robot_head": 0.18700000643730164,
+            "robot_torso": 0.2561329264781376,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "fall": {
+          "duration": 0.6000000238418579,
+          "samples": 17,
+          "minimum": [
+            -0.43098108123563683,
+            -7.450580596923828e-09,
+            -0.8261504544544037
+          ],
+          "maximum": [
+            0.43098108123563683,
+            1.6993898225375974,
+            0.20999999344348907
+          ],
+          "width": 0.8619621624712737,
+          "horizontal_radius": 0.9099701894739644,
+          "core_horizontal_radius": 0.26645262246343715,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26645262246343715,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.23076394983737827,
+            "robot_foot_r": 0.26645262246343715,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.23076394983737827,
+            "robot_hand_l": 0.43866867782628716,
+            "robot_forearm_l": 0.38200978408957675,
+            "robot_arm_l": 0.3880705423125708,
+            "robot_hand_r": 0.9099701894739644,
+            "robot_forearm_r": 0.38200978408957675,
+            "robot_arm_r": 0.3880705423125708,
+            "robot_head": 0.21467625958018033,
+            "robot_torso": 0.2561329264781376,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "swim": {
+          "duration": 1.2000000476837158,
+          "samples": 17,
+          "minimum": [
+            -0.34616910125891354,
+            -0.010134109365398936,
+            -0.6260612023351679
+          ],
+          "maximum": [
+            0.34616910125891354,
+            1.9348028962255661,
+            0.5847280267428012
+          ],
+          "width": 0.6923382025178271,
+          "horizontal_radius": 0.6866336331242213,
+          "core_horizontal_radius": 0.5856669908245907,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.4364087411267268,
+            "robot_shin_l": 0.34328090350985585,
+            "robot_thigh_l": 0.3513325092394225,
+            "robot_foot_r": 0.4364087411267268,
+            "robot_shin_r": 0.34328090350985585,
+            "robot_thigh_r": 0.3513325092394225,
+            "robot_hand_l": 0.45718906597933673,
+            "robot_forearm_l": 0.3734016056738743,
+            "robot_arm_l": 0.36284135837409254,
+            "robot_hand_r": 0.6866336331242213,
+            "robot_forearm_r": 0.37340160576514436,
+            "robot_arm_r": 0.3628413583893428,
+            "robot_head": 0.5856669908245907,
+            "robot_torso": 0.39428305865109337,
+            "robot_pelvis": 0.25042868076472885
+          }
+        },
+        "helm": {
+          "duration": 2.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9213382071888251
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.6996141798535922,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9486083689758897,
+          "core_horizontal_radius": 0.26645262246343715,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26645262246343715,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.23076394983737827,
+            "robot_foot_r": 0.26645262246343715,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.23076394983737827,
+            "robot_hand_l": 0.4531169892930806,
+            "robot_forearm_l": 0.396382946473443,
+            "robot_arm_l": 0.39400731212765905,
+            "robot_hand_r": 0.9486083689758897,
+            "robot_forearm_r": 0.396382946473443,
+            "robot_arm_r": 0.39400731212765905,
+            "robot_head": 0.1975077666583865,
+            "robot_torso": 0.2561329264781376,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "tool": {
+          "duration": 1.0,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.9688955776667609
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.698457193682271,
+            0.20999999344348907
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.9947223625641652,
+          "core_horizontal_radius": 0.26645262246343715,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26645262246343715,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.23076394983737827,
+            "robot_foot_r": 0.26645262246343715,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.23076394983737827,
+            "robot_hand_l": 0.31906141250677045,
+            "robot_forearm_l": 0.27901470364411946,
+            "robot_arm_l": 0.294560758014223,
+            "robot_hand_r": 0.9947223625641652,
+            "robot_forearm_r": 0.4616525892831873,
+            "robot_arm_r": 0.4473318527856977,
+            "robot_head": 0.21162793926598808,
+            "robot_torso": 0.2561329264781376,
+            "robot_pelvis": 0.24027492723040164
+          }
+        },
+        "land": {
+          "duration": 0.4000000059604645,
+          "samples": 17,
+          "minimum": [
+            -0.2919999957084656,
+            -7.450580596923828e-09,
+            -0.854601582105851
+          ],
+          "maximum": [
+            0.2919999957084656,
+            1.7000000476837158,
+            0.2261337035278666
+          ],
+          "width": 0.5839999914169312,
+          "horizontal_radius": 0.8853248417989026,
+          "core_horizontal_radius": 0.26645262246343715,
+          "node_horizontal_radius": {
+            "robot_foot_l": 0.26645262246343715,
+            "robot_shin_l": 0.2237073948564512,
+            "robot_thigh_l": 0.23076394983737827,
+            "robot_foot_r": 0.26645262246343715,
+            "robot_shin_r": 0.2237073948564512,
+            "robot_thigh_r": 0.23076394983737827,
+            "robot_hand_l": 0.3141904530815274,
+            "robot_forearm_l": 0.27286585477075187,
+            "robot_arm_l": 0.2928552668696704,
+            "robot_hand_r": 0.8853248417989026,
+            "robot_forearm_r": 0.27286585477075187,
+            "robot_arm_r": 0.2928552668696704,
+            "robot_head": 0.22993034092921324,
+            "robot_torso": 0.2620381690649974,
+            "robot_pelvis": 0.24027492723040164
+          }
+        }
+      },
+      "limitation": "Sampled actual vertices; not a continuous sweep or visual/runtime acceptance.",
+      "source_sha256": "2ca92a5c712675f26b634011ea756681b109af5b807f0161dadaeb101b75ec61",
+      "grips": {
+        "robot_hand_l": {
+          "skin_vertices": 65,
+          "inner_radius": 0.048673748970032585,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 0
+        },
+        "robot_hand_r": {
+          "skin_vertices": 65,
+          "inner_radius": 0.048673748970032585,
+          "toy_hand_bottom_gap_open": true,
+          "staff_vertices": 240
+        }
+      },
+      "doorway_margin_m": {
+        "width": 0.7751961176856517,
+        "height": 0.5132472419769458
+      }
+    }
+  ],
+  "limitation": "Actual source geometry and sampled clip envelopes, not continuous weapon sweeps, damage timing, renderer acceptance or gameplay proof. Staff intentionally occupies the right grip; yellow C geometry itself remains open."
+}

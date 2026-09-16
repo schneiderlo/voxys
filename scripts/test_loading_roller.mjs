@@ -9,7 +9,7 @@ function fixture(){
     let now=0,locks=0,nextId=0;
     const timers=new Map(),frames=new Map();
     const element=()=>({style:{},classList:{add(){},remove(){}},appendChild(){}});
-    const context={performance:{now:()=>now},Math,
+    const context={creative:true,adventure:true,performance:{now:()=>now},Math,
         document:{getElementById:element,createElement:element},
         SoundManager:class{playClick(){}playLock(){locks++;}},
         setTimeout:(f,ms)=>{const id=++nextId;timers.set(id,{f,at:now+ms});return id;},

@@ -268,6 +268,7 @@ struct ApplicationConfig {
     std::filesystem::path salvageDesignLibraryRoot;
     bool salvagePreviewEnabled = false;
     bool adventureEnabled = false;
+    bool freeBuildEnabled = false;
     std::optional<std::string> salvageAssetFixtureRegistry;
     std::optional<std::string> salvageAssetFixtureCatalog;
     std::string salvageAssetFixtureGuides = "off";
@@ -716,6 +717,7 @@ public:
     bool salvagePreviewAction(int action);
     std::string covePreferencesAction(int action,std::string_view text);
     void adventureAction(int action,int value=0);
+    std::string adventurePreferencesAction(int action,std::string_view text);
     std::string adventureJson() const;
     bool adventureSnapshot(std::vector<std::byte>&,std::string&) const;
     bool adventureValidateSave(std::span<const std::byte>) const;

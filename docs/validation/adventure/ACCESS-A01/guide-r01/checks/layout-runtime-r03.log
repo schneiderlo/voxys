@@ -1,0 +1,51 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureHud.*
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from AdventureHud
+[ RUN      ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity
+[       OK ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity (0 ms)
+[ RUN      ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize
+[       OK ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize (64 ms)
+[ RUN      ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible
+[       OK ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible (8 ms)
+[ RUN      ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize
+[       OK ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize (205 ms)
+[ RUN      ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls
+[       OK ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls (7 ms)
+[ RUN      ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable
+[       OK ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable (0 ms)
+[ RUN      ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis
+[       OK ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis (0 ms)
+[ RUN      ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity
+[       OK ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity (2 ms)
+[ RUN      ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders
+[       OK ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders (18 ms)
+[ RUN      ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent
+[       OK ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent (0 ms)
+[----------] 10 tests from AdventureHud (306 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (306 ms total)
+[  PASSED  ] 10 tests.
+Running main() from gmock_main.cc
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureRuntimeIntegration
+[ RUN      ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+[32m[INFO ] [29:47:14.588] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [29:47:14.588] [GPU]   Vendor: radv[0m
+[32m[INFO ] [29:47:14.588] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [29:47:14.588] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [29:47:14.589] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative (5988 ms)
+[----------] 1 test from AdventureRuntimeIntegration (5988 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (5988 ms total)
+[  PASSED  ] 1 test.

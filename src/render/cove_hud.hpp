@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <optional>
@@ -27,6 +28,7 @@ struct CoveHudMenu {
     std::string name;
     size_t key=0;
     bool keyboardFocus=true;
+    size_t subtitleLineLimit=2; // Short dialogue may use up to four lines.
     bool operator==(const CoveHudMenu&) const = default;
 };
 inline constexpr std::string_view kCoveNameKeys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.";
@@ -64,6 +66,12 @@ struct CoveHudLayout {
 };
 [[nodiscard]] CoveHudLayout layoutCoveHud(const CoveHudContent&,uint32_t width,uint32_t height);
 [[nodiscard]] std::vector<uint8_t> decodeCoveHudAtlas();
+// Shared atlas typography for other game layouts. Bounds clip glyph geometry
+// and UVs together; callers choose wrapping or a one-line ellipsis.
+[[nodiscard]] float measureCoveHudText(std::string_view,float pixels);
+struct CoveHudTextResult { size_t lines=0; bool clipped=false; };
+[[nodiscard]] CoveHudTextResult appendCoveHudText(CoveHudLayout&,std::string_view,
+    glm::vec4 bounds,float pixels,glm::vec4 color,size_t maximumLines=1);
 
 // One fixed atlas and vertex buffer; no game state, input handling or world resources.
 class CoveHudPath {
@@ -76,6 +84,8 @@ public:
     void shutdown() noexcept;
     [[nodiscard]] bool needsContentUpdate() const noexcept;
     void setContent(CoveHudContent);
+    // Optional presentation only. setContent restores the original Cove layout.
+    void setLayoutFactory(std::function<CoveHudLayout(uint32_t,uint32_t)>);
     [[nodiscard]] bool render(WGPUCommandEncoder,WGPUTextureView,uint32_t width,uint32_t height);
     void clearEncodedObservation() noexcept { lastEncodedQuads_=0; }
     [[nodiscard]] uint32_t lastEncodedQuads() const noexcept {return lastEncodedQuads_;}
@@ -98,6 +108,7 @@ private:
     WGPURenderPipeline pipeline_=nullptr;
     CoveHudContent content_;
     CoveHudLayout layout_;
+    std::function<CoveHudLayout(uint32_t,uint32_t)> layoutFactory_;
     std::chrono::steady_clock::time_point contentUpdated_{};
     uint32_t width_=0,height_=0,lastEncodedQuads_=0;
     uint64_t uploadCount_=0;

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-hinged-door-r01",
+  "lattice_metres": 0.02,
+  "legacy_catalog_sha256": "fc9c763b22b5ef9d81e461608dea0f1b138d8f16a4940e9378442dc18a611150",
+  "frame_piece_id": 4,
+  "hinge": [-32, 2, 0],
+  "open_yaw_degrees": -90,
+  "open_leaf": {"minimum": [-34, 2, 0], "maximum": [-30, 110, 64]},
+  "piece": {
+    "id": 15,
+    "key": "hinged_door",
+    "name": "Hinged door",
+    "bounds": {"minimum": [-50, 0, -8], "maximum": [50, 144, 8]},
+    "solids": [
+      {"minimum": [-50, 0, -8], "maximum": [-34, 112, 8]},
+      {"minimum": [34, 0, -8], "maximum": [50, 112, 8]},
+      {"minimum": [-50, 112, -8], "maximum": [50, 144, 8]},
+      {"minimum": [-32, 2, -2], "maximum": [32, 110, 2]}
+    ],
+    "cost": {"wood": 6, "stone": 0, "scrap": 2},
+    "furniture": "Door",
+    "terrain_anchor": false
+  }
+}

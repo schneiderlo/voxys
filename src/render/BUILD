@@ -82,6 +82,7 @@ cc_library(
     srcs = [
         "blit_path.cpp",
         "cove_hud.cpp",
+        "adventure_hud.cpp",
         "opaque_scene.cpp",
         "debug_visualizer.cpp",
         "environment_lighting.cpp",
@@ -94,6 +95,8 @@ cc_library(
     hdrs = [
         "blit_path.hpp",
         "cove_hud.hpp",
+        "adventure_hud.hpp",
+        "generated/adventure_piece_thumbnails.hpp",
         "cove_recovery_guidance.hpp",
         "cove_hud_font.inc",
         "opaque_scene.hpp",
@@ -118,6 +121,7 @@ cc_library(
         ":water_clipmap_mesh",
         ":water_simulation",
         "//src/camera:camera",
+        "//src/game:adventure_core",
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/moto:moto",

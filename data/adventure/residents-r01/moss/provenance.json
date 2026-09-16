@@ -1,0 +1,498 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-resident-moss-r01",
+  "resident_key": "moss",
+  "resident_id": 1,
+  "name": "Moss",
+  "role": "Builder",
+  "author": "Voxys original procedural artwork",
+  "license": "Original project artwork; same project distribution terms. No external character/texture inputs or logos.",
+  "profile": "salvage-animated-rigid-v1",
+  "render_to_canonical": 12,
+  "blender": "5.2.1 LTS",
+  "canonical": {
+    "up": "+Y",
+    "forward": "-Z",
+    "units": "metres",
+    "height": 1.7,
+    "root_motion": false
+  },
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "palette": {
+    "skin": "F1C94F",
+    "cream": "EEE0BF",
+    "moss": "627345",
+    "rust": "A85C39",
+    "leather": "75563A",
+    "hair": "574230",
+    "dark": "29231F",
+    "brass": "BBA06A"
+  },
+  "silhouette": "Moss work cap with forward bill; cream shirt with broad green apron, apron pocket and crossed shoulder straps.",
+  "lods": [
+    {
+      "lod": 0,
+      "glb": "character-lod-0.glb",
+      "glb_sha256": "d8fc460fa5be7618545b4b3f4b2430eb0f97a1da9566dbe6dbf4dd0484d75d2f",
+      "blend": "character-lod-0.blend",
+      "blend_sha256": "c24a4a76aca848cb08ccfdae3aedf3bec72849c5fd97656201d38900e611e8ac",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 27,
+      "vertices": 6519,
+      "triangles": 4358,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013320961810613527
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06033190007570885
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.04818786295248293
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005402141375408035
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014864115014713523
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001557396821536078
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0054021413754080354
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014864115042612262
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00015573968490720157
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428925097504694
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589605000568
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018428925097504694
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006527589605000564
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "glb": "character-lod-1.glb",
+      "glb_sha256": "d64dcb9c497858c043944e94b1a78d35fa30a31cc11e980d13a2ddbfeb1f551d",
+      "blend": "character-lod-1.blend",
+      "blend_sha256": "7bfb133cbee6ea5110de532a917e144b0a52de33110214641843a31b62e64eec",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 27,
+      "vertices": 3408,
+      "triangles": 2452,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013235192345927876
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06009816858806544
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.04746891578810737
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005293678534095223
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001437438584651293
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001423403675901726
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.005293678534095223
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014374385846512927
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0001423403675901726
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018373565581476837
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253281005825
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.01837356558147683
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006481253281005826
+        }
+      ]
+    },
+    {
+      "lod": 2,
+      "glb": "character-lod-2.glb",
+      "glb_sha256": "7de36433a84063550499d1c7ad933f3aad0eb7ac42ac70ae757aac733c856185",
+      "blend": "character-lod-2.blend",
+      "blend_sha256": "28317d509d8f97a0869366872f12ec1e416856852282060d4374a295b8a97bcd",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 26,
+      "vertices": 1719,
+      "triangles": 1318,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 2
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 323,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.013445820488226852
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.06046174696509901
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.045736296766725956
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00499092770530326
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014445422402926467
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00012840281104747295
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004990927705303261
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00014445422402926465
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00012840281177945917
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018508673660856286
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110871e-05
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006595119978631138
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018508673660856286
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 6.123189126110879e-05
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006595119978631138
+        }
+      ]
+    }
+  ],
+  "base_player_files": {
+    "data/adventure/human-r01/README.md": "4722e2d304fe1a14addf34d925fc0fe76e15223d7ead049e6f7a43a162a0e9da",
+    "data/adventure/human-r01/geometry-check.json": "d475164f3518c2c2919c21532ae47c9f52bf33159f7bc5c399485633a8715c62",
+    "data/adventure/human-r01/human.vmesh": "2d86136c1ce5842a6e0da3dd3e890ef151f48a943ef7aca7b414186f1a43b1e2",
+    "data/adventure/human-r01/lod1.vmesh": "ea6182ae040181eeb04bfad4b42687b7f84e1336a15dfb1382a000adccb0c42c",
+    "data/adventure/human-r01/lod2.vmesh": "47b330077d922fe49cc7c72ea3a077d657c2c16b4a8a14124bc6387cb2026401",
+    "data/adventure/human-r01/manifest.json": "d08532cb292d4e996165d29746198adebe3d03eec6b72be62f338024e39e0af1",
+    "data/adventure/human-r01/proof.json": "248fc53baf28530a80ef5dc0996ec5de1346fd1e9e9514feb226ada83f7a654b",
+    "data/adventure/human-r01/proof.png": "0a45be9a333e3278047a176f646f0e9a1131e84a6a2680f3a94ce6c48ce0a583",
+    "data/adventure/human-r01/provenance.json": "97311fc468b341208a423589da3fbbfdf175d3e2fbc41129c1ee018695677b10",
+    "data/adventure/human-r01/source/human-lod-0.blend": "08ab44624863b1e75cdeac2f75ac438fb09368a3a1c7c76db630f7e0368b8e3a",
+    "data/adventure/human-r01/source/human-lod-0.glb": "84541d7429491a81fc4e771fd74be11de2d1358aaa19b16a3db71cf023a7ab01",
+    "data/adventure/human-r01/source/human-lod-1.blend": "d21a4e8508c02cbd4de5746ea72d4f8c0f6d1038428f3feaa495352a1e1dbdc5",
+    "data/adventure/human-r01/source/human-lod-1.glb": "78ddcb18dcdb5fb2bf2d87924977748d13dec408b364f2829235c0afecba08f9",
+    "data/adventure/human-r01/source/human-lod-2.blend": "6a8ead3c1cb67589cb31212bc60c7e80adcf5c6a169ea3de860c5815bdcaf4f1",
+    "data/adventure/human-r01/source/human-lod-2.glb": "0ae5b95c2a72d5dd77163de6c8e309d7683d6281b007e50a5ae007a823c5feb7"
+  },
+  "base_recipe_inputs": {
+    "tools/adventure_assets/author_human_adventurer.py": "ec37c468f107f839c5f6bc080abd2deae2478c8901d2d8cf37a754e304ee37ac",
+    "tools/salvage_assets/author_cove_robot.py": "fd05335fb233456d562549c091db8a651e5617ce383e9f81dc546f245e5f7832",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720"
+  },
+  "author_sha256": "d9cfe04bc520a1dc22df74a67557156f6ea0b69ee3ce699f6f7e58729ec14a2b",
+  "base_author_sha256": "ec37c468f107f839c5f6bc080abd2deae2478c8901d2d8cf37a754e304ee37ac",
+  "reproduction": "/snap/blender/current/blender --background --factory-startup -noaudio --threads 2 --python-exit-code 1 --python tools/adventure_assets/author_resident_minifigures.py -- --output-dir <new-directory>",
+  "scope": "Three distinct original rigid toy-person appearances; palette and role geometry are baked per resident. No global tints, new colliders, usable furniture, NPC facts, quests or save edits. Not skinning or cloth simulation."
+}

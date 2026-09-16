@@ -1,0 +1,26 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+
+Analyzing: target //:voxy_native (0 packages loaded, 4583 targets configured)
+
+INFO: Analyzed target //:voxy_native (1 packages loaded, 6291 targets configured).
+[357 / 416] Compiling src/game/adventure/adventure_runtime.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[358 / 416] Compiling src/game/adventure/adventure_runtime.cpp; 2s linux-sandbox ... (4 actions running)
+[362 / 416] Compiling src/game/adventure/adventure_runtime.cpp; 3s linux-sandbox ... (4 actions running)
+[401 / 416] Compiling src/engine/platform/native/workshop_menu.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[404 / 416] Compiling src/engine/platform/native/cove_saves.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[406 / 416] Compiling src/engine/platform/native/cove_saves.cpp; 3s linux-sandbox ... (4 actions running)
+[411 / 416] Compiling src/render/mesh_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[413 / 416] Compiling src/app/application.cpp; 2s linux-sandbox ... (2 actions running)
+[414 / 416] Compiling src/app/application.cpp; 5s linux-sandbox
+[415 / 416] [Prepa] Linking voxy_native
+INFO: Found 1 target...
+Target //:voxy_native up-to-date:
+  bazel-bin/voxy_native
+INFO: Elapsed time: 20.923s, Critical Path: 11.26s
+INFO: 26 processes: 391 action cache hit, 2 internal, 24 linux-sandbox.
+INFO: Build completed successfully, 26 total actions

@@ -1,0 +1,24 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (2 packages loaded, 125 targets configured).
+[91 / 117] 1 / 3 tests; Compiling tests/test_adventure_preferences.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[95 / 117] 1 / 3 tests; Compiling tests/test_adventure_preferences.cpp; 2s linux-sandbox ... (4 actions running)
+[99 / 117] 1 / 3 tests; Compiling src/game/adventure/adventure_preferences.cpp; 1s linux-sandbox ... (4 actions running)
+[105 / 117] 1 / 3 tests; Compiling src/game/adventure/town_residents.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[112 / 117] 1 / 3 tests; Compiling src/game/adventure/construction_policy.cpp; 0s linux-sandbox
+INFO: Found 3 test targets...
+INFO: Elapsed time: 8.480s, Critical Path: 2.75s
+INFO: 41 processes: 79 action cache hit, 9 internal, 32 linux-sandbox.
+INFO: Build completed successfully, 41 total actions
+//tests:cove_input_preferences                                  (cached) PASSED in 0.1s
+//tests:adventure_preferences                                            PASSED in 0.0s
+//tests:adventure_preferences_store                                      PASSED in 0.1s
+
+Executed 2 out of 3 tests: 3 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

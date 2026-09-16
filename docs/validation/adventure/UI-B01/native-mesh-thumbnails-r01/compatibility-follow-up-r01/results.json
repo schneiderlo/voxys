@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "scope": "Compatibility follow-up only. Original CPU/GPU results and source hashes remain in ../results.json.",
+  "change": "Zero-initialized, named WebGPU vertex attribute and blend fields support both native and Emscripten headers; two layout float conditions made explicit.",
+  "priorSourceSha256": {
+    "src/render/adventure_hud.cpp": "eec962fdedb8b0ce6e8070255aae6e5ebb01e8f75e9ea193171269858f4a4e0f"
+  },
+  "sourceSha256": {
+    "src/render/adventure_hud.cpp": "9777d5f1eb150670226a4c22fd47370139b3d112dcb5a53c4c8edab73cea6226",
+    "src/render/adventure_hud.hpp": "5d9498f99f96efdc8daa8ca8f21b20dfa6bc1ddc7fec0b1d4faca0deddcccffa",
+    "shaders/adventure_hud_triangles.wgsl": "8db8e718f106de487c8d32e4a497c37166659289750fc9650ee2824374e39ab2",
+    "tests/test_adventure_hud.cpp": "c8c75a7280e8bfb4dc3385dac99b876c67e6fd48465bc1255672a91c4ee67cec"
+  },
+  "wasm": {
+    "target": "voxy_wasm",
+    "result": "passed",
+    "log": "checks/integrated-wasm-r03.log.gz",
+    "priorFailureLog": "checks/integrated-wasm-r02.log.gz",
+    "warning": "An existing defaulted-comparison warning in physics_types.hpp remains outside this thumbnail portability fix."
+  },
+  "gpu": {
+    "target": "//tests:adventure_hud_layout",
+    "filter": "AdventureHudGpu.*",
+    "passed": 1,
+    "milliseconds": 416,
+    "timestampUtc": "2026-09-13T02:28:05.510",
+    "adapter": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "backend": "Vulkan",
+    "meshColorSamples": 454,
+    "triangleInstances": 5684,
+    "maximumBufferBytes": 159152,
+    "validationErrors": 0
+  },
+  "rawEvidenceSha256": {
+    "integrated-wasm-r02.log": "84e74f53590396ec65f277ca4c7e4c8ddeea8309aba4bbe26863024ae2b31fc6",
+    "integrated-wasm-r03.log": "1c2df9b50ad80db09363bad1ee6d02d4db910326b16adb6f234c3447ce155b46",
+    "native-hud-portability-r02.log": "ab65864c37762f678f4a0706512da99b88699cc6d2acbe728e85e67d5629671b",
+    "native-hud-portability-test.log": "c961af910a0cfd1f98c9823ae38625a02bd85fc576567ab5ce8185f015c38ce5",
+    "native-hud-portability-test.xml": "ed3c1dc33620b926ecae6852db302a27091a5faaeecd17d0a974710092d73745"
+  },
+  "limits": "No geometry, shader, palette, capacity, gameplay or performance claim changed. These checks were run by the parent task; this follow-up only archives their results."
+}

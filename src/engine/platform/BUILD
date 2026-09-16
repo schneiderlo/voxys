@@ -112,3 +112,12 @@ cc_library(
     includes = ["../.."],
     deps = [":native_save_worker", "//src/game:adventure_core"],
 )
+
+cc_library(
+    name = "native_adventure_preferences",
+    srcs = ["native/adventure_preferences_store.cpp"],
+    hdrs = ["native/adventure_preferences_store.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = ["//src/game:adventure_core"],
+)

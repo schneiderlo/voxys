@@ -83,6 +83,9 @@ public:
     [[nodiscard]] std::array<double,2> movement() const noexcept {return movement_;}
     [[nodiscard]] std::array<double,2> look() const noexcept {return look_;}
     [[nodiscard]] bool orbitDrag() const noexcept {return orbitDrag_;}
+    // Includes a completed press/drag/release gesture, but excludes the frame
+    // that merely releases input held across a focus/menu/preferences boundary.
+    [[nodiscard]] bool mouseGesturesAllowed() const noexcept {return mouseGesturesAllowed_;}
 private:
     bool initialized_=false,focused_=false,padConnected_=false,padArmed_=false;
     uint64_t resetSerial_=0,padSerial_=0;
@@ -92,6 +95,6 @@ private:
     std::array<CoveActionState,kCoveActionCount> states_{};
     std::array<double,2> movement_{},look_{};
     int reelDirection_=0;
-    bool blockedPad_=true,blockedMouse_=true,orbitDrag_=false;
+    bool blockedPad_=true,blockedMouse_=true,orbitDrag_=false,mouseGesturesAllowed_=false;
 };
 } // namespace voxy::game::expedition

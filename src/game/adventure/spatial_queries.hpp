@@ -23,6 +23,7 @@ public:
         glm::dvec3 point{},normal{};
         construction::DurableId structure{},part{};
     };
+    struct WalkableColumn {bool complete=false;size_t count=0;};
     static constexpr size_t maximumSolids=8192;
     static constexpr double sectorSize=256;
     // Retains a span only; the full terrain stays in the Application's one CPU copy.
@@ -31,11 +32,20 @@ public:
     [[nodiscard]] bool publish(std::span<const Solid>,uint64_t revision);
     [[nodiscard]] uint64_t revision() const noexcept {return revision_;}
     [[nodiscard]] size_t solidCount() const noexcept {return solids_.size();}
+    // Borrowed until the next successful publication; accepted geometry only.
+    [[nodiscard]] std::span<const Solid> solids() const noexcept {return solids_;}
     [[nodiscard]] const terrain::lego::Surface& terrain() const noexcept {return terrain_;}
     [[nodiscard]] bool clearCapsule(glm::dvec3 feet,double radius=.3,double height=1.7) const noexcept;
     // Highest reachable surface BELOW maximumFeetHeight. This preserves ground
     // below bridges and floors below ceilings; callers choose their step allowance.
     [[nodiscard]] double supportHeight(glm::dvec2 position,double radius,double maximumFeetHeight) const noexcept;
+    // Distinct clear supported feet (support + .005 m), highest first, with
+    // inclusive feet limits. At most 64 distinct support levels are examined.
+    // Capacity/scan overflow or invalid/out-of-terrain actor extents return
+    // incomplete with count=0 and leave output untouched. Navigation must treat
+    // an incomplete column as unavailable. This query imposes no water policy.
+    [[nodiscard]] WalkableColumn walkableFeet(glm::dvec2 position,double minimumFeet,double maximumFeet,
+        std::span<double> output,double radius=.3,double height=1.7) const noexcept;
     [[nodiscard]] SweepResult sweepCapsule(glm::dvec3 from,glm::dvec3 to,double radius=.3,double height=1.7) const noexcept;
     [[nodiscard]] SweepResult sweepSphere(glm::dvec3 from,glm::dvec3 to,double radius,uint64_t expectedRevision=0) const noexcept;
     [[nodiscard]] RayHit raycast(glm::dvec3 origin,glm::dvec3 direction,double distance) const noexcept;

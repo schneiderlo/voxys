@@ -7,6 +7,78 @@
 namespace voxy::game::adventure {
 namespace {
 const CandidateValidator validWorld=[](const AdventureState&,const AdventureState&,std::string&){return true;};
+
+std::vector<std::byte> hexBytes(std::string_view text) {
+    constexpr std::string_view digits="0123456789abcdef";
+    std::vector<std::byte> bytes;
+    for(size_t i=0;i<text.size();i+=2)
+        bytes.push_back(static_cast<std::byte>(digits.find(text[i])*16+digits.find(text[i+1])));
+    return bytes;
+}
+void checksum(std::vector<std::byte>& bytes) {
+    const auto digest=core::sha256(std::span<const std::byte>(bytes).first(bytes.size()-32));
+    std::copy(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32);
+}
+// Remove only schema6's per-component bool when reconstructing a frozen old
+// payload. Existing field order, byte values and all old archive tails stay exact.
+void stripSchema6DoorFields(std::vector<std::byte>& bytes,const AdventureState& state) {
+    size_t offset=252;
+    for(const auto& structure:state.structures)offset+=38+26*structure.parts.size();
+    offset+=2;
+    for(size_t i=state.components.size();i>0;--i) {
+        const auto field=offset+(i-1)*138+137;ASSERT_LT(field,bytes.size());ASSERT_EQ(bytes[field],std::byte{0});
+        bytes.erase(bytes.begin()+static_cast<std::ptrdiff_t>(field));
+    }
+}
+
+// Frozen actual G-A ordinary-control house archive, commit 2d6d0bc1.
+// Extracted payload of docs/validation/adventure/G-A/native-home-r01/final-current.bin.
+// Payload SHA256: 7d022bec04d1f834370c48cfd4ae498b6fb574d5ff2fddc41412e47aa34a9a02.
+std::vector<std::byte> frozenHomeV1() {
+    return hexBytes(
+        "56584144484f4d4501000000bf7488a44a5e0be04c0ee231ac98288d1471b647cb7e8a02c06ae5bba53c7f9f835d432d"
+        "6da598e8338825b845e448b8010000000000000049020000000000000c000000000000001d0000000000000001b1d68f"
+        "64590755c0d7a3703d0a3362c070bbdee350fc8bc0182d234884ade03f64002602000000000000013602023001034600"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "00000000000000000000000000000004010015000000000000008fc2f5285c0f55c0d7a3703d0a3362c00000000000fc"
+        "8bc0182d234884ade03f010003000000000000000100000000000000dd0000000000000066efffff80e3ffff0051ffff"
+        "130004000000000000000166efffff80e3ffff0051ffff000000000005000000000000000166efffff80e3ffff6451ff"
+        "ff0000000000060000000000000001caefffff80e3ffff0051ffff0000000000070000000000000001caefffff80e3ff"
+        "ff6451ffff000000000008000000000000000366efffff90e3ffffd650ffff0000000000090000000000000003caefff"
+        "ff90e3ffffd650ffff00000000000a000000000000000466efffff90e3ffff8e51ffff00000000000b00000000000000"
+        "03caefffff90e3ffff8e51ffff00000000000c00000000000000032cefffff90e3ffff0051ffff01000000000d000000"
+        "000000000304f0ffff90e3ffff0051ffff01000000000e00000000000000032cefffff90e3ffff6451ffff0100000000"
+        "0f000000000000000304f0ffff90e3ffff6451ffff010000000010000000000000000566efffff20e4ffff0051ffff00"
+        "0000000011000000000000000566efffff20e4ffff6451ffff0000000000120000000000000005caefffff20e4ffff00"
+        "51ffff0000000000130000000000000005caefffff20e4ffff6451ffff000000000014000000000000000bbeefffff90"
+        "e3ffff1951ffff000000000016000000000000000c59efffff90e3ffff1951ffff000000000018000000000000000dbe"
+        "efffff90e3ffff6451ffff00000000000300150000000000000003000000000000001400000000000000010000000000"
+        "0000dd000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000017000000000000000300000000000000160000000000000001000000000000001802000000"
+        "000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000001900000000000000030000000000000018000000000000000100000000000000dd0000000000000003000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000079"
+        "952ff62d0151e6fbaf1a98c1c1070bdca9625b24bae390bcd2a3f1a30eb473");
+}
+AdventureContent migrationContent() {
+    AdventureContent content;content.identity.bytes[0]=std::byte{87};content.town={-63,-146,-895,0};
+    core::Sha256Digest legacy;
+    const auto identity=hexBytes("1471b647cb7e8a02c06ae5bba53c7f9f835d432d6da598e8338825b845e448b8");
+    std::copy(identity.begin(),identity.end(),legacy.bytes.begin());content.legacyIdentity=legacy;
+    // The codec uses installed IDs/yields; actual terrain/readiness is exercised
+    // separately. These tests never present fixture positions as a player run.
+    for(uint32_t i=0;i<18;++i)content.resourceNodes.push_back({i+1,content.town,{static_cast<ItemKind>(1+i%3),static_cast<uint16_t>(i%3==0?12:8)}});
+    return content;
+}
+construction::WorldNamespace frozenHomeWorld() {
+    construction::WorldNamespace result;
+    const auto bytes=hexBytes("bf7488a44a5e0be04c0ee231ac98288d");
+    for(size_t i=0;i<bytes.size();++i)result.bytes[i]=std::to_integer<uint8_t>(bytes[i]);
+    return result;
+}
 class AdventureSessionTest:public testing::Test {
 protected:
     construction::WorldNamespace world{{'a','d','v','e','n','t','u','r','e','-','t','e','s','t','0','1'}};
@@ -38,6 +110,22 @@ protected:
         const auto revision=[&](uint64_t id){return id?AdventureSession::findComponent(session->state(),id)->revision:session->state().backpackRevision;};
         auto change=session->prepareTransfer(next(),{source,destination,revision(source),revision(destination),slot,quantity},validWorld,error);
         ASSERT_TRUE(change)<<error;ASSERT_TRUE(session->commit(std::move(*change),error))<<error;
+    }
+    void makeRegisteredHome() {
+        const auto bed=furniture(PieceKind::Bed);furniture(PieceKind::Chest);furniture(PieceKind::Workbench);
+        auto rest=session->prepareUseBed(next(),bed,{1,12,1,0},validWorld,error);
+        ASSERT_TRUE(rest)<<error;ASSERT_TRUE(session->commit(std::move(*rest),error));
+    }
+    void completeHomeQuest() {
+        makeRegisteredHome();
+        auto accept=session->prepareAcceptHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(accept)<<error;
+        ASSERT_TRUE(session->commit(std::move(*accept),error));
+        auto complete=session->prepareCompleteHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(complete)<<error;
+        ASSERT_TRUE(session->commit(std::move(*complete),error));
+    }
+    uint64_t bench() const {
+        for(const auto& value:session->state().components)if(value.kind==FurnitureKind::Workbench)return value.id;
+        return 0;
     }
 };
 TEST(AdventureInventoryTest, FailedAdditionAndMaterialRefundAreAtomic) {
@@ -82,7 +170,7 @@ TEST_F(AdventureSessionTest, StaleDuplicateAndForeignPreparedChangesCannotPublis
 }
 TEST_F(AdventureSessionTest, MovementInvalidatesPendingEditAndRejectsNonFinitePose) {
     auto candidate=session->preparePlace(next(),{0,PieceKind::Foundation,{},0,0},validWorld,error);ASSERT_TRUE(candidate);
-    ASSERT_TRUE(session->updatePlayer({1.12345,12,2.23456,.2},80,error));const auto moved=session->state();
+    ASSERT_TRUE(session->updatePlayer({1.12345,12,2.23456,.2},100,error));const auto moved=session->state();
     EXPECT_FALSE(session->commit(std::move(*candidate),error));EXPECT_EQ(session->state(),moved);
     EXPECT_FALSE(session->updatePlayer({std::numeric_limits<double>::quiet_NaN(),0,0,0},100,error));EXPECT_EQ(session->state(),moved);
 }
@@ -124,7 +212,7 @@ TEST_F(AdventureSessionTest, BenchCraftEquipAndGatherGiveOnePersistentUsefulYiel
     EXPECT_FALSE(session->prepareGather(next(),1,validWorld,error));EXPECT_EQ(session->state(),expected);
 }
 TEST_F(AdventureSessionTest, ShelteredBedRestAndRemovalResolveRecoverySafely) {
-    const auto bed=furniture(PieceKind::Bed);ASSERT_TRUE(session->updatePlayer({0,12,0,0},27,error));
+    const auto bed=furniture(PieceKind::Bed);auto wounded=session->state();wounded.health=27;reload(wounded);
     const CandidateValidator roofMissing=[](const AdventureState&,const AdventureState&,std::string& e){e="Build a roof over the bed.";return false;};
     EXPECT_FALSE(session->prepareUseBed(next(),bed,{1,12,0,0},roofMissing,error));EXPECT_EQ(session->state().health,27);
     auto rest=session->prepareUseBed(next(),bed,{1,12,0,0},validWorld,error);ASSERT_TRUE(rest);ASSERT_TRUE(session->commit(std::move(*rest),error));
@@ -317,7 +405,7 @@ TEST_F(AdventureSessionTest, CodecRejectsCorruptionForeignIdentityTrailingAndWro
     auto foreignContent=content;foreignContent.identity.bytes[0]^=std::byte{1};EXPECT_FALSE(AdventureSaveCodec::decode(bytes,world,foreignContent,decoded,error));
     bytes.insert(bytes.end()-32,std::byte{0});auto digest=core::sha256(std::span<const std::byte>(bytes).first(bytes.size()-32));std::copy(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32);
     EXPECT_FALSE(AdventureSaveCodec::decode(bytes,world,content,decoded,error));EXPECT_EQ(decoded,before);
-    bytes.erase(bytes.end()-33);bytes[8]=std::byte{2};digest=core::sha256(std::span<const std::byte>(bytes).first(bytes.size()-32));std::copy(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32);
+    bytes.erase(bytes.end()-33);bytes[8]=std::byte{99};digest=core::sha256(std::span<const std::byte>(bytes).first(bytes.size()-32));std::copy(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32);
     EXPECT_FALSE(AdventureSaveCodec::decode(bytes,world,content,decoded,error));EXPECT_EQ(decoded,before);
 }
 TEST_F(AdventureSessionTest, InvalidComponentIdsOrdersHorizonsAndContentsRefuseRestore) {
@@ -329,5 +417,165 @@ TEST_F(AdventureSessionTest, InvalidComponentIdsOrdersHorizonsAndContentsRefuseR
     invalid=session->state();invalid.depletedNodes={1,1};EXPECT_FALSE(AdventureSession::restore(invalid,content,error));
     EXPECT_TRUE(AdventureSession::findComponent(session->state(),chest));
 }
+
+TEST_F(AdventureSessionTest, GreetingAndQuestAcceptanceNeedKnownNpcAndTrustedAdmission) {
+    const auto initial=session->state();
+    const CandidateValidator blocked=[](const auto&,const auto&,std::string& reason){reason="Resident is out of reach.";return false;};
+    EXPECT_FALSE(session->prepareGreet(next(),0,validWorld,error));
+    EXPECT_FALSE(session->prepareGreet(next(),4,validWorld,error));
+    EXPECT_FALSE(session->prepareGreet(next(),1,{},error));
+    EXPECT_FALSE(session->prepareGreet(next(),1,blocked,error));
+    EXPECT_FALSE(session->prepareGreet({initial.revision,1,2},1,validWorld,error));
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,validWorld,error));
+    EXPECT_FALSE(session->prepareAcceptHomeQuest(next(),2,validWorld,error));
+    EXPECT_EQ(session->state(),initial);
+    for(uint8_t npc=1;npc<=3;++npc) {
+        auto greeted=session->prepareGreet(next(),npc,validWorld,error);ASSERT_TRUE(greeted)<<error;
+        ASSERT_TRUE(session->commit(std::move(*greeted),error));
+    }
+    EXPECT_EQ(session->state().metNpcMask,7);
+    const auto greeted=session->state();EXPECT_FALSE(session->prepareGreet(next(),1,validWorld,error));EXPECT_EQ(session->state(),greeted);
+    auto accepted=session->prepareAcceptHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(accepted);
+    ASSERT_TRUE(session->commit(std::move(*accepted),error));EXPECT_EQ(session->state().firstHome.phase,QuestPhase::Active);
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,validWorld,error));
+    EXPECT_FALSE(trailCompassRecipeUnlocked(session->state().firstHome));
+}
+TEST_F(AdventureSessionTest, PriorHomeFullBackpackAndDuplicateClaimsKeepOnePermanentReceipt) {
+    makeRegisteredHome();
+    const auto beforeAcceptance=session->state();
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,validWorld,error));EXPECT_EQ(session->state(),beforeAcceptance);
+    auto accept=session->prepareAcceptHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(accept);ASSERT_TRUE(session->commit(std::move(*accept),error));
+    auto full=session->state();for(auto& slot:full.backpack)slot={ItemKind::Stone,999};reload(full);
+    const CandidateValidator blocked=[](const auto&,const auto&,std::string& reason){reason="The registered bed is no longer sheltered.";return false;};
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,{},error));
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,blocked,error));
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),3,validWorld,error));EXPECT_EQ(session->state(),full);
+    auto first=session->prepareCompleteHomeQuest(next(),1,validWorld,error);
+    auto duplicate=session->prepareCompleteHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(first);ASSERT_TRUE(duplicate);
+    ASSERT_TRUE(session->commit(std::move(*first),error));const auto rewarded=session->state();
+    EXPECT_EQ(rewarded.backpack,full.backpack);EXPECT_EQ(rewarded.lastIssuedId,full.lastIssuedId);
+    EXPECT_EQ(rewarded.firstHome.rewardRevision,rewarded.revision);EXPECT_TRUE(trailCompassRecipeUnlocked(rewarded.firstHome));
+    EXPECT_FALSE(session->commit(std::move(*duplicate),error));EXPECT_EQ(session->state(),rewarded);
+    std::vector<std::byte> bytes;ASSERT_TRUE(AdventureSaveCodec::encode(rewarded,content,bytes,error));
+    AdventureState restored;ASSERT_TRUE(AdventureSaveCodec::decode(bytes,world,content,restored,error));reload(restored);
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,validWorld,error));
+    EXPECT_FALSE(session->prepareAcceptHomeQuest(next(),1,validWorld,error));EXPECT_EQ(session->state(),rewarded);
+    auto space=rewarded;space.backpack={};reload(space);
+    auto remove=session->prepareRemoveStructure(next(),firstStructure(),validWorld,error);ASSERT_TRUE(remove)<<error;
+    ASSERT_TRUE(session->commit(std::move(*remove),error));EXPECT_TRUE(session->state().structures.empty());
+    EXPECT_EQ(session->state().firstHome,rewarded.firstHome);EXPECT_TRUE(trailCompassRecipeUnlocked(session->state().firstHome));
+}
+TEST_F(AdventureSessionTest, RemovedHomeAndStaleCompletionCannotClaimARecipe) {
+    makeRegisteredHome();auto accept=session->prepareAcceptHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(accept);ASSERT_TRUE(session->commit(std::move(*accept),error));
+    auto completion=session->prepareCompleteHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(completion);
+    uint64_t chestPart=0;for(const auto& value:session->state().components)if(value.kind==FurnitureKind::Chest)chestPart=value.part;
+    auto remove=session->prepareRemove(next(),chestPart,validWorld,error);ASSERT_TRUE(remove);ASSERT_TRUE(session->commit(std::move(*remove),error));
+    const auto missing=session->state();EXPECT_FALSE(session->commit(std::move(*completion),error));
+    EXPECT_FALSE(session->prepareCompleteHomeQuest(next(),1,validWorld,error));EXPECT_EQ(session->state(),missing);
+}
+TEST_F(AdventureSessionTest, CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures) {
+    makeRegisteredHome();const auto locked=session->state();
+    EXPECT_FALSE(session->prepareCraftCompass(next(),bench(),validWorld,error));EXPECT_EQ(session->state(),locked);
+    auto accept=session->prepareAcceptHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(accept);ASSERT_TRUE(session->commit(std::move(*accept),error));
+    auto complete=session->prepareCompleteHomeQuest(next(),1,validWorld,error);ASSERT_TRUE(complete);ASSERT_TRUE(session->commit(std::move(*complete),error));
+    const auto unlocked=session->state();
+    EXPECT_FALSE(session->prepareCraftCompass(next(),0,validWorld,error));
+    EXPECT_FALSE(session->prepareCraftCompass(next(),bench(),{},error));EXPECT_EQ(session->state(),unlocked);
+    auto full=unlocked;for(auto& slot:full.backpack)slot={ItemKind::Stone,999};
+    full.backpack[0]={ItemKind::Wood,999};full.backpack[1]={ItemKind::Scrap,999};full.equippedTool={ItemKind::FieldHammer,1};reload(full);
+    EXPECT_FALSE(session->prepareCraftCompass(next(),bench(),validWorld,error));EXPECT_EQ(session->state(),full);
+    full.backpack[23]={};reload(full);
+    auto craft=session->prepareCraftCompass(next(),bench(),validWorld,error);ASSERT_TRUE(craft)<<error;ASSERT_TRUE(session->commit(std::move(*craft),error));
+    EXPECT_EQ(itemCount(session->state().backpack,ItemKind::Wood),997u);EXPECT_EQ(itemCount(session->state().backpack,ItemKind::Scrap),995u);
+    EXPECT_EQ(session->state().backpack[23],(ItemStack{ItemKind::TrailCompass,1}));
+    auto equip=session->prepareEquipUtility(next(),23,error);ASSERT_TRUE(equip);ASSERT_TRUE(session->commit(std::move(*equip),error));
+    EXPECT_EQ(itemCount(session->state().backpack,ItemKind::TrailCompass),0u);
+    EXPECT_EQ(session->state().equippedUtility,(ItemStack{ItemKind::TrailCompass,1}));EXPECT_EQ(session->state().equippedTool,full.equippedTool);
+    auto packed=session->state();packed.backpack[23]={ItemKind::Stone,999};reload(packed);
+    EXPECT_FALSE(session->prepareEquipUtility(next(),255,error));EXPECT_EQ(session->state(),packed);
+    packed.backpack[23]={};reload(packed);
+    auto unequip=session->prepareEquipUtility(next(),255,error);ASSERT_TRUE(unequip);ASSERT_TRUE(session->commit(std::move(*unequip),error));
+    EXPECT_EQ(session->state().equippedUtility,ItemStack{});EXPECT_EQ(itemCount(session->state().backpack,ItemKind::TrailCompass),1u);
+    EXPECT_FALSE(session->prepareEquipUtility(next(),0,error));
+    uint64_t chest=0;for(const auto& value:session->state().components)if(value.kind==FurnitureKind::Chest)chest=value.id;
+    transfer(0,chest,23,1);EXPECT_EQ(itemCount(session->state().backpack,ItemKind::TrailCompass),0u);
+    EXPECT_EQ(itemCount(AdventureSession::findComponent(session->state(),chest)->slots,ItemKind::TrailCompass),1u);
+    std::vector<std::byte> bytes;ASSERT_TRUE(AdventureSaveCodec::encode(session->state(),content,bytes,error));
+    AdventureState decoded;ASSERT_TRUE(AdventureSaveCodec::decode(bytes,world,content,decoded,error));EXPECT_EQ(decoded,session->state());
+}
+TEST_F(AdventureSessionTest, UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore) {
+    furniture(PieceKind::Chest);const auto initial=session->state();
+    for(const auto bad:std::array<FirstHomeProgress,4>{{{static_cast<QuestPhase>(3),0},{QuestPhase::Completed,0},{QuestPhase::Active,1},{QuestPhase::Completed,initial.revision+1}}}) {
+        auto state=initial;state.firstHome=bad;EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    }
+    auto state=initial;state.metNpcMask=8;EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    state=initial;state.backpack[3]={ItemKind::TrailCompass,1};EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    state=initial;state.components[0].slots[0]={ItemKind::TrailCompass,1};EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    state=initial;state.equippedUtility={ItemKind::TrailCompass,1};EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    state.firstHome={QuestPhase::Completed,state.revision};EXPECT_TRUE(AdventureSession::restore(state,content,error))<<error;
+    state.equippedUtility={ItemKind::FieldHammer,1};EXPECT_FALSE(AdventureSession::restore(state,content,error));
+    auto invalidContent=content;invalidContent.resourceNodes[0].yield={ItemKind::TrailCompass,1};
+    EXPECT_FALSE(AdventureSession::create(world,invalidContent,error));
+}
+
+TEST(AdventureSaveMigration, FrozenActualHomePreservesEveryV1FieldAndNamespace) {
+    const auto bytes=frozenHomeV1();const auto world=frozenHomeWorld();const auto content=migrationContent();std::string error;
+    ASSERT_EQ(bytes.size(),1231u);EXPECT_EQ(core::sha256Hex(core::sha256(bytes)),"7d022bec04d1f834370c48cfd4ae498b6fb574d5ff2fddc41412e47aa34a9a02");
+    AdventureState state;AdventureSaveLoadMetadata metadata;
+    ASSERT_TRUE(AdventureSaveCodec::decode(bytes,world,content,state,error,&metadata))<<error;
+    EXPECT_EQ(metadata,(AdventureSaveLoadMetadata{1,true}));EXPECT_EQ(state.world,world);EXPECT_EQ(state.content,content.identity);
+    EXPECT_EQ(state.revision,585u);EXPECT_EQ(state.lastRequestSequence,12u);EXPECT_EQ(state.lastIssuedId,29u);
+    ASSERT_EQ(state.structures.size(),1u);EXPECT_EQ(state.structures[0].parts.size(),19u);EXPECT_EQ(state.components.size(),3u);
+    EXPECT_EQ(state.registeredBed,21u);EXPECT_EQ(state.equippedTool,(ItemStack{ItemKind::FieldHammer,1}));
+    EXPECT_EQ(itemCount(state.backpack,ItemKind::Wood),566u);EXPECT_EQ(itemCount(state.backpack,ItemKind::Stone),304u);EXPECT_EQ(itemCount(state.backpack,ItemKind::Scrap),70u);
+    EXPECT_EQ(state.firstHome,FirstHomeProgress{});EXPECT_EQ(state.metNpcMask,0);EXPECT_EQ(state.equippedUtility,ItemStack{});
+    std::vector<std::byte> upgraded;ASSERT_TRUE(AdventureSaveCodec::encode(state,content,upgraded,error));EXPECT_EQ(upgraded.size(),bytes.size()+13+kAdventureSchema3ExtensionBytes+state.components.size());
+    AdventureState roundtrip;ASSERT_TRUE(AdventureSaveCodec::decode(upgraded,world,content,roundtrip,error,&metadata));
+    EXPECT_EQ(metadata,(AdventureSaveLoadMetadata{6,false}));EXPECT_EQ(roundtrip,state);
+    std::vector<std::byte> repeated;ASSERT_TRUE(AdventureSaveCodec::encode(roundtrip,content,repeated,error));EXPECT_EQ(repeated,upgraded);
+    // Strip the documented new component fields/tail and restore the old identity/header.
+    // Byte equality catches changes to any old field, including fractional pose.
+    stripSchema6DoorFields(upgraded,state);
+    upgraded.erase(upgraded.end()-static_cast<ptrdiff_t>(45+kAdventureSchema3ExtensionBytes),upgraded.end()-32);upgraded[8]=std::byte{1};
+    std::copy(content.legacyIdentity->bytes.begin(),content.legacyIdentity->bytes.end(),upgraded.begin()+28);checksum(upgraded);
+    EXPECT_EQ(upgraded,bytes);
+}
+TEST(AdventureSaveMigration, LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal) {
+    const auto original=frozenHomeV1();const auto world=frozenHomeWorld();auto content=migrationContent();std::string error;
+    auto output=AdventureSession::create(world,content,error)->state();const auto unchanged=output;
+    AdventureSaveLoadMetadata metadata{99,true};const auto originalMetadata=metadata;
+    const auto refuse=[&](const std::vector<std::byte>& bytes,const AdventureContent& installed) {
+        EXPECT_FALSE(AdventureSaveCodec::decode(bytes,world,installed,output,error,&metadata));
+        EXPECT_EQ(output,unchanged);EXPECT_EQ(metadata,originalMetadata);
+    };
+    auto missing=content;missing.legacyIdentity.reset();refuse(original,missing);
+    auto wrong=content;wrong.legacyIdentity->bytes[0]^=std::byte{1};refuse(original,wrong);
+    // A newly known compass ID must remain invalid in the old format.
+    auto bad=original;bad[135]=std::byte{5};bad[136]=std::byte{1};bad[137]=std::byte{0};checksum(bad);refuse(bad,content);
+    bad=original;bad[8]=std::byte{2};checksum(bad);refuse(bad,content); // No v2 tail.
+    bad=original;bad.insert(bad.end()-32,std::byte{0});checksum(bad);refuse(bad,content);
+    bad=original;bad[8]=std::byte{3};checksum(bad);refuse(bad,content);
+    bad=original;bad[100]^=std::byte{1};refuse(bad,content);
+    AdventureState imported;ASSERT_TRUE(AdventureSaveCodec::decode(original,world,content,imported,error));
+    ASSERT_TRUE(AdventureSaveCodec::encode(imported,content,bad,error));
+    const auto current=bad;const auto oldTail=bad.size()-kAdventureSchema3ExtensionBytes;bad[oldTail-45]=std::byte{8};checksum(bad);refuse(bad,content); // Unknown greeting bit.
+    bad=current;bad[oldTail-44]=std::byte{2};checksum(bad);refuse(bad,content); // Completed without receipt.
+    bad=current;bad[oldTail-35]=std::byte{5};bad[oldTail-34]=std::byte{1};checksum(bad);refuse(bad,content); // Unearned utility.
+}
 } // namespace
+
+TEST_F(AdventureSessionTest, CreativePiecesDoNotConsumeOrCreateInventoryAndRetainSaveIdentity) {
+    content.freeBuilding=true;content.identity.bytes[0]^=std::byte{0x40};
+    session=AdventureSession::create({{'c','r','e','a','t','i','v','e'}},content,error);ASSERT_TRUE(session)<<error;
+    const auto empty=session->state().backpack;
+    uint64_t last=0;
+    for(int i=0;i<100;++i){last=place(PieceKind::Brick2x4,0,{i*200,600,0});ASSERT_NE(last,0u);}
+    EXPECT_EQ(session->state().backpack,empty);ASSERT_EQ(session->state().structures.size(),1u);
+    auto remove=session->prepareRemove(next(),last,validWorld,error);ASSERT_TRUE(remove)<<error;
+    ASSERT_TRUE(session->commit(std::move(*remove),error));EXPECT_EQ(session->state().backpack,empty);
+    std::vector<std::byte> bytes;ASSERT_TRUE(AdventureSaveCodec::encode(session->state(),content,bytes,error));
+    AdventureState restored;ASSERT_TRUE(AdventureSaveCodec::decode(bytes,session->state().world,content,restored,error));
+    EXPECT_EQ(restored,session->state());auto legacy=content;legacy.freeBuilding=false;legacy.identity.bytes[0]^=std::byte{0x40};
+    EXPECT_FALSE(AdventureSaveCodec::decode(bytes,session->state().world,legacy,restored,error));
+}
 } // namespace voxy::game::adventure

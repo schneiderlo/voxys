@@ -1,0 +1,46 @@
+{
+  "scope": "CPU presentation geometry and strict default-mode compilation; no rendered native/browser usability acceptance",
+  "gpu_tests_excluded": [
+    "CoveHudGpu.*"
+  ],
+  "test_targets": {
+    "adventure": {
+      "tests": "63",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.245",
+      "timestamp": "2026-09-13T01:44:28.530",
+      "name": "AllTests"
+    },
+    "adventure_hud_layout": {
+      "tests": "5",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.016",
+      "timestamp": "2026-09-13T01:45:37.938",
+      "name": "AllTests"
+    },
+    "cove_hud_layout": {
+      "tests": "15",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.02",
+      "timestamp": "2026-09-13T01:44:30.593",
+      "name": "AllTests"
+    }
+  },
+  "sources_sha256": {
+    "src/render/adventure_hud.cpp": "1a4c2cb56d364b4f320b94a8bab26e0974bc055f524f37cf6b685f37ae183c39",
+    "src/render/adventure_hud.hpp": "acdaebffec726075f3b2c7fdde7233780ad9ff16be215a9e58565900c7aec2aa",
+    "src/render/cove_hud.cpp": "6deeb9162d198b3a77938e2b74928e6692e46df89ccbb0902083d07cb04bcda3",
+    "src/render/cove_hud.hpp": "91a384afe9ec8703d6ac7f8c017796f7b29751b591941c685942507ab07e481b",
+    "tests/test_adventure_hud.cpp": "2f13e1c739a11725f0c5f9c2a1b67be6ece410ee11fabd83bc00e4b13d2ce6d2",
+    "tests/test_adventure_town.cpp": "4d8c4be0e072778c7bb7aa8671aa7b285750b25b3bad2b10802a34a5ccb2b248"
+  },
+  "strict_runtime_build": "passed in focused-r03.log",
+  "resolved_layout_defect": "Seven build controls at 640x480 and 150% text occupied three rows; individually measured button widths now fit two rows.",
+  "optimized_build_limitation": "The first opt-mode invocation stopped on GCC15 -Werror=null-dereference in existing fixture_registry.cpp:367 / PartDefinition vector copy. No optimized-build pass is claimed."
+}

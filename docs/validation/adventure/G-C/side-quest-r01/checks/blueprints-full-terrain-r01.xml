@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="3.467" timestamp="2026-09-13T01:24:04.962" name="AllTests">
+  <testsuite name="AdventureBlueprints" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="3.466" timestamp="2026-09-13T01:24:04.962">
+    <testcase name="MetadataMatchesCatalogCostsAndStarterRoomRetainsEveryOriginalRotation" file="tests/test_adventure_blueprints.cpp" line="79" status="run" result="completed" time="0." timestamp="2026-09-13T01:24:04.962" classname="AdventureBlueprints" />
+    <testcase name="EveryStepRotationPublishesOnePaidStructureAndUndoConservesAllStock" file="tests/test_adventure_blueprints.cpp" line="103" status="run" result="completed" time="0." timestamp="2026-09-13T01:24:04.962" classname="AdventureBlueprints" />
+    <testcase name="EntitlementStockTerrainAndPlayerRefusalsAreAtomic" file="tests/test_adventure_blueprints.cpp" line="136" status="run" result="completed" time="0." timestamp="2026-09-13T01:24:04.962" classname="AdventureBlueprints" />
+    <testcase name="GenericEarnedRecipeBuildsTheProvenFullTerrainShortcutWithoutChangingItsSite" file="tests/test_adventure_blueprints.cpp" line="159" status="run" result="completed" time="3.466" timestamp="2026-09-13T01:24:04.962" classname="AdventureBlueprints">
+      <properties>
+        <property name="fullTerrainSha256" value="2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965"/>
+        <property name="paidStone" value="6"/>
+        <property name="genericRecipeUsed" value="true"/>
+        <property name="jumpUsed" value="false"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

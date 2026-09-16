@@ -27,6 +27,7 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
         else if (mode == "lego-world") result.mode = GameMode::LegoWorld;
         else if (mode == "salvage") result.mode = GameMode::Salvage;
         else if (mode == "adventure") result.mode = GameMode::Adventure;
+        else if (mode == "free-build") result.mode = GameMode::FreeBuild;
         else result.status = GameModeStatus::UnknownMode;
     } else if (config.window.title == "RIDGEBREAK") {
         result.mode = GameMode::Ridgebreak;
@@ -35,7 +36,7 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
     } else if (config.window.title == "LEGO WORLD") {
         result.mode = GameMode::LegoWorld;
     }
-    if (result.ready() && (result.mode == GameMode::Salvage || result.mode == GameMode::Adventure)
+    if (result.ready() && (result.mode == GameMode::Salvage || result.mode == GameMode::Adventure || result.mode == GameMode::FreeBuild)
         && validateWreckwaterClientConfig(config.wreckwaterClient)
             != WreckwaterClientConfigStatus::Disabled) {
         result.status = GameModeStatus::ConflictingBootstrap;

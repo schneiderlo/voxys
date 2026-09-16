@@ -1,0 +1,138 @@
+{
+  "source": "data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh",
+  "sourceSha256": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+  "doorSource": "data/adventure/door-r01/cooked/door-leaf-lod0.vmesh",
+  "doorSourceSha256": "be59bb6888aacc94c345fa3aebf0ebf1df1cacc1c3082e55c01eff16753b1e5f",
+  "doorComposition": {
+    "pieceKind": 15,
+    "frameMeshIndex": 3,
+    "leafMeshIndex": 0,
+    "leafPose": "closed part-local identity"
+  },
+  "method": "Orthographic CPU projection of installed mesh triangles with named runtime warm palette.",
+  "paletteSrgb": {
+    "adventure_cream": "E8D8B8",
+    "adventure_teal": "627052",
+    "adventure_wood": "A5784F",
+    "adventure_coral": "B76343",
+    "adventure_slate": "494D48",
+    "adventure_door_terracotta": "B85C45",
+    "adventure_door_brass": "C69A49"
+  },
+  "outputs": [
+    {
+      "pieceKind": 1,
+      "mesh": "01_foundation",
+      "file": "adventure_piece_01.svg",
+      "visibleTriangles": 90,
+      "sha256": "05916a5161a60284a9b040ac3e303907916c9874e5b27a133d7bde30d6acdd30"
+    },
+    {
+      "pieceKind": 2,
+      "mesh": "02_floor",
+      "file": "adventure_piece_02.svg",
+      "visibleTriangles": 90,
+      "sha256": "e5be1bde06676c5fa31d8aaedc9f23f3aa7cd9f90afd61e367dfb08f3580f24f"
+    },
+    {
+      "pieceKind": 3,
+      "mesh": "03_wall",
+      "file": "adventure_piece_03.svg",
+      "visibleTriangles": 126,
+      "sha256": "88fa9d2f089eb12e04ecff52c7b87fb6ad44b552064c021bcac8d87751c30a53"
+    },
+    {
+      "pieceKind": 4,
+      "mesh": "04_doorway",
+      "file": "adventure_piece_04.svg",
+      "visibleTriangles": 186,
+      "sha256": "ee492ea4fc32700913e01f0d933dd646ff02181396ded79e78323f05da3ab855"
+    },
+    {
+      "pieceKind": 5,
+      "mesh": "05_roof",
+      "file": "adventure_piece_05.svg",
+      "visibleTriangles": 90,
+      "sha256": "05916a5161a60284a9b040ac3e303907916c9874e5b27a133d7bde30d6acdd30"
+    },
+    {
+      "pieceKind": 6,
+      "mesh": "06_stair",
+      "file": "adventure_piece_06.svg",
+      "visibleTriangles": 360,
+      "sha256": "7237b290896431cf7affcba76a93ecccf2a395f065a20d9aa55fc0c49d051eec"
+    },
+    {
+      "pieceKind": 7,
+      "mesh": "07_beam",
+      "file": "adventure_piece_07.svg",
+      "visibleTriangles": 54,
+      "sha256": "cb7bc9789206bf0b43c32cfa96f3cbcafbd85e56a07e7a1042774fa93aa84bae"
+    },
+    {
+      "pieceKind": 8,
+      "mesh": "08_brick_1x2",
+      "file": "adventure_piece_08.svg",
+      "visibleTriangles": 248,
+      "sha256": "3e01030360644a6995b987e4a1b7de9fc5f63739ff104890b5c5072fe8c538d9"
+    },
+    {
+      "pieceKind": 9,
+      "mesh": "09_brick_2x2",
+      "file": "adventure_piece_09.svg",
+      "visibleTriangles": 436,
+      "sha256": "93203bb91a0f017bcb30d5836810b7bf7c524896da92d8d6e8e7fa813417d964"
+    },
+    {
+      "pieceKind": 10,
+      "mesh": "10_brick_2x4",
+      "file": "adventure_piece_10.svg",
+      "visibleTriangles": 812,
+      "sha256": "e037fec268319fef958fa3f9d3e7b62e6ddbdc8dfccd15a7c0565c8bfca413b9"
+    },
+    {
+      "pieceKind": 11,
+      "mesh": "11_bed",
+      "file": "adventure_piece_11.svg",
+      "visibleTriangles": 336,
+      "sha256": "149bcfaf9b5ce9fe3645ac44e0139c25ea5b86ec243c4afae9c00d2848e18588"
+    },
+    {
+      "pieceKind": 12,
+      "mesh": "12_chest",
+      "file": "adventure_piece_12.svg",
+      "visibleTriangles": 78,
+      "sha256": "6ebc3259c0b5b718fb3d2211c54d4f2855937c15429f47f752d7c9a0790ba1cb"
+    },
+    {
+      "pieceKind": 13,
+      "mesh": "13_workbench",
+      "file": "adventure_piece_13.svg",
+      "visibleTriangles": 282,
+      "sha256": "0e845049ab9d73c2f6b5bd0b73e0f266c6c44a2821fa387a459ed65ec01476ed"
+    },
+    {
+      "pieceKind": 14,
+      "mesh": "14_pier",
+      "file": "adventure_piece_14.svg",
+      "visibleTriangles": 162,
+      "sha256": "3e610e8ac783d1f3dc98fac91eb88404807561c3c654f832f5933f18858dca31"
+    },
+    {
+      "pieceKind": 15,
+      "mesh": "15_hinged_door",
+      "file": "adventure_piece_15.svg",
+      "visibleTriangles": 336,
+      "sha256": "40c83dd3d0dcecd692d27a8f12e9473790e3db0058f40ecdc6dd5bf8e05f4ff0"
+    }
+  ],
+  "native": {
+    "file": "src/render/generated/adventure_piece_thumbnails.hpp",
+    "sha256": "7f68881fd748d525b22bf87279c6c3bdfee9a414983cc31df8fe0cb9c96e1105",
+    "recipe": "adventure-installed-mesh-thumbnails-r02",
+    "coordinateUnitsPerPixel": 256,
+    "visibleTriangles": 3686,
+    "maximumPieceTriangles": 812,
+    "packedSha256": "1e5130297f798712a4aaf4908399775284d4cf5194a6fdbf43e0f8b7bb779522"
+  }
+}

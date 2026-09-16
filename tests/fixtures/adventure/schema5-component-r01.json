@@ -1,0 +1,31 @@
+{
+  "schema": 5,
+  "contentIdentity": "b989f53fd82527a42f3e60582f9bb0cdcafced9cfea94b53074cccf37eca290c",
+  "bytes": 1542,
+  "sha256": "22de2af802aa70069f8375025f96dc15c72ba5627c14562a3fa80963c712c87d",
+  "revision": 24,
+  "scope": "Old-code schema5 migration-produced component fixture. Existing compiled schema5 Session/codec decoded the genuine schema4 fixture, accepted and completed quest5 through public Session commands, then encoded and exactly round-tripped schema5. Isolated trusted geometry callbacks do not prove physical arrival, NPC reach, player progression or a gameplay gate. Full installed terrain SHA was checked.",
+  "records": [
+    "Preserved19-piece home, furniture, inventory, equipment, health47 and active combat deadlines/windup",
+    "Completed main quests2/3/4, consumed relay core and both discovery receipts/rewards remain exact",
+    "Quest5 accepted and completed at revisions23/24; permanent Wide stone step recipe earned without extra supplies"
+  ],
+  "priorFixture": "schema4-component-r01.bin",
+  "captureSource": "capture_schema5_component_r01.cpp",
+  "captureSourceSha256": "60e155eebfbfe6b786f5dac147f937aaee8a7d5f1754c617a9f186c46a2bb997",
+  "linkedCoreSha256": "a61da7211a49728a62e0266a83e9da973d01b49eaed81d1f9e7d4ec990270477",
+  "abiNote": "Session header had already received the uncompiled door declaration, bool field and five-entry compatibility table. The capture-only include overlay removed the new declaration/bool and restored the four-entry table, matching the existing compiled schema5 ABI; no current door layout was passed to old code. Saved ABI headers are retained in schema5-capture-abi-r01.tar.gz.",
+  "abiArchiveSha256": "d94cebf896508e54ffbeea75fb85de518a3e3bb02dc888a49f8ec4ff678fdf5b",
+  "oldSourceSha256": {
+    "game/adventure/adventure_progress.cpp": "37a709df53245b0ce9d1ed4eb5ef448791c1248062c504243802e0d6d1eb6520",
+    "game/adventure/adventure_progress.hpp": "33fef1f26d0912e0c60b87e459b17a0d8eeae6cfdca74d63033a82ebd35f80d5",
+    "game/adventure/adventure_save.cpp": "89cc7a7de79df0c57c395ee61310082b9a5fdee7fcbf704d0c63ef163dcfd6e1",
+    "game/adventure/adventure_save.hpp": "a925d41155070ce37cae8ec26d4aa333a7ef49fa6bddef8c132256a5ea879026",
+    "game/adventure/adventure_session.hpp": "83bce3cd7ad1e3ecb82241ad236dcee0be1211375f32b70b4ee000a7e672647a",
+    "game/adventure/adventure_trail_content.cpp": "7c8c178fa9695a140ee2b8b850e3a6033989bf6ef8b35bc9afd9b7be55f55db9",
+    "game/adventure/adventure_trail_content.hpp": "681b5c2f7bcd0a1622817897a1806f1ef37c173d6cec4f6d78dba94a4e10c09c",
+    "game/adventure/item_catalog.cpp": "918207046193db4339dea61bb870ae48b7cbc81c7f19b2dca2733d5d3ac83b73",
+    "game/adventure/item_catalog.hpp": "0745fd6566df9792408e51be59977aab604f4a5c55c4d3301ac9e5cc77e531c6"
+  },
+  "compileLog": "schema5-component-r01.log"
+}

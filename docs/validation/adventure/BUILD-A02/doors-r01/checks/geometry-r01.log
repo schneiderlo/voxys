@@ -1,0 +1,81 @@
+{
+  "status": "passed",
+  "canonical_basis": 0,
+  "catalog_sha256": "099b9e53adbdf0cc222d28744256529b678b8b97ec30e92b16d409fd09c272b8",
+  "catalog_fingerprint": "9059ecdef3c9530d419fdcffbe74ca0501472f73a83f8f901147f52122a50a98",
+  "legacy_catalog_sha256": "fc9c763b22b5ef9d81e461608dea0f1b138d8f16a4940e9378442dc18a611150",
+  "frame_source": "data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh",
+  "frame_sha256": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+  "frame_mesh_index": 3,
+  "leaf_mesh_index": 0,
+  "hinge_ticks": [
+    -32,
+    2,
+    0
+  ],
+  "open_yaw_degrees": -90,
+  "maximum_composed_draws": 4,
+  "lods": [
+    {
+      "lod": 0,
+      "bytes": 49708,
+      "sha256": "be59bb6888aacc94c345fa3aebf0ebf1df1cacc1c3082e55c01eff16753b1e5f",
+      "vertices": 656,
+      "indices": 900,
+      "triangles": 300,
+      "draws": 2,
+      "materials": 2,
+      "meshes": 1,
+      "nodes": 1,
+      "requested_gpu_bytes": 50960,
+      "bounds": {
+        "minimum": [
+          -0.6399999856948853,
+          0.03999999910593033,
+          -0.05900000035762787
+        ],
+        "maximum": [
+          0.6399999856948853,
+          2.200000047683716,
+          0.05900000035762787
+        ]
+      },
+      "collision_faces_supported": true,
+      "hinge_transform_checked": true,
+      "open_clear_corridor_width_metres": 1.25,
+      "maximum_cosmetic_relief_metres": 0.019000000357627868,
+      "signed_volume_m3": 0.23167507078825614
+    },
+    {
+      "lod": 1,
+      "bytes": 36652,
+      "sha256": "e5a86f71d218e9ac58ee7d4f0a78cd5713dd442c32935d765299950b9a3f8e76",
+      "vertices": 480,
+      "indices": 708,
+      "triangles": 236,
+      "draws": 2,
+      "materials": 2,
+      "meshes": 1,
+      "nodes": 1,
+      "requested_gpu_bytes": 37520,
+      "bounds": {
+        "minimum": [
+          -0.6399999856948853,
+          0.03999999910593033,
+          -0.05900000035762787
+        ],
+        "maximum": [
+          0.6399999856948853,
+          2.200000047683716,
+          0.05900000035762787
+        ]
+      },
+      "collision_faces_supported": true,
+      "hinge_transform_checked": true,
+      "open_clear_corridor_width_metres": 1.25,
+      "maximum_cosmetic_relief_metres": 0.019000000357627868,
+      "signed_volume_m3": 0.23144108166058272
+    }
+  ],
+  "limits": "CPU geometry/source verification only. No runtime interaction, obstruction sweep, placement or performance acceptance."
+}

@@ -1,15 +1,36 @@
+> **Current direction (2026-09-15): free LEGO-style building.** The owner cancelled
+> the adventure direction. The active work is immediate, satisfying creative
+> construction: unlimited pieces, precise snapping, easy editing and a warm toy
+> presentation. See [the active plan](GAME_IMPLEMENTATION_TODO.md). Adventure
+> descriptions below document existing/legacy work, not the current roadmap.
+
 # Voxys
 
-Voxys is a C++20/WebGPU engine with several playable prototypes. The active
-product direction is an **open-world building adventure**: explore the main
-landscape, meet NPCs, complete quests, face enemies and build useful homes,
-workshops and outposts. Terrain stays mostly fixed; development targets solo
-play first, then small co-op. The self-contained roadmap is
+Voxys is a C++20/WebGPU engine. The active game is **free LEGO-style building**:
+make things on the main landscape with unlimited pieces, comfortable controls
+and warm toy visuals. The self-contained roadmap is
 [GAME_IMPLEMENTATION_TODO.md](GAME_IMPLEMENTATION_TODO.md).
+
+The first creative entry uses `free_build.cfg` on desktop and
+`?experience=build` in the browser, with separate saves and unlimited bricks.
+[Try the local creative preview](http://127.0.0.1:42764/index.html?experience=build&telemetry=0).
+The browser now uses a small Preact hotbar: scroll to choose a piece, R to rotate,
+Ctrl + scroll to zoom, and the round colour button to paint new placements.
+Extra tools stay behind the three-dot button. Save/reload preserves brick colours.
+See [UI build instructions](ui/README.md), [accepted minimal design](docs/design/free-build/minimal-ui.md),
+and [verification and limits](docs/validation/free-build/F1/minimal-ui-r01/README.md).
+Native retains its existing HUD. This is an early candidate; snapping, editing
+history and the full building-feel gate remain unfinished.
+
+The following adventure and salvage descriptions are historical context.
 
 The building adventure now connects the main landscape to free construction,
 supplies, functional beds/chests/workbenches and separate world saves. It is an
-early building milestone; NPC towns, quests, enemies and co-op are still planned.
+early building milestone. The development preview adds original LEGO-style
+people, a small village and the first home-building quest; its full gameplay
+gate is still under verification. A separate encounter candidate adds hooded
+minifigure raiders, staff combat, health and persistent loot. The wider campaign
+and co-op remain planned.
 The existing Cove retains its boat construction, robot, sailing and saves.
 The prior salvage-first roadmap is retained in
 [SALVAGE_IMPLEMENTATION_TODO_ARCHIVE.md](SALVAGE_IMPLEMENTATION_TODO_ARCHIVE.md).
@@ -288,9 +309,13 @@ plan defines the game, architecture, asset workflow, task dependencies and
 completion gates. Implementing agents must read it before claiming work.
 The browser's main entry opens the adventure. Explicitly select
 `?experience=adventure`, or run native with `--config adventure.cfg`. The world
-uses the full, unmodified 8192² landscape, with LEGO-style terrain and the robot.
-The starting meadow is the first building area; the larger map is not yet a
-populated campaign. Town quests, exploration content and enemies follow.
+uses the full, unmodified 8192² landscape, with LEGO-style terrain and original
+toy minifigure people. Moss the builder, Rivet the outfitter and Lumen the beacon
+keeper have distinct clothing and headwear. The starting meadow contains a
+cottage, market shelter, paths and gardens; these installed buildings yield to
+conflicting existing saved homes. The larger map is not yet a populated campaign.
+The first home quest and pictured Explore/Build/Talk interface are in development
+verification; the longer exploration route and campaign follow.
 
 Choose **Starter room** for a paid, walkable house with a bed, chest and bench,
 or choose individual building pieces. Walk beyond the protected spawn area and
@@ -326,6 +351,46 @@ Movement after saving makes the current position unsaved again. Browser saves
 belong to that browser profile and address; native saves use a separate
 `adventure-v1` directory. Adventure and Cove saves are separate formats.
 **Help & worlds** retains access to saved Cove expeditions and the playground.
+
+The separate [trail adventure candidate](http://127.0.0.1:42761/index.html?experience=adventure&telemetry=0)
+adds a craftable **Trail staff** (4 wood / 4 scrap), two LEGO-style raiders,
+health, dodging and persistent loot. Click / right shoulder attacks; **Q** /
+controller Back dodges in Explore. Approach dropped loot and use **E**.
+Defeat retains homes and possessions; Return home recovers safely.
+
+Open **Menu → Comfort and controls** to keep larger text, high contrast,
+reduced motion, look inversion/speed and controller deadzones on this device.
+Choose **Attack and dodge controls** to change their keyboard, mouse or
+controller bindings; the visible prompts follow your choices. Conflicts are
+marked. Settings are separate from world saves, and storage failures remain
+visible. Linux storage and a fresh browser-instance restore pass;
+physical-controller acceptance and Windows settings persistence remain open.
+[Controls and persistence evidence](docs/validation/adventure/ACCESS-A01/controls-r01/README.md).
+
+Open **Menu → How to play** for short tips on movement, building, home, quests,
+combat and saving. **Building help** opens the relevant tip without losing your
+selected piece or blueprint. Tips follow your current controls and text size.
+[Guide checks and preview](docs/validation/adventure/ACCESS-A01/guide-r01/README.md).
+
+After helping Moss, speak to Rivet and then Lumen. Prepare your trail equipment,
+recover the relay core, and build a usable field home near the beacon. Bring the
+core in your bag and use the beacon to repair it. Two optional discoveries grant
+supplies; a paid stone step or longer walking route reaches Signal Terrace.
+The journal tracks your current quest. Choose compass destinations in your bag,
+or use **Next destination** while exploring. Repair reveals the Watch Arch.
+
+Moss also offers **The Surveyor's Notes** after the home quest. Record both
+landmark visits, then return to Moss to learn **Wide stone step**. In Building
+pieces / Structure, it previews three Piers for **6 stone**. Rotate and adjust
+its height to fit the ground; earlier visits count, and material claims are
+optional. The recipe never grants free materials or places itself.
+
+This candidate uses its own browser origin and save storage. Schema 5 preserves
+older adventure records. Native/browser builds, focused quest/save/access checks,
+the actual terrain routes and an isolated runtime restore check pass. Ordinary
+full playthroughs, controller acceptance and wider polish remain open.
+[Trail implementation](docs/validation/adventure/G-C/trail-r01/README.md),
+[side quest, recipe and current evidence](docs/validation/adventure/G-C/side-quest-r01/README.md).
 
 The active plan records acceptance evidence and remaining limits. A usable home
 does not yet complete the planned adventure, its visual polish or its frame-rate

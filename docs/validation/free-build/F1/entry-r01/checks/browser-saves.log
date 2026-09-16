@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: bootstrap verifies adventure magic, version, namespace, checksum and bound
+ok 1 - bootstrap verifies adventure magic, version, namespace, checksum and bound
+  ---
+  duration_ms: 5.88301
+  type: 'test'
+  ...
+# Subtest: selected missing save refuses and releases owner instead of granting starter supplies
+ok 2 - selected missing save refuses and releases owner instead of granting starter supplies
+  ---
+  duration_ms: 0.611555
+  type: 'test'
+  ...
+# Subtest: restore bytes cannot be saved until full runtime validator accepts them
+ok 3 - restore bytes cannot be saved until full runtime validator accepts them
+  ---
+  duration_ms: 3.047737
+  type: 'test'
+  ...
+# Subtest: new adventure uses separate world and preserves prior confirmed selection until saved
+ok 4 - new adventure uses separate world and preserves prior confirmed selection until saved
+  ---
+  duration_ms: 1.01296
+  type: 'test'
+  ...
+# Subtest: default entry reopens latest confirmed adventure and ignores unrelated Cove shortcut
+ok 5 - default entry reopens latest confirmed adventure and ignores unrelated Cove shortcut
+  ---
+  duration_ms: 0.578123
+  type: 'test'
+  ...
+# Subtest: failed publish preserves confirmed state and retry reconciles generation
+ok 6 - failed publish preserves confirmed state and retry reconciles generation
+  ---
+  duration_ms: 1.629575
+  type: 'test'
+  ...
+# Subtest: denied shortcut metadata does not turn a confirmed save into a failure
+ok 7 - denied shortcut metadata does not turn a confirmed save into a failure
+  ---
+  duration_ms: 0.703936
+  type: 'test'
+  ...
+# Subtest: copies returned to the caller cannot mutate pending or loaded archive ownership
+ok 8 - copies returned to the caller cannot mutate pending or loaded archive ownership
+  ---
+  duration_ms: 0.575218
+  type: 'test'
+  ...
+# Subtest: invalid selected ID and conflicting new/resume inputs never open storage
+ok 9 - invalid selected ID and conflicting new/resume inputs never open storage
+  ---
+  duration_ms: 0.52268
+  type: 'test'
+  ...
+# Subtest: page closure releases the owned world and prevents further publication
+ok 10 - page closure releases the owned world and prevents further publication
+  ---
+  duration_ms: 1.333245
+  type: 'test'
+  ...
+# Subtest: legacy bootstrap and schema2 publication retain one world and wait for confirmed storage
+ok 11 - legacy bootstrap and schema2 publication retain one world and wait for confirmed storage
+  ---
+  duration_ms: 1.350066
+  type: 'test'
+  ...
+# Subtest: bootstrap accepts only explicit old and new schemas even with a valid checksum
+ok 12 - bootstrap accepts only explicit old and new schemas even with a valid checksum
+  ---
+  duration_ms: 0.813931
+  type: 'test'
+  ...
+# Subtest: schema2 to schema3 keeps confirmed bytes until validated publication succeeds
+ok 13 - schema2 to schema3 keeps confirmed bytes until validated publication succeeds
+  ---
+  duration_ms: 0.889912
+  type: 'test'
+  ...
+# Subtest: schema3 to schema4 waits for runtime acceptance and preserves the old world across failed publication and reopen
+ok 14 - schema3 to schema4 waits for runtime acceptance and preserves the old world across failed publication and reopen
+  ---
+  duration_ms: 2.519176
+  type: 'test'
+  ...
+# Subtest: schema4 to schema5 retains the old checkpoint until validated migration is confirmed
+ok 15 - schema4 to schema5 retains the old checkpoint until validated migration is confirmed
+  ---
+  duration_ms: 0.860748
+  type: 'test'
+  ...
+# Subtest: schema5 to schema6 retains the old checkpoint until validated migration is confirmed
+ok 16 - schema5 to schema6 retains the old checkpoint until validated migration is confirmed
+  ---
+  duration_ms: 0.5976
+  type: 'test'
+  ...
+# Subtest: creative saves and shortcuts stay isolated from adventure worlds
+ok 17 - creative saves and shortcuts stay isolated from adventure worlds
+  ---
+  duration_ms: 1.087339
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30.374742

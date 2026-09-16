@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-adventure-hinged-door-r01",
+  "profile": "salvage-rigid-v1",
+  "render_to_canonical": 0,
+  "catalog_sha256": "099b9e53adbdf0cc222d28744256529b678b8b97ec30e92b16d409fd09c272b8",
+  "frame_sha256": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+  "frame_mesh_index": 3,
+  "leaf_mesh_index": 0,
+  "hinge_ticks": [
+    -32,
+    2,
+    0
+  ],
+  "open_yaw_degrees": -90,
+  "lods": [
+    {
+      "lod": 0,
+      "filename": "door-leaf-lod0.vmesh",
+      "bytes": 49708,
+      "sha256": "be59bb6888aacc94c345fa3aebf0ebf1df1cacc1c3082e55c01eff16753b1e5f",
+      "requested_gpu_bytes": 50960
+    },
+    {
+      "lod": 1,
+      "filename": "door-leaf-lod1.vmesh",
+      "bytes": 36652,
+      "sha256": "e5a86f71d218e9ac58ee7d4f0a78cd5713dd442c32935d765299950b9a3f8e76",
+      "requested_gpu_bytes": 37520
+    }
+  ],
+  "cooker_sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa",
+  "recipe_sha256": "0d5afa79974b4e5f4fd38355934d288c90bf7ad8800fcfdcba0153e7d89e4470",
+  "checker_sha256": "4d3458020c2a9657ef931315654db0b62d16e5ace176daa3a7a3be87e32ce081",
+  "provenance_sha256": "1822ff2acd5076d51fd7e927d9d69937e22b11d77a7b48bd9bb63e5d5350c0a4",
+  "cook_results": [
+    {
+      "lod": 0,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "gltf_vmesh_tool: wrote 49708 bytes (v=656 i=900 s=2 m=2 n=1 sk=0 a=0)\n"
+    },
+    {
+      "lod": 1,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "gltf_vmesh_tool: wrote 36652 bytes (v=480 i=708 s=2 m=2 n=1 sk=0 a=0)\n"
+    }
+  ]
+}

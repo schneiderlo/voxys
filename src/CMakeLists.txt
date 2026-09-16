@@ -13,14 +13,29 @@ set(CORE_SOURCES "")
 set(GPU_SOURCES "")
 set(GAME_SOURCES
     game/adventure/building_catalog.cpp
+    game/adventure/building_doors.cpp
+    game/adventure/adventure_preferences.cpp
+    game/adventure/building_blueprints.cpp
     game/adventure/item_catalog.cpp
     game/adventure/adventure_session.cpp
     game/adventure/adventure_save.cpp
     game/adventure/world_definition.cpp
     game/adventure/spatial_queries.cpp
     game/adventure/adventure_player.cpp
+    game/adventure/layered_navigation.cpp
+    game/adventure/adventure_progress.cpp
+    game/adventure/adventure_encounters.cpp
+    game/adventure/adventure_combat.cpp
     game/adventure/construction_policy.cpp
     game/adventure/adventure_runtime.cpp
+    game/adventure/quests.cpp
+    game/adventure/town_residents.cpp
+    game/adventure/village_layout.cpp
+    game/adventure/adventure_presentation.cpp
+    game/adventure/adventure_trail_content.cpp
+    game/adventure/trail_sites.cpp
+    game/adventure/field_home_access.cpp
+    game/adventure/trail_presentation.cpp
     game/assets/cooked_part_directory.cpp
     game/assets/fixture_registry.cpp
     game/expedition/session_events.cpp
@@ -69,13 +84,14 @@ set(GAME_SOURCES
 if(NOT EMSCRIPTEN)
     list(APPEND GAME_SOURCES engine/platform/native/native_adventure_saves.cpp engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp
         engine/platform/native/design_library.cpp engine/platform/native/workshop_menu.cpp
-        engine/platform/native/cove_preferences_store.cpp)
+        engine/platform/native/cove_preferences_store.cpp
+        engine/platform/native/adventure_preferences_store.cpp)
 endif()
 set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
-list(APPEND RENDER_SOURCES render/cove_hud.cpp)
+list(APPEND RENDER_SOURCES render/cove_hud.cpp render/adventure_hud.cpp)
 set(CAMERA_SOURCES "")
 set(PHYSICS_SOURCES "")
 set(NETWORK_SOURCES "")

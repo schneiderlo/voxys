@@ -1598,7 +1598,7 @@ bool Application::init(const ApplicationConfig& config) {
 
         if (!initSalvagePreview()) return failInitialization();
         if(config_.adventureEnabled) {
-            adventure_=std::make_unique<game::adventure::AdventureRuntime>();
+            adventure_=std::make_unique<game::adventure::AdventureRuntime>(config_.freeBuildEnabled);
             std::string error;
             if(!adventure_->initialize({heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale},
                 gpuContext_->getDevice(),gpuContext_->getQueue(),config_.shaderDir,config_.colorFormat,error)) {
@@ -2432,7 +2432,14 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
         (config_.benchmarkOnStartup || config_.exitAfterBenchmark)
         && isBenchmarkRunning();
     if(adventure_) {
-        adventure_->update(simulationDeltaTime,*input_,*camera_,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+        // Absolute cursor coordinates are logical window/CSS pixels. The
+        // render extent may independently change with DPI or resolution scale.
+        glm::dvec2 pointerExtent(window_?window_->getWidth():0,window_?window_->getHeight():0);
+#if defined(VOXY_WASM)
+        if(emscripten_get_element_css_size("#voxy-canvas",&pointerExtent.x,&pointerExtent.y)!=EMSCRIPTEN_RESULT_SUCCESS)
+            pointerExtent={0,0};
+#endif
+        adventure_->update(simulationDeltaTime,*input_,*camera_,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight(),pointerExtent);
     } else if (wreckwaterClientState_) {
         handleKeyboardShortcuts();
         updateWreckwaterClient(simulationDeltaTime);
@@ -10701,6 +10708,7 @@ bool Application::updateCoveBoat() {
 
 namespace voxy {
 void Application::adventureAction(int action,int value){if(adventure_)adventure_->action(action,value);}
+std::string Application::adventurePreferencesAction(int action,std::string_view text){return adventure_?adventure_->preferencesAction(action,text):"Settings are not ready.";}
 std::string Application::adventureJson() const{return adventure_?adventure_->json():"{}";}
 bool Application::adventureSnapshot(std::vector<std::byte>& bytes,std::string& error)const{return adventure_&&adventure_->snapshot(bytes,error);}
 bool Application::adventureValidateSave(std::span<const std::byte> bytes)const {

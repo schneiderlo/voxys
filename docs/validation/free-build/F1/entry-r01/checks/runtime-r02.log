@@ -1,0 +1,70 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (1 packages loaded, 175 targets configured).
+[525 / 527] Compiling tests/test_adventure_runtime.cpp; 1s linux-sandbox
+[526 / 527] [Prepa] Linking tests/adventure_runtime
+INFO: Found 2 targets...
+INFO: Elapsed time: 7.987s, Critical Path: 6.13s
+INFO: 4 processes: 524 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+Running main() from gmock_main.cc
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureRuntimeIntegration
+[ RUN      ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+[32m[INFO ] [00:27:52.474] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:27:52.474] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:27:52.474] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:27:52.474] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:27:52.476] [GPU] Headless GPU context initialized successfully[0m
+tests/test_adventure_runtime.cpp:525: Failure
+Expected equality of these values:
+  nlohmann::json::parse(runtime.json()).at("interaction")
+    Which is: "Use nearby"
+  "Close door"
+    Which is: 0x5fc89b210b4b
+
+tests/test_adventure_runtime.cpp:532: Failure
+Value of: AdventureSession::findComponent(runtime.state(),doorId)->doorOpen
+  Actual: true
+Expected: false
+{"costText":"4 stone","creative":false,"build":false,"selected":"Foundation","blueprintKind":0,"piece":1,"status":"Move close to a resident, furniture, supply pile or landmark.","previewReason":"Aim at nearby ground or a building.","interaction":"Use nearby","valid":false,"wood":634,"stone":316,"scrap":78,"parts":2,"menu":"","saveStatus":"Saved adventure loaded","dirty":true,"textScale":1,"highContrast":false,"rows":[],"mode":"explore","menuTitle":"","menuText":"","menuStatus":"","menuToken":67,"catalogCategory":0,"preferencesRevision":"6","preferencesStatus":"Settings saved.","attackControl":"Left mouse","dodgeControl":"Q","lookControl":"Hold the right mouse button to look around, or use the right stick.","observation":"1375","revision":"1317","menuSelected":0,"player":{"x":-85,"y":-145.73502075195313,"z":-897,"yaw":0,"tick":"1326"},"camera":{"yaw":0,"width":1280,"height":800,"eye":[-85,-143.84850295897039,-894.92836529424278],"viewTarget":[-85,-144.53502075195314,-897],"origin":[0,-256,-768],"viewProjection":[-1.0825318098068237,-4.763181138400796e-08,0,0,-2.8258613227194473e-08,1.6441233158111572,-0.31457105278968811,-0.31456789374351501,9.3646486121201633e-09,-0.54484760761260986,-0.94924449920654297,-0.94923502206802368,-92.015205383300781,-253.54750061035156,-85.306442260742188,-85.205589294433594]},"aimInput":{"pointer":[4,4],"usedPointer":[4,4],"mouseCaptured":false,"gamepadConnected":false,"padOwnsAim":false},"aimRay":{"from":[-85,-143.84850311279297,-894.92836761474609],"to":[-69.418837709592253,-139.98108307264292,-914.09266890420145],"complete":true,"hit":false,"distance":25},"preview":{"x":-64,"y":-145.92000000000002,"z":-893,"kind":1,"yaw":2},"world":"4b0695a90e92a6cc0e80ec36ccfb7d83","registeredBed":"0","health":100,"combatLabel":"Use nearby","staffEquipped":false,"attackReady":true,"dodgeReady":true,"combatTick":"1313","enemies":[{"id":1,"health":60,"phase":"Watching the trail","phaseCode":1,"phaseTicks":600,"attackSerial":"0","available":true,"x":-58,"y":-146.3750048828125,"z":-945,"yaw":1.5707963267948966,"deathRevision":"0","lootClaimRevision":"0"},{"id":2,"health":100,"phase":"Watching the trail","phaseCode":1,"phaseTicks":600,"attackSerial":"0","available":true,"x":-55,"y":-147.65500366210938,"z":-967,"yaw":1.5707963267948966,"deathRevision":"0","lootClaimRevision":"0"}],"hammerEquipped":false,"quest":{"phase":"not-accepted","ready":false,"objective":"Meet Moss in the meadow square.","recipeUnlocked":false,"rewardRevision":"0"},"objective":"Meet Moss in the meadow square.","trailQuests":[{"id":2,"phase":0,"title":"Prepare for the trail","objective":"Help Moss finish A Place to Return.","ready":false,"rewardRevision":"0"},{"id":3,"phase":0,"title":"Recover the relay component","objective":"Finish Prepare for the trail with Rivet.","ready":false,"rewardRevision":"0"},{"id":4,"phase":0,"title":"Restore the relay","objective":"Finish Recover relay component with Lumen.","ready":false,"rewardRevision":"0"}],"sideQuest":null,"wideStoneStepUnlocked":false,"discoveries":[{"id":1,"discoveredRevision":"0","rewardClaimRevision":"0"},{"id":2,"discoveredRevision":"0","rewardClaimRevision":"0"}],"trailSites":[{"id":1,"available":true,"active":false,"x":30,"y":-128.45502197265625,"z":-923},{"id":2,"available":true,"active":false,"x":22,"y":-134.53500854492188,"z":-1031},{"id":3,"available":true,"active":false,"x":-63,"y":-148.93500244140625,"z":-975},{"id":4,"available":true,"active":false,"x":-40,"y":-153.09500610351563,"z":-1095}],"relayActivationRevision":"0","equippedUtility":{"kind":0,"quantity":0},"compass":{"equipped":false,"target":"relay","label":"Meadow beacon","bearing":0,"distance":0,"direction":"","available":false,"reason":"Equip a Trail Compass to see a bearing.","backpackSlot":null},"dialogue":null,"residents":[{"id":1,"name":"Moss","role":"Builder","x":-65.5,"y":-145.91501342773438,"z":-893.5,"available":true},{"id":2,"name":"Rivet","role":"Outfitter","x":-60.5,"y":-145.91501342773438,"z":-893.5,"available":true},{"id":3,"name":"Lumen","role":"Beacon keeper","x":-65,"y":-145.73502075195313,"z":-898,"available":true}],"metNpcMask":0,"saveSchema":6,"migrationDirty":false,"structures":[{"id":"3","parts":[{"id":"4","kind":1,"x":-85,"y":-146.24000000000001,"z":-895,"yaw":0},{"id":"5","kind":15,"x":-85,"y":-145.92000000000002,"z":-895,"yaw":0}]}],"components":[{"id":"6","part":"5","kind":4,"doorOpen":true,"wood":0,"stone":0,"scrap":0}]}
+
+tests/test_adventure_runtime.cpp:534: Failure
+Expected equality of these values:
+  nlohmann::json::parse(runtime.json()).at("interaction")
+    Which is: "Use nearby"
+  "Open door"
+    Which is: 0x5fc89b210aa6
+
+[  FAILED  ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative (6585 ms)
+[----------] 1 test from AdventureRuntimeIntegration (6585 ms total)
+
+[----------] 1 test from FreeBuildRuntimeIntegration
+[ RUN      ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[32m[INFO ] [00:27:58.914] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:27:58.914] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:27:58.914] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:27:58.914] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:27:58.916] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore (5107 ms)
+[----------] 1 test from FreeBuildRuntimeIntegration (5107 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (11693 ms total)
+[  PASSED  ] 1 test.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+
+ 1 FAILED TEST

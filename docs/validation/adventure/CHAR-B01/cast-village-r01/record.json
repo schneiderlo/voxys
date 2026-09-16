@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-09-13T02:33:21.296431+00:00",
+  "buildId": "adventure-51440f5c75b42947",
+  "package": "build-adventure-g-b/web-r03",
+  "origin": "http://127.0.0.1:42754",
+  "serverSession": 89077,
+  "world": "f350305bf389f645d61236b25d4d2613",
+  "browser": "Codex In-app Browser",
+  "tab": "3",
+  "sourceSha256": {
+    "src/game/adventure/adventure_runtime.cpp": "fe2a80d346aa701f0e15c3d59bb6c2a56f8103acafab0fe88ba9a3a4f8124c95",
+    "src/game/adventure/adventure_runtime.hpp": "95a7dc6abcc16607f98d8ba826eb5318d37f319c3285fee8ff389c37676ce59d",
+    "src/game/assets/robot_asset.cpp": "e044f8037d6f6b77813c3bd28a278de54e092fc3b6b3e5549ead2d662abfe9f8",
+    "src/game/assets/robot_asset.hpp": "5d63f63c99eb3496706f48ffc2e2b087a96c484e36e6f0da9ee92c35b12dde67",
+    "src/game/adventure/village_layout.cpp": "d77a75fa217b20a07f3a1b22d1998c66c13db8371d06f18236f1dd40e5666ebe",
+    "src/render/adventure_hud.cpp": "9777d5f1eb150670226a4c22fd47370139b3d112dcb5a53c4c8edab73cea6226",
+    "README.md": "3d9dfcdad10447cb608b5c51d697ac26923a7081edb51c509b4c24c3a52a7be2"
+  },
+  "checks": [
+    "targeted adventure tests pass",
+    "resident loader and identity tests pass",
+    "native executable build passes",
+    "WASM executable build passes",
+    "15 packaged adventure files equal current installed bytes",
+    "one real changed-scene screenshot inspected: player, three distinct residents, cottage, market, trees, planters and paths",
+    "ordinary pointer conversation with Moss and quest acceptance",
+    "Escape returns canvas focus",
+    "keyboard B enters build; visible stock and invalid placement refusal",
+    "Done returns canvas focus",
+    "ordinary Save adventure confirms",
+    "one real reload restores active home objective and Talk to Moss"
+  ],
+  "limits": [
+    "no new house placed in this bounded browser check",
+    "no full home turn-in or compass journey",
+    "no native ordinary-controls journey",
+    "no new controller or narrow/large-text browser matrix",
+    "no moving game performance measurement",
+    "no owner art approval or completed G-B gate"
+  ],
+  "targetedTests": {
+    "adventure": 71,
+    "residentAndCharacterAssets": 5,
+    "failed": 0
+  }
+}

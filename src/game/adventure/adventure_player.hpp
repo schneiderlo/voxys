@@ -12,13 +12,15 @@ namespace voxy::game::adventure {
     return padConnected&&!mouseActivity&&(padActivity||previous);
 }
 
-// Solo authority for this upright robot. It has no boat slots, GPU readbacks or
+// Solo authority for this upright character. It has no boat slots, GPU readbacks or
 // independent animation movement; presentation consumes the accepted state.
 class AdventurePlayer {
 public:
     using Mode=expedition::CovePlayer::Mode;
     struct State {glm::dvec3 feet{},velocity{};double facingYaw=0;uint64_t tick=0;Mode mode=Mode::Walking;};
-    struct Input {glm::dvec2 movement{};bool jump=false;};
+    // The trusted combat resolver alone supplies the bounded dodge multiplier.
+    // Dash movement still uses the same step, sweep and support solver.
+    struct Input {glm::dvec2 movement{};bool jump=false;double speedScale=1;};
     static constexpr double radius=.3,height=1.7,eyeHeight=1.55,fixedStep=1./60.;
     [[nodiscard]] bool initialize(const AdventureSpatialQueries&,glm::dvec3 spawn,double waterHeight,double yaw=0) noexcept;
     [[nodiscard]] bool restore(State) noexcept;
@@ -30,6 +32,9 @@ public:
     [[nodiscard]] double facingYaw() const noexcept {return state_.facingYaw;}
     [[nodiscard]] Mode mode() const noexcept {return state_.mode;}
     [[nodiscard]] uint64_t tick() const noexcept {return state_.tick;}
+    [[nodiscard]] bool usesWorld(const AdventureSpatialQueries& queries,double waterHeight) const noexcept {
+        return queries_==&queries&&waterHeight_==waterHeight;
+    }
 private:
     [[nodiscard]] glm::dvec3 move(glm::dvec3 from,glm::dvec3 displacement) const noexcept;
     void step(Input) noexcept;
