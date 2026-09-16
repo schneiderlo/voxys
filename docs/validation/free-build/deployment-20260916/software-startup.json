@@ -1,0 +1,23 @@
+{
+  "scope": "Deployment-equivalent real packaged game with every pipeline enabled and screenshot/image checks; no FPS acceptance.",
+  "command": "VOXY_SMOKE_GPU=swiftshader-window VOXY_SMOKE_REPORT=/tmp/voxys-release-thumbnails-startup.json VOXY_SMOKE_SCREENSHOT=/tmp/voxys-release-thumbnails-startup.png xvfb-run -a node scripts/smoke_integrated_wasm.mjs build-free-build/web-r05 default",
+  "package": "free-build-cd6f431acbcf76b2",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "status": "passed",
+  "startupElapsedMs": 153833,
+  "frameCount": 13,
+  "gpuTimestampAvailable": true,
+  "creative": true,
+  "hotbarVisible": true,
+  "hotbarImagesReady": true,
+  "errors": [],
+  "deviceLost": null,
+  "startupTimeoutMs": 360000,
+  "overallTimeoutMs": 480000
+}

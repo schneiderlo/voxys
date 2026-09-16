@@ -51,7 +51,7 @@ const retainedProfile=Boolean(process.env.VOXY_SMOKE_PROFILE)||process.env.VOXY_
 const listenPort=Number(process.env.VOXY_SMOKE_PORT||0);
 assert(Number.isInteger(listenPort)&&(listenPort===0||(listenPort>=1024&&listenPort<=65535)));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
+const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.wasm':'application/wasm','.data':'application/octet-stream'};
 const server=http.createServer(async(req,res)=>{
     try{
         const requested=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
@@ -166,9 +166,12 @@ const startBrowserMemory=call=>{
     memoryTimer=setInterval(()=>{void sample();},memoryIntervalMs);
     void sample();
 };
-const timeoutMs=Number(process.env.VOXY_SMOKE_TIMEOUT_MS||240000);
+const softwareGpu=String(process.env.VOXY_SMOKE_GPU||'').startsWith('swiftshader');
+const startupTimeoutMs=softwareGpu?360000:180000;
+const timeoutMs=Number(process.env.VOXY_SMOKE_TIMEOUT_MS||(softwareGpu?480000:240000));
 assert(Number.isInteger(timeoutMs)&&timeoutMs>=60000&&timeoutMs<=1800000,'smoke timeout must be 60..1800 seconds');
 report.timeout_ms=timeoutMs;
+report.startup_timeout_ms=startupTimeoutMs;
 const timer=setTimeout(()=>{report.timeout_expired=true;chrome.kill('SIGKILL');},timeoutMs);
 try{
     if(memoryEnabled){
@@ -223,10 +226,10 @@ try{
         if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
     socket.addEventListener('close',()=>{for(const p of pending.values())p.reject(new Error('Chrome closed'));pending.clear();});
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
-    const call=(method,params={})=>new Promise((resolve,reject)=>{
+    const call=(method,params={},requestTimeoutMs=30000)=>new Promise((resolve,reject)=>{
         if(socket.readyState!==WebSocket.OPEN){reject(new Error(`Chrome connection is closed: ${method}`));return;}
         const n=++id;
-        const timeout=setTimeout(()=>{pending.delete(n);reject(new Error(`Chrome request timed out: ${method}`));},30000);
+        const timeout=setTimeout(()=>{pending.delete(n);reject(new Error(`Chrome request timed out: ${method}`));},requestTimeoutMs);
         pending.set(n,{
             resolve:value=>{clearTimeout(timeout);resolve(value);},
             reject:error=>{clearTimeout(timeout);reject(error);},
@@ -290,14 +293,18 @@ try{
         assert.equal(browserErrors.length,0,browserErrors.join('\n'));
         report.status='passed';
     }else{
+    // Software shader compilation can block the first observation beyond one
+    // ordinary RPC timeout. Bound observations by the remaining startup budget;
+    // retain the rendered-frame, GPU-completion, UI, error and image gates.
     let sample;const started=Date.now();
-    while(Date.now()-started<180000){
+    while(Date.now()-started<startupTimeoutMs){
         assert.equal(browserErrors.length,0,browserErrors.join('\n'));
         const r=await call('Runtime.evaluate',{returnByValue:true,expression:`(() => {
             const error=document.getElementById('error');
             if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
             const pointer=voxyModule._voxy_get_telemetry_json();const moto=voxyModule._voxy_get_moto_hud_json?.();
+            const buildImages=Array.from(document.querySelectorAll('#build-ui .bb-hotbar img'));
             const isCreativeState=()=>{
                 if(!document.body.classList.contains('voxy-build'))return null;
                 const statePointer=voxyModule._get_adventure_state_json?.();
@@ -312,18 +319,19 @@ try{
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
                 creative:isCreativeState(),
                 buildHotbarVisible:!!document.querySelector('#build-ui .bb-hotbar'),
+                buildImagesReady:buildImages.length>0&&buildImages.every(img=>img.complete&&img.naturalWidth>0),
                 buildUIFailed:!!document.querySelector('#build-ui .bb-error'),
                 legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false,
                 salvageControlsVisible:document.getElementById('salvage-preview')?.hidden===false,
                 salvage:voxyModule._voxy_get_salvage_preview_json
                     ? JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json())) : null};
-        })()`});
+        })()`},Math.max(1,startupTimeoutMs-(Date.now()-started)));
         if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails));
         sample=r.result?.value;report.sample=sample;
         if(sample?.errors?.length||sample?.lost)throw new Error('GPU device error: '+JSON.stringify(sample.lost||sample.errors));
         // Passing the eight-frame queue limit requires a completion callback.
         // A timestamp sample additionally proves that GPU work/readback retired.
-        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible)break;
+        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible&&(!isCreative||sample.buildImagesReady))break;
         await delay(500);
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
@@ -365,6 +373,7 @@ try{
         assert.equal(sample.creative?.mode,'build','default route must start building');
         assert.equal(sample.creative?.piece,10,'default brick selection changed');
         assert.equal(sample.buildHotbarVisible,true,'creative hotbar failed to mount');
+        assert.equal(sample.buildImagesReady,true,'creative brick thumbnails failed to load');
         assert.equal(sample.buildUIFailed,false,'creative UI failed to read runtime');
         assert.equal(sample.telemetry.render.terrain_width,8192);
         assert.equal(sample.telemetry.render.terrain_height,8192);

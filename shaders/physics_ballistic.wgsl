@@ -292,12 +292,15 @@ fn authored_terrain_append(result: ptr<function,AuthoredTerrainResult>, value: A
     (*result).reductions++;
 }
 
-fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+// Write into caller-owned scratch: returning the complete contact array causes
+// SwiftShader to fail compiling the combined static-contact kernel. Clearing
+// here preserves the original zero-initialized result on every call.
+fn authored_terrain_contacts(result: ptr<function,AuthoredTerrainResult>, field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
                              shape: AuthoredShapeView, rootPosition: vec3<f32>, rootOrientation: vec4<f32>,
-                             margin: f32, cellBudget: u32) -> AuthoredTerrainResult {
-    var result: AuthoredTerrainResult;
+                             margin: f32, cellBudget: u32) {
+    (*result) = AuthoredTerrainResult();
     if (!shape.valid || any(size<vec2<u32>(2u)) || params.z<=0.0 || params.w<=0.0) {
-        result.status=1u; return result;
+        (*result).status=1u; return;
     }
     let axisX=authored_quat_rotate(rootOrientation,vec3<f32>(1,0,0));
     let axisY=authored_quat_rotate(rootOrientation,vec3<f32>(0,1,0));
@@ -305,7 +308,7 @@ fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: ve
     var nodeIndex=0u;
     while (nodeIndex<shape.node_count) {
         let node=authored_node(shape,nodeIndex);
-        if (!node.valid) { result.status=1u; result.count=0u; return result; }
+        if (!node.valid) { (*result).status=1u; (*result).count=0u; return; }
         let center=rootPosition+authored_quat_rotate(rootOrientation,.5*(node.minimum+node.maximum));
         let half=.5*(node.maximum-node.minimum);
         let extent=abs(axisX)*half.x+abs(axisY)*half.y+abs(axisZ)*half.z;
@@ -313,10 +316,10 @@ fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: ve
         nodeIndex++;
         if (node.cell==0xffffffffu) { continue; }
         let cell=authored_cell(shape,node.cell);
-        if (!cell.valid) { result.status=1u; result.count=0u; return result; }
+        if (!cell.valid) { (*result).status=1u; (*result).count=0u; return; }
         for (var f=cell.first_face; f<cell.first_face+cell.face_count; f++) {
             let face=authored_face(shape,f);
-            if (!face.valid) { result.status=1u; result.count=0u; return result; }
+            if (!face.valid) { (*result).status=1u; (*result).count=0u; return; }
             var localNormal=vec3<f32>(0); localNormal[face.axis]=f32(face.sign);
             let outward=authored_quat_rotate(rootOrientation,localNormal);
             // The lower envelope and its vertical boundary meet a heightfield.
@@ -337,8 +340,8 @@ fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: ve
             let last=vec2<u32>(floor(clamp((upper.xz+params.xy)/params.z,vec2<f32>(0),maximum)));
             for (var z=first.y; z<=last.y; z++) {
                 for (var x=first.x; x<=last.x; x++) {
-                    if (result.cells>=cellBudget) { result.status=2u; result.count=0u; return result; }
-                    result.cells++;
+                    if ((*result).cells>=cellBudget) { (*result).status=2u; (*result).count=0u; return; }
+                    (*result).cells++;
                     let origin=vec2<f32>(f32(x),f32(z))*params.z-params.xy;
                     var clipped=authored_terrain_clip(polygon,vec2<f32>(-1,0),-origin.x);
                     clipped=authored_terrain_clip(clipped,vec2<f32>(1,0),origin.x+params.z);
@@ -361,7 +364,7 @@ fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: ve
                             let height=tl+dot(point.xz-origin,gradient);
                             let separation=(point.y-height)*normal.y;
                             if (separation<=margin) {
-                                authored_terrain_append(&result,AuthoredTerrainPoint(point,separation,normal,0x80000000u|f));
+                                authored_terrain_append(result,AuthoredTerrainPoint(point,separation,normal,0x80000000u|f));
                             }
                         }
                     }
@@ -369,7 +372,7 @@ fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: ve
             }
         }
     }
-    return result;
+    return;
 }
 
 // LEGO uses the same quantized columns and analytic round studs as the shared
@@ -490,11 +493,11 @@ fn authored_lego_stud(result: ptr<function,AuthoredTerrainResult>, face: Authore
     }
 }
 
-fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+fn authored_lego_contacts(result: ptr<function,AuthoredTerrainResult>, field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
                           shape: AuthoredShapeView, rootPosition: vec3<f32>, rootOrientation: vec4<f32>,
-                          margin: f32, cellBudget: u32) -> AuthoredTerrainResult {
-    var result: AuthoredTerrainResult;
-    if(!shape.valid || any(size<vec2<u32>(2u)) || params.z<=0.0 || params.w<=0.0) { result.status=1u;return result; }
+                          margin: f32, cellBudget: u32) {
+    (*result) = AuthoredTerrainResult();
+    if(!shape.valid || any(size<vec2<u32>(2u)) || params.z<=0.0 || params.w<=0.0) { (*result).status=1u;return; }
     let axisX=authored_quat_rotate(rootOrientation,vec3<f32>(1,0,0));
     let axisY=authored_quat_rotate(rootOrientation,vec3<f32>(0,1,0));
     let axisZ=authored_quat_rotate(rootOrientation,vec3<f32>(0,0,1));
@@ -502,7 +505,7 @@ fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<
     var nodeIndex=0u;
     while(nodeIndex<shape.node_count) {
         let node=authored_node(shape,nodeIndex);
-        if(!node.valid) { result.status=1u;result.count=0u;return result; }
+        if(!node.valid) { (*result).status=1u;(*result).count=0u;return; }
         let center=rootPosition+authored_quat_rotate(rootOrientation,.5*(node.minimum+node.maximum));
         let half=.5*(node.maximum-node.minimum);
         let extent=abs(axisX)*half.x+abs(axisY)*half.y+abs(axisZ)*half.z;
@@ -511,10 +514,10 @@ fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<
         nodeIndex++;
         if(node.cell==0xffffffffu) { continue; }
         let cell=authored_cell(shape,node.cell);
-        if(!cell.valid) { result.status=1u;result.count=0u;return result; }
+        if(!cell.valid) { (*result).status=1u;(*result).count=0u;return; }
         for(var f=cell.first_face;f<cell.first_face+cell.face_count;f++) {
             let face=authored_face(shape,f);
-            if(!face.valid) { result.status=1u;result.count=0u;return result; }
+            if(!face.valid) { (*result).status=1u;(*result).count=0u;return; }
             var localNormal=vec3<f32>(0);localNormal[face.axis]=f32(face.sign);
             let outward=authored_quat_rotate(rootOrientation,localNormal);
             let u=(face.axis+1u)%3u;let v=(face.axis+2u)%3u;
@@ -532,8 +535,8 @@ fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<
             let first=vec2<u32>(floor(clamp((lower.xz+params.xy-vec2<f32>(margin))/params.z,vec2<f32>(0),maximum)));
             let last=vec2<u32>(floor(clamp((upper.xz+params.xy+vec2<f32>(margin))/params.z,vec2<f32>(0),maximum)));
             for(var z=first.y;z<=last.y;z++) { for(var x=first.x;x<=last.x;x++) {
-                if(result.cells>=cellBudget) { result.status=2u;result.count=0u;return result; }
-                result.cells++;
+                if((*result).cells>=cellBudget) { (*result).status=2u;(*result).count=0u;return; }
+                (*result).cells++;
                 let grid=vec2<i32>(i32(x),i32(z));
                 let origin=vec2<f32>(f32(x),f32(z))*params.z-params.xy;
                 let top=legoPlateTop(textureLoad(field,grid,0).x,params.w,params.z);
@@ -552,7 +555,7 @@ fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<
                 let contactSign=select(-1.0,1.0,delta[contactAxis]>=0.0);
                 let columnNear=all(overlap>=vec3<f32>(-margin));
                 if(columnNear && contactAxis==1u && contactSign>0.0) {
-                    authored_lego_patch(&result,polygon,outward,1u,1.0,
+                    authored_lego_patch(result,polygon,outward,1u,1.0,
                         vec3<f32>(origin.x,top,origin.y),vec3<f32>(origin.x+params.z,top,origin.y+params.z),margin,feature,stud,radius);
                 }
                 for(var side=0u;side<4u;side++) {
@@ -566,13 +569,13 @@ fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<
                     if(bottom>=top) { continue; }
                     var lo=vec3<f32>(origin.x,bottom,origin.y);var hi=vec3<f32>(origin.x+params.z,top,origin.y+params.z);
                     let plane=select(lo[axis],hi[axis],sign>0.0);lo[axis]=plane;hi[axis]=plane;
-                    authored_lego_patch(&result,polygon,outward,axis,sign,lo,hi,margin,feature,stud,0.0);
+                    authored_lego_patch(result,polygon,outward,axis,sign,lo,hi,margin,feature,stud,0.0);
                 }
-                authored_lego_stud(&result,polygon,outward,stud,radius,top,cap,margin,feature,center-extent,center+extent);
+                authored_lego_stud(result,polygon,outward,stud,radius,top,cap,margin,feature,center-extent,center+extent);
             } }
         }
     }
-    return result;
+    return;
 }
 // END GENERATED AUTHORED GEOMETRY
 
@@ -2290,12 +2293,12 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
         let authored = authored_shape_ref(shape.authored_shape);
         var result: AuthoredTerrainResult;
         if (sim.terrainSize_mips_flags.w == 1u) {
-            result = authored_terrain_contacts(maxHeightTexture,sim.terrainOrigin_cell_height,
+            authored_terrain_contacts(&result,maxHeightTexture,sim.terrainOrigin_cell_height,
                 sim.terrainSize_mips_flags.xy,authored,
                 authored_root_position(authored,terrainPose.position_invMass.xyz,terrainPose.orientation),
                 authored_root_orientation(authored,terrainPose.orientation),sim.solver.x,8192u);
         } else if (sim.terrainSize_mips_flags.w == 2u) {
-            result = authored_lego_contacts(maxHeightTexture,sim.terrainOrigin_cell_height,
+            authored_lego_contacts(&result,maxHeightTexture,sim.terrainOrigin_cell_height,
                 sim.terrainSize_mips_flags.xy,authored,
                 authored_root_position(authored,terrainPose.position_invMass.xyz,terrainPose.orientation),
                 authored_root_orientation(authored,terrainPose.orientation),sim.solver.x,8192u);

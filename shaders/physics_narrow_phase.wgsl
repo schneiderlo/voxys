@@ -1,3 +1,7 @@
+// Compile ordinary and authored pairs separately to bound the per-kernel
+// shader compiler workload. Each pair is processed by exactly one pass.
+override AUTHORED_PAIR_PASS: bool = false;
+
 // BEGIN GENERATED AUTHORED GEOMETRY
 // Authored shape heap format 1. The including pipeline declares
 // var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
@@ -2610,7 +2614,8 @@ fn narrow_capsule_capsule_impl(gid : vec3<u32>) {
 fn narrow_sphere_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 3u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    if (pair_has_authored(pairRecord)) {
+    if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
+    if (AUTHORED_PAIR_PASS) {
         let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
         if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, false)); }
         else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, false))); }
@@ -2635,7 +2640,8 @@ fn narrow_sphere_box_impl(gid : vec3<u32>) {
 fn narrow_capsule_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 4u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    if (pair_has_authored(pairRecord)) {
+    if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
+    if (AUTHORED_PAIR_PASS) {
         let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
         if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, true)); }
         else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, true))); }
@@ -2660,7 +2666,8 @@ fn narrow_capsule_box_impl(gid : vec3<u32>) {
 fn narrow_box_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 5u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    if (pair_has_authored(pairRecord)) {
+    if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
+    if (AUTHORED_PAIR_PASS) {
         write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
         return;
     }
@@ -2704,7 +2711,8 @@ fn narrow_capsule_cylinder_impl(gid : vec3<u32>) {
 fn narrow_box_cylinder_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 8u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    if (pair_has_authored(pairRecord)) {
+    if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
+    if (AUTHORED_PAIR_PASS) {
         write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
         return;
     }

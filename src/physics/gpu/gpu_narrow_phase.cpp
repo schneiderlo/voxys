@@ -34,12 +34,19 @@ void releaseBuffer(WGPUBuffer& buffer) {
 WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
                                  WGPUShaderModule shader,
                                  const std::string& entryPoint,
-                                 const char* label) {
+                                 const char* label, int authoredPass = -1) {
     WGPUComputePipelineDescriptor desc{};
     WGPU_SET_LABEL(desc, label);
     desc.layout = layout;
     desc.compute.module = shader;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint.c_str());
+    WGPUConstantEntry authored{};
+    if (authoredPass >= 0) {
+        authored.key = gpu::toStringView("AUTHORED_PAIR_PASS");
+        authored.value = static_cast<double>(authoredPass);
+        desc.compute.constantCount = 1;
+        desc.compute.constants = &authored;
+    }
     return wgpuDeviceCreateComputePipeline(device, &desc);
 }
 
@@ -322,10 +329,19 @@ public:
             "sphere_box", "capsule_box", "box_box", "sphere_cylinder",
             "capsule_cylinder", "box_cylinder", "cylinder_cylinder"};
         for (uint32_t index = 0; index < names.size(); ++index) {
+            const bool canContainAuthored = index == 3u || index == 4u
+                || index == 5u || index == 8u;
             classPipelines_[index] = makePipeline(
                 device_, narrowPipelineLayout_, shaderModule_,
                 std::string("narrow_") + names[index] + "_" + suffix,
-                "narrow_phase_pair_class");
+                "narrow_phase_pair_class", canContainAuthored ? 0 : -1);
+            if (canContainAuthored) {
+                authoredClassPipelines_[index] = makePipeline(
+                    device_, narrowPipelineLayout_, shaderModule_,
+                    std::string("narrow_") + names[index] + "_" + suffix,
+                    "narrow_phase_authored_pair_class", 1);
+                if (!authoredClassPipelines_[index]) return false;
+            }
         }
         if (!resetBucketsPipeline_ || !countBucketsPipeline_
             || !finalizeBucketsPipeline_ || !scatterBucketsPipeline_
@@ -545,6 +561,12 @@ public:
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                 pass, classDispatchArgs_,
                 uint64_t{index} * 4u * sizeof(uint32_t));
+            if (authoredClassPipelines_[index]) {
+                wgpuComputePassEncoderSetPipeline(pass, authoredClassPipelines_[index]);
+                wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+                    pass, classDispatchArgs_,
+                    uint64_t{index} * 4u * sizeof(uint32_t));
+            }
         }
         wgpuComputePassEncoderSetBindGroup(pass, 0, finalizeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, finalizePipeline_);
@@ -615,6 +637,9 @@ public:
         releaseHandle(finalizeBucketsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(scatterBucketsPipeline_, wgpuComputePipelineRelease);
         for (auto& pipeline : classPipelines_) {
+            releaseHandle(pipeline, wgpuComputePipelineRelease);
+        }
+        for (auto& pipeline : authoredClassPipelines_) {
             releaseHandle(pipeline, wgpuComputePipelineRelease);
         }
         releaseHandle(finalizePipeline_, wgpuComputePipelineRelease);
@@ -696,6 +721,8 @@ public:
     WGPUComputePipeline scatterBucketsPipeline_ = nullptr;
     std::array<WGPUComputePipeline, kGpuNarrowPhasePairClassCount>
         classPipelines_{};
+    std::array<WGPUComputePipeline, kGpuNarrowPhasePairClassCount>
+        authoredClassPipelines_{};
     WGPUComputePipeline finalizePipeline_ = nullptr;
     WGPUComputePipeline markActivePipeline_ = nullptr;
     WGPUComputePipeline scatterActivePipeline_ = nullptr;
