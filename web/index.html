@@ -574,12 +574,12 @@
             flight.addEventListener('click',() => press(119));
             document.getElementById('lego-reset').addEventListener('click',() => location.reload());
             window.addEventListener('keydown',e => { if (!e.repeat && !e.target.closest?.('[data-voxy-ui]') && voxyModule?._voxy_is_initialized?.()===1) reflect(e.code==='KeyK' ? 75 : e.code==='F8' ? 119 : 0); });
-            const show = setInterval(() => { if (voxyModule?._voxy_is_initialized?.()===1) { bar.hidden=false; clearInterval(show); } },250);
+            const show = setInterval(() => { if (voxyModule?._voxy_is_initialized?.()===1) { bar.hidden=!window.voxyDebugEnabled; clearInterval(show); } },250);
             setInterval(() => {
                 if (voxyModule?._voxy_is_initialized?.() !== 1) return;
-                const full = voxyModule._voxy_get_physics_resident_bodies() >= 32;
+                const full = voxyModule._voxy_get_physics_resident_bodies() >= 20000;
                 drop.disabled = full;
-                drop.textContent = full ? '32 balls · reset to clear' : 'Throw a ball · B';
+                drop.textContent = full ? '20,000 balls · reset to clear' : 'Throw a ball · B';
             },500);
         }
 

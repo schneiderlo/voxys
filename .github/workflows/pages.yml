@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      source_commit:
+        description: 'Optional full source commit SHA (for a patch of the live release)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -22,13 +27,27 @@ jobs:
       EMSCRIPTEN_VERSION: '6.0.1'
       CCACHE_DIR: ${{ github.workspace }}/.compiler-cache
     steps:
+      - name: Validate release source
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          if [[ -n "$SOURCE_COMMIT" && ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Source commit must be a full lowercase commit SHA'; exit 1
+          fi
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit || github.sha }}
+      - name: Record release source
+        id: source
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Deploying source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
       - name: Install ccache
         run: sudo apt-get update && sudo apt-get install -y ccache xvfb python3-pil
       - uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ runner.os }}-${{ github.sha }}
+          key: ccache-${{ runner.os }}-${{ steps.source.outputs.sha }}
           restore-keys: |
             ccache-${{ runner.os }}-
       - uses: actions/cache@v4
@@ -58,7 +77,7 @@ jobs:
       - name: Check shared LEGO shader geometry
         run: |
           python3 scripts/sync_lego_surface.py --check
-          python3 scripts/sync_authored_shapes.py --check
+          if test -f scripts/sync_authored_shapes.py; then python3 scripts/sync_authored_shapes.py --check; fi
       - name: Configure CMake
         run: |
           emcmake cmake -S . -B build-wasm \
@@ -74,11 +93,13 @@ jobs:
         with:
           node-version: '22'
       - name: Prepare deployment directory
+        env:
+          VOXY_BUILD_ID: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
           mkdir -p docs
           cp -r web/* docs/
-          sed -i "s/__VOXY_BUILD_ID__/${GITHUB_SHA}/g" docs/index.html
+          sed -i "s/__VOXY_BUILD_ID__/${VOXY_BUILD_ID}/g" docs/index.html
           cp build-wasm/bin/voxy_wasm.js docs/
           cp build-wasm/bin/voxy_wasm.wasm docs/
           cp build-wasm/bin/voxy_wasm.data docs/
@@ -97,12 +118,16 @@ jobs:
             /ridgebreak.cfg \
             /lego_shore.cfg \
             /lego_world.cfg \
-            /salvage.cfg \
             /data/lego_shore.ldh; do
             grep -a -q "$asset" docs/voxy_wasm.js || {
               echo "ERROR: preload manifest missing $asset"; exit 1;
             }
           done
+          if test -f salvage.cfg; then
+            grep -a -q /salvage.cfg docs/voxy_wasm.js || {
+              echo 'ERROR: preload manifest missing /salvage.cfg'; exit 1;
+            }
+          fi
           ls -lah docs/
       - name: Loading animation timing regression
         run: node --test scripts/test_loading_roller.mjs

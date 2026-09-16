@@ -352,7 +352,7 @@ try{
     }
     if(isLego){
         assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');
-        assert.equal(sample.legoControlsVisible,true);
+        assert.equal(sample.legoControlsVisible,false,'playground toolbar should be hidden by default');
         assert.equal(sample.telemetry.render.terrain_width,isWorld?8192:256,'LEGO source was upscaled');
         assert.equal(sample.telemetry.render.terrain_height,isWorld?8192:256,'LEGO source was upscaled');
         assert.equal(sample.telemetry.render.terrain_mips,isWorld?14:9);
