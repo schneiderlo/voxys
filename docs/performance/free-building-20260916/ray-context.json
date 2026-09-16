@@ -6,5 +6,6 @@
   "harnessSha256": "b306c93bc0e5770a1dfb10d0cd4d675a50dee3c521b52748dfc8885437c8285a",
   "command": "nix-shell --run 'bash scripts/performance/run_free_build_benchmark.sh /tmp/voxys-perf-20260916/ray-runner /tmp/voxys-perf-20260916/ray'",
   "controlCommand": "nix-shell --run 'bash scripts/performance/run_free_build_benchmark.sh /tmp/voxys-perf-20260916/release-baseline-runner /tmp/voxys-perf-20260916/final-control'",
-  "timingContext": "No compilation or other benchmark/test concurrent with replay matrices. Profiles captured separately. Fresh original-binary control checks elapsed-session host drift."
+  "timingContext": "No compilation or other benchmark/test concurrent with replay matrices. Profiles captured separately. Fresh original-binary control checks elapsed-session host drift.",
+  "sourceCommit": "268bfe0eaf7b4bbd14e5bd5f30f7bfad4dd20b1c"
 }

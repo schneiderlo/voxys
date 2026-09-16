@@ -1,5 +1,43 @@
 # Free-building performance investigation — 2026-09-16
 
+## Verified outcome
+
+Three bounded CPU optimizations are complete: unchanged placement validation,
+unchanged building JSON, and identical picking rays. Each has its own commit,
+pre-implementation proof, exact-output oracle and measured comparison. Source
+`268bfe0eaf7b4bbd14e5bd5f30f7bfad4dd20b1c` passed the normal full hook (2,457 tests passed, eight opt-in skips,
+four existing disabled tests, importer passed; aggregate 1163.823 s).
+The opt-in creative runtime regression also passed explicitly on real terrain.
+
+[Pages run 35121091665](https://github.com/schneiderlo/voxys/actions/runs/35121091665)
+built and deployed this source. Public HTML reported the exact SHA and the actual
+public browser reached the creative building controls. Verified **2026-09-16 16:29:10 UTC**.
+This record describes that verified code release; its documentation-only follow-up
+is also checked before task completion.
+
+The investigation started 14:56:33 UTC, with a 16:26:33 UTC deadline. Implementation
+was frozen at **15:56:30 UTC**; remaining work was validation and publication.
+No additional performance changes were added after the freeze.
+
+Final native CPU replay (not rendered FPS), median of three runs:
+
+| Pieces | Replay | Update p50 μs | p95 μs | p99 μs | Updates/s | Versus original |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 0 | edit | 5.20 | 22.34 | 26.65 | 103494 | 2.14× |
+| 0 | idle | 5.30 | 5.36 | 5.74 | 124462 | 1.50× |
+| 64 | edit | 5.43 | 23.65 | 50.74 | 87840 | 3.57× |
+| 64 | idle | 5.52 | 5.59 | 7.57 | 111704 | 3.47× |
+| 256 | edit | 6.06 | 24.31 | 171.60 | 55538 | 6.45× |
+| 256 | idle | 6.12 | 6.18 | 7.37 | 86399 | 8.74× |
+| 768 | edit | 7.88 | 25.62 | 564.73 | 25793 | 10.50× |
+| 768 | idle | 7.82 | 8.00 | 9.71 | 54605 | 18.10× |
+
+All 24 runs preserve complete UI JSON strings and accepted save bytes. Fixed
+latency, throughput and peak-memory guards pass. A fresh original-binary control
+confirms the largest editing workload remains 10.41× faster; original-baseline
+comparison is 10.50×. Cumulative allocation is 86.3% lower; peak RSS stays near
+243 MiB. This does not complete the game's wider creative-feel/design gates.
+
 ## Status and contract
 
 Baseline source: `7ea4d7628a6d2245a8563060e5519d19c8926a9d`.
@@ -301,5 +339,5 @@ Final browser compilation passed with the real Emscripten target:
 nix-shell --run 'cmake --build build-lego-wasm --target voxy_wasm -j4'
 ```
 
-Implementation is frozen after these three measured changes. The final normal
-commit hook and public deployment remain to be verified.
+Implementation is frozen after these three measured changes. Final normal
+commit and public deployment verification passed, as recorded above.

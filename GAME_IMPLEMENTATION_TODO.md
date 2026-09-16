@@ -131,6 +131,12 @@ behavior. Tests do not substitute for the owner’s building experience.
 
 ## Current state and next action
 
+The bounded performance pass is complete. Code release `268bfe0e` is
+verified on main and Pages. Three derived-result caches preserve all replay and
+save bytes while improving the largest measured editing CPU workload by 10.50×.
+See [measurements, proofs and release evidence](docs/performance/free-building-20260916/README.md).
+The wider creative feel and design gates below remain open.
+
 The owner requested publication to main. Commit `5b52d209` publishes the accumulated
 creative implementation; `f6a70ea4` adds the building thumbnail shader omitted from
 that commit. The clean build then exposed a Chrome software-GPU shader compilation crash.
@@ -192,7 +198,7 @@ all save formats. This is a bounded performance task, not a return to adventure.
 - [x] Implement only measured changes, one performance lever per diff, each with
   an output-equivalence proof sketch and exact replay comparison.
 - [x] Add reproducible performance regression guards and retain before/after data.
-- [ ] Pass the normal commit hook, push main and verify the final live release.
+- [x] Pass the normal commit hook, push main and verify the final live release.
 
 The release-candidate baseline and profiles were collected during its remote
 build, before any performance implementation. Initial release `7ea4d762` is
@@ -204,8 +210,10 @@ replay outputs and raises the 768-piece edit workload to 8.21× baseline through
 Its full normal hook passed as `1e4e75d3`. A final measured ray-result cache
 preserves all golden output/save bytes and raises this workload to **10.50×**
 the original throughput (10.41× a fresh original-binary control). Final browser
-compilation passed. Implementation is frozen; the last full commit hook and
-public deployment checks remain pending.
+compilation passed. Final code commit `268bfe0e` passed the normal full
+hook and Pages run `35121091665`; exact public source and live creative controls are
+verified (2026-09-16 16:29:10 UTC). Implementation froze at 15:56:30 UTC; all requested
+performance-pass items are complete.
 
 Measurement tooling is in `tools/benchmarks` and `scripts/performance`.
 Its native CPU component timings must not be presented as browser FPS. See the
