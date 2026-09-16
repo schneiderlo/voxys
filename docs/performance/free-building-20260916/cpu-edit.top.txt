@@ -1,0 +1,26 @@
+File: release-baseline-runner
+Type: cpu
+Showing nodes accounting for 10.62s, 71.54% of 14.84s total
+Dropped 309 nodes (cum <= 0.07s)
+Showing top 20 nodes out of 117
+      flat  flat%   sum%        cum   cum%
+     2.13s 14.35% 14.35%      2.13s 14.36%  partFor (inline)
+     1.89s 12.71% 27.05%     10.85s 73.09%  voxy::game::adventure::validateConstruction
+     0.79s  5.33% 32.38%      0.93s  6.26%  _int_malloc
+     0.74s  4.97% 37.36%      1.24s  8.34%  voxy::game::adventure::(anonymous namespace)::terrainRange
+     0.68s  4.58% 41.93%      1.61s 10.83%  __libc_malloc2
+     0.59s  4.00% 45.93%      0.98s  6.63%  _int_free_chunk
+     0.49s  3.33% 49.26%      0.49s  3.33%  std::_Rb_tree::_S_right (inline)
+     0.34s  2.31% 51.57%      0.69s  4.62%  hack_digit
+     0.34s  2.30% 53.87%      1.17s  7.91%  __printf_fp_buffer_1.isra.0
+     0.34s  2.30% 56.17%      0.34s  2.30%  std::_Rb_tree_insert_and_rebalance
+     0.32s  2.18% 58.35%      0.60s  4.07%  std::_Rb_tree::_M_lower_bound (inline)
+     0.31s  2.06% 60.41%      0.43s  2.90%  contact (inline)
+     0.27s  1.83% 62.24%      0.27s  1.83%  glm::operator- (inline)
+     0.26s  1.75% 63.98%      0.47s  3.19%  malloc_consolidate
+     0.24s  1.64% 65.62%      0.24s  1.64%  __mpn_divrem
+     0.23s  1.54% 67.17%      0.23s  1.54%  unlink_chunk.isra.0
+     0.20s  1.32% 68.49%      0.53s  3.60%  std::_Rb_tree::_M_get_insert_unique_pos (inline)
+     0.17s  1.13% 69.61%      0.40s  2.69%  voxy::game::construction::DurableId::operator== (inline)
+     0.15s  0.99% 70.60%      0.26s  1.76%  voxy::terrain::lego::top (inline)
+     0.14s  0.94% 71.54%      0.15s  0.99%  std::construct_at (inline)

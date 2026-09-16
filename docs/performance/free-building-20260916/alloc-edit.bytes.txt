@@ -1,0 +1,26 @@
+File: release-baseline-runner
+Type: alloc_space
+Showing nodes accounting for 1489.87MB, 99.60% of 1495.81MB total
+Dropped 64 nodes (cum <= 7.48MB)
+Showing top 20 nodes out of 63
+      flat  flat%   sum%        cum   cum%
+ 1489.87MB 99.60% 99.60%  1489.87MB 99.60%  std::__new_allocator::allocate (inline)
+         0     0% 99.60%  1058.56MB 70.77%  __invoke_impl (inline)
+         0     0% 99.60%  1058.56MB 70.77%  __invoke_r (inline)
+         0     0% 99.60%  1495.81MB   100%  __libc_start_call_main
+         0     0% 99.60%  1495.81MB   100%  __libc_start_main_alias_2
+         0     0% 99.60%  1495.81MB   100%  _start
+         0     0% 99.60%  1495.81MB   100%  main
+         0     0% 99.60%    73.20MB  4.89%  std::_Construct (inline)
+         0     0% 99.60%  1058.56MB 70.77%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0% 99.60%   276.68MB 18.50%  std::_Rb_tree::_Alloc_node::operator() (inline)
+         0     0% 99.60%   241.89MB 16.17%  std::_Rb_tree::_Auto_node::_Auto_node (inline)
+         0     0% 99.60%   518.60MB 34.67%  std::_Rb_tree::_M_create_node (inline)
+         0     0% 99.60%   241.89MB 16.17%  std::_Rb_tree::_M_emplace_hint_unique
+         0     0% 99.60%   518.58MB 34.67%  std::_Rb_tree::_M_get_node (inline)
+         0     0% 99.60%   276.68MB 18.50%  std::_Rb_tree::_M_insert_ (inline)
+         0     0% 99.60%   276.45MB 18.48%  std::_Rb_tree::_M_insert_unique (inline)
+         0     0% 99.60%   861.21MB 57.58%  std::_Vector_base::_M_allocate (inline)
+         0     0% 99.60%    85.07MB  5.69%  std::_Vector_base::_M_create_storage (inline)
+         0     0% 99.60%    85.07MB  5.69%  std::_Vector_base::_Vector_base (inline)
+         0     0% 99.60%    31.19MB  2.09%  std::__cxx11::basic_ostringstream::str (inline)

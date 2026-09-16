@@ -637,6 +637,36 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         std::vector<std::byte> after;ASSERT_TRUE(runtime.snapshot(after,error));EXPECT_EQ(after,bytes);
         runtime.action(13,2);frame();const auto catalog=read();EXPECT_EQ(catalog.at("mode"),"catalog");
         for(const auto& row:catalog.at("rows"))EXPECT_NE(row.at("label"),"Starter room");
+        // Loading another checkpoint may retain its world/revision but change
+        // placement authority. An exhausted ID allocator must refuse even when
+        // the previous checkpoint admitted exactly the same aimed piece.
+        ASSERT_TRUE(runtime.restore(bytes,saved.world,error))<<error;
+        const auto stillFrame=[&]{input.beginFrame();input.computeDeltas();runtime.update(0,input,camera,1280,800,{1280,800});input.endFrame();};
+        bool restoredAim=false;
+        for(int y:{560,640,480,400}) {
+            for(int x:{640,480,800,320,960}) {
+                input.onMouseMove(float(x),float(y));stillFrame();
+                if(read().at("valid")==true){restoredAim=true;break;}
+            }
+            if(restoredAim)break;
+        }
+        ASSERT_TRUE(restoredAim)<<runtime.json();
+        stillFrame();const auto admitted=read();const auto admittedState=runtime.state();
+        auto exhausted=admittedState;exhausted.lastIssuedId=UINT64_MAX;
+        std::vector<std::byte> exhaustedBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(exhausted,runtime.content(),exhaustedBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(exhaustedBytes,exhausted.world,error))<<error;
+        stillFrame();const auto refused=read();
+        EXPECT_EQ(runtime.state().revision,admittedState.revision);
+        EXPECT_EQ(runtime.state().lastRequestSequence,admittedState.lastRequestSequence);
+        EXPECT_EQ(refused.at("preview"),admitted.at("preview"));
+        EXPECT_EQ(refused.at("aimRay"),admitted.at("aimRay"));
+        EXPECT_FALSE(refused.at("valid").get<bool>());
+        EXPECT_EQ(refused.at("previewReason"),"Building identity capacity reached.");
+        const auto beforeRefusedPlace=runtime.state();runtime.action(4);stillFrame();
+        EXPECT_EQ(runtime.state(),beforeRefusedPlace);
+        ASSERT_TRUE(runtime.restore(bytes,saved.world,error))<<error;stillFrame();
+        EXPECT_TRUE(read().at("valid"))<<runtime.json();
         wgpuQueueSubmit(context.getQueue(),0,nullptr);
         auto* callback=new std::shared_ptr<GpuSignals>(signals);
         wgpuQueueOnSubmittedWorkDone(context.getQueue(),[](WGPUQueueWorkDoneStatus status,void* data){

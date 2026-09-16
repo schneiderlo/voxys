@@ -195,6 +195,7 @@ std::string AdventureRuntime::preferencesAction(int action,std::string_view text
 }
 bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice device,WGPUQueue queue,
     const std::filesystem::path& shaders,WGPUTextureFormat color,std::string& error) {
+    previewResult_.reset();
     if(!matchesInstalledTerrain(surface)||!queries_.bindTerrain(surface)) {error="Adventure terrain does not match the installed world.";return false;}
     const auto spawn=townSpawn(surface);
     content_.town={spawn.x,spawn.y,spawn.z,0};
@@ -569,11 +570,18 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     // still checks actual support/contact; nearby distance alone cannot admit it.
     if(!preview_.structure)for(const auto& structure:state().structures)
         for(const auto& part:structure.parts)if(glm::length(metres(part.position)-p)<4.1){preview_.structure=structure.id;break;}
+    const bool cachePreview=freeBuild_&&blueprint_==BlueprintKind::None;
+    const PreviewKey key{state().world,state().epoch,state().revision,state().lastRequestSequence,
+        queries_.revision(),preview_.structure,preview_.kind,preview_.position,preview_.yawQuarterTurns,preview_.paint};
+    if(cachePreview&&previewResult_&&previewResult_->key==key) {
+        previewValid_=previewResult_->valid;previewReason_=previewResult_->reason;return;
+    }
     previewReason_.clear();
     auto candidate=blueprint_!=BlueprintKind::None?session_->prepareBuildRecipe(stamp(),blueprint_,preview_.position,yaw_,validator(),previewReason_)
         :session_->preparePlace(stamp(),preview_,validator(),previewReason_);
     previewValid_=bool(candidate);
     if(previewValid_)previewReason_="Ready to place";
+    if(cachePreview)previewResult_=PreviewResult{key,previewValid_,previewReason_};
 }
 uint64_t AdventureRuntime::nearbyComponent() const {
     double best=3.25;uint64_t result=0;
@@ -1655,6 +1663,7 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     if(!checkedPlayer.initialize(actors,townSpawn(actors.terrain()),installedWorld().waterHeight)
         ||!checkedPlayer.restore(pose)) {error="Saved player position is unavailable.";return false;}
     session_=std::move(next);walkQueries_=std::move(geometry);queries_=std::move(actors);encounters_=std::move(encounters);
+    previewResult_.reset(); // A restored checkpoint can reuse the same revision.
     town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     combat_.reset();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
     if(!player_.restore(pose)){error="Saved player position is unavailable.";return false;}

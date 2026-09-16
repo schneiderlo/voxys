@@ -166,6 +166,18 @@ private:
     uint64_t bench_=0;
     uint8_t dialogueNpc_=0;
     PlacePart preview_{};
+    struct PreviewKey {
+        construction::WorldNamespace world{};
+        uint64_t epoch=0,revision=0,sequence=0,geometryRevision=0,structure=0;
+        PieceKind kind=PieceKind::Foundation;
+        GridPosition position{};
+        uint8_t yaw=0;
+        uint32_t paint=0;
+        bool operator==(const PreviewKey&) const = default;
+    };
+    struct PreviewResult {PreviewKey key;bool valid=false;std::string reason;};
+    // Only the discarded speculative result is cached. Real edits validate anew.
+    std::optional<PreviewResult> previewResult_;
     std::string status_="Find a home site. Press B to build.",previewReason_,saveStatus_="Unsaved adventure",saveFailure_;
     glm::dvec3 aimPoint_{};
     std::vector<PendingAction> pendingActions_;

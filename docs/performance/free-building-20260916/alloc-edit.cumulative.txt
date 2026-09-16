@@ -1,0 +1,68 @@
+File: release-baseline-runner
+Type: alloc_space
+Showing nodes accounting for 1.45GB, 99.60% of 1.46GB total
+Dropped 64 nodes (cum <= 0.01GB)
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     1.46GB   100%  __libc_start_call_main
+         0     0%     0%     1.46GB   100%  __libc_start_main_alias_2
+         0     0%     0%     1.46GB   100%  _start
+         0     0%     0%     1.46GB   100%  main
+    1.45GB 99.60% 99.60%     1.45GB 99.60%  std::__new_allocator::allocate (inline)
+         0     0% 99.60%     1.45GB 99.60%  std::allocator::allocate (inline)
+         0     0% 99.60%     1.45GB 99.60%  std::allocator_traits::allocate (inline)
+         0     0% 99.60%     1.36GB 92.83%  voxy::game::adventure::AdventureRuntime::update
+         0     0% 99.60%     1.34GB 91.43%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0% 99.60%     1.33GB 91.24%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0% 99.60%     1.12GB 76.92%  voxy::game::adventure::AdventureSession::finish
+         0     0% 99.60%     1.04GB 71.06%  voxy::game::adventure::validateConstruction
+         0     0% 99.60%     1.03GB 70.77%  __invoke_impl (inline)
+         0     0% 99.60%     1.03GB 70.77%  __invoke_r (inline)
+         0     0% 99.60%     1.03GB 70.77%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0% 99.60%     1.03GB 70.77%  std::function::operator() (inline)
+         0     0% 99.60%     0.84GB 57.58%  std::_Vector_base::_M_allocate (inline)
+         0     0% 99.60%     0.74GB 50.72%  std::vector::push_back (partial-inline)
+         0     0% 99.60%     0.74GB 50.67%  std::vector::_M_realloc_append (inline)
+         0     0% 99.60%     0.67GB 45.83%  voxy::game::adventure::(anonymous namespace)::compileGeometry
+         0     0% 99.60%     0.58GB 39.62%  std::vector::emplace_back (inline)
+         0     0% 99.60%     0.51GB 34.67%  std::_Rb_tree::_M_create_node (inline)
+         0     0% 99.60%     0.51GB 34.67%  std::_Rb_tree::_M_get_node (inline)
+         0     0% 99.60%     0.27GB 18.50%  std::_Rb_tree::_Alloc_node::operator() (inline)
+         0     0% 99.60%     0.27GB 18.50%  std::_Rb_tree::_M_insert_ (inline)
+         0     0% 99.60%     0.27GB 18.48%  std::_Rb_tree::_M_insert_unique (inline)
+         0     0% 99.60%     0.27GB 18.48%  std::set::insert (partial-inline)
+         0     0% 99.60%     0.24GB 16.17%  std::_Rb_tree::_Auto_node::_Auto_node (inline)
+         0     0% 99.60%     0.24GB 16.17%  std::_Rb_tree::_M_emplace_hint_unique
+         0     0% 99.60%     0.24GB 16.17%  std::map::operator[]
+         0     0% 99.60%     0.14GB  9.77%  voxy::game::adventure::AdventureSession::addPart
+         0     0% 99.60%     0.11GB  7.31%  std::__cxx11::basic_string::_M_create (inline)
+         0     0% 99.60%     0.11GB  7.31%  std::__cxx11::basic_string::_S_allocate (inline)
+         0     0% 99.60%     0.10GB  7.17%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+         0     0% 99.60%     0.10GB  6.66%  std::vector::vector (inline)
+         0     0% 99.60%     0.09GB  6.15%  voxy::game::adventure::AdventureSession::validate
+         0     0% 99.60%     0.08GB  5.69%  std::_Vector_base::_M_create_storage (inline)
+         0     0% 99.60%     0.08GB  5.69%  std::_Vector_base::_Vector_base (inline)
+         0     0% 99.60%     0.08GB  5.13%  std::vector::operator=
+         0     0% 99.60%     0.08GB  5.13%  std::vector::_M_allocate_and_copy (inline)
+         0     0% 99.60%     0.07GB  4.99%  std::__cxx11::basic_string::reserve
+         0     0% 99.60%     0.07GB  4.99%  std::__cxx11::basic_stringbuf::overflow
+         0     0% 99.60%     0.07GB  4.91%  voxy::game::adventure::AdventureSession::begin
+         0     0% 99.60%     0.07GB  4.91%  voxy::game::adventure::AdventureState::operator= (inline)
+         0     0% 99.60%     0.07GB  4.89%  std::_Construct (inline)
+         0     0% 99.60%     0.07GB  4.89%  std::__do_uninit_copy (inline)
+         0     0% 99.60%     0.07GB  4.89%  std::__uninitialized_copy_a (inline)
+         0     0% 99.60%     0.07GB  4.89%  std::uninitialized_copy (inline)
+         0     0% 99.60%     0.07GB  4.89%  voxy::game::adventure::WorldStructure::WorldStructure (inline)
+         0     0% 99.60%     0.07GB  4.85%  std::basic_streambuf::xsputn
+         0     0% 99.60%     0.05GB  3.33%  std::operator<< (inline)
+         0     0% 99.60%     0.05GB  3.19%  std::__ostream_insert
+         0     0% 99.60%     0.03GB  2.26%  std::__cxx11::basic_string::_M_mutate
+         0     0% 99.60%     0.03GB  2.19%  std::__cxx11::basic_string::assign (inline)
+         0     0% 99.60%     0.03GB  2.18%  std::__cxx11::basic_string::_M_replace
+         0     0% 99.60%     0.03GB  2.09%  std::__cxx11::basic_ostringstream::str (inline)
+         0     0% 99.60%     0.03GB  2.09%  std::__cxx11::basic_stringbuf::str (inline)
+         0     0% 99.60%     0.02GB  1.66%  std::ostream::_M_insert
+         0     0% 99.60%     0.02GB  1.56%  std::ostream::operator<< (inline)
+         0     0% 99.60%     0.02GB  1.55%  std::num_put::_M_insert_float
+         0     0% 99.60%     0.01GB  0.98%  std::vector::_M_range_initialize_n (inline)
+         0     0% 99.60%     0.01GB  0.75%  voxy::game::adventure::AdventureRuntime::commit
+         0     0% 99.60%     0.01GB   0.7%  voxy::game::adventure::AdventureRuntime::prepareGeometry

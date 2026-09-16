@@ -1,0 +1,26 @@
+File: release-baseline-runner
+Type: cpu
+Showing nodes accounting for 2615ms, 21.89% of 11946ms total
+Dropped 266 nodes (cum <= 59.73ms)
+Showing top 20 nodes out of 105
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%    11946ms   100%  __libc_start_call_main
+         0     0%     0%    11946ms   100%  __libc_start_main_alias_2
+         0     0%     0%    11946ms   100%  _start
+         0     0%     0%    11946ms   100%  main
+       5ms 0.042% 0.042%     9528ms 79.76%  voxy::game::adventure::AdventureRuntime::update
+      23ms  0.19%  0.23%     9270ms 77.60%  voxy::game::adventure::AdventureRuntime::updateTarget
+       1ms 0.0084%  0.24%     9063ms 75.87%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0%  0.24%     9029ms 75.58%  voxy::game::adventure::AdventureSession::finish
+       1ms 0.0084%  0.25%     8055ms 67.43%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%  0.25%     8055ms 67.43%  std::function::operator() (inline)
+         0     0%  0.25%     8054ms 67.42%  __invoke_impl (inline)
+         0     0%  0.25%     8054ms 67.42%  __invoke_r (inline)
+     549ms  4.60%  4.85%     8054ms 67.42%  voxy::game::adventure::validateConstruction
+       5ms 0.042%  4.89%     2195ms 18.37%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+    1925ms 16.11% 21.00%     1925ms 16.11%  partFor (inline)
+      55ms  0.46% 21.46%     1886ms 15.79%  std::ostream::_M_insert
+       9ms 0.075% 21.54%     1816ms 15.20%  std::ostream::operator<<
+      15ms  0.13% 21.66%     1762ms 14.75%  std::set::insert (partial-inline)
+      10ms 0.084% 21.75%     1747ms 14.62%  std::_Rb_tree::_M_insert_unique (inline)
+      17ms  0.14% 21.89%     1741ms 14.57%  std::__new_allocator::allocate (inline)

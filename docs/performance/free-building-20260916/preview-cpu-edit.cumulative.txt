@@ -1,0 +1,26 @@
+File: preview-cache-runner
+Type: cpu
+Showing nodes accounting for 1163ms, 30.18% of 3853ms total
+Dropped 223 nodes (cum <= 19.27ms)
+Showing top 20 nodes out of 138
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     3853ms   100%  __libc_start_call_main
+         0     0%     0%     3853ms   100%  __libc_start_main_alias_2
+         0     0%     0%     3853ms   100%  _start
+       1ms 0.026% 0.026%     3853ms   100%  main
+       7ms  0.18%  0.21%     2167ms 56.24%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+      59ms  1.53%  1.74%     1815ms 47.11%  std::ostream::_M_insert
+       9ms  0.23%  1.97%     1753ms 45.50%  std::ostream::operator<<
+      71ms  1.84%  3.82%     1670ms 43.34%  std::num_put::_M_insert_float
+       4ms   0.1%  3.92%     1553ms 40.31%  voxy::game::adventure::AdventureRuntime::update
+      13ms  0.34%  4.26%     1492ms 38.72%  std::__convert_from_v
+      11ms  0.29%  4.54%     1441ms 37.40%  ___vsnprintf
+     136ms  3.53%  8.07%     1425ms 36.98%  __printf_buffer
+      36ms  0.93%  9.01%     1251ms 32.47%  __printf_fp_l_buffer
+     346ms  8.98% 17.99%     1188ms 30.83%  __printf_fp_buffer_1.isra.0
+      25ms  0.65% 18.63%     1173ms 30.44%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0% 18.63%      721ms 18.71%  voxy::game::adventure::AdventureSession::finish
+     343ms  8.90% 27.54%      712ms 18.48%  hack_digit
+     102ms  2.65% 30.18%      706ms 18.32%  voxy::game::adventure::validateConstruction
+         0     0% 30.18%      693ms 17.99%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0% 30.18%      657ms 17.05%  __invoke_impl (inline)

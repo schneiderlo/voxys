@@ -1,0 +1,21 @@
+{
+  "recordedUtc": "2026-09-16T14:42:30.122251+00:00",
+  "sourceCommit": "7ea4d7628a6d2245a8563060e5519d19c8926a9d",
+  "kernel": "Linux-7.0.0-31-generic-x86_64-with-glibc2.43",
+  "binary": "/tmp/voxys-perf-20260916/release-baseline-runner",
+  "binarySha256": "cc24231df2ce811dec1a769ee5d6e0dee9062bdf3bc53c471866278b54a2f17f",
+  "harnessSha256": "b306c93bc0e5770a1dfb10d0cd4d675a50dee3c521b52748dfc8885437c8285a",
+  "terrainSha256": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+  "buildCommand": "nix-shell --run 'bazel build -c opt --copt=-g --copt=-Wno-error=null-dereference --strip=never --jobs=4 //tools:free_build_benchmark'",
+  "baselineCommand": "nix-shell --run 'bash scripts/performance/run_free_build_benchmark.sh /tmp/voxys-perf-20260916/release-baseline-runner /tmp/voxys-perf-20260916/baseline'",
+  "tests": {
+    "command": "nix-shell --run 'git commit -m \"Fix software GPU startup without changing collision results\"' (normal pre-commit hook: bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test)",
+    "passed": 2457,
+    "skipped": 8,
+    "disabled": 4,
+    "importer": "passed",
+    "testSeconds": 1099.8,
+    "testLog": "/tmp/voxys-deployed-baseline-tests.log"
+  },
+  "timingContext": "No local compilation or test suite concurrent with formal baseline. Ordinary desktop remains running; timings are same-host CPU component measurements, not browser FPS."
+}

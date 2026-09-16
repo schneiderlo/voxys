@@ -1,6 +1,6 @@
 # Voxys — free LEGO-style building
 
-Revised 2026-09-15. This is the active, self-contained implementation plan.
+Revised 2026-09-16. This is the active, self-contained implementation plan.
 
 ## Owner direction
 
@@ -131,10 +131,18 @@ behavior. Tests do not substitute for the owner’s building experience.
 
 ## Current state and next action
 
-Main remains `2d6d0bc1` (the old G-A home-building milestone). The working tree
-contains substantial uncommitted adventure work and a new door implementation.
-None of that constitutes a completed creative gate. The current creative candidate
-is `build-free-build/web-r04`, build `free-build-bbc98fd5c35efbd0`, served at
+The owner requested publication to main. Commit `5b52d209` publishes the accumulated
+creative implementation; `f6a70ea4` adds the building thumbnail shader omitted from
+that commit. The clean build then exposed a Chrome software-GPU shader compilation crash.
+Repair `7ea4d762` preserves collision calculations while separating authored
+and ordinary collision compilation and using caller-owned terrain-contact output.
+Its normal commit hook passed: 2,457 tests passed, eight opt-in tests skipped,
+and the terrain importer passed. Actual browser startup, completed GPU work,
+scene image and brick-thumbnail checks pass locally. Pages publication passed;
+the exact source and creative controls are verified on the public game. See [deployment evidence](docs/validation/free-build/deployment-20260916/README.md).
+This release checkpoint does not constitute a completed creative feel gate.
+The previous local creative candidate remains `build-free-build/web-r04`, build
+`free-build-bbc98fd5c35efbd0`, served at
 `http://127.0.0.1:42764/index.html?experience=build&telemetry=0`.
 
 The new browser interface uses a compact pictured hotbar, mouse-wheel selection,
@@ -165,6 +173,34 @@ legacy adventure; creative mode ignores costs. Shared door C++ tests now pass.
 The old runtime door check passes after placing its test player within handle
 reach for both door poses. Doors use discrete quarter-turn poses, not animated
 swings. Detailed evidence belongs under `docs/validation/free-build/F1/entry-r01`.
+
+## Requested performance pass — 2026-09-16
+
+After the corrected release is verified live, the owner requested a 90-minute
+performance investigation of that release, followed by a push to main and a
+verified deployment. Record the UTC start/deadline; stop adding optimizations at
+the deadline and finish required checks/publication. Preserve game behaviour and
+all save formats. This is a bounded performance task, not a return to adventure.
+
+- [x] Verify the initial public release and record the timed investigation start.
+- [x] Establish a reproducible baseline: full suite, representative creative
+  workloads, p50/p95/p99 latency, throughput and peak memory with exact commands.
+- [x] Capture CPU, allocation and I/O profiles before proposing optimizations;
+  report the top 3–5 measured time hotspots.
+- [x] Define explicit golden observations, accepted archives and invariants.
+- [x] Rank opportunities by `(Impact × Confidence) / Effort` before implementation.
+- [ ] Implement only measured changes, one performance lever per diff, each with
+  an output-equivalence proof sketch and exact replay comparison.
+- [ ] Add reproducible performance regression guards and retain before/after data.
+- [ ] Pass the normal commit hook, push main and verify the final live release.
+
+The release-candidate baseline and profiles were collected during its remote
+build, before any performance implementation. Initial release `7ea4d762` is
+verified live. Investigation window: **2026-09-16 14:56:33–16:26:33 UTC**. See the [baseline, profiles and ranked options](docs/performance/free-building-20260916/README.md).
+
+Measurement tooling is in `tools/benchmarks` and `scripts/performance`.
+Its native CPU component timings must not be presented as browser FPS. See the
+benchmark README for workload parameters, isolation and comparison thresholds.
 
 ## Working rules
 

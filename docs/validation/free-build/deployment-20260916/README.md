@@ -95,5 +95,8 @@ These software-driver timings are startup diagnostics, not game FPS evidence.
 existing suite, and the terrain importer passed. The real GPU was Radeon/Vulkan.
 No test filter or bypass is used for the commit hook.
 
-Public deployment: pending; verify the release SHA and Pages workflow before
-starting the owner's 90-minute performance investigation.
+Public deployment **passed**: Pages run `35110094212` built and deployed
+`7ea4d7628a6d2245a8563060e5519d19c8926a9d`. Public HTML reports this exact
+source; the actual public browser reaches the creative hotbar. Verified
+2026-09-16 14:56:33 UTC. The actual commit hook also passed 2,457 tests and the
+importer (1,099.8 s aggregate suite). The performance investigation starts here.

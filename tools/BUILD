@@ -2,6 +2,17 @@ package(default_visibility = ["//visibility:public"])
 
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS", "PROJECT_TEST_COPTS")
 
+# Explicit same-host CPU component workload; never used as a rendered FPS gate.
+cc_binary(
+    name = "free_build_benchmark",
+    srcs = ["benchmarks/free_build_benchmark.cpp"],
+    copts = PROJECT_DEFAULT_COPTS + ["-DVOXY_NATIVE=1"],
+    target_compatible_with = ["@platforms//os:linux"],
+    linkopts = ["-ldl"],
+    deps = ["//src/game:adventure_runtime", "//src/game:adventure_core", "//src/gpu:gpu", "//src/camera:camera", "//src/engine/platform:input", "//third_party:tinygltf"],
+    data = ["//data:adventure_runtime", "//shaders:shaders"],
+)
+
 cc_library(
     name = "gameplay_sidecar_lib",
     hdrs = ["salvage_assets/gameplay_sidecar.hpp"],

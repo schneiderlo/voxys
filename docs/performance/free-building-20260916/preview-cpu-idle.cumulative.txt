@@ -1,0 +1,26 @@
+File: preview-cache-runner
+Type: cpu
+Showing nodes accounting for 1362ms, 45.92% of 2966ms total
+Dropped 178 nodes (cum <= 14.83ms)
+Showing top 20 nodes out of 76
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     2966ms   100%  __libc_start_call_main
+         0     0%     0%     2966ms   100%  __libc_start_main_alias_2
+         0     0%     0%     2966ms   100%  _start
+         0     0%     0%     2966ms   100%  main
+       3ms   0.1%   0.1%     2228ms 75.12%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+      55ms  1.85%  1.96%     1863ms 62.81%  std::ostream::_M_insert
+      16ms  0.54%  2.49%     1789ms 60.32%  std::ostream::operator<<
+      72ms  2.43%  4.92%     1694ms 57.11%  std::num_put::_M_insert_float
+      17ms  0.57%  5.50%     1515ms 51.08%  std::__convert_from_v
+      13ms  0.44%  5.93%     1458ms 49.16%  ___vsnprintf
+     149ms  5.02% 10.96%     1439ms 48.52%  __printf_buffer
+      25ms  0.84% 11.80%     1247ms 42.04%  __printf_fp_l_buffer
+     334ms 11.26% 23.06%     1204ms 40.59%  __printf_fp_buffer_1.isra.0
+     339ms 11.43% 34.49%      711ms 23.97%  hack_digit
+       1ms 0.034% 34.52%      505ms 17.03%  voxy::game::adventure::AdventureRuntime::update
+     254ms  8.56% 43.09%      254ms  8.56%  __mpn_divrem
+      29ms  0.98% 44.07%      242ms  8.16%  voxy::game::adventure::AdventureRuntime::updateTarget
+      15ms  0.51% 44.57%      228ms  7.69%  std::__cxx11::basic_string::find (inline)
+      10ms  0.34% 44.91%      228ms  7.69%  std::operator<< (inline)
+      30ms  1.01% 45.92%      198ms  6.68%  voxy::game::expedition::sweepCoveTerrainSphere

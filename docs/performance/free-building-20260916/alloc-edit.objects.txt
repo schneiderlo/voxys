@@ -1,0 +1,26 @@
+File: release-baseline-runner
+Type: alloc_objects
+Showing nodes accounting for 13801489, 100% of 13803509 total
+Dropped 93 nodes (cum <= 69017)
+Showing top 20 nodes out of 34
+      flat  flat%   sum%        cum   cum%
+  13801489   100%   100%   13801489   100%  std::__new_allocator::allocate (inline)
+         0     0%   100%   11207746 81.19%  __invoke_impl (inline)
+         0     0%   100%   11207746 81.19%  __invoke_r (inline)
+         0     0%   100%   13803509   100%  __libc_start_call_main
+         0     0%   100%   13803509   100%  __libc_start_main_alias_2
+         0     0%   100%   13803509   100%  _start
+         0     0%   100%   13803509   100%  main
+         0     0%   100%   11207746 81.19%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%   100%    7253130 52.55%  std::_Rb_tree::_Alloc_node::operator() (inline)
+         0     0%   100%    3963203 28.71%  std::_Rb_tree::_Auto_node::_Auto_node (inline)
+         0     0%   100%   11216381 81.26%  std::_Rb_tree::_M_create_node (inline)
+         0     0%   100%    3963203 28.71%  std::_Rb_tree::_M_emplace_hint_unique
+         0     0%   100%   11216357 81.26%  std::_Rb_tree::_M_get_node (inline)
+         0     0%   100%    7253130 52.55%  std::_Rb_tree::_M_insert_ (inline)
+         0     0%   100%    7246884 52.50%  std::_Rb_tree::_M_insert_unique (inline)
+         0     0%   100%    2469929 17.89%  std::_Vector_base::_M_allocate (inline)
+         0     0%   100%      99528  0.72%  std::__cxx11::basic_string::_M_create (inline)
+         0     0%   100%      70081  0.51%  std::__cxx11::basic_string::_M_mutate
+         0     0%   100%      99528  0.72%  std::__cxx11::basic_string::_S_allocate (inline)
+         0     0%   100%   13801489   100%  std::allocator::allocate (inline)

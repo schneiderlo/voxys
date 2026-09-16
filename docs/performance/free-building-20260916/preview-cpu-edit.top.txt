@@ -1,0 +1,26 @@
+File: preview-cache-runner
+Type: cpu
+Showing nodes accounting for 2484ms, 64.47% of 3853ms total
+Dropped 223 nodes (cum <= 19.27ms)
+Showing top 20 nodes out of 138
+      flat  flat%   sum%        cum   cum%
+     346ms  8.98%  8.98%     1188ms 30.83%  __printf_fp_buffer_1.isra.0
+     343ms  8.90% 17.88%      712ms 18.48%  hack_digit
+     250ms  6.49% 24.37%      250ms  6.49%  __mpn_divrem
+     163ms  4.23% 28.60%      359ms  9.32%  castConvex (inline)
+     149ms  3.87% 32.47%      151ms  3.92%  partFor (inline)
+     136ms  3.53% 36.00%     1425ms 36.98%  __printf_buffer
+     131ms  3.40% 39.40%      131ms  3.40%  __mpn_mul_1
+     115ms  2.98% 42.38%      115ms  2.98%  __memmove_avx512_unaligned_erms
+     107ms  2.78% 45.16%      107ms  2.78%  __memchr_evex
+     102ms  2.65% 47.81%      706ms 18.32%  voxy::game::adventure::validateConstruction
+      97ms  2.52% 50.32%      488ms 12.67%  voxy::game::expedition::sweepCoveTerrainSphere (inline)
+      89ms  2.31% 52.63%      183ms  4.75%  std::__ostream_insert
+      71ms  1.84% 54.48%       88ms  2.28%  _int_malloc
+      71ms  1.84% 56.32%      130ms  3.37%  std::basic_streambuf::xsputn
+      71ms  1.84% 58.16%     1670ms 43.34%  std::num_put::_M_insert_float
+      59ms  1.53% 59.69%     1815ms 47.11%  std::ostream::_M_insert
+      47ms  1.22% 60.91%       68ms  1.76%  _int_free_chunk
+      46ms  1.19% 62.11%       48ms  1.25%  glm::operator* (inline)
+      46ms  1.19% 63.30%       51ms  1.32%  voxy::game::expedition::CoveInputRouter::tick
+      45ms  1.17% 64.47%      133ms  3.45%  __libc_malloc2

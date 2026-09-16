@@ -1,0 +1,14 @@
+{
+  "scope": "All traced threads between the replay markers; marker writes, initialization and final oracle output excluded. Syscall durations are sums, not CPU sample percentages.",
+  "syscalls": {
+    "ioctl": 60,
+    "brk": 196
+  },
+  "durationSeconds": {
+    "ioctl": 0.0008369999999999999,
+    "brk": 0.0024170000000000007
+  },
+  "unparsed": [],
+  "fileOrNetworkCalls": 0,
+  "traceSha256": "9f97487d42e63c4112d37f7657d319eb793a9de2a99c30943c651eefc32f65bb"
+}

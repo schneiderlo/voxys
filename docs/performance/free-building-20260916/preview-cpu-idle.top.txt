@@ -1,0 +1,26 @@
+File: preview-cache-runner
+Type: cpu
+Showing nodes accounting for 2176ms, 73.36% of 2966ms total
+Dropped 178 nodes (cum <= 14.83ms)
+Showing top 20 nodes out of 76
+      flat  flat%   sum%        cum   cum%
+     339ms 11.43% 11.43%      711ms 23.97%  hack_digit
+     334ms 11.26% 22.69%     1204ms 40.59%  __printf_fp_buffer_1.isra.0
+     254ms  8.56% 31.25%      254ms  8.56%  __mpn_divrem
+     173ms  5.83% 37.09%      173ms  5.83%  __memchr_evex
+     149ms  5.02% 42.11%     1439ms 48.52%  __printf_buffer
+     132ms  4.45% 46.56%      132ms  4.45%  __memmove_avx512_unaligned_erms
+     132ms  4.45% 51.01%      132ms  4.45%  __mpn_mul_1
+      72ms  2.43% 53.44%     1694ms 57.11%  std::num_put::_M_insert_float
+      70ms  2.36% 55.80%      179ms  6.04%  std::__ostream_insert
+      69ms  2.33% 58.13%      137ms  4.62%  std::basic_streambuf::xsputn
+      60ms  2.02% 60.15%      156ms  5.26%  castConvex
+      60ms  2.02% 62.17%       61ms  2.06%  std::char_traits::compare
+      55ms  1.85% 64.03%     1863ms 62.81%  std::ostream::_M_insert
+      54ms  1.82% 65.85%       59ms  1.99%  voxy::game::expedition::CoveInputRouter::tick
+      51ms  1.72% 67.57%       51ms  1.72%  std::ostream::sentry::sentry
+      38ms  1.28% 68.85%       47ms  1.58%  __printf_buffer_write
+      37ms  1.25% 70.09%       37ms  1.25%  __GI___uselocale
+      33ms  1.11% 71.21%       33ms  1.11%  __mpn_cmp
+      33ms  1.11% 72.32%       33ms  1.11%  __sqrt_finite@GLIBC_2.15
+      31ms  1.05% 73.36%       39ms  1.31%  std::ostream::put
