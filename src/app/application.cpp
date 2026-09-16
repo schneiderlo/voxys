@@ -875,6 +875,16 @@ bool Application::init(const ApplicationConfig& config) {
     rendererSettings_.ambientIntensity = config_.ambientIntensity;
     rendererSettings_.fogDensity = config_.fogDensity;
     rendererSettings_.fogColor = config_.fogColor;
+    if (config_.legoTerrainEnabled) {
+        // Match the renderer inspector's Low Golden Sun preset from frame one.
+        rendererSettings_.sunDirection = sunDirectionFromDegrees(-38.0f, 8.0f);
+        rendererSettings_.sunColor = {1.0f, 0.43f, 0.16f};
+        rendererSettings_.sunIntensity = 1.7f;
+        rendererSettings_.ambientColor = {0.18f, 0.23f, 0.42f};
+        rendererSettings_.ambientIntensity = 0.34f;
+        rendererSettings_.fogColor = {0.48f, 0.25f, 0.20f};
+        rendererSettings_.exposure = 1.15f;
+    }
     rendererSettings_.waterEnabled = config_.waterEnabled;
     rendererSettings_.waterHeight = config_.waterHeight;
     rendererSettings_.waterShallowColor = config_.waterShallowColor;
@@ -982,7 +992,7 @@ bool Application::init(const ApplicationConfig& config) {
         const float z = fullWorld ? 3398.0f : -58.0f;
         const float y = sampleTerrainHeight(x,z) + config_.cameraEyeHeight;
         setCameraWorldPose(*camera_, {x,y,z}, {x+8.0f,y-6.0f,z-35.0f});
-        throwableBodyLimit_ = 32u;
+        throwableBodyLimit_ = 20'000u;
     }
     initialized_ = true;
     shouldExit_ = false;
@@ -3635,6 +3645,10 @@ bool Application::initCamera() {
         physicsContext.gpu.enableRenderInterpolation = true;
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
+        if (config_.legoTerrainEnabled) {
+            // Every thrown LEGO ball requests continuous collision detection.
+            physicsContext.gpu.ccdBulletCapacity = config_.gpuPhysicsMaxBodies;
+        }
         physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;
         physicsContext.maxContacts = config_.gpuPhysicsMaxPairs;
         physicsContext.maxManifolds = config_.gpuPhysicsMaxPairs;
@@ -5012,7 +5026,10 @@ bool Application::spawnThrowable(
     }
 
     const uint32_t playgroundBodies=legoPlayground_ ? legoPlayground_->residentCount() : 0u;
-    if (config_.legoTerrainEnabled && physicsWorld_->stats().residentBodies >= 32u+playgroundBodies) return false;
+    if (throwableBodyLimit_ != 0u
+        && physicsWorld_->stats().residentBodies >= throwableBodyLimit_ + playgroundBodies) {
+        return false;
+    }
     const glm::vec3 normalizedDirection = glm::normalize(direction);
     glm::vec3 launchOrigin = origin;
     glm::ivec3 launchSector = sector;
@@ -5083,7 +5100,7 @@ uint32_t Application::throwThrowableBatch(
     constexpr uint32_t maximumColumns = 16u;
     constexpr uint32_t maximumRows = 8u;
     constexpr uint32_t fullBatchSize = maximumColumns * maximumRows;
-    const uint32_t batchSize = std::min(maximumBodies, config_.legoTerrainEnabled ? 8u : fullBatchSize);
+    const uint32_t batchSize = std::min(maximumBodies, fullBatchSize);
     const uint32_t columns = std::min(batchSize, maximumColumns);
     const uint32_t rows = (batchSize + columns - 1u) / columns;
     const glm::vec3 direction = glm::normalize(camera_->forward());
@@ -5207,7 +5224,7 @@ void Application::processThrowableInput(float deltaTime) {
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
 
     if (singleRequested) {
-        spawnThrowable(shape, origin, direction, camera_->worldSector());
+        (void)spawnThrowable(shape, origin, direction, camera_->worldSector());
         return;
     }
 
@@ -5227,15 +5244,13 @@ void Application::processThrowableInput(float deltaTime) {
     throwableCooldown_ -= frameTime;
     const float throwInterval = config_.legoTerrainEnabled ? 0.3f : 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
-        if (throwableBodyLimit_ != 0u
-            && physicsWorld_->stats().residentBodies
-                >= throwableBodyLimit_) {
+        // Every input path uses spawnThrowable's same limit, which excludes
+        // the building playground's own bodies from the free-throw allowance.
+        if (!spawnThrowable(shape, origin, direction, camera_->worldSector())) {
+            throwableCooldown_ = 0.0f;
             break;
         }
-        if (spawnThrowable(
-                shape, origin, direction, camera_->worldSector())) {
-            LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
-        }
+        LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         throwableCooldown_ += throwInterval;
     }
 }

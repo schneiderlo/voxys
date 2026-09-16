@@ -640,6 +640,9 @@ cc_test(
 # Combined test target that runs all tests
 cc_test(
     name = "voxy_tests",
+    # The full CPU/GPU suite needs more than the default five-minute budget.
+    size = "large",
+    timeout = "eternal",
     srcs = TEST_SRCS + [
         "test_deterministic_adversity_transport.cpp",
         "test_moto_session.cpp",

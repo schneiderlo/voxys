@@ -45,6 +45,7 @@ cc_library(
         "authored_cove.hpp",
         "compression.hpp",
         "heightmap.hpp",
+        "lego_layout_cache.hpp",
         "mip_generator.hpp",
         "textures.hpp",
     ],

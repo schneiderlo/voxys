@@ -292,9 +292,17 @@ TEST_F(RaycastShaderTest, EmitsStableFilteredTerrainNormal) {
         shaderSource_.find("fn terrainSurfaceNormal("),
         std::string::npos);
     EXPECT_NE(
-        shaderSource_.find("vec4<f32>(terrainNormal, 1.0)"),
+        shaderSource_.find("terrainNormal = terrainSurfaceNormal("),
         std::string::npos)
-        << "Terrain material output must carry the filtered height derivative";
+        << "Smooth terrain must use the filtered height derivative";
+    EXPECT_NE(
+        shaderSource_.find("var terrainNormal = legoNormal;"),
+        std::string::npos)
+        << "Brick terrain must retain its geometric surface normal";
+    EXPECT_NE(
+        shaderSource_.find("vec4<f32>(terrainNormal, select(1.0, legoTopDistance, legoMode))"),
+        std::string::npos)
+        << "Material RGB carries the terrain normal; alpha carries the LEGO top distance";
     EXPECT_NE(
         shaderSource_.find("hLeft0"),
         std::string::npos)

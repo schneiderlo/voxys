@@ -8,7 +8,7 @@
 namespace {
 using namespace voxy::terrain::lego;
 uint16_t raw(float y, float scale=8.0f) {
-    return uint16_t(std::lround((double(y)/scale+1.0)*32767.5));
+    return uint16_t(std::lround((static_cast<double>(y)/static_cast<double>(scale)+1.0)*32767.5));
 }
 
 TEST(LegoSurface, QuantizesAllRawSamplesWithinHalfAPlate) {
@@ -120,13 +120,13 @@ TEST(LegoSurface, PlayerLandsAndJumpsInNegativeHeightSector) {
     for(int i=0;i<240;++i) motion=mover.moveCharacter(character,{0,0,0},false,6,20,50,1.0f/120);
     ASSERT_TRUE(motion.grounded);
     EXPECT_EQ(motion.sector.y,-1);
-    EXPECT_NEAR(motion.position.y+256.0f*motion.sector.y,support,.002f);
+    EXPECT_NEAR(motion.position.y+256.0f*static_cast<float>(motion.sector.y),support,.002f);
     motion=mover.moveCharacter(character,{0,0,0},true,6,20,50,1.0f/120);
     EXPECT_FALSE(motion.grounded);
     EXPECT_GT(motion.velocity.y,0);
     for(int i=0;i<240;++i) motion=mover.moveCharacter(character,{0,0,0},false,6,20,50,1.0f/120);
     EXPECT_TRUE(motion.grounded);
-    EXPECT_NEAR(motion.position.y+256.0f*motion.sector.y,support,.002f);
+    EXPECT_NEAR(motion.position.y+256.0f*static_cast<float>(motion.sector.y),support,.002f);
 }
 TEST(LegoSurface, ChunkBuilderMatchesStudyAndFullMapEdges) {
     constexpr uint32_t n=65;
@@ -205,7 +205,7 @@ TEST(LegoSurface, TerrainModeSwitchPreservesLiveCharacter) {
         ASSERT_TRUE(mover.setTerrain(data,65,65,8,1,lego));
         for(int i=0;i<240;++i) motion=mover.moveCharacter(character,{0,0,0},false,6,20,50,1.0f/120);
         ASSERT_TRUE(motion.grounded);
-        const float y=motion.position.y+256.0f*motion.sector.y;
+        const float y=motion.position.y+256.0f*static_cast<float>(motion.sector.y);
         EXPECT_NEAR(y,lego ? kStudHeight : (float(data[0])/65535.0f*16.0f-8.0f),.003f);
     }
 }

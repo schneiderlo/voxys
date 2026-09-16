@@ -167,6 +167,9 @@ try{
                 moto:moto?JSON.parse(voxyModule.UTF8ToString(moto)):null,
                 errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost,
                 adapter:window.voxyDeviceProfile?.adapter,title:document.title,buildId:window.voxyBuildId,
+                lighting:Object.fromEntries(['lighting.sunElevation','lighting.sunAzimuth',
+                    'lighting.sunIntensity','lighting.ambientIntensity','lighting.exposure'].map(key =>
+                    [key,voxyModule.ccall('voxy_renderer_get_number','number',['string'],[key])])),
                 heapBytes:voxyModule.HEAPU8?.byteLength,
                 heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
@@ -199,7 +202,16 @@ try{
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
     if(isLego){
         assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');
-        assert.equal(sample.legoControlsVisible,true);
+        assert.equal(sample.legoControlsVisible,false,'playground toolbar should be hidden by default');
+        for(const [key,value] of Object.entries({'lighting.sunElevation':8,
+            'lighting.sunAzimuth':-38,'lighting.sunIntensity':1.7,
+            'lighting.ambientIntensity':0.34,'lighting.exposure':1.15})) {
+            assert(Math.abs(sample.lighting[key]-value)<0.001,`incorrect golden-hour default: ${key}`);
+        }
+        assert(sample.telemetry.physics.bodies.capacity>=20000,
+            'physics allocation cannot hold 20,000 balls');
+        assert(sample.telemetry.physics.bullets.capacity>=20000,
+            'continuous collision allocation cannot hold 20,000 balls');
         assert.equal(sample.telemetry.render.terrain_width,isWorld?8192:256,'LEGO source was upscaled');
         assert.equal(sample.telemetry.render.terrain_height,isWorld?8192:256,'LEGO source was upscaled');
         assert.equal(sample.telemetry.render.terrain_mips,isWorld?14:9);
@@ -213,6 +225,35 @@ try{
     const imageCode=await new Promise((resolve,reject)=>{check.on('error',reject);check.on('close',resolve);});
     assert.equal(imageCode,0,'main page has no visible landscape');
     report.screenshot=screenshotPath;
+    if(isLego&&process.env.VOXY_SMOKE_BALL_LIMIT==='1') {
+        const run=await call('Runtime.evaluate',{returnByValue:true,expression:
+            'voxyModule._voxy_start_browser_journey_benchmark(20000,0,1,1,128,1,1,0)'});
+        assert.equal(run.result?.value,1,'20,000-ball throw sequence was rejected');
+        const throwingStarted=Date.now();
+        let thrown=0;
+        while(Date.now()-throwingStarted<120000) {
+            const state=await call('Runtime.evaluate',{returnByValue:true,expression:`({
+                count:voxyModule._voxy_get_physics_resident_bodies(),
+                status:voxyModule._voxy_get_browser_journey_benchmark_status(),
+                errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost})`});
+            assert(!state.exceptionDetails,JSON.stringify(state.exceptionDetails));
+            assert.equal(state.result.value.errors.length,0);
+            assert(!state.result.value.lost,JSON.stringify(state.result.value.lost));
+            thrown=state.result.value.count;
+            assert(state.result.value.status>=0,`20,000-ball throw sequence failed at ${thrown} balls`);
+            if(thrown===20000&&state.result.value.status===5)break;
+            await delay(100);
+        }
+        assert.equal(thrown,20000,'production throw path did not reach 20,000 balls');
+        // Once full, a normal B-key throw must not allocate a 20,001st ball.
+        await call('Runtime.evaluate',{expression:'voxyModule._voxy_key_event(66,1)'});
+        await delay(300);
+        await call('Runtime.evaluate',{expression:'voxyModule._voxy_key_event(66,0)'});
+        const full=await call('Runtime.evaluate',{returnByValue:true,
+            expression:'voxyModule._voxy_get_physics_resident_bodies()'});
+        assert.equal(full.result.value,20000,'ball limit overshot');
+        report.ballLimit={resident:thrown,rejectedExtra:true};
+    }
     report.startupElapsedMs=Date.now()-navigationStarted;
     if(process.env.VOXY_SMOKE_JOURNEY){
         const {validateWorld}=await import('./validate_lego_world.mjs');
