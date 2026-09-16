@@ -1,0 +1,10 @@
+{
+  "baselineSource": "7ea4d7628a6d2245a8563060e5519d19c8926a9d",
+  "previousSource": "1e4e75d376bef88864c4f03f66d975ec256e921c",
+  "binary": "/tmp/voxys-perf-20260916/ray-runner",
+  "binarySha256": "32f25dd5920ddb366d28f723eb2c5faee7de08dbd120216c3bb1af61736f19c8",
+  "harnessSha256": "b306c93bc0e5770a1dfb10d0cd4d675a50dee3c521b52748dfc8885437c8285a",
+  "command": "nix-shell --run 'bash scripts/performance/run_free_build_benchmark.sh /tmp/voxys-perf-20260916/ray-runner /tmp/voxys-perf-20260916/ray'",
+  "controlCommand": "nix-shell --run 'bash scripts/performance/run_free_build_benchmark.sh /tmp/voxys-perf-20260916/release-baseline-runner /tmp/voxys-perf-20260916/final-control'",
+  "timingContext": "No compilation or other benchmark/test concurrent with replay matrices. Profiles captured separately. Fresh original-binary control checks elapsed-session host drift."
+}

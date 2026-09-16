@@ -708,6 +708,29 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
             EXPECT_NE(structureText(runtime.json()),classic);
         }
         EXPECT_EQ(structureText(runtime.json()),classic);
+        // Same-shaped restored geometry can carry new IDs. Picking must use
+        // the new identity even when the camera ray and revision are unchanged.
+        stillFrame();
+        const auto& aimedPart=runtime.state().structures[0].parts[0];
+        const auto* aimedDefinition=buildingDefinition(aimedPart.kind);
+        auto center=glm::dvec3(aimedPart.position.x,aimedPart.position.y,aimedPart.position.z)*.02;
+        center.y+=(aimedDefinition->bounds.minimum.y+aimedDefinition->bounds.maximum.y)*.01;
+        const auto origin=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize);
+        const auto clip=glm::dmat4(camera.viewProjectionMatrix())*glm::dvec4(center-origin,1);
+        ASSERT_GT(clip.w,0);
+        input.onMouseMove(float((clip.x/clip.w+1)*640),float((1-clip.y/clip.w)*400));
+        stillFrame();ASSERT_TRUE(read().at("canRemove"))<<runtime.json();
+        stillFrame();const auto oldRay=read().at("aimRay");
+        auto retargeted=runtime.state();
+        retargeted.structures[0].id+=10;retargeted.structures[0].parts[0].id+=10;retargeted.lastIssuedId+=10;
+        std::vector<std::byte> retargetedBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(retargeted,runtime.content(),retargetedBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(retargetedBytes,retargeted.world,error))<<error;
+        stillFrame();EXPECT_EQ(read().at("aimRay"),oldRay);
+        EXPECT_EQ(runtime.state().revision,retargeted.revision);
+        runtime.action(5);stillFrame();
+        EXPECT_TRUE(runtime.state().structures.empty())<<runtime.json();
+        EXPECT_FALSE(read().at("canRemove"));
         wgpuQueueSubmit(context.getQueue(),0,nullptr);
         auto* callback=new std::shared_ptr<GpuSignals>(signals);
         wgpuQueueOnSubmittedWorkDone(context.getQueue(),[](WGPUQueueWorkDoneStatus status,void* data){

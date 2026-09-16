@@ -1,0 +1,26 @@
+File: ray-runner
+Type: cpu
+Showing nodes accounting for 891ms, 63.01% of 1414ms total
+Dropped 207 nodes (cum <= 7.07ms)
+Showing top 20 nodes out of 147
+      flat  flat%   sum%        cum   cum%
+     175ms 12.38% 12.38%      175ms 12.38%  partFor (inline)
+      98ms  6.93% 19.31%       98ms  6.93%  __memchr_evex
+      88ms  6.22% 25.53%      683ms 48.30%  voxy::game::adventure::validateConstruction
+      71ms  5.02% 30.55%       71ms  5.02%  __memmove_avx512_unaligned_erms
+      48ms  3.39% 33.95%       58ms  4.10%  _int_malloc
+      39ms  2.76% 36.70%       65ms  4.60%  _int_free_chunk
+      36ms  2.55% 39.25%       39ms  2.76%  voxy::game::expedition::CoveInputRouter::tick
+      35ms  2.48% 41.73%       93ms  6.58%  __libc_malloc2
+      34ms  2.40% 44.13%       34ms  2.40%  std::_Rb_tree::_S_right (inline)
+      34ms  2.40% 46.53%       76ms  5.37%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      28ms  1.98% 48.51%       28ms  1.98%  std::_Rb_tree_insert_and_rebalance
+      27ms  1.91% 50.42%       28ms  1.98%  std::char_traits::compare
+      24ms  1.70% 52.12%       60ms  4.24%  castConvex (inline)
+      24ms  1.70% 53.82%      739ms 52.26%  voxy::game::adventure::AdventureRuntime::updateTarget
+      24ms  1.70% 55.52%       48ms  3.39%  voxy::game::adventure::AdventureSpatialQueries::candidates
+      23ms  1.63% 57.14%       69ms  4.88%  __printf_fp_buffer_1.isra.0
+      22ms  1.56% 58.70%       32ms  2.26%  contact (inline)
+      21ms  1.49% 60.18%       22ms  1.56%  glm::operator- (inline)
+      20ms  1.41% 61.60%       20ms  1.41%  glm::lessThanEqual (inline)
+      20ms  1.41% 63.01%       33ms  2.33%  hack_digit

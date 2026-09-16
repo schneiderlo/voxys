@@ -189,7 +189,7 @@ all save formats. This is a bounded performance task, not a return to adventure.
   report the top 3–5 measured time hotspots.
 - [x] Define explicit golden observations, accepted archives and invariants.
 - [x] Rank opportunities by `(Impact × Confidence) / Effort` before implementation.
-- [ ] Implement only measured changes, one performance lever per diff, each with
+- [x] Implement only measured changes, one performance lever per diff, each with
   an output-equivalence proof sketch and exact replay comparison.
 - [x] Add reproducible performance regression guards and retain before/after data.
 - [ ] Pass the normal commit hook, push main and verify the final live release.
@@ -201,7 +201,11 @@ verified live. Investigation window: **2026-09-16 14:56:33–16:26:33 UTC**. See
 First performance commit: `5381b18a` (unchanged preview reuse), full normal hook
 passed. A separately measured structure-serialization change preserves all 24
 replay outputs and raises the 768-piece edit workload to 8.21× baseline throughput.
-Its full commit/deployment gates remain pending.
+Its full normal hook passed as `1e4e75d3`. A final measured ray-result cache
+preserves all golden output/save bytes and raises this workload to **10.50×**
+the original throughput (10.41× a fresh original-binary control). Final browser
+compilation passed. Implementation is frozen; the last full commit hook and
+public deployment checks remain pending.
 
 Measurement tooling is in `tools/benchmarks` and `scripts/performance`.
 Its native CPU component timings must not be presented as browser FPS. See the

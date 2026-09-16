@@ -223,3 +223,83 @@ The new real-terrain restore/locale/directed-rounding regressions pass.
 Deliberately removing the serialization restore reset and formatting guards makes
 all three boundary checks fail (stale IDs, ignored numeric locale, ignored directed
 rounding). The previously passing implementation was restored byte-for-byte.
+
+### Change 2 commit gate
+
+Committed as `1e4e75d376bef88864c4f03f66d975ec256e921c` after the normal full
+hook: 2,457 tests passed, eight opt-in cases skipped, four existing disabled cases;
+importer passed. Aggregate suite 1,160.8 s. The opt-in runtime test separately
+passed with the installed terrain, including all three formatting boundaries.
+
+## Reconstructing the historical baseline
+
+For a future reproduction, use a separate checkout of release `7ea4d762` and
+bring only `tools/BUILD`, `tools/benchmarks` and `scripts/performance` from
+instrumentation commit `5381b18a`. Keep the original runtime sources. Install
+the repository README's dependencies and the exact terrain identified by
+`baseline-context.json`, then use the recorded optimized build command. The
+current checkout's benchmark represents the optimized candidate, not the historical
+baseline. Do not reset a working checkout containing someone else's edits.
+
+## Scope of the equivalence claim
+
+The shipped creative Application loads its installed terrain before runtime
+initialization and bypasses terrain-edit input. The caches assume that fixed
+terrain; future editable terrain must publish a new identity or invalidate them.
+Only derived query/preview/text results are retained. Actual edits still validate
+fresh commands, and save encoding never uses these caches.
+
+The workload includes held aim and changing aim, walking, edits, menus and undo.
+Continuous aim changes receive less reuse than held aim; rare edit tails remain.
+These are CPU component measurements, not rendered FPS or input-to-photon latency.
+The browser build and actual startup remain separate release gates.
+
+## Change 3 — identical creative picking rays
+
+Pre-implementation ranking and full proof: `ray-design.md`. The cache uses exact
+IEEE ray bits, world/epoch and accepted geometry revision, and is bounded to one
+result. Restore and initialization invalidate it. Nondefault rounding and legacy
+adventure use the original query. The same default-rounding eligibility now also
+protects the earlier preview-result cache. No camera/terrain/collision maths change.
+
+All 24 complete JSONL/save goldens and fixed guards pass against the original
+baseline and Change 2. At 768/edit, update p50/p95/p99 is **7.88/25.62/564.73 μs**
+(original 427.98/491.03/957.43). Total replay throughput is **25,793 updates/s**,
+**10.50×** original and **27.9%** above Change 2. Peak RSS is 243.25 MiB versus
+243.36 MiB originally. JSON p50/p95/p99 is 23.97/32.52/361.01 μs. At 768/idle,
+update p50/p95/p99 is 7.82/8.00/9.71 μs and throughput is 54,605 updates/s.
+
+A fresh 24-run control with the **unchanged preserved original binary** checks
+for elapsed-session thermal/desktop drift. Its 768/edit throughput is 2,478/s
+(original 2,456/s); the candidate remains **10.41×** faster. Every output matches
+that control too and all guards pass. Original thresholds and original data remain
+retained; the fresh control does not replace or relax either.
+
+Final separate profile: construction validation48.30%, JSON14.99%, and part
+lookup12.38% inclusive. `std::string::find`9.19% includes benchmark observation
+bookkeeping; it is not evidence of a new game bottleneck. Allocation remains
+205.03 MiB/945,707 calls, **86.3% fewer cumulative bytes** than original. This
+is not a peak-memory reduction claim. The replay still has no file/network I/O.
+
+The new picking/restore regression passes on Change 2 before optimization and
+on Change 3: same geometry/ray/revision, different IDs, then removal through the
+public command. Mutation check and final browser/commit gates are recorded below.
+
+No fourth optimization is planned in this bounded pass. Certified part lookup
+remains a measured follow-up; no unsafe assumption of sorted standalone input
+has been introduced.
+
+The third mutation probe removes only the ray reset at restore. The regression
+then fails because the old brick ID is still targeted and the public Remove
+command reports a missing piece. The previously passing runtime source was
+restored byte-for-byte before the final gate. Guard fault-injection self-tests
+also pass.
+
+Final browser compilation passed with the real Emscripten target:
+
+```sh
+nix-shell --run 'cmake --build build-lego-wasm --target voxy_wasm -j4'
+```
+
+Implementation is frozen after these three measured changes. The final normal
+commit hook and public deployment remain to be verified.

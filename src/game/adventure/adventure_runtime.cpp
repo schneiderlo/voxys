@@ -197,7 +197,7 @@ std::string AdventureRuntime::preferencesAction(int action,std::string_view text
 }
 bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice device,WGPUQueue queue,
     const std::filesystem::path& shaders,WGPUTextureFormat color,std::string& error) {
-    previewResult_.reset();structureJson_.reset();
+    previewResult_.reset();structureJson_.reset();aimRayResult_.reset();
     if(!matchesInstalledTerrain(surface)||!queries_.bindTerrain(surface)) {error="Adventure terrain does not match the installed world.";return false;}
     const auto spawn=townSpawn(surface);
     content_.town={spawn.x,spawn.y,spawn.z,0};
@@ -527,7 +527,18 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     const auto origin=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize);
     const auto eye=origin+glm::dvec3(camera.position());
     const auto direction=glm::normalize(origin+glm::dvec3(world)-eye);
-    const auto hit=queries_.raycast(eye,direction,25);
+    // Match exact IEEE values, including signed zero; restore clears even an
+    // equal revision. This is only the fixed 25 m picking query.
+    const AimRayKey rayKey{state().world,state().epoch,queries_.revision(),{
+        std::bit_cast<uint64_t>(eye.x),std::bit_cast<uint64_t>(eye.y),std::bit_cast<uint64_t>(eye.z),
+        std::bit_cast<uint64_t>(direction.x),std::bit_cast<uint64_t>(direction.y),std::bit_cast<uint64_t>(direction.z)}};
+    const bool cacheRay=freeBuild_&&std::fegetround()==FE_TONEAREST;
+    AdventureSpatialQueries::RayHit hit;
+    if(cacheRay&&aimRayResult_&&aimRayResult_->key==rayKey)hit=aimRayResult_->hit;
+    else {
+        hit=queries_.raycast(eye,direction,25);
+        if(cacheRay)aimRayResult_=AimRayResult{rayKey,hit};
+    }
     observedRayFrom_=eye;observedRayTo_=eye+direction*25.;observedRayHit_=hit;
     hasTarget_=hit.complete&&hit.hit;targetPart_=hasTarget_?hit.part.counter:0;
     if(!hasTarget_){previewValid_=false;previewReason_="Aim at nearby ground or a building.";return;}
@@ -572,7 +583,7 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     // still checks actual support/contact; nearby distance alone cannot admit it.
     if(!preview_.structure)for(const auto& structure:state().structures)
         for(const auto& part:structure.parts)if(glm::length(metres(part.position)-p)<4.1){preview_.structure=structure.id;break;}
-    const bool cachePreview=freeBuild_&&blueprint_==BlueprintKind::None;
+    const bool cachePreview=cacheRay&&blueprint_==BlueprintKind::None;
     const PreviewKey key{state().world,state().epoch,state().revision,state().lastRequestSequence,
         queries_.revision(),preview_.structure,preview_.kind,preview_.position,preview_.yawQuarterTurns,preview_.paint};
     if(cachePreview&&previewResult_&&previewResult_->key==key) {
@@ -1678,7 +1689,7 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     if(!checkedPlayer.initialize(actors,townSpawn(actors.terrain()),installedWorld().waterHeight)
         ||!checkedPlayer.restore(pose)) {error="Saved player position is unavailable.";return false;}
     session_=std::move(next);walkQueries_=std::move(geometry);queries_=std::move(actors);encounters_=std::move(encounters);
-    previewResult_.reset();structureJson_.reset(); // A restored checkpoint can reuse the same revision.
+    previewResult_.reset();structureJson_.reset();aimRayResult_.reset(); // A restored checkpoint can reuse the same revision.
     town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     combat_.reset();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
     if(!player_.restore(pose)){error="Saved player position is unavailable.";return false;}

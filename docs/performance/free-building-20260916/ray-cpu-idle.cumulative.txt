@@ -1,0 +1,26 @@
+File: ray-runner
+Type: cpu
+Showing nodes accounting for 271ms, 41.00% of 661ms total
+Dropped 136 nodes (cum <= 3.31ms)
+Showing top 20 nodes out of 83
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%      661ms   100%  __libc_start_call_main
+         0     0%     0%      661ms   100%  __libc_start_main_alias_2
+         0     0%     0%      661ms   100%  _start
+         0     0%     0%      661ms   100%  main
+       3ms  0.45%  0.45%      319ms 48.26%  voxy::game::adventure::AdventureRuntime::update
+      13ms  1.97%  2.42%      202ms 30.56%  std::__cxx11::basic_string::find (inline)
+     139ms 21.03% 23.45%      139ms 21.03%  __memchr_evex
+         0     0% 23.45%      139ms 21.03%  std::char_traits::find (inline)
+         0     0% 23.45%      136ms 20.57%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+       4ms  0.61% 24.05%       67ms 10.14%  operator() (inline)
+      32ms  4.84% 28.90%       64ms  9.68%  voxy::game::adventure::AdventureRuntime::updateTarget
+      17ms  2.57% 31.47%       62ms  9.38%  voxy::game::adventure::AdventureSpatialQueries::candidates
+      60ms  9.08% 40.54%       60ms  9.08%  __memmove_avx512_unaligned_erms
+       1ms  0.15% 40.70%       60ms  9.08%  voxy::game::adventure::AdventureRuntime::advanceCombat
+         0     0% 40.70%       58ms  8.77%  voxy::game::adventure::AdventurePlayer::advance
+         0     0% 40.70%       58ms  8.77%  voxy::game::adventure::AdventurePlayer::step
+         0     0% 40.70%       57ms  8.62%  std::__cxx11::basic_string::assign
+       1ms  0.15% 40.85%       57ms  8.62%  voxy::game::expedition::CoveCamera::update
+         0     0% 40.85%       56ms  8.47%  std::__cxx11::basic_string::_M_replace (partial-inline)
+       1ms  0.15% 41.00%       55ms  8.32%  std::__cxx11::basic_string::_M_mutate

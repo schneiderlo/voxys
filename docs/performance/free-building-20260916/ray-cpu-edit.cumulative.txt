@@ -1,0 +1,26 @@
+File: ray-runner
+Type: cpu
+Showing nodes accounting for 300ms, 21.22% of 1414ms total
+Dropped 207 nodes (cum <= 7.07ms)
+Showing top 20 nodes out of 147
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     1414ms   100%  __libc_start_call_main
+         0     0%     0%     1414ms   100%  __libc_start_main_alias_2
+         0     0%     0%     1414ms   100%  _start
+         0     0%     0%     1414ms   100%  main
+       3ms  0.21%  0.21%     1069ms 75.60%  voxy::game::adventure::AdventureRuntime::update
+      24ms  1.70%  1.91%      739ms 52.26%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  1.91%      688ms 48.66%  voxy::game::adventure::AdventureSession::finish
+      88ms  6.22%  8.13%      683ms 48.30%  voxy::game::adventure::validateConstruction
+         0     0%  8.13%      660ms 46.68%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0%  8.13%      628ms 44.41%  std::function::operator() (inline)
+         0     0%  8.13%      627ms 44.34%  __invoke_impl (inline)
+         0     0%  8.13%      627ms 44.34%  __invoke_r (inline)
+         0     0%  8.13%      627ms 44.34%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%  8.13%      212ms 14.99%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+     175ms 12.38% 20.51%      175ms 12.38%  partFor (inline)
+       6ms  0.42% 20.93%      130ms  9.19%  std::__cxx11::basic_string::find (inline)
+       3ms  0.21% 21.15%      111ms  7.85%  operator new
+       1ms 0.071% 21.22%      111ms  7.85%  std::__new_allocator::allocate (inline)
+         0     0% 21.22%      111ms  7.85%  std::allocator::allocate (inline)
+         0     0% 21.22%      111ms  7.85%  std::allocator_traits::allocate (inline)

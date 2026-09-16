@@ -1,0 +1,26 @@
+File: ray-runner
+Type: cpu
+Showing nodes accounting for 516ms, 78.06% of 661ms total
+Dropped 136 nodes (cum <= 3.31ms)
+Showing top 20 nodes out of 83
+      flat  flat%   sum%        cum   cum%
+     139ms 21.03% 21.03%      139ms 21.03%  __memchr_evex
+      60ms  9.08% 30.11%       60ms  9.08%  __memmove_avx512_unaligned_erms
+      51ms  7.72% 37.82%       53ms  8.02%  std::char_traits::compare (inline)
+      42ms  6.35% 44.18%       46ms  6.96%  voxy::game::expedition::CoveInputRouter::tick
+      34ms  5.14% 49.32%       34ms  5.14%  glm::lessThanEqual (inline)
+      32ms  4.84% 54.16%       64ms  9.68%  voxy::game::adventure::AdventureRuntime::updateTarget
+      29ms  4.39% 58.55%       41ms  6.20%  voxy::game::expedition::sampleCoveInput
+      17ms  2.57% 61.12%       62ms  9.38%  voxy::game::adventure::AdventureSpatialQueries::candidates
+      13ms  1.97% 63.09%       13ms  1.97%  __gnu_cxx::__normal_iterator::operator++ (inline)
+      13ms  1.97% 65.05%      202ms 30.56%  std::__cxx11::basic_string::find
+      12ms  1.82% 66.87%       35ms  5.30%  voxy::game::expedition::sweepCoveTerrainSphere
+      11ms  1.66% 68.53%       14ms  2.12%  glm::operator* (inline)
+      10ms  1.51% 70.05%       19ms  2.87%  hack_digit
+      10ms  1.51% 71.56%       10ms  1.51%  std::vector::operator[] (inline)
+       9ms  1.36% 72.92%        9ms  1.36%  voxy::game::adventure::AdventureCombatInputRouter::tick
+       8ms  1.21% 74.13%        8ms  1.21%  __mpn_mul_1
+       7ms  1.06% 75.19%       20ms  3.03%  castConvex (inline)
+       7ms  1.06% 76.25%        7ms  1.06%  voxy::Input::isKeyDown
+       6ms  0.91% 77.16%        6ms  0.91%  __memset_avx512_unaligned_erms
+       6ms  0.91% 78.06%       44ms  6.66%  __printf_buffer
