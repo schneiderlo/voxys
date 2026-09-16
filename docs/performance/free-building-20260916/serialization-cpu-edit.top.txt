@@ -1,0 +1,26 @@
+File: serialization-runner
+Type: cpu
+Showing nodes accounting for 1162ms, 62.11% of 1871ms total
+Dropped 184 nodes (cum <= 9.36ms)
+Showing top 20 nodes out of 152
+      flat  flat%   sum%        cum   cum%
+     174ms  9.30%  9.30%      175ms  9.35%  partFor (inline)
+     142ms  7.59% 16.89%      370ms 19.78%  castConvex (inline)
+      94ms  5.02% 21.91%      499ms 26.67%  voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)
+      90ms  4.81% 26.72%      739ms 39.50%  voxy::game::adventure::validateConstruction
+      84ms  4.49% 31.21%       84ms  4.49%  __memchr_evex
+      59ms  3.15% 34.37%       59ms  3.15%  __sqrt_finite@GLIBC_2.15
+      53ms  2.83% 37.20%       71ms  3.79%  _int_malloc
+      49ms  2.62% 39.82%      120ms  6.41%  __libc_malloc2
+      48ms  2.57% 42.38%       49ms  2.62%  glm::operator* (inline)
+      46ms  2.46% 44.84%       46ms  2.46%  __memmove_avx512_unaligned_erms
+      43ms  2.30% 47.14%       50ms  2.67%  voxy::game::expedition::CoveInputRouter::tick
+      42ms  2.24% 49.39%       42ms  2.24%  glm::operator- (inline)
+      41ms  2.19% 51.58%       76ms  4.06%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      33ms  1.76% 53.34%       33ms  1.76%  std::_Rb_tree::_S_right (inline)
+      32ms  1.71% 55.05%       32ms  1.71%  __sqrt
+      29ms  1.55% 56.60%       54ms  2.89%  _int_free_chunk
+      28ms  1.50% 58.10%       28ms  1.50%  glm::operator/ (inline)
+      26ms  1.39% 59.49%     1192ms 63.71%  voxy::game::adventure::AdventureRuntime::updateTarget
+      25ms  1.34% 60.82%       28ms  1.50%  std::char_traits::compare
+      24ms  1.28% 62.11%       44ms  2.35%  std::_Rb_tree::_M_lower_bound (inline)

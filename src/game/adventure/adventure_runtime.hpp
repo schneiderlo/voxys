@@ -178,6 +178,12 @@ private:
     struct PreviewResult {PreviewKey key;bool valid=false;std::string reason;};
     // Only the discarded speculative result is cached. Real edits validate anew.
     std::optional<PreviewResult> previewResult_;
+    struct StructureJson {
+        construction::WorldNamespace world{};
+        uint64_t epoch=0,geometryRevision=0;
+        std::string bytes;
+    };
+    mutable std::optional<StructureJson> structureJson_;
     std::string status_="Find a home site. Press B to build.",previewReason_,saveStatus_="Unsaved adventure",saveFailure_;
     glm::dvec3 aimPoint_{};
     std::vector<PendingAction> pendingActions_;

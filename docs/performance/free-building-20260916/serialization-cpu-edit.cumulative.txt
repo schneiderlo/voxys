@@ -1,0 +1,26 @@
+File: serialization-runner
+Type: cpu
+Showing nodes accounting for 533ms, 28.49% of 1871ms total
+Dropped 184 nodes (cum <= 9.36ms)
+Showing top 20 nodes out of 152
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     1871ms   100%  __libc_start_call_main
+         0     0%     0%     1871ms   100%  __libc_start_main_alias_2
+         0     0%     0%     1871ms   100%  _start
+         0     0%     0%     1871ms   100%  main
+       4ms  0.21%  0.21%     1569ms 83.86%  voxy::game::adventure::AdventureRuntime::update
+      26ms  1.39%  1.60%     1192ms 63.71%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  1.60%      740ms 39.55%  voxy::game::adventure::AdventureSession::finish
+      90ms  4.81%  6.41%      739ms 39.50%  voxy::game::adventure::validateConstruction
+         0     0%  6.41%      705ms 37.68%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0%  6.41%      691ms 36.93%  __invoke_impl (inline)
+         0     0%  6.41%      691ms 36.93%  __invoke_r (inline)
+         0     0%  6.41%      691ms 36.93%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%  6.41%      691ms 36.93%  std::function::operator() (inline)
+      94ms  5.02% 11.44%      499ms 26.67%  voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)
+       1ms 0.053% 11.49%      479ms 25.60%  voxy::game::adventure::AdventureSpatialQueries::raycast
+     142ms  7.59% 19.08%      370ms 19.78%  castConvex (inline)
+         0     0% 19.08%      181ms  9.67%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+     174ms  9.30% 28.38%      175ms  9.35%  partFor (inline)
+       2ms  0.11% 28.49%      135ms  7.22%  std::__new_allocator::allocate (inline)
+         0     0% 28.49%      135ms  7.22%  std::allocator::allocate (inline)

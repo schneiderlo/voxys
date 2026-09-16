@@ -1,0 +1,26 @@
+File: serialization-runner
+Type: cpu
+Showing nodes accounting for 637ms, 77.03% of 827ms total
+Dropped 128 nodes (cum <= 4.13ms)
+Showing top 20 nodes out of 87
+      flat  flat%   sum%        cum   cum%
+     174ms 21.04% 21.04%      174ms 21.04%  __memchr_evex
+      60ms  7.26% 28.30%       60ms  7.26%  __memmove_avx512_unaligned_erms
+      54ms  6.53% 34.82%       58ms  7.01%  voxy::game::expedition::CoveInputRouter::tick
+      50ms  6.05% 40.87%       51ms  6.17%  std::char_traits::compare (inline)
+      49ms  5.93% 46.80%      135ms 16.32%  castConvex (inline)
+      36ms  4.35% 51.15%      176ms 21.28%  voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)
+      24ms  2.90% 54.05%       24ms  2.90%  glm::lessThanEqual (inline)
+      24ms  2.90% 56.95%       24ms  2.90%  glm::operator* (inline)
+      23ms  2.78% 59.73%      204ms 24.67%  voxy::game::adventure::AdventureRuntime::updateTarget
+      21ms  2.54% 62.27%       56ms  6.77%  voxy::game::adventure::AdventureSpatialQueries::candidates
+      21ms  2.54% 64.81%       30ms  3.63%  voxy::game::expedition::sampleCoveInput
+      18ms  2.18% 66.99%       18ms  2.18%  __sqrt_finite@GLIBC_2.15
+      17ms  2.06% 69.04%       27ms  3.26%  hack_digit
+      12ms  1.45% 70.50%       12ms  1.45%  __sqrt
+      11ms  1.33% 71.83%      234ms 28.30%  std::__cxx11::basic_string::find
+      10ms  1.21% 73.04%       11ms  1.33%  glm::operator- (inline)
+       9ms  1.09% 74.12%        9ms  1.09%  __memset_avx512_unaligned_erms
+       9ms  1.09% 75.21%       65ms  7.86%  std::char_traits::copy
+       8ms  0.97% 76.18%        8ms  0.97%  glm::operator/ (inline)
+       7ms  0.85% 77.03%       25ms  3.02%  glm::detail::compute_dot::call (inline)

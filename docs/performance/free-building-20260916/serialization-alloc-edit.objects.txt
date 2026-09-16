@@ -1,0 +1,26 @@
+File: serialization-runner
+Type: alloc_objects
+Showing nodes accounting for 945573, 100% of 945707 total
+Dropped 62 nodes (cum <= 4728)
+Showing top 20 nodes out of 66
+      flat  flat%   sum%        cum   cum%
+    945573   100%   100%     945573   100%  std::__new_allocator::allocate (inline)
+         0     0%   100%     634626 67.11%  __invoke_impl (inline)
+         0     0%   100%     634626 67.11%  __invoke_r (inline)
+         0     0%   100%     945707   100%  __libc_start_call_main
+         0     0%   100%     945707   100%  __libc_start_main_alias_2
+         0     0%   100%     945707   100%  _start
+         0     0%   100%     945707   100%  main
+         0     0%   100%     634626 67.11%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%   100%     441293 46.66%  std::_Rb_tree::_Alloc_node::operator() (inline)
+         0     0%   100%     246076 26.02%  std::_Rb_tree::_Auto_node::_Auto_node (inline)
+         0     0%   100%     687417 72.69%  std::_Rb_tree::_M_create_node (inline)
+         0     0%   100%     246076 26.02%  std::_Rb_tree::_M_emplace_hint_unique
+         0     0%   100%     687393 72.69%  std::_Rb_tree::_M_get_node (inline)
+         0     0%   100%     441293 46.66%  std::_Rb_tree::_M_insert_ (inline)
+         0     0%   100%     440943 46.63%  std::_Rb_tree::_M_insert_unique (inline)
+         0     0%   100%     157525 16.66%  std::_Vector_base::_M_allocate (inline)
+         0     0%   100%      14660  1.55%  std::__cxx11::basic_string::_M_append (inline)
+         0     0%   100%       6245  0.66%  std::__cxx11::basic_string::_M_assign
+         0     0%   100%      18477  1.95%  std::__cxx11::basic_string::_M_construct
+         0     0%   100%      99720 10.54%  std::__cxx11::basic_string::_M_create (inline)

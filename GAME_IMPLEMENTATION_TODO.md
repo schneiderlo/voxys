@@ -191,12 +191,17 @@ all save formats. This is a bounded performance task, not a return to adventure.
 - [x] Rank opportunities by `(Impact × Confidence) / Effort` before implementation.
 - [ ] Implement only measured changes, one performance lever per diff, each with
   an output-equivalence proof sketch and exact replay comparison.
-- [ ] Add reproducible performance regression guards and retain before/after data.
+- [x] Add reproducible performance regression guards and retain before/after data.
 - [ ] Pass the normal commit hook, push main and verify the final live release.
 
 The release-candidate baseline and profiles were collected during its remote
 build, before any performance implementation. Initial release `7ea4d762` is
 verified live. Investigation window: **2026-09-16 14:56:33–16:26:33 UTC**. See the [baseline, profiles and ranked options](docs/performance/free-building-20260916/README.md).
+
+First performance commit: `5381b18a` (unchanged preview reuse), full normal hook
+passed. A separately measured structure-serialization change preserves all 24
+replay outputs and raises the 768-piece edit workload to 8.21× baseline throughput.
+Its full commit/deployment gates remain pending.
 
 Measurement tooling is in `tools/benchmarks` and `scripts/performance`.
 Its native CPU component timings must not be presented as browser FPS. See the

@@ -136,8 +136,8 @@ assessment of equivalence, not a promised speedup. Score = impact × confidence 
 | Reuse support-graph/geometry scratch | Validation allocation is large | 4 | 3 | 4 | 3 | Defer unless still hot; more state-lifetime and failure-path complexity |
 | I/O batching, streaming or queues | No replay file/network calls | 1 | 4 | 4 | 1 | Not supported by this measured workload |
 
-No optimization has been implemented at this checkpoint. Record the verified live
-source, UTC start/deadline, each chosen diff's proof and measured outcome below.
+The matrix above was recorded before implementation. Chosen changes, proof
+sketches and measured outcomes follow.
 
 ## Change 1 — bounded creative preview result reuse
 
@@ -190,3 +190,36 @@ python3 scripts/performance/test_compare_free_build_benchmark.py
 The guard self-tests inject missing runs, altered JSON/save bytes, update and
 serialization latency regressions, memory growth and throughput loss; all are
 rejected. The identical complete fixture passes.
+
+### Change 1 commit gate
+
+Committed as `5381b18a2cb0f7e387168f6cd3295ab715c7ad61` after the actual
+normal hook: 2,457 tests passed, eight opt-in cases skipped, four existing disabled
+cases; importer passed. Aggregate suite 1,158.675 s. The opt-in creative test was
+also run explicitly on the installed terrain and passed before this full gate.
+
+## Change 2 — unchanged structure JSON
+
+See `serialization-design.md` for the profile-based ranking and pre-implementation
+proof, including restore invalidation and locale/rounding boundaries. The classic
+number formatter now formats an unchanged structure only once. Other fields and
+polling are unchanged. Full 24-run goldens and all latency/memory/throughput guards
+pass against **both** the original baseline and Change 1.
+
+At 768/edit, JSON p50/p95/p99 goes from the original 351.19/387.67/748.17 μs to
+23.58/31.43/355.31 μs. Throughput is **20,166 updates/s**, 8.21× the original
+2,456 and 2.14× Change 1's 9,414. At 768/idle, throughput is 44,056 updates/s.
+Rare edits still rebuild the fragment, so tail cost is higher than cache hits.
+Cumulative allocation is 205.03 MiB/945,707 calls (slightly above Change 1 due
+to fragment rebuilding); this change targets formatting CPU, not allocations.
+Peak RSS remains within the original fixed guards.
+
+Post-change CPU profile: JSON 9.67%, preview targeting 63.71%, construction
+validation 39.50%, terrain sphere sweep 26.67%, and `partFor` 9.35% inclusive
+(9.30% flat); nested percentages overlap. The lookup now warrants considering
+a certified sorted-range search with fallback, rather than assuming sorted input.
+The new real-terrain restore/locale/directed-rounding regressions pass.
+
+Deliberately removing the serialization restore reset and formatting guards makes
+all three boundary checks fail (stale IDs, ignored numeric locale, ignored directed
+rounding). The previously passing implementation was restored byte-for-byte.

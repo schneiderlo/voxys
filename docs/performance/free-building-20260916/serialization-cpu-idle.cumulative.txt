@@ -1,0 +1,26 @@
+File: serialization-runner
+Type: cpu
+Showing nodes accounting for 368ms, 44.50% of 827ms total
+Dropped 128 nodes (cum <= 4.13ms)
+Showing top 20 nodes out of 87
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%      827ms   100%  __libc_start_call_main
+         0     0%     0%      827ms   100%  __libc_start_main_alias_2
+         0     0%     0%      827ms   100%  _start
+         0     0%     0%      827ms   100%  main
+       1ms  0.12%  0.12%      442ms 53.45%  voxy::game::adventure::AdventureRuntime::update
+      11ms  1.33%  1.45%      234ms 28.30%  std::__cxx11::basic_string::find (inline)
+      23ms  2.78%  4.23%      204ms 24.67%  voxy::game::adventure::AdventureRuntime::updateTarget
+      36ms  4.35%  8.59%      176ms 21.28%  voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)
+     174ms 21.04% 29.63%      174ms 21.04%  __memchr_evex
+         0     0% 29.63%      173ms 20.92%  std::char_traits::find (inline)
+       3ms  0.36% 29.99%      166ms 20.07%  voxy::game::adventure::AdventureSpatialQueries::raycast
+         0     0% 29.99%      146ms 17.65%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+      49ms  5.93% 35.91%      135ms 16.32%  castConvex (inline)
+       9ms  1.09% 37.00%       65ms  7.86%  std::char_traits::copy (inline)
+       2ms  0.24% 37.24%       63ms  7.62%  operator() (inline)
+         0     0% 37.24%       63ms  7.62%  std::__cxx11::basic_string::_M_replace (partial-inline)
+         0     0% 37.24%       62ms  7.50%  std::__cxx11::basic_string::_M_mutate (partial-inline)
+         0     0% 37.24%       61ms  7.38%  std::__cxx11::basic_string::assign (partial-inline)
+      60ms  7.26% 44.50%       60ms  7.26%  __memmove_avx512_unaligned_erms
+         0     0% 44.50%       59ms  7.13%  std::__cxx11::basic_string::_S_copy (inline)

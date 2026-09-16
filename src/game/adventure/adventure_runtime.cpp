@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <cfenv>
+#include <locale>
 #include <iomanip>
 #include <fstream>
 #include <numbers>
@@ -195,7 +197,7 @@ std::string AdventureRuntime::preferencesAction(int action,std::string_view text
 }
 bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice device,WGPUQueue queue,
     const std::filesystem::path& shaders,WGPUTextureFormat color,std::string& error) {
-    previewResult_.reset();
+    previewResult_.reset();structureJson_.reset();
     if(!matchesInstalledTerrain(surface)||!queries_.bindTerrain(surface)) {error="Adventure terrain does not match the installed world.";return false;}
     const auto spawn=townSpawn(surface);
     content_.town={spawn.x,spawn.y,spawn.z,0};
@@ -1642,9 +1644,22 @@ std::string AdventureRuntime::json() const {
             <<",\"x\":"<<npc.feet.x<<",\"y\":"<<npc.feet.y<<",\"z\":"<<npc.feet.z<<",\"available\":"<<(npc.available?"true":"false")<<'}';
     }
     out<<"],\"metNpcMask\":"<<int(state().metNpcMask)<<",\"saveSchema\":"<<kAdventureSaveSchema<<",\"migrationDirty\":"<<(migrationDirty_?"true":"false");
-    out<<",\"structures\":[";for(size_t i=0;i<state().structures.size();++i){if(i)out<<',';
-        const auto& structure=state().structures[i];out<<"{\"id\":"<<quote(std::to_string(structure.id))<<",\"parts\":[";
-        for(size_t j=0;j<structure.parts.size();++j){if(j)out<<',';const auto& part=structure.parts[j];const auto point=metres(part.position);out<<"{\"id\":"<<quote(std::to_string(part.id))<<",\"kind\":"<<int(part.kind)<<",\"x\":"<<point.x<<",\"y\":"<<point.y<<",\"z\":"<<point.z<<",\"yaw\":"<<int(part.yawQuarterTurns)<<'}';}out<<"]}";}out<<']';
+    const auto writeStructures=[&](std::ostream& stream) {
+        stream<<",\"structures\":[";for(size_t i=0;i<state().structures.size();++i){if(i)stream<<',';
+            const auto& structure=state().structures[i];stream<<"{\"id\":"<<quote(std::to_string(structure.id))<<",\"parts\":[";
+            for(size_t j=0;j<structure.parts.size();++j){if(j)stream<<',';const auto& part=structure.parts[j];const auto point=metres(part.position);stream<<"{\"id\":"<<quote(std::to_string(part.id))<<",\"kind\":"<<int(part.kind)<<",\"x\":"<<point.x<<",\"y\":"<<point.y<<",\"z\":"<<point.z<<",\"yaw\":"<<int(part.yawQuarterTurns)<<'}';}stream<<"]}";}stream<<']';
+    };
+    // Preserve arbitrary locale facets/rounding behaviour on the direct path.
+    const bool cacheStructures=freeBuild_&&out.getloc()==std::locale::classic()
+        &&std::fegetround()==FE_TONEAREST;
+    if(cacheStructures) {
+        if(!structureJson_||structureJson_->world!=state().world
+            ||structureJson_->epoch!=state().epoch||structureJson_->geometryRevision!=queries_.revision()) {
+            std::ostringstream fragment;fragment.copyfmt(out);writeStructures(fragment);
+            structureJson_=StructureJson{state().world,state().epoch,queries_.revision(),fragment.str()};
+        }
+        out<<structureJson_->bytes;
+    } else writeStructures(out);
     out<<",\"components\":[";for(size_t i=0;i<state().components.size();++i){if(i)out<<',';
         const auto& c=state().components[i];out<<"{\"id\":"<<quote(std::to_string(c.id))<<",\"part\":"<<quote(std::to_string(c.part))<<",\"kind\":"<<int(c.kind)<<",\"doorOpen\":"<<(c.doorOpen?"true":"false")<<",\"wood\":"<<itemCount(c.slots,ItemKind::Wood)<<",\"stone\":"<<itemCount(c.slots,ItemKind::Stone)<<",\"scrap\":"<<itemCount(c.slots,ItemKind::Scrap)<<'}';}out<<"]}";return out.str();
 }
@@ -1663,7 +1678,7 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     if(!checkedPlayer.initialize(actors,townSpawn(actors.terrain()),installedWorld().waterHeight)
         ||!checkedPlayer.restore(pose)) {error="Saved player position is unavailable.";return false;}
     session_=std::move(next);walkQueries_=std::move(geometry);queries_=std::move(actors);encounters_=std::move(encounters);
-    previewResult_.reset(); // A restored checkpoint can reuse the same revision.
+    previewResult_.reset();structureJson_.reset(); // A restored checkpoint can reuse the same revision.
     town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     combat_.reset();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
     if(!player_.restore(pose)){error="Saved player position is unavailable.";return false;}

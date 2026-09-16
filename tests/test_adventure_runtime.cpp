@@ -12,11 +12,13 @@
 #include <charconv>
 #include <chrono>
 #include <cmath>
+#include <cfenv>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <locale>
 #include <mutex>
 #include <numbers>
 #include <optional>
@@ -667,6 +669,45 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         EXPECT_EQ(runtime.state(),beforeRefusedPlace);
         ASSERT_TRUE(runtime.restore(bytes,saved.world,error))<<error;stillFrame();
         EXPECT_TRUE(read().at("valid"))<<runtime.json();
+        // UI data must change after a same-revision restore, even if geometry
+        // has the same shape and only durable identities differ.
+        const auto oldStructures=read().at("structures");
+        auto renumbered=runtime.state();
+        renumbered.structures[0].id+=10;renumbered.structures[0].parts[0].id+=10;renumbered.lastIssuedId+=10;
+        std::vector<std::byte> renumberedBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(renumbered,runtime.content(),renumberedBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(renumberedBytes,renumbered.world,error))<<error;
+        const auto newStructures=read().at("structures");
+        EXPECT_NE(newStructures,oldStructures);
+        EXPECT_EQ(newStructures[0].at("id"),std::to_string(renumbered.structures[0].id));
+        EXPECT_EQ(newStructures[0].at("parts")[0].at("id"),std::to_string(renumbered.structures[0].parts[0].id));
+        // The existing serializer follows the stream locale. A warm classic
+        // fragment must not suppress a subsequently installed numeric facet.
+        const auto structureText=[](const std::string& json) {
+            const auto begin=json.find("\"structures\":");
+            return json.substr(begin,json.find(",\"components\":",begin)-begin);
+        };
+        const auto classic=structureText(runtime.json());
+        struct GroupedNumbers:std::numpunct<char> {
+            char do_thousands_sep() const override{return '|';}
+            std::string do_grouping() const override{return "\1";}
+        };
+        struct RestoreLocale {std::locale old=std::locale();~RestoreLocale(){std::locale::global(old);}};
+        {
+            RestoreLocale restoreLocale;
+            std::locale::global(std::locale(std::locale::classic(),new GroupedNumbers));
+            EXPECT_NE(structureText(runtime.json()),classic);
+        }
+        EXPECT_EQ(structureText(runtime.json()),classic);
+        // Directed rounding changes the metre conversion/number formatting.
+        // The cache is eligible only under the default nearest mode.
+        struct RestoreRounding {int old=std::fegetround();~RestoreRounding(){(void)std::fesetround(old);}};
+        {
+            RestoreRounding restoreRounding;
+            ASSERT_EQ(std::fesetround(FE_DOWNWARD),0);
+            EXPECT_NE(structureText(runtime.json()),classic);
+        }
+        EXPECT_EQ(structureText(runtime.json()),classic);
         wgpuQueueSubmit(context.getQueue(),0,nullptr);
         auto* callback=new std::shared_ptr<GpuSignals>(signals);
         wgpuQueueOnSubmittedWorkDone(context.getQueue(),[](WGPUQueueWorkDoneStatus status,void* data){
