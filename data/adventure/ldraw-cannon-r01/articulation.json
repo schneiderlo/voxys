@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "coordinate_system": "Y-up; one unit per stud; muzzle faces +Z",
+  "mesh_layout": [
+    {
+      "mesh": 0,
+      "node": 0,
+      "name": "cannon_00_base",
+      "part": "2527.dat"
+    },
+    {
+      "mesh": 1,
+      "node": 1,
+      "name": "cannon_01_barrel",
+      "part": "518.dat"
+    }
+  ],
+  "node_transforms": "identity; vertices share grounded assembly root coordinates",
+  "barrel_pivot": [
+    0.0,
+    1.799994707107544,
+    0.40140795707702637
+  ],
+  "muzzle_origin": [
+    0.0,
+    2.7058610916137695,
+    3.782148838043213
+  ],
+  "muzzle_direction": [
+    0.0,
+    0.25881892442703247,
+    0.9659258127212524
+  ],
+  "source_elevation_degrees": 15.0,
+  "muzzle_distance_from_pivot": 3.5,
+  "bore_radius": 0.5,
+  "barrel_transform": "T(pivot) * Rx(-(elevation_degrees - 15) * pi/180) * T(-pivot)",
+  "world_transform": "T(world_origin) * Ry(yaw) * barrel_transform; omit barrel_transform for base",
+  "projectile_clearance": "Spawn centre beyond transformed muzzle by ball radius plus a small clearance; test full swept sphere against scenery",
+  "source_evidence": "518.dat muzzle rings at (0,0,-70) LDU; pivot pins on local X through origin; 2527c01.dat supplies part transform",
+  "muzzle_ring_vertices_checked": 64
+}

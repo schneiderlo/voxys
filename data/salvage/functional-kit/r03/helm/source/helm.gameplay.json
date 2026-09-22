@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "6",
+      "version": 2
+    },
+    "name_key": "salvage.part.helm",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -25,
+        -24,
+        -25
+      ],
+      "maximum_ticks": [
+        25,
+        24,
+        25
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          25
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          25
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 30,
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "inertia_kg_metres_squared": [
+        4.803999999999999,
+        0.0,
+        0.0,
+        0.0,
+        4.999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        4.803999999999999
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            25,
+            2,
+            25
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "2",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -24,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "helm",
+      "operator_frame": {
+        "translation_ticks": [
+          0,
+          24,
+          0
+        ],
+        "rotation": 0
+      },
+      "maximum_steering_radians": 0.6
+    },
+    "cost": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "6",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "13",
+        "version": 2
+      },
+      "source": {
+        "file": "helm-lod-0.glb",
+        "sha256": "03f81647e8748589c7edcf5c3dc731660090ea60d0aad007d2852525462e9916",
+        "bytes": 358216,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "14",
+        "version": 2
+      },
+      "source": {
+        "file": "helm-lod-1.glb",
+        "sha256": "61817b086f964e9d0d8cec9916600c6762cb7e72ebc533308066e4e0c252d749",
+        "bytes": 137448,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "15",
+        "version": 2
+      },
+      "source": {
+        "file": "helm-lod-2.glb",
+        "sha256": "34462a5d09e6e1a349102f404804e34cd942c3e2a88ae7741db292378497552c",
+        "bytes": 36376,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "2",
+      "name_key": "salvage.anchor.helm.socket_2",
+      "frame": {
+        "translation_ticks": [
+          0,
+          -24,
+          0
+        ],
+        "rotation": 2
+      }
+    }
+  ]
+}

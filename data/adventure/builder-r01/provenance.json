@@ -1,0 +1,3579 @@
+{
+  "schema": 1,
+  "asset": "original-warm-brick-minifigure",
+  "author": "Voxys original procedural artwork",
+  "variant": "classic-builder",
+  "license": "Original project asset; same project distribution terms; no external art inputs.",
+  "blender": "5.2.2 LTS",
+  "profile": "salvage-animated-rigid-v1",
+  "render_to_canonical": 12,
+  "canonical": {
+    "up": "+Y",
+    "forward": "-Z",
+    "units": "metres",
+    "height": 1.7,
+    "root_motion": false
+  },
+  "parameters": {
+    "height": 1.7,
+    "capsule_radius": 0.4,
+    "pelvis_y": 0.57225,
+    "knee_y": 0.3,
+    "ankle_y": 0.1,
+    "hip_x": 0.108,
+    "hip_y": 0.48,
+    "shoulder_x": 0.215,
+    "shoulder_y": 1.084,
+    "elbow_y": 0.82,
+    "wrist_y": 0.637,
+    "head_bottom": 1.18025,
+    "head_cylinder_top": 1.52675,
+    "visible_knees": false,
+    "visible_elbow_split": false,
+    "source_basis": "(-X, Z, Y)",
+    "render_to_canonical": 12,
+    "art_envelope_margin": 0.02,
+    "torso_width_multiplier": 1.38,
+    "pelvis_width_multiplier": 1.42,
+    "arm_width_multiplier": 1.22,
+    "leg_width_multiplier": 1.3,
+    "body_depth_multiplier": 1.25,
+    "head_width_multiplier": 1.2,
+    "exposed_head_stud": false,
+    "backpack": false,
+    "hand_center_y": 0.59,
+    "reference_revision": "owner-rear-figurine-20260916",
+    "rear_leg_sockets": 2,
+    "surface_shading": "manufactured-v2"
+  },
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "palette": {
+    "skin": "FFD500",
+    "cream": "E9DCC1",
+    "moss": "1F579F",
+    "rust": "D93326",
+    "leather": "80583B",
+    "hair": "603520",
+    "dark": "191919",
+    "brass": "BBA06A",
+    "shirt": "B9BEC2",
+    "socket": "10294A"
+  },
+  "inputs": {
+    "tools/adventure_assets/author_human_adventurer.py": "e160afeb38281e97af83383add246cbd1a58e54b2ab70d9bb1ea9ea9e07bed82",
+    "tools/adventure_assets/builder_reference_shapes.py": "1c345f6990d0281dad5680a78a4db5b8042e4b7c7c9c3615cfad0ae66d57cfe8",
+    "tools/salvage_assets/author_cove_robot.py": "fd05335fb233456d562549c091db8a651e5617ce383e9f81dc546f245e5f7832",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/surface_shading.py": "b780abf2e49da04c653618fd1cea349445988562a4ca3b4e3c18967744ec84b7"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "asset_id": "voxys-free-build-builder-r01-lod0",
+      "glb": "human-lod-0.glb",
+      "glb_sha256": "c6b9726cf78429f74aa9ac3cd164a9b2c97bb0cb4180c34f01806a4d92f363c9",
+      "blend": "human-lod-0.blend",
+      "blend_sha256": "c61e7d061ff5ea823ac5fede8cd26b3e58ca974857ab278bc49467114bbbfafc",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 24,
+      "vertices": 11760,
+      "triangles": 16166,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 1
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 324,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.012267696125412716,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "minifigure_hip_block",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578072386972053,
+              "maximum_unit_length_error": 6.065510826935849e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "narrow_curved_hip_connection",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 41,
+              "minimum_face_alignment": 0.8865097090601921,
+              "maximum_unit_length_error": 1.0989605780942213e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_rear_hip_connector",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.9703144431114197,
+              "maximum_unit_length_error": 8.14202361087979e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.040188375663497124,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "trapezoid_toy_torso",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 6,
+              "minimum_face_alignment": 0.8279498260235414,
+              "maximum_unit_length_error": 1.2225792322961837e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "grey_tee",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.352820292043759e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neckline",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.8770650029182434,
+              "maximum_unit_length_error": 4.377216200612821e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.235174156872688e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998286366463,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999813735485,
+              "maximum_unit_length_error": 3.166496709283706e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.99999995296821,
+              "maximum_unit_length_error": 7.310882477185032e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.99999995296821,
+              "maximum_unit_length_error": 7.310882477185032e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999813735485,
+              "maximum_unit_length_error": 3.166496709283706e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998286366463,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.235174156872688e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 1.490116130486996e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998062849045,
+              "maximum_unit_length_error": 1.1175871517110636e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 3.7252902318485326e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960459448228761e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998924322426,
+              "maximum_unit_length_error": 7.229391751906178e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998924322426,
+              "maximum_unit_length_error": 7.229391751906178e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 3.7252902318485326e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998062849045,
+              "maximum_unit_length_error": 1.1175871517110636e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 1.490116130486996e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.266621633775003e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 3.3061951953961e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999515712261,
+              "maximum_unit_length_error": 9.685754309707306e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999292194843,
+              "maximum_unit_length_error": 1.0617077916830198e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999962747097,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 6.70552231518684e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998360872269,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 9.685754309707306e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 4.0978194171259474e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.266621633775003e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 3.3061951953961e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999515712261,
+              "maximum_unit_length_error": 9.685754309707306e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999292194843,
+              "maximum_unit_length_error": 1.0617077916830198e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.016",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999962747097,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.017",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 6.70552231518684e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.018",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998360872269,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.019",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.020",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 9.685754309707306e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.021",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.022",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.023",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 4.0978194171259474e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.016",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.017",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neck",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159912852865091,
+              "maximum_unit_length_error": 1.2105713942389684e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.03026214304543319,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "rounded_yellow_head",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9759507924318314,
+              "maximum_unit_length_error": 1.3070802540315896e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9822883158922195,
+              "maximum_unit_length_error": 1.0430812302786308e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9728784556500614,
+              "maximum_unit_length_error": 1.6391275980964792e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958399999886751,
+              "maximum_unit_length_error": 8.195638989683118e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9822908230125904,
+              "maximum_unit_length_error": 1.0803341310428038e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9741360936313868,
+              "maximum_unit_length_error": 8.940705908955238e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958444833755493,
+              "maximum_unit_length_error": 1.043081333529372e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "smile",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 72,
+              "minimum_face_alignment": 0.9969917833805084,
+              "maximum_unit_length_error": 1.4156103989027002e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "single_molded_wavy_hair",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 396,
+              "minimum_face_alignment": 0.2965816259384155,
+              "maximum_unit_length_error": 1.4893884126010448e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 38,
+              "minimum_face_alignment": 0.7064062356948853,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 38,
+              "minimum_face_alignment": 0.7317064311355352,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 36,
+              "minimum_face_alignment": 0.6729830168187618,
+              "maximum_unit_length_error": 1.3038516899488428e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 46,
+              "minimum_face_alignment": 0.6492480710148811,
+              "maximum_unit_length_error": 1.2107192737254024e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 55,
+              "minimum_face_alignment": 0.6493274001404643,
+              "maximum_unit_length_error": 1.400867306600162e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 42,
+              "minimum_face_alignment": 0.6368393432348967,
+              "maximum_unit_length_error": 1.8253924127797916e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 42,
+              "minimum_face_alignment": 0.7015677923336625,
+              "maximum_unit_length_error": 1.247972327700353e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 46,
+              "minimum_face_alignment": 0.6390374191105366,
+              "maximum_unit_length_error": 1.341104597374354e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 44,
+              "minimum_face_alignment": 0.609677042812109,
+              "maximum_unit_length_error": 1.1920928244535389e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 37,
+              "minimum_face_alignment": 0.6398362852632999,
+              "maximum_unit_length_error": 1.341104418628447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 42,
+              "minimum_face_alignment": 0.6166243553161621,
+              "maximum_unit_length_error": 1.3504176421541558e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 44,
+              "minimum_face_alignment": 0.8577324845828116,
+              "maximum_unit_length_error": 1.2293458739875973e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 41,
+              "minimum_face_alignment": 0.6041382737457752,
+              "maximum_unit_length_error": 1.3597310510871097e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 42,
+              "minimum_face_alignment": 0.6203843855764717,
+              "maximum_unit_length_error": 1.5273691389428024e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 39,
+              "minimum_face_alignment": 0.7288509653881192,
+              "maximum_unit_length_error": 1.0803342453957754e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0037238249017314843,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8768466957844794,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00044216548558297634,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159858730054111,
+              "maximum_unit_length_error": 1.378357314951728e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010476192887612162,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8925241027027369,
+              "maximum_unit_length_error": 1.7374621474885998e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0037238249017314796,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8768471005605534,
+              "maximum_unit_length_error": 1.4284886562521137e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0004421654857731714,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159891126619186,
+              "maximum_unit_length_error": 1.4901160083624632e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010476192878710144,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.892524367198348,
+              "maximum_unit_length_error": 1.7635828308826262e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.021390244746086112,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 30,
+              "minimum_face_alignment": 0.47902499744668603,
+              "maximum_unit_length_error": 2.0023437363736463e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9963898658752441,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00037803510529899655,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577958536652659,
+              "maximum_unit_length_error": 1.2114499248205846e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02139024475688852,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 30,
+              "minimum_face_alignment": 0.4790243071038276,
+              "maximum_unit_length_error": 1.4799383796226806e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9963898658752441,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00037803510574603143,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577947582798515,
+              "maximum_unit_length_error": 1.2112678127174092e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "asset_id": "voxys-free-build-builder-r01-lod1",
+      "glb": "human-lod-1.glb",
+      "glb_sha256": "9d3a2ed77638e651e1d3b84020c91d468ce79da1cb295b6b5d767a93ae94680c",
+      "blend": "human-lod-1.blend",
+      "blend_sha256": "f0d9da464baaca659f44577d16853c723542c9aa0abbb45c8ce10f72057a05c8",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 24,
+      "vertices": 8226,
+      "triangles": 10298,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 1
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 324,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.012208602021987286,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "minifigure_hip_block",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773471235984289,
+              "maximum_unit_length_error": 1.193526528719957e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "narrow_curved_hip_connection",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 41,
+              "minimum_face_alignment": 0.8865097090601921,
+              "maximum_unit_length_error": 1.0989605780942213e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_rear_hip_connector",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.9703144431114197,
+              "maximum_unit_length_error": 8.14202361087979e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0400735495439487,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "trapezoid_toy_torso",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5558416955173016,
+              "maximum_unit_length_error": 8.929055583806189e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "grey_tee",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.352820292043759e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neckline",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.8233627080917358,
+              "maximum_unit_length_error": 8.940696316628305e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999329447746,
+              "maximum_unit_length_error": 6.33299330754511e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999329447746,
+              "maximum_unit_length_error": 6.33299330754511e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960412652328273e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.9603897706317355e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 6.542540864629132e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999161809683,
+              "maximum_unit_length_error": 9.033829384552661e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998845160007,
+              "maximum_unit_length_error": 8.009374463657792e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 4.0978194171259474e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 6.542540864629132e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999161809683,
+              "maximum_unit_length_error": 9.033829384552661e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998845160007,
+              "maximum_unit_length_error": 8.009374463657792e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 5.9604517654854305e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 3.668176873361517e-13,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 6.332993707225398e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 5.2154065510734426e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999180436134,
+              "maximum_unit_length_error": 8.568167308986574e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_stitch.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 4.0978194171259474e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999552965164,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.015",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.016",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "zip_teeth.017",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neck",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935474198035081,
+              "maximum_unit_length_error": 1.2047225772526815e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.03007785249483609,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "rounded_yellow_head",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9730858504772186,
+              "maximum_unit_length_error": 1.1272641764481506e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.9640572667121887,
+              "maximum_unit_length_error": 1.0803342431753293e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.9461914896965027,
+              "maximum_unit_length_error": 9.685752389021474e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958399999886751,
+              "maximum_unit_length_error": 8.195638989683118e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.964052140712738,
+              "maximum_unit_length_error": 1.0803342431753293e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.9483875632286072,
+              "maximum_unit_length_error": 1.0989589982468573e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958444833755493,
+              "maximum_unit_length_error": 1.043081333529372e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "smile",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 72,
+              "minimum_face_alignment": 0.9969917833805084,
+              "maximum_unit_length_error": 1.4156103989027002e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "single_molded_wavy_hair",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 340,
+              "minimum_face_alignment": 0.18189184291986749,
+              "maximum_unit_length_error": 1.4156104133355996e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.6512142717838287,
+              "maximum_unit_length_error": 1.0896474711419302e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 30,
+              "minimum_face_alignment": 0.6495059560984373,
+              "maximum_unit_length_error": 1.490116230407068e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.6119943372905254,
+              "maximum_unit_length_error": 1.1384690234983452e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.6056017875671387,
+              "maximum_unit_length_error": 1.3131649168052206e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 39,
+              "minimum_face_alignment": 0.7294294461607933,
+              "maximum_unit_length_error": 1.2037344998550026e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 33,
+              "minimum_face_alignment": 0.7441604547202587,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 36,
+              "minimum_face_alignment": 0.6451988816261292,
+              "maximum_unit_length_error": 1.3387762909378154e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 38,
+              "minimum_face_alignment": 0.8575566709041595,
+              "maximum_unit_length_error": 1.395965130157606e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 37,
+              "minimum_face_alignment": 0.5490348935127258,
+              "maximum_unit_length_error": 1.5785918883182148e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 33,
+              "minimum_face_alignment": 0.6028084438294172,
+              "maximum_unit_length_error": 1.0826624352588965e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.8682620658073574,
+              "maximum_unit_length_error": 1.229345722997266e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.8703169655054808,
+              "maximum_unit_length_error": 1.1548399259098119e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.8646591904107481,
+              "maximum_unit_length_error": 1.201406193418464e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.878446857444942,
+              "maximum_unit_length_error": 1.324515235268109e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 31,
+              "minimum_face_alignment": 0.6474906224757433,
+              "maximum_unit_length_error": 1.2243982228099526e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0036634117984610253,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8701820513233542,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00043231971014349546,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935345686251821,
+              "maximum_unit_length_error": 1.202557895485512e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010430981854622357,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 10,
+              "minimum_face_alignment": 0.7826515734195709,
+              "maximum_unit_length_error": 1.378357314951728e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0036634117984610274,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8701823791489005,
+              "maximum_unit_length_error": 1.5646220474785366e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0004323197101434956,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935346741847752,
+              "maximum_unit_length_error": 9.846238602229107e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010430981858147658,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 10,
+              "minimum_face_alignment": 0.782647967338562,
+              "maximum_unit_length_error": 1.6114789636034743e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02137214324185445,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.22584039624780416,
+              "maximum_unit_length_error": 1.57393502675518e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.992274820804596,
+              "maximum_unit_length_error": 1.0430812302786308e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0003776653469224976,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577345162022084,
+              "maximum_unit_length_error": 1.1937925936678084e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02137214401924,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.2258425122126937,
+              "maximum_unit_length_error": 1.3550742550272332e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.992274820804596,
+              "maximum_unit_length_error": 1.0430812302786308e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00037766534692249763,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577345179229269,
+              "maximum_unit_length_error": 5.950551906774848e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 2,
+      "asset_id": "voxys-free-build-builder-r01-lod2",
+      "glb": "human-lod-2.glb",
+      "glb_sha256": "6fc92aed1b9b80fa8f2254e2d2a2a7e57f0612ce36af07b48b2f4620686f9afa",
+      "blend": "human-lod-2.blend",
+      "blend_sha256": "c5d2c4df0644a9161b9e00c341085618bbe2b31679679b295969541a6f6d32d7",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 23,
+      "vertices": 5138,
+      "triangles": 6114,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 1
+        },
+        {
+          "name": "walk",
+          "channels": 7
+        },
+        {
+          "name": "jump",
+          "channels": 5
+        },
+        {
+          "name": "fall",
+          "channels": 3
+        },
+        {
+          "name": "swim",
+          "channels": 7
+        },
+        {
+          "name": "helm",
+          "channels": 5
+        },
+        {
+          "name": "tool",
+          "channels": 4
+        },
+        {
+          "name": "land",
+          "channels": 4
+        }
+      ],
+      "removed_constant_rest_channels": 324,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.01235326859066391,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "minifigure_hip_block",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "narrow_curved_hip_connection",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 41,
+              "minimum_face_alignment": 0.8865097090601921,
+              "maximum_unit_length_error": 1.0989605780942213e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_rear_hip_connector",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.9703144431114197,
+              "maximum_unit_length_error": 8.14202361087979e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.040228053060085436,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "trapezoid_toy_torso",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 1.583248354641853e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "grey_tee",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.352820292043759e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neckline",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 22,
+              "minimum_face_alignment": 0.9867672324180603,
+              "maximum_unit_length_error": 7.823109937632466e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 1.4901161193847656e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.70552275927605e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960450111253124e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960461013643226e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.70552275927605e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 1.4901161193847656e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 3.7252903650752955e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 8.009374463657792e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999031424522,
+              "maximum_unit_length_error": 8.009374463657792e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999105930328,
+              "maximum_unit_length_error": 3.7252903650752955e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "inner_tee_collar.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999701976776,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "tee_lower_hem.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999675201252,
+              "maximum_unit_length_error": 7.00820212973241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.891787285301376e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 4.842877276978186e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998666389729,
+              "maximum_unit_length_error": 6.951268249899556e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_opening.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 4.284083754413359e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999877181835,
+              "maximum_unit_length_error": 6.309710243179723e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "lapel.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999850988388,
+              "maximum_unit_length_error": 5.215406284619917e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_top.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999068677425,
+              "maximum_unit_length_error": 6.682239250821453e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 6.891787285301376e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960451365805142e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.999999925494194,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "pocket_opening.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "jacket_side_seam.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999739229679,
+              "maximum_unit_length_error": 6.05359673500061e-09,
+              "positions_unchanged": true
+            },
+            {
+              "component": "yellow_neck",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564804077148,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02974079271322207,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "rounded_yellow_head",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9649693593382835,
+              "maximum_unit_length_error": 9.53950758386668e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9297290444374084,
+              "maximum_unit_length_error": 1.4901157885383043e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.8986660242080688,
+              "maximum_unit_length_error": 1.043082502594217e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958399999886751,
+              "maximum_unit_length_error": 8.195638989683118e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9297339916229248,
+              "maximum_unit_length_error": 8.940696338832765e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "eye_glint.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.902670681476593,
+              "maximum_unit_length_error": 1.1920937414977573e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "friendly_eyebrow.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 40,
+              "minimum_face_alignment": 0.9958444833755493,
+              "maximum_unit_length_error": 1.043081333529372e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "smile",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 72,
+              "minimum_face_alignment": 0.9969917833805084,
+              "maximum_unit_length_error": 1.4156103989027002e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "single_molded_wavy_hair",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 227,
+              "minimum_face_alignment": 0.19623581692576408,
+              "maximum_unit_length_error": 1.5832482525013347e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.7003280967473984,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.001",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 26,
+              "minimum_face_alignment": 0.6271225959062576,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.002",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.8198099792934954,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.003",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 26,
+              "minimum_face_alignment": 0.6252464354038239,
+              "maximum_unit_length_error": 9.872018802425941e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.004",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 30,
+              "minimum_face_alignment": 0.6483056843280792,
+              "maximum_unit_length_error": 1.1175871517110636e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.005",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 26,
+              "minimum_face_alignment": 0.6408319063484669,
+              "maximum_unit_length_error": 1.1362136054238192e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.006",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.8389064893126488,
+              "maximum_unit_length_error": 1.2665987814131086e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.007",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.8877133876085281,
+              "maximum_unit_length_error": 1.1269003785674414e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.008",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 28,
+              "minimum_face_alignment": 0.8473936542868614,
+              "maximum_unit_length_error": 1.2293458739875973e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.009",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8873905267100781,
+              "maximum_unit_length_error": 1.1245719466757009e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.010",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8940941765904427,
+              "maximum_unit_length_error": 1.1362136054238192e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.011",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8923577144742012,
+              "maximum_unit_length_error": 1.3841780810430748e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.012",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8802293334156275,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.013",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8960815207101405,
+              "maximum_unit_length_error": 1.1129304144930074e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rear_overlapping_hair_layer.014",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees; face-safe sculpted creases",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.8849406614899635,
+              "maximum_unit_length_error": 9.313226179141765e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0035153208396452415,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 1,
+              "minimum_face_alignment": 0.78101921454072,
+              "maximum_unit_length_error": 1.3271347565346758e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0004232052431920382,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510561227798462,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010330239090165585,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 16,
+              "minimum_face_alignment": 0.5764604456489906,
+              "maximum_unit_length_error": 1.4728085440118832e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0035153208396452424,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_molded_arm",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 1,
+              "minimum_face_alignment": 0.7810194566845894,
+              "maximum_unit_length_error": 1.1175871517110636e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0004232052431920384,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "yellow_toy_wrist",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510561227798462,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0010330239076065926,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "molded_c_grip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 16,
+              "minimum_face_alignment": 0.5764869976555929,
+              "maximum_unit_length_error": 1.3108729890465298e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02140254636799994,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.2619694285094738,
+              "maximum_unit_length_error": 1.2949748517954163e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9839636981487274,
+              "maximum_unit_length_error": 7.450582439894049e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00037856001500517105,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02140254673034462,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "continuous_leg_with_round_hip",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 34,
+              "minimum_face_alignment": 0.2619709689170122,
+              "maximum_unit_length_error": 1.3504176421541558e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_socket_medial_ledge",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9839636981487274,
+              "maximum_unit_length_error": 7.450582439894049e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 4.800001108646436e-05,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "internal_leg_pin",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00037856001500517105,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "blue_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    }
+  ],
+  "reproduction": "/snap/blender/current/blender --background --factory-startup -noaudio --threads 2 --python-exit-code 1 --python tools/adventure_assets/author_human_adventurer.py -- --output-dir <new-directory> --builder",
+  "export_cleanup": "Shared strict prune of constant rest channels and <=1e-6 unit-scale export roundoff; authored moving keys retained.",
+  "scope": "Reference-led creative builder: swept brown hair, expressive yellow head, red printed jacket, blue molded legs, thick open grips and smooth plastic normals. "
+}

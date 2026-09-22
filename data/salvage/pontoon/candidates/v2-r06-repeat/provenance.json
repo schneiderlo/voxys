@@ -1,0 +1,486 @@
+{
+  "schema": 1,
+  "status": "candidate; offline authoring only, not engine acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "3",
+    "version": 2
+  },
+  "parameters": {
+    "schema": 1,
+    "part_version": 2,
+    "width_ticks": 50,
+    "body_height_ticks": 48,
+    "length_ticks": 200,
+    "dry_mass_kg": 120.0,
+    "seed": 1979,
+    "palette_srgb": {
+      "cream": "D9C9A2",
+      "teal": "2A6767",
+      "coral": "CF6548",
+      "slate": "354852",
+      "steel": "869498"
+    }
+  },
+  "seed": 1979,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "generator_sha256": "b49a81e67d8d9ac4ed1306e9eba24c96285905f469b26a47ab53c12023533934",
+  "parameter_module_sha256": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+  "input_spec_sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+  "lods": [
+    {
+      "file": "pontoon-lod-0.glb",
+      "sha256": "6d29ff5cbc622121bdfe0f8018fa8f848f24622d3be3e23b39ecae83e5bb8251",
+      "bytes": 578960,
+      "triangles": 3508,
+      "vertices": 9671,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4714925920270416,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356344912642376,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.471492734182069,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356303170763534,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            -0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 1667337,
+          "excluded_contact_detail_samples": 300939,
+          "maximum_sampled_distance_metres": 0.04290005564689636,
+          "at_canonical_metres": [
+            -0.4370999336242676,
+            -0.4167385697364807,
+            -1.5538716316223145
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 16.900639531450754,
+        "summed_triangle_uv_area": 0.27189934765920043,
+        "area_weighted_rms_texels_per_metre": 64.94152373362067,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    },
+    {
+      "file": "pontoon-lod-1.glb",
+      "sha256": "e6dd2db5d4f51400bad16446939cc8496786be7c94b062842c85d4ab1604f320",
+      "bytes": 82800,
+      "triangles": 500,
+      "vertices": 1080,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437889324214,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.02459482123132095,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437881918276,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.024594821451027205,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 666455,
+          "excluded_contact_detail_samples": 147313,
+          "maximum_sampled_distance_metres": 0.046000003814697266,
+          "at_canonical_metres": [
+            0.45399999618530273,
+            -0.4339999854564667,
+            -0.7124999761581421
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 17.05742535286325,
+        "summed_triangle_uv_area": 0.27727739547844976,
+        "area_weighted_rms_texels_per_metre": 32.639271631947096,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    },
+    {
+      "file": "pontoon-lod-2.glb",
+      "sha256": "f14431e42c748227807e0c5aa6ba6faaa5ca1d02adc9f0ea01aff85489b533b3",
+      "bytes": 31796,
+      "triangles": 256,
+      "vertices": 575,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647829978,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962413381382,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647026786,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962653831264,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 953078,
+          "excluded_contact_detail_samples": 127611,
+          "maximum_sampled_distance_metres": 0.04285714030265808,
+          "at_canonical_metres": [
+            0.43714284896850586,
+            0.4171428382396698,
+            -1.5523808002471924
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 17.074978939983303,
+        "summed_triangle_uv_area": 0.27380322315730155,
+        "area_weighted_rms_texels_per_metre": 8.104368199410018,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    }
+  ],
+  "lod_budgets": [
+    {
+      "triangles": 6000,
+      "exported_vertices": 12000,
+      "texture_side_pixels": 512,
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "triangles": 1200,
+      "exported_vertices": 2400,
+      "texture_side_pixels": 256,
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "triangles": 400,
+      "exported_vertices": 800,
+      "texture_side_pixels": 64,
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "cross_lod_mount_clearance": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "authoring_frame": "+Z up, -Y forward; canonical right is Blender -X",
+  "export_to_canonical_rotation": 12,
+  "uv_quantization": "1/65536 before export tangent generation",
+  "maps": "Original deterministic procedural sRGB color and separate linear normal/MR; no baked lighting, no external imagery",
+  "provenance": "Original project geometry/script/maps; concept used as art-direction reference only",
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 96,
+    "threads": 4,
+    "preset": "quick",
+    "view_transform": "AgX"
+  },
+  "outputs": {
+    "preview/bottom.png": {
+      "sha256": "f47cf6bb569aa8b2b98eb2c3667f95f454382c4c9a92c454cf814cfb1885f344",
+      "bytes": 388232
+    },
+    "preview/engaged.png": {
+      "sha256": "a367581e56bf7afc507c9c6b56eece537f6c14204eabe4d3b42b2ec072d571df",
+      "bytes": 414323
+    },
+    "preview/exploded.png": {
+      "sha256": "cae4d2b43a0bd8f9b78d2676cf7dbe45eb7444ff18528a7a9efb1c75be4fdfc7",
+      "bytes": 427883
+    },
+    "preview/front.png": {
+      "sha256": "54083f45f8b93f60cdc92b1351a2c0fe048f9d04cc00aecd94bc5dde5c154869",
+      "bytes": 486976
+    },
+    "preview/left.png": {
+      "sha256": "1e955a3bf6b7de18a5527582e2ef2764da5cba2b55d00d0824892afc0a0b52a5",
+      "bytes": 495435
+    },
+    "preview/lod-1.png": {
+      "sha256": "78cebe70b2218a3b0057e7f3435a9893970e911f19b1a41bed0a6fdfed9a7ca0",
+      "bytes": 523829
+    },
+    "preview/lod-2.png": {
+      "sha256": "48dd502e012b74f136f1edacfe4b5f8ad8f410a7fcbf799a0ec11b7c1fa9f700",
+      "bytes": 516360
+    },
+    "preview/rear.png": {
+      "sha256": "1e2a7c188d15a6863869453c866f8096ed26b28c7af784486e82a511f5ea6037",
+      "bytes": 485728
+    },
+    "preview/right.png": {
+      "sha256": "319fc41725c38940482c7323a7c2ae6c685024d9b54469b88b1f0e5391f84046",
+      "bytes": 489127
+    },
+    "preview/socket-pegs.png": {
+      "sha256": "b838373dd13e5a526ed1d21e6bff1e296cf6a590f953ebce27763b9b827de1ee",
+      "bytes": 449986
+    },
+    "preview/socket-wells.png": {
+      "sha256": "81234b2f7d992c341b695957d29fd0a0458a2675541e0940ed90a589bc66dab0",
+      "bytes": 455940
+    },
+    "preview/thumbnail.png": {
+      "sha256": "4527b7e8987c1943d4290ef14708c8e3ec14d7c746a370b65525f65e25277539",
+      "bytes": 523666
+    },
+    "preview/top.png": {
+      "sha256": "2bdcfac46e2038b9a385a36185f6e7658c929e74d6aca43b132cd060ab9bb336",
+      "bytes": 383291
+    },
+    "source/maps/pontoon-lod-0-base_color.png": {
+      "sha256": "0adef439803e95faf129d068197b259823494029a743c304aa9eaa6de1fdbac3",
+      "bytes": 25515
+    },
+    "source/maps/pontoon-lod-0-metallic_roughness.png": {
+      "sha256": "21467ed4ea07dfb42563b75f00aa9153570f98e09069fde92bfcce8ed6e70aaf",
+      "bytes": 51151
+    },
+    "source/maps/pontoon-lod-0-normal.png": {
+      "sha256": "618952ddbcb861e4bee7917b7c0f5a261e4011a0ea61d3080283c40a58132012",
+      "bytes": 15178
+    },
+    "source/maps/pontoon-lod-1-base_color.png": {
+      "sha256": "0a27bdefd1fb1db5a6e471e45f4e73224e191fed1bf40d5ed2500809fb4f2458",
+      "bytes": 6889
+    },
+    "source/maps/pontoon-lod-1-metallic_roughness.png": {
+      "sha256": "810ea9342867e8cc42810421fdedc00c2a60fb81d3b870ffcf4e8847d094ea7e",
+      "bytes": 15436
+    },
+    "source/maps/pontoon-lod-1-normal.png": {
+      "sha256": "01ffdea91662902a4e9f2464aee94c849f3b34fa960f5d3cc0389499c3fdf24f",
+      "bytes": 3791
+    },
+    "source/maps/pontoon-lod-2-base_color.png": {
+      "sha256": "1c957f26580d9f0ce6a57226cbab12c627e3b42843fc5241686cf339cdd5e386",
+      "bytes": 1143
+    },
+    "source/parameters.json": {
+      "sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+      "bytes": 288
+    },
+    "source/pontoon-lod-0.glb": {
+      "sha256": "6d29ff5cbc622121bdfe0f8018fa8f848f24622d3be3e23b39ecae83e5bb8251",
+      "bytes": 578960
+    },
+    "source/pontoon-lod-1.glb": {
+      "sha256": "e6dd2db5d4f51400bad16446939cc8496786be7c94b062842c85d4ab1604f320",
+      "bytes": 82800
+    },
+    "source/pontoon-lod-2.glb": {
+      "sha256": "f14431e42c748227807e0c5aa6ba6faaa5ca1d02adc9f0ea01aff85489b533b3",
+      "bytes": 31796
+    },
+    "source/pontoon.blend": {
+      "sha256": "50c1d5383d0bc40733f5b1bf55956a5cae9a0c6c3c4cbc0b53716a12bf5d8fd2",
+      "bytes": 332768
+    },
+    "source/pontoon.gameplay.json": {
+      "sha256": "e9f39c0e80b859f87f295530185a698f0697e57034bc32493ac6ba2f73aaeddc",
+      "bytes": 15738
+    }
+  }
+}

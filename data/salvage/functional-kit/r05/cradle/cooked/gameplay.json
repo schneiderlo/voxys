@@ -1,0 +1,284 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "19",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 200.0,
+      "source": {
+        "bytes": 239144,
+        "file": "cradle-lod-0.glb",
+        "frame": "exported_gltf",
+        "sha256": "acc5b59b4c2463551ed606e1979c71a0ac2db9aafb83508817530e0a79a7028d",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "20",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "2",
+      "minimum_screen_height_pixels": 60.0,
+      "source": {
+        "bytes": 90624,
+        "file": "cradle-lod-1.glb",
+        "frame": "exported_gltf",
+        "sha256": "fe4fd6cfb40ab62d42b4aa321272f426e6d5126f7f51a8207ce457b3c03eb873",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "21",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "3",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 21848,
+        "file": "cradle-lod-2.glb",
+        "frame": "exported_gltf",
+        "sha256": "5a6a980d193058aa3702bb8856cd988737039cf6c4a3ababa98aa47c7d02aef4",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            50,
+            2,
+            50
+          ],
+          "id": "1"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          50
+        ],
+        "id": "1"
+      }
+    ],
+    "cost": {
+      "salvage_material": "14",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        50,
+        16,
+        50
+      ],
+      "minimum_ticks": [
+        -50,
+        -16,
+        -50
+      ]
+    },
+    "key": {
+      "counter": "9",
+      "namespace": "766f7879732d73616c766167652d7631",
+      "version": 2
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "dry_mass_kg": 90.0,
+      "inertia_kg_metres_squared": [
+        33.072,
+        0.0,
+        0.0,
+        0.0,
+        60.0,
+        0.0,
+        0.0,
+        0.0,
+        33.072
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 1.0
+    },
+    "module": {
+      "capture_angle_radians": 0.08726646259971647,
+      "capture_angular_speed_radians_per_second": 0.5235987755982988,
+      "capture_distance_metres": 0.1,
+      "capture_speed_metres_per_second": 0.5,
+      "latch": "10",
+      "maximum_cargo_mass_kg": 3000.0,
+      "type": "cargo_cradle"
+    },
+    "name_key": "salvage.part.cargo_cradle",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "9",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            0,
+            -16,
+            0
+          ]
+        },
+        "id": "2",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "cargo_latch",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ]
+        },
+        "id": "10",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          50
+        ],
+        "id": "1"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 18000.0,
+      "shear_newtons": 24000.0,
+      "tension_newtons": 30000.0,
+      "torsion_newton_metres": 12000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          0,
+          -16,
+          0
+        ]
+      },
+      "id": "2",
+      "name_key": "salvage.anchor.cradle.socket_2"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          0,
+          16,
+          0
+        ]
+      },
+      "id": "10",
+      "name_key": "salvage.anchor.cradle.socket_10"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

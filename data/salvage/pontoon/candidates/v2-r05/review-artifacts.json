@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "status": "candidate supplementary artifacts, not publication or visual acceptance",
+  "authoring_provenance_sha256": "e5736f4af39fbcb4edfcee75a34cd936a090d0a67bb55306db201a805dfa1bb5",
+  "evidence": "docs/validation/salvage/ASSET-04/integration/authoring-repeat.json",
+  "turntable": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "width": 640,
+        "height": 640,
+        "avg_frame_rate": "12/1",
+        "nb_read_frames": "72"
+      }
+    ],
+    "format": {
+      "duration": "6.000000"
+    }
+  },
+  "outputs": {
+    "cooked/cook-manifest.json": {
+      "bytes": 1725,
+      "sha256": "fe1da44021d57e4a96cbcb38d3066a59ae2489c9152dca4d85d978a2f172b605"
+    },
+    "cooked/gameplay.json": {
+      "bytes": 15828,
+      "sha256": "f02c291deac15a4d7be6378991538304f4fa3ef1c30d1bf855d331912f91c1aa"
+    },
+    "cooked/lod-1.vmesh": {
+      "bytes": 3863598,
+      "sha256": "9fbc12c1066e2e584304765ea8ca0d8a212e64f0e1d1a89ae4338ecd22ecec4c"
+    },
+    "cooked/lod-2.vmesh": {
+      "bytes": 867702,
+      "sha256": "91eade3cf71dda138d4b46033059444235f626f689a4184155d597f457fcfc04"
+    },
+    "cooked/lod-3.vmesh": {
+      "bytes": 59830,
+      "sha256": "d1f2f434b42386ef415819bc64d89add1dd118b271076a82b6b8a9094e6aa319"
+    },
+    "preview/turntable.webm": {
+      "bytes": 154894,
+      "sha256": "beb1e0aaf9e51a8a44b373554c34dc2dc22f73fbe99994ad44fbd5f8d0ea2bbc"
+    },
+    "review/thumbnail.png": {
+      "bytes": 340566,
+      "sha256": "64765e8d135ba179205e908f32e4f7b6d4c7f6accade99e7bdbea9db24ead2ad",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    "review/thumbnail-provenance.json": {
+      "bytes": 1203,
+      "sha256": "29ed7502ea814ad6691774986e4a64c13980af8202c48621c5b8ef618024b82d"
+    },
+    "review/contact-sheet.png": {
+      "bytes": 1402861,
+      "sha256": "c6696dbb1f9d36817705e5e86c376695385a2e0ae798fb6b4f3fd79e47d44ae2",
+      "dimensions": [
+        2048,
+        1870
+      ]
+    },
+    "review/contact-sheet.html": {
+      "bytes": 5400391,
+      "sha256": "9aec57fe779e93bc387e0097e94635219c607b5b8553e18c05c9014cde8d731a"
+    },
+    "review/contact-sheet.json": {
+      "bytes": 2784,
+      "sha256": "5ab268019d7a66e77d7fa79d4d5b57280f8984ecd52f9449deb4a911034129d1"
+    }
+  },
+  "offline_review": {
+    "input_hashes_verified": true,
+    "thumbnail_512_visually_inspected": true,
+    "contact_sheet_all_nine_panels_visually_inspected": true,
+    "source_blend_unchanged": true,
+    "capture_recipe": "docs/validation/salvage/ASSET-04/integration/contact-sheet-capture.json",
+    "scope": "Offline shape/material review artifacts only; no runtime or final art acceptance"
+  }
+}

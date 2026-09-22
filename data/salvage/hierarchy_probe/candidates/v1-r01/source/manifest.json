@@ -1,0 +1,55 @@
+{
+  "asset": "inspection.hierarchy_probe.v1",
+  "blender_build_hash": "9e2066aef7ef",
+  "blender_version": "5.2.1 LTS",
+  "export_settings": {
+    "export_animations": false,
+    "export_apply": true,
+    "export_cameras": false,
+    "export_extras": false,
+    "export_format": "GLB",
+    "export_lights": false,
+    "export_materials": "EXPORT",
+    "export_normals": true,
+    "export_tangents": true,
+    "export_texcoords": true,
+    "export_yup": true,
+    "use_selection": true
+  },
+  "geometry": {
+    "instanced_triangles": 1128,
+    "mesh_instances": 6,
+    "nodes": 8,
+    "unique_meshes": 5
+  },
+  "outputs": {
+    "golden.json": {
+      "bytes": 660261,
+      "sha256": "6bcff7e25da61bfc97b7b7715df586ea36baa943e4bbf206584fa93125b2e0d2"
+    },
+    "hierarchy.blend": {
+      "bytes": 115484,
+      "sha256": "b84f8b11319cc55b987ec9e9ba586e5af8321b9abe4ff71e5f022989c9ecb014"
+    },
+    "hierarchy.gameplay.json": {
+      "bytes": 3619,
+      "sha256": "dddc95747a625c0f0257218962e2e7cede7331947d06ee02c0d6dea3329ef35c"
+    },
+    "hierarchy.glb": {
+      "bytes": 131632,
+      "sha256": "ca9e743f6d608c6f1f394e7e3711367779bed02aea15fb825883fac9d8e67de3"
+    },
+    "preview.png": {
+      "bytes": 203133,
+      "sha256": "0e81e3bd9efd6626ef0f0199709960734551d0ec091b15e846eb59322383af0d"
+    }
+  },
+  "provenance": "Original procedural geometry; no external references or generated raster inputs",
+  "review_status": "Technical diagnostic only; runtime and visual review tracked separately",
+  "schema": 1,
+  "source_hashes": {
+    "tools/salvage_assets/author_hierarchy_probe.py": "b1fe38204aaad22d9a935f70462fa7787c9b6fc62475e37f314b7e566f395a5b",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/fixtures/probe.gameplay.json": "d4e8728c0a4e3925dffd20d7f1953ca3d4805e85486c1bc7159276234d48fb8f"
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "7",
+      "version": 2
+    },
+    "name_key": "salvage.part.winch",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -25,
+        -48,
+        -25
+      ],
+      "maximum_ticks": [
+        25,
+        48,
+        25
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          48,
+          25
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          48,
+          25
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 140,
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "inertia_kg_metres_squared": [
+        54.67466666666667,
+        0.0,
+        0.0,
+        0.0,
+        23.333333333333332,
+        0.0,
+        0.0,
+        0.0,
+        54.67466666666667
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            25,
+            2,
+            25
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "2",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -48,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "10",
+        "family": "tow_line",
+        "role": "plug",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            40,
+            -25
+          ],
+          "rotation": 3
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "winch",
+      "line": "10",
+      "minimum_length_metres": 0.5,
+      "maximum_length_metres": 40,
+      "reel_speed_metres_per_second": 2,
+      "maximum_force_newtons": 12000
+    },
+    "cost": {
+      "salvage_material": "30",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "20",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "16",
+        "version": 2
+      },
+      "source": {
+        "file": "winch-lod-0.glb",
+        "sha256": "e8f1a6c07535bed92c5ceccef64c52470b8fc9a2e307b923ada331829f689a46",
+        "bytes": 869848,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "17",
+        "version": 2
+      },
+      "source": {
+        "file": "winch-lod-1.glb",
+        "sha256": "19c103e5324326095143af1f07d9c4c57ec2b64788df370fb543c0900bb9366e",
+        "bytes": 368512,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "18",
+        "version": 2
+      },
+      "source": {
+        "file": "winch-lod-2.glb",
+        "sha256": "de80be7693ce032fb08330d82cd8dc655b2e6829d740408e62136282b6e1832e",
+        "bytes": 34876,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "2",
+      "name_key": "salvage.anchor.winch.socket_2",
+      "frame": {
+        "translation_ticks": [
+          0,
+          -48,
+          0
+        ],
+        "rotation": 2
+      }
+    },
+    {
+      "id": "10",
+      "name_key": "salvage.anchor.winch.socket_10",
+      "frame": {
+        "translation_ticks": [
+          0,
+          40,
+          -25
+        ],
+        "rotation": 3
+      }
+    }
+  ]
+}

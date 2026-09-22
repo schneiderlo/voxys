@@ -1,0 +1,839 @@
+{
+  "schema": 1,
+  "asset_id": "ldraw-21325-blacksmith-r01",
+  "source_sha256": "0a7f53680569172309ebfe7053dfaccb04ea941643f1e3cbf811cf44ffd5fcee",
+  "importer_commit": "c306fb777a4e0da85492f09d65daf458767a0aa1",
+  "blender_version": "5.2.2 LTS",
+  "recipe_sha256": "58fb6b8b02e7735c2a7023d228a56d7d82771c88d21ae7eafd9c1ad546846317",
+  "stud_pitch": 1,
+  "source_part_meshes": 2140,
+  "source_triangles": 1038879,
+  "runtime_triangles": 851880,
+  "canonical_bounds": {
+    "minimum": [
+      -20.2503719329834,
+      -0.0001297356211580336,
+      -19.394725799560547
+    ],
+    "maximum": [
+      20.2503719329834,
+      34.79998779296875,
+      19.394723892211914
+    ]
+  },
+  "front": "+Z",
+  "glb_sha256": "63217029ad9e2f47fb72b9498db703c2575ee99797b902c2d922ca73446615ad",
+  "materials": [
+    {
+      "name": "Material_0",
+      "linear_base_color": [
+        0.010960093699395657,
+        0.023153366521000862,
+        0.03433980792760849,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_0_s",
+      "linear_base_color": [
+        0.010960093699395657,
+        0.023153366521000862,
+        0.03433980792760849,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_1",
+      "linear_base_color": [
+        0.012983032502233982,
+        0.10224173218011856,
+        0.3915724754333496,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_10",
+      "linear_base_color": [
+        0.09758734703063965,
+        0.40724021196365356,
+        0.052860647439956665,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_14",
+      "linear_base_color": [
+        0.9559733271598816,
+        0.577580451965332,
+        0.0030352699104696512,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_148",
+      "linear_base_color": [
+        0.06480326503515244,
+        0.07421357184648514,
+        0.06480326503515244,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "PEARLESCENT"
+    },
+    {
+      "name": "Material_15",
+      "linear_base_color": [
+        0.9046611785888672,
+        0.9046611785888672,
+        0.9046611785888672,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_15_s",
+      "linear_base_color": [
+        0.9046611785888672,
+        0.9046611785888672,
+        0.9046611785888672,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_179",
+      "linear_base_color": [
+        0.25015828013420105,
+        0.24228112399578094,
+        0.2462013214826584,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "PEARLESCENT"
+    },
+    {
+      "name": "Material_18",
+      "linear_base_color": [
+        1.0,
+        0.672443151473999,
+        0.21223075687885284,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_19",
+      "linear_base_color": [
+        0.6795424818992615,
+        0.4910208582878113,
+        0.2622506618499756,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_191",
+      "linear_base_color": [
+        0.9734452962875366,
+        0.4125426113605499,
+        0.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_19_s",
+      "linear_base_color": [
+        0.6795424818992615,
+        0.4910208582878113,
+        0.2622506618499756,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_2",
+      "linear_base_color": [
+        0.0,
+        0.2345505803823471,
+        0.024157632142305374,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_25",
+      "linear_base_color": [
+        0.672443151473999,
+        0.19120168685913086,
+        0.016807375475764275,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_27",
+      "linear_base_color": [
+        0.3762621283531189,
+        0.5906188488006592,
+        0.009134058840572834,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_272",
+      "linear_base_color": [
+        0.009721217676997185,
+        0.03189603239297867,
+        0.10224173218011856,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_27_s",
+      "linear_base_color": [
+        0.3762621283531189,
+        0.5906188488006592,
+        0.009134058840572834,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_28",
+      "linear_base_color": [
+        0.25015828013420105,
+        0.20507873594760895,
+        0.12213877588510513,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_297",
+      "linear_base_color": [
+        0.4019777774810791,
+        0.21223075687885284,
+        0.027320891618728638,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "PEARLESCENT"
+    },
+    {
+      "name": "Material_3",
+      "linear_base_color": [
+        0.0018211619462817907,
+        0.33716362714767456,
+        0.34670406579971313,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_308",
+      "linear_base_color": [
+        0.03560131415724754,
+        0.015208514407277107,
+        0.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_308_s",
+      "linear_base_color": [
+        0.03560131415724754,
+        0.015208514407277107,
+        0.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_320",
+      "linear_base_color": [
+        0.16826939582824707,
+        0.0,
+        0.006048833020031452,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_321",
+      "linear_base_color": [
+        0.061246052384376526,
+        0.3277781009674072,
+        0.5457244515419006,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_322",
+      "linear_base_color": [
+        0.1384316086769104,
+        0.5457244515419006,
+        0.7605245113372803,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_33",
+      "linear_base_color": [
+        0.0,
+        0.014443843625485897,
+        0.35153260827064514,
+        1.0
+      ],
+      "alpha": 0.5,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_330",
+      "linear_base_color": [
+        0.18447498977184296,
+        0.18447498977184296,
+        0.07618538290262222,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_36",
+      "linear_base_color": [
+        0.5840784311294556,
+        0.01032982300966978,
+        0.0027317428030073643,
+        1.0
+      ],
+      "alpha": 0.5,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_378",
+      "linear_base_color": [
+        0.16202937066555023,
+        0.27049779891967773,
+        0.2015562504529953,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_4",
+      "linear_base_color": [
+        0.4564110338687897,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_46",
+      "linear_base_color": [
+        0.9130986332893372,
+        0.6104955673217773,
+        0.028426039963960648,
+        1.0
+      ],
+      "alpha": 0.5,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_47",
+      "linear_base_color": [
+        0.9734452962875366,
+        0.9734452962875366,
+        0.9734452962875366,
+        1.0
+      ],
+      "alpha": 0.5,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_484",
+      "linear_base_color": [
+        0.28314873576164246,
+        0.0802198201417923,
+        0.011612244881689548,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_494",
+      "linear_base_color": [
+        0.6307571530342102,
+        0.6307571530342102,
+        0.6307571530342102,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "METAL"
+    },
+    {
+      "name": "Material_57",
+      "linear_base_color": [
+        0.8713670969009399,
+        0.2746773064136505,
+        0.011612244881689548,
+        1.0
+      ],
+      "alpha": 0.5,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_70",
+      "linear_base_color": [
+        0.11443537473678589,
+        0.03071344457566738,
+        0.0027317428030073643,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_70_s",
+      "linear_base_color": [
+        0.11443537473678589,
+        0.03071344457566738,
+        0.0027317428030073643,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_71",
+      "linear_base_color": [
+        0.3049873113632202,
+        0.3049873113632202,
+        0.3049873113632202,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_71_s",
+      "linear_base_color": [
+        0.3049873113632202,
+        0.3049873113632202,
+        0.3049873113632202,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_72",
+      "linear_base_color": [
+        0.12743768095970154,
+        0.12743768095970154,
+        0.12743768095970154,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_72_s",
+      "linear_base_color": [
+        0.12743768095970154,
+        0.12743768095970154,
+        0.12743768095970154,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_80",
+      "linear_base_color": [
+        0.18116424977779388,
+        0.18116424977779388,
+        0.18116424977779388,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "METAL"
+    },
+    {
+      "name": "Material_82",
+      "linear_base_color": [
+        0.7083757519721985,
+        0.4125426113605499,
+        0.03433980792760849,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "METAL"
+    },
+    {
+      "name": "Material_84",
+      "linear_base_color": [
+        0.4019777774810791,
+        0.20507873594760895,
+        0.09084171056747437,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    }
+  ],
+  "modifications": [
+    "LDraw to Y-up at 1 unit per 20 LDU stud",
+    "Centered on X/Z and grounded at Y=0",
+    "Material-batched static derivative; editable source assembly retained",
+    "18 percent triangle reduction for bounded runtime cooker",
+    "No added stud logos or procedural substitute parts",
+    "Translucent source pieces are opaque in salvage-rigid-v1; no refraction"
+  ],
+  "import_messages": [
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] The LDraw Parts Library path to be used is: /home/modkin/workspace/schneiderlo/voxys/data/adventure/ldraw-blacksmith-r01/source/ldraw"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Standard-res primitives selected"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Use LSynth Parts requested"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Black code: 20000] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Blue code: 20001] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Green code: 20002] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Red code: 20004] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Brown code: 20006] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Grey code: 20007] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Bright_Green code: 20010] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Yellow code: 20014] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_White code: 20015] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Tan code: 20019] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Purple code: 20022] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Tan code: 20028] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Reddish_Brown code: 20070] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Bluish_Grey code: 20071] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Bluish_Grey code: 20072] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Brown code: 20086] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Green code: 20288] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Red code: 20320] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Sand_Red code: 20335] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Cream code: 20500] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:08.89 [importldraw] Loading files"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] Creating NodeGroups"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderDistanceToCenterNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderVectorElementPowerNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderConvertToNormalsNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderConcaveWallsNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderSlopeTextureNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderFresnelNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderReflectionNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderDielectricNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoStandardNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoTransparentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoTransparentFluorescentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoRubberNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoRubberTranslucentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoEmissionNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoChromeNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoPearlescentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoMetalNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.04 [importldraw] createBlenderLegoGlitterNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.05 [importldraw] createBlenderLegoSpeckleNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.05 [importldraw] createBlenderLegoMilkyWhiteNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:09.05 [importldraw] Creating Blender objects"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:12.85 [importldraw] Number of vertices: 671174"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:13.22 [importldraw] Number of convex hull vertices: 241"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:13.22 [importldraw] Centre object"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:13.22 [importldraw] Adding 2294 objects to scene"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "18:57:13.47 [importldraw] Load Done"
+    }
+  ]
+}

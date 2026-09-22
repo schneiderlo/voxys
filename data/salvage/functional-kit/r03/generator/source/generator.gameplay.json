@@ -1,0 +1,279 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d636172676f2d76310000",
+      "counter": "1",
+      "version": 1
+    },
+    "name_key": "salvage.cargo.generator",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -45,
+        -32,
+        -40
+      ],
+      "maximum_ticks": [
+        45,
+        32,
+        40
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          45,
+          32,
+          40
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          45,
+          32,
+          40
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 420,
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "inertia_kg_metres_squared": [
+        146.94400000000002,
+        0.0,
+        0.0,
+        0.0,
+        203.00000000000003,
+        0.0,
+        0.0,
+        0.0,
+        170.744
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            45,
+            2,
+            40
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "10",
+        "family": "tow_line",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            32,
+            0
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "11",
+        "family": "cargo_latch",
+        "role": "plug",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -32,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "tow_eye",
+      "eye": "10"
+    },
+    "cost": {
+      "salvage_material": "120",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "60",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "22",
+        "version": 2
+      },
+      "source": {
+        "file": "generator-lod-0.glb",
+        "sha256": "879453364976257832d1dba2d8a4e3b946132c5aaa41e435d7dd032bf88d5690",
+        "bytes": 388304,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "23",
+        "version": 2
+      },
+      "source": {
+        "file": "generator-lod-1.glb",
+        "sha256": "6bf08531c1e941de8cf8a52756ccf85e87da6059c024922f34e423051e2f4b5e",
+        "bytes": 143152,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "24",
+        "version": 2
+      },
+      "source": {
+        "file": "generator-lod-2.glb",
+        "sha256": "fdebc6e2d8e3782eda4b75a4d56d691ebe3d78bbaf06384f8aef391a20f72828",
+        "bytes": 32312,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "10",
+      "name_key": "salvage.anchor.generator.socket_10",
+      "frame": {
+        "translation_ticks": [
+          0,
+          32,
+          0
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "id": "11",
+      "name_key": "salvage.anchor.generator.socket_11",
+      "frame": {
+        "translation_ticks": [
+          0,
+          -32,
+          0
+        ],
+        "rotation": 2
+      }
+    }
+  ]
+}

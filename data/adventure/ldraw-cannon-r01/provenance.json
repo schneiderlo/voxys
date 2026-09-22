@@ -1,0 +1,408 @@
+{
+  "schema": 1,
+  "asset_id": "ldraw-cannon-r01",
+  "source_sha256": "f3cf22a335fb42d5e58ad08591957427837eed879b556cc6b6ccc670f79d0bbd",
+  "importer_commit": "c306fb777a4e0da85492f09d65daf458767a0aa1",
+  "blender_version": "5.2.2 LTS",
+  "recipe_sha256": "45a908cbaade5d2a0beec078f24f31f3b622960f5c5d2c0e57afd528d3a052e8",
+  "stud_pitch": 1,
+  "source_part_meshes": 2,
+  "source_triangles": 2368,
+  "runtime_triangles": 2368,
+  "canonical_bounds": {
+    "minimum": [
+      -1.6999599933624268,
+      -5.960464477539063e-08,
+      -3.952878713607788
+    ],
+    "maximum": [
+      1.6999599933624268,
+      3.406938314437866,
+      3.9528791904449463
+    ]
+  },
+  "front": "+Z",
+  "glb_sha256": "3b274456939675959cf029efd320eb1a70a53aa83382d292fb0a002723c52ce6",
+  "materials": [
+    {
+      "name": "Material_4",
+      "linear_base_color": [
+        0.4564110338687897,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    },
+    {
+      "name": "Material_8",
+      "linear_base_color": [
+        0.08865558356046677,
+        0.09989872574806213,
+        0.09084171056747437,
+        1.0
+      ],
+      "alpha": 1.0,
+      "ldraw_class": "BASIC"
+    }
+  ],
+  "modifications": [
+    "LDraw to Y-up at 1 unit per 20 LDU stud",
+    "Centered on X/Z and grounded at Y=0",
+    "Separate base/barrel meshes in shared grounded frame; editable source retained",
+    "Runtime triangle ratio 1.0; source assembly unchanged",
+    "No added stud logos or procedural substitute parts",
+    "Translucent source pieces are opaque in salvage-rigid-v1; no refraction"
+  ],
+  "import_messages": [
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] The LDraw Parts Library path to be used is: /home/modkin/workspace/schneiderlo/voxys/data/adventure/ldraw-cannon-r01/source/ldraw"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Standard-res primitives selected"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Use LSynth Parts requested"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Black code: 20000] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Blue code: 20001] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Green code: 20002] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Red code: 20004] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Brown code: 20006] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Grey code: 20007] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Bright_Green code: 20010] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Yellow code: 20014] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_White code: 20015] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Tan code: 20019] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Purple code: 20022] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Tan code: 20028] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Reddish_Brown code: 20070] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Bluish_Grey code: 20071] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Bluish_Grey code: 20072] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Light_Brown code: 20086] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Green code: 20288] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Red code: 20320] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Sand_Red code: 20335] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Cream code: 20500] in line: ['MATERIAL', 'FABRIC', 'CANVAS']"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.19 [importldraw] Loading files"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] Creating NodeGroups"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderDistanceToCenterNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderVectorElementPowerNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderConvertToNormalsNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderConcaveWallsNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderSlopeTextureNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderFresnelNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderReflectionNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderDielectricNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoStandardNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoTransparentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoTransparentFluorescentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoRubberNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoRubberTranslucentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoEmissionNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoChromeNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoPearlescentNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoMetalNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoGlitterNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoSpeckleNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] createBlenderLegoMilkyWhiteNodeGroup #create"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.20 [importldraw] Creating Blender objects"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.23 [importldraw] Number of vertices: 1589"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.23 [importldraw] Number of convex hull vertices: 139"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.23 [importldraw] Centre object"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.23 [importldraw] Adding 4 objects to scene"
+    },
+    {
+      "levels": [
+        "INFO"
+      ],
+      "message": "21:31:35.23 [importldraw] Load Done"
+    }
+  ],
+  "articulation": {
+    "schema": 1,
+    "coordinate_system": "Y-up; one unit per stud; muzzle faces +Z",
+    "mesh_layout": [
+      {
+        "mesh": 0,
+        "node": 0,
+        "name": "cannon_00_base",
+        "part": "2527.dat"
+      },
+      {
+        "mesh": 1,
+        "node": 1,
+        "name": "cannon_01_barrel",
+        "part": "518.dat"
+      }
+    ],
+    "node_transforms": "identity; vertices share grounded assembly root coordinates",
+    "barrel_pivot": [
+      0.0,
+      1.799994707107544,
+      0.40140795707702637
+    ],
+    "muzzle_origin": [
+      0.0,
+      2.7058610916137695,
+      3.782148838043213
+    ],
+    "muzzle_direction": [
+      0.0,
+      0.25881892442703247,
+      0.9659258127212524
+    ],
+    "source_elevation_degrees": 15.0,
+    "muzzle_distance_from_pivot": 3.5,
+    "bore_radius": 0.5,
+    "barrel_transform": "T(pivot) * Rx(-(elevation_degrees - 15) * pi/180) * T(-pivot)",
+    "world_transform": "T(world_origin) * Ry(yaw) * barrel_transform; omit barrel_transform for base",
+    "projectile_clearance": "Spawn centre beyond transformed muzzle by ball radius plus a small clearance; test full swept sphere against scenery",
+    "source_evidence": "518.dat muzzle rings at (0,0,-70) LDU; pivot pins on local X through origin; 2527c01.dat supplies part transform",
+    "muzzle_ring_vertices_checked": 64
+  }
+}

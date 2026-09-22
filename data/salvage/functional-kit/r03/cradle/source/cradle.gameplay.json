@@ -1,0 +1,284 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "9",
+      "version": 2
+    },
+    "name_key": "salvage.part.cargo_cradle",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -50,
+        -8,
+        -50
+      ],
+      "maximum_ticks": [
+        50,
+        8,
+        50
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          50,
+          8,
+          50
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          50,
+          8,
+          50
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 90,
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "inertia_kg_metres_squared": [
+        30.768000000000004,
+        0.0,
+        0.0,
+        0.0,
+        60.0,
+        0.0,
+        0.0,
+        0.0,
+        30.768000000000004
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            50,
+            2,
+            50
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "2",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -8,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "10",
+        "family": "cargo_latch",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            8,
+            0
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "cargo_cradle",
+      "latch": "10",
+      "maximum_cargo_mass_kg": 3000,
+      "capture_distance_metres": 0.1,
+      "capture_angle_radians": 0.08726646259971647,
+      "capture_speed_metres_per_second": 0.5,
+      "capture_angular_speed_radians_per_second": 0.5235987755982988
+    },
+    "cost": {
+      "salvage_material": "14",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "9",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "19",
+        "version": 2
+      },
+      "source": {
+        "file": "cradle-lod-0.glb",
+        "sha256": "86743772e0fc4df54561743bff221236b0a45aa8364c84d5c0ad77cf402fa20f",
+        "bytes": 191284,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "20",
+        "version": 2
+      },
+      "source": {
+        "file": "cradle-lod-1.glb",
+        "sha256": "0cc8f9bec109ed06d1ee5b96eb7d3629cf21280ff3a78865ec295bc4da0217c1",
+        "bytes": 68524,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "counter": "21",
+        "version": 2
+      },
+      "source": {
+        "file": "cradle-lod-2.glb",
+        "sha256": "f157ca06ff1508afe7bd972cac1055a9739f52f5ab2c60e196bcfbd02096c3da",
+        "bytes": 15388,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "2",
+      "name_key": "salvage.anchor.cradle.socket_2",
+      "frame": {
+        "translation_ticks": [
+          0,
+          -8,
+          0
+        ],
+        "rotation": 2
+      }
+    },
+    {
+      "id": "10",
+      "name_key": "salvage.anchor.cradle.socket_10",
+      "frame": {
+        "translation_ticks": [
+          0,
+          8,
+          0
+        ],
+        "rotation": 0
+      }
+    }
+  ]
+}

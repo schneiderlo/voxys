@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "status": "offline candidate; not runtime or visual acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "9",
+    "version": 2
+  },
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 2883,
+      "triangles": 1148,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.2175821367128383,
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "78632015dc9446f5558d10ba0f24a8e259bc157c40a4d7b261737606303bf937",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 1,
+      "vertices": 1219,
+      "triangles": 518,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.1998513314309869,
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "37863b61b31aa715601d0129d9caa62f2035a207afb35b37ff97204f7d01f4e9",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 2,
+      "vertices": 377,
+      "triangles": 184,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.1893061111046093,
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "4308d048cfd7e11d8829ac8885148b1d9bd98b6b5a2a446a116edc30d1d9c400",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    }
+  ],
+  "cross_lod_clearances": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "provenance": "Original procedural geometry/maps; no generated image or third-party model input",
+  "recipes": {
+    "author_functional_kit.py": "f8015f2f0108ac653aa9e739633439cfbeaa44a7acac43524a4f750f4aa8be0a",
+    "functional_kit.py": "491a29ca5a2e40129155c6a32ee3ffe33e971265848ec8335d12db690f59db88",
+    "author_pontoon.py": "b49a81e67d8d9ac4ed1306e9eba24c96285905f469b26a47ab53c12023533934",
+    "pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 24,
+    "threads": 4,
+    "seed": 0
+  },
+  "files": {
+    "preview.png": {
+      "sha256": "d85b217eb4af90a43d97bebd6856c1aea8b859b4433c309f1c40b8392366f3b3",
+      "bytes": 320559
+    },
+    "source/cradle-lod-0.glb": {
+      "sha256": "78632015dc9446f5558d10ba0f24a8e259bc157c40a4d7b261737606303bf937",
+      "bytes": 155968
+    },
+    "source/cradle-lod-1.glb": {
+      "sha256": "37863b61b31aa715601d0129d9caa62f2035a207afb35b37ff97204f7d01f4e9",
+      "bytes": 67016
+    },
+    "source/cradle-lod-2.glb": {
+      "sha256": "4308d048cfd7e11d8829ac8885148b1d9bd98b6b5a2a446a116edc30d1d9c400",
+      "bytes": 21848
+    },
+    "source/cradle.blend": {
+      "sha256": "4e00c7264aae9f64cae7626eb4c8a7cfcf3e38331d1805bb4115cf626d66af60",
+      "bytes": 152588
+    },
+    "source/cradle.gameplay.json": {
+      "sha256": "6771f5134662f8605ccdfe4c23feb81f1361026a91d87b4c814b26ee486fd2b6",
+      "bytes": 5858
+    },
+    "source/maps/pontoon-lod-0-base_color.png": {
+      "sha256": "f74537a7bacedc45e289a9520cdb65a3306f4fa84f12f080284a4ce7e659ee3f",
+      "bytes": 2574
+    },
+    "source/maps/pontoon-lod-0-metallic_roughness.png": {
+      "sha256": "84ba6d4d88e517af5056a0dc425b0d3f4b22f0eff3f2fc527fbb372aefecd05a",
+      "bytes": 4971
+    },
+    "source/maps/pontoon-lod-0-normal.png": {
+      "sha256": "2d851e091d3f164d1958266f16d44061ddcb5ace63d46140ede92104b7b6759d",
+      "bytes": 1318
+    },
+    "source/maps/pontoon-lod-1-base_color.png": {
+      "sha256": "1c957f26580d9f0ce6a57226cbab12c627e3b42843fc5241686cf339cdd5e386",
+      "bytes": 1143
+    },
+    "source/maps/pontoon-lod-1-metallic_roughness.png": {
+      "sha256": "7953a0735176660758d12f7c52a963b1c935e635eae74766833f9cc1cf2220ec",
+      "bytes": 1861
+    },
+    "source/maps/pontoon-lod-1-normal.png": {
+      "sha256": "4e25d60a7d309a642350aca25d4ae7f285e3b5cdcc41b81f2f7d9fde6eb6015b",
+      "bytes": 563
+    },
+    "source/maps/pontoon-lod-2-base_color.png": {
+      "sha256": "1c957f26580d9f0ce6a57226cbab12c627e3b42843fc5241686cf339cdd5e386",
+      "bytes": 1143
+    }
+  }
+}

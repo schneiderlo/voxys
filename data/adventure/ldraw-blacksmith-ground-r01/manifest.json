@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "assetId": "ldraw-blacksmith-ground-r01",
+  "profile": "salvage-rigid-v1",
+  "files": {
+    "wall-parts.glb": {
+      "bytes": 32135632,
+      "sha256": "39f7b28461e4ac2644af0b0f01c29a0346ceef758ad622a067ad090f12442579"
+    },
+    "wall-parts.vmesh": {
+      "bytes": 81656239,
+      "sha256": "4ee13dc6e14e8c33a6e7c2507c23db986e6e81fe777f5304b727ae37a45232c5"
+    },
+    "wall.json": {
+      "bytes": 72652,
+      "sha256": "ab8965411b228bd78c9becf16288c09e50a139f6e4ef02ecc282346887f357ab"
+    },
+    "assembly.json": {
+      "bytes": 3257207,
+      "sha256": "dda1529d873527c7a0910f7692d58f72d185e02a6716f7d42c15ea6aa9003e42"
+    },
+    "remainder.blend": {
+      "bytes": 24826402,
+      "sha256": "5d59ec466ee3299befa40b0565a4cf18dc1ffe528094cb3df857cdddd34b6622"
+    },
+    "export-report.json": {
+      "bytes": 320,
+      "sha256": "93624e7b403faecf05b510e54eb8553fc78e9746775fbba33a551d375d2154d8"
+    },
+    "geometry-validation.json": {
+      "bytes": 128,
+      "sha256": "169cb38699fd3a45ef500a13407b47c16922608ef2b5523d5884496956554677"
+    },
+    "remainder-collision.json": {
+      "bytes": 819689,
+      "sha256": "a6e5565c5f9c1ce2089448f786c79a96b7f409211db239b2d1af74f955adfacd"
+    },
+    "aim.json": {
+      "bytes": 2331,
+      "sha256": "7133a7472d19859e824a58b670ad63b2ad05a4af41b9799dad7d12c3dc70b3fd"
+    },
+    "walk-route-candidate.json": {
+      "bytes": 170,
+      "sha256": "9a4f2fa9ac56793222a44d35c768b96f8acb58d997097f120c0ffdc9cb620a1a"
+    },
+    "selection-source-ids.json": {
+      "bytes": 474,
+      "sha256": "4c9216b7b547335b9035a5c97ab98766867c78d1f6b7f5adfab7cea84eeab003"
+    },
+    "README.md": {
+      "bytes": 5807,
+      "sha256": "aacbea573ceef346b44f5483e42652ade300e3e9769d5a7d3422364cdd965772"
+    }
+  },
+  "mesh": {
+    "vertices": 992589,
+    "indices": 2545401,
+    "triangles": 848467,
+    "submeshes": 54,
+    "materials": 44,
+    "nodes": 11
+  },
+  "provenance": "../ldraw-blacksmith-r01/source/ATTRIBUTION.md",
+  "collision": {
+    "boxes": 6409,
+    "localBakeLimit": 6500,
+    "nativeAdmission": "PENDING"
+  },
+  "walkGate": "NOT PROVEN; retained corner hardware blocks a complete sampled route"
+}

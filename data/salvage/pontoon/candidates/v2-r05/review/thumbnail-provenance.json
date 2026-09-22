@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "status": "offline review artifact; no engine or visual acceptance",
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "input_blend": "/home/modkin/workspace/schneiderlo/voxys/data/salvage/pontoon/candidates/v2-r05/source/pontoon.blend",
+  "input_blend_sha256": "5993a6a6095242732a11c6af17008542e77590d2f0f7f7bc18a2cfebc24d1cd2",
+  "renderer_script_sha256": "4e5a596d73a8e27d13f9462e2428d082be0f08e5550dbff5b27d5e9a178388bc",
+  "command": [
+    "/snap/blender/7740/blender",
+    "--background",
+    "--factory-startup",
+    "--disable-autoexec",
+    "--python-exit-code",
+    "1",
+    "--python",
+    "tools/salvage_assets/render_pontoon_review.py",
+    "--",
+    "--candidate",
+    "data/salvage/pontoon/candidates/v2-r05",
+    "--output",
+    "data/salvage/pontoon/candidates/v2-r05/review"
+  ],
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 96,
+    "seed": 0,
+    "threads": 4,
+    "width": 512,
+    "height": 512,
+    "view_transform": "AgX"
+  },
+  "output": {
+    "file": "thumbnail.png",
+    "bytes": 340566,
+    "sha256": "64765e8d135ba179205e908f32e4f7b6d4c7f6accade99e7bdbea9db24ead2ad"
+  },
+  "source_unchanged": true
+}
