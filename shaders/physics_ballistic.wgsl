@@ -2339,33 +2339,72 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     velocities.linear = motion.linearVelocity_sleep.xyz;
     velocities.angular = motion.angularVelocity_flags.xyz;
     var accumulatedImpulses = vec4<f32>(0.0);
-    for (var contactIndex = 0u; contactIndex < contacts.count;
-         contactIndex += 1u) {
-        let contact = contacts.items[contactIndex];
-        let leverArm = contact.point - terrainPose.position_invMass.xyz;
-        var accumulated = 0.8 * cached_normal_impulse(
-            cache, contact.featureId);
-        velocities = apply_body_impulse(
-            velocities, contact.normal * accumulated, leverArm,
-            inverseMass, inverseInertia, pose.orientation);
-        let pointVelocity = velocities.linear
-            + cross(velocities.angular, leverArm);
-        let normalVelocity = dot(pointVelocity, contact.normal);
-        let penetrationBias = sim.solver.y
-            * max(-contact.separation - sim.contact.w, 0.0) / max(dt, 1e-7);
-        let restitutionVelocity = select(
-            0.0, -terrain_restitution(body, shapeType) * normalVelocity,
-            normalVelocity < -1.0);
-        let effectiveMass = contact_effective_mass(
-            leverArm, contact.normal, inverseMass, inverseInertia,
-            pose.orientation);
-        let updated = max(accumulated
-            + effectiveMass * (penetrationBias + restitutionVelocity
-                             - normalVelocity), 0.0);
-        velocities = apply_body_impulse(
-            velocities, contact.normal * (updated - accumulated), leverArm,
-            inverseMass, inverseInertia, pose.orientation);
-        accumulatedImpulses[contactIndex] = updated;
+    if (legoIsBrick(bitcast<u32>(shape.invInertia_material.w))) {
+        // Terrain is solved once per fixed tick, after all dynamic substeps.
+        // Do not turn penetration / substepDt into launch velocity: increasing
+        // the stack solver budget must not increase a brick's bounce energy.
+        // Capture restitution before warm starting or solving another corner.
+        // Several iterations balance the supporting corners without injecting
+        // rotation into an upright brick. Position repair remains split below.
+        var targetVelocities = vec4<f32>(0.0);
+        var effectiveMasses = vec4<f32>(0.0);
+        for (var i = 0u; i < contacts.count; i++) {
+            let contact = contacts.items[i];
+            let lever = contact.point - terrainPose.position_invMass.xyz;
+            let closing = dot(velocities.linear + cross(velocities.angular, lever), contact.normal);
+            targetVelocities[i] = select(0.0, -shape.material_coefficients.y * closing, closing < -1.0);
+            effectiveMasses[i] = contact_effective_mass(lever, contact.normal,
+                inverseMass, inverseInertia, pose.orientation);
+        }
+        for (var i = 0u; i < contacts.count; i++) {
+            let contact = contacts.items[i];
+            accumulatedImpulses[i] = 0.8 * cached_normal_impulse(cache, contact.featureId);
+            velocities = apply_body_impulse(velocities,
+                contact.normal * accumulatedImpulses[i],
+                contact.point - terrainPose.position_invMass.xyz,
+                inverseMass, inverseInertia, pose.orientation);
+        }
+        for (var iteration = 0u; iteration < 8u; iteration++) {
+            for (var i = 0u; i < contacts.count; i++) {
+                let contact = contacts.items[i];
+                let lever = contact.point - terrainPose.position_invMass.xyz;
+                let speed = dot(velocities.linear + cross(velocities.angular, lever), contact.normal);
+                let previous = accumulatedImpulses[i];
+                accumulatedImpulses[i] = max(previous + effectiveMasses[i] * (targetVelocities[i] - speed), 0.0);
+                velocities = apply_body_impulse(velocities,
+                    contact.normal * (accumulatedImpulses[i] - previous), lever,
+                    inverseMass, inverseInertia, pose.orientation);
+            }
+        }
+    } else {
+        for (var contactIndex = 0u; contactIndex < contacts.count;
+             contactIndex += 1u) {
+            let contact = contacts.items[contactIndex];
+            let leverArm = contact.point - terrainPose.position_invMass.xyz;
+            var accumulated = 0.8 * cached_normal_impulse(
+                cache, contact.featureId);
+            velocities = apply_body_impulse(
+                velocities, contact.normal * accumulated, leverArm,
+                inverseMass, inverseInertia, pose.orientation);
+            let pointVelocity = velocities.linear
+                + cross(velocities.angular, leverArm);
+            let normalVelocity = dot(pointVelocity, contact.normal);
+            let penetrationBias = sim.solver.y
+                * max(-contact.separation - sim.contact.w, 0.0) / max(dt, 1e-7);
+            let restitutionVelocity = select(
+                0.0, -terrain_restitution(body, shapeType) * normalVelocity,
+                normalVelocity < -1.0);
+            let effectiveMass = contact_effective_mass(
+                leverArm, contact.normal, inverseMass, inverseInertia,
+                pose.orientation);
+            let updated = max(accumulated
+                + effectiveMass * (penetrationBias + restitutionVelocity
+                                 - normalVelocity), 0.0);
+            velocities = apply_body_impulse(
+                velocities, contact.normal * (updated - accumulated), leverArm,
+                inverseMass, inverseInertia, pose.orientation);
+            accumulatedImpulses[contactIndex] = updated;
+        }
     }
 
     var supportNormalSum = vec3<f32>(0.0);

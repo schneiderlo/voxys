@@ -115,6 +115,7 @@ struct VelocityPair {
 var<workgroup> serialBodyNextLevel : array<u32, SERIAL_WORLD_BODY_CAPACITY>;
 var<workgroup> serialLevelCounts : array<u32, SERIAL_LEVEL_CAPACITY>;
 var<workgroup> serialLevelOffsets : array<u32, SERIAL_LEVEL_CAPACITY>;
+var<workgroup> serialLevelCount : u32;
 var<workgroup> serialBodyDegrees :
     array<atomic<u32>, SERIAL_WORLD_BODY_CAPACITY>;
 
@@ -123,6 +124,7 @@ fn sentinel_record() -> KeyValue {
 }
 
 fn active_contact_count() -> u32 {
+    if (narrowTelemetry[27] != 0u) { return 0u; }
     return min(narrowTelemetry[24], params.capacities.y);
 }
 
@@ -966,7 +968,10 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                 if (separation > 0.0) {
                     bias = separation / max(params.gravity_dt.w, 1e-7);
                 } else {
-                    bias = max(cache.softness.x * separation
+                    // Resolve overlap only beyond the configured geometric slop.
+                    // Correcting sub-slop noise injects kicks into resting stacks.
+                    let penetration = min(separation + params.damping_slop.z, 0.0);
+                    bias = max(cache.softness.x * penetration
                         / max(params.gravity_dt.w, 1e-7), -params.solver.z);
                 }
                 massScale = cache.softness.y;
@@ -1160,7 +1165,10 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
                 if (separation > 0.0) {
                     bias = separation / max(params.gravity_dt.w, 1e-7);
                 } else {
-                    bias = max(cache.softness.x * separation
+                    // Resolve overlap only beyond the configured geometric slop.
+                    // Correcting sub-slop noise injects kicks into resting stacks.
+                    let penetration = min(separation + params.damping_slop.z, 0.0);
+                    bias = max(cache.softness.x * penetration
                         / max(params.gravity_dt.w, 1e-7), -params.solver.z);
                 }
                 massScale = cache.softness.y;
@@ -1543,6 +1551,7 @@ fn gather_overflow_256(@builtin(global_invocation_id) gid : vec3<u32>) {
 }
 
 fn integrate_body_velocity(body : u32) {
+    if (narrowTelemetry[27] != 0u) { return; }
     if ((u32(metadata[body].w) & (BODY_ALIVE | BODY_AWAKE))
         != (BODY_ALIVE | BODY_AWAKE)) { return; }
     if (poses[body].position_invMass.w <= 1e-7) { return; }
@@ -1587,17 +1596,24 @@ fn integrate_velocities_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     integrate_velocities_impl(gid);
 }
 
+// Negative dynamic angular.w is a CCD-only consumed tick fraction. It is
+// disjoint from the positive legacy sleep flags and static kinematic tick ID.
+fn ccd_remaining(motion: BodyMotion) -> f32 {
+    return select(1.0,clamp(2.0+motion.angularVelocity_flags.w,0.0,1.0),
+        motion.angularVelocity_flags.w <= -1.0);
+}
 fn integrate_body_position(body : u32) {
+    if (narrowTelemetry[27] != 0u) { return; }
     if ((u32(metadata[body].w) & (BODY_ALIVE | BODY_AWAKE))
         != (BODY_ALIVE | BODY_AWAKE)) { return; }
     if (poses[body].position_invMass.w <= 1e-7) { return; }
     var pose = poses[body];
     pose.position_invMass = vec4<f32>(
         pose.position_invMass.xyz
-            + motions[body].linearVelocity_sleep.xyz * params.gravity_dt.w,
+            + motions[body].linearVelocity_sleep.xyz * (params.gravity_dt.w * ccd_remaining(motions[body])),
         pose.position_invMass.w);
     let omega = vec4<f32>(motions[body].angularVelocity_flags.xyz, 0.0);
-    var orientation = pose.orientation + 0.5 * params.gravity_dt.w
+    var orientation = pose.orientation + 0.5 * (params.gravity_dt.w * ccd_remaining(motions[body]))
         * quaternion_multiply(omega, pose.orientation);
     let squared = dot(orientation, orientation);
     if (squared > 1e-12) { orientation *= inverseSqrt(squared); }
@@ -1612,19 +1628,21 @@ fn integrate_body_position(body : u32) {
     }
     poses[body] = pose;
     metadata[body] = worldMeta;
+    if (params.control.z + 1u >= params.control.w && motions[body].angularVelocity_flags.w < 0.0) { motions[body].angularVelocity_flags.w = 0.0; }
 }
 
 fn integrate_body_position_serial(body : u32, normalize : bool) {
+    if (narrowTelemetry[27] != 0u) { return; }
     if ((u32(metadata[body].w) & (BODY_ALIVE | BODY_AWAKE))
         != (BODY_ALIVE | BODY_AWAKE)) { return; }
     if (poses[body].position_invMass.w <= 1e-7) { return; }
     var pose = poses[body];
     pose.position_invMass = vec4<f32>(
         pose.position_invMass.xyz
-            + motions[body].linearVelocity_sleep.xyz * params.gravity_dt.w,
+            + motions[body].linearVelocity_sleep.xyz * (params.gravity_dt.w * ccd_remaining(motions[body])),
         pose.position_invMass.w);
     let omega = vec4<f32>(motions[body].angularVelocity_flags.xyz, 0.0);
-    var orientation = pose.orientation + 0.5 * params.gravity_dt.w
+    var orientation = pose.orientation + 0.5 * (params.gravity_dt.w * ccd_remaining(motions[body]))
         * quaternion_multiply(omega, pose.orientation);
     let squared = dot(orientation, orientation);
     if (squared > 1e-12) { orientation *= inverseSqrt(squared); }
@@ -1632,6 +1650,7 @@ fn integrate_body_position_serial(body : u32, normalize : bool) {
     pose.orientation = orientation;
     var worldMeta = metadata[body];
     if (normalize) { normalize_world_position(&pose, &worldMeta); }
+    if (normalize && motions[body].angularVelocity_flags.w < 0.0) { motions[body].angularVelocity_flags.w = 0.0; }
     poses[body] = pose;
     metadata[body] = worldMeta;
 }
@@ -1690,10 +1709,10 @@ fn integrate_position_state(motion : BodyMotion,
     if ((*pose).position_invMass.w <= 1e-7) { return; }
     (*pose).position_invMass = vec4<f32>(
         (*pose).position_invMass.xyz
-            + motion.linearVelocity_sleep.xyz * params.gravity_dt.w,
+            + motion.linearVelocity_sleep.xyz * (params.gravity_dt.w * ccd_remaining(motion)),
         (*pose).position_invMass.w);
     let omega = vec4<f32>(motion.angularVelocity_flags.xyz, 0.0);
-    var orientation = (*pose).orientation + 0.5 * params.gravity_dt.w
+    var orientation = (*pose).orientation + 0.5 * (params.gravity_dt.w * ccd_remaining(motion))
         * quaternion_multiply(omega, (*pose).orientation);
     let squared = dot(orientation, orientation);
     if (squared > 1e-12) { orientation *= inverseSqrt(squared); }
@@ -1762,6 +1781,8 @@ fn solve_small_islands_impl(gid : vec3<u32>) {
     poses[pair.keyLow] = poseB;
     metadata[pair.keyHigh] = metadataA;
     metadata[pair.keyLow] = metadataB;
+    if (poseA.position_invMass.w > 0.0 && motionA.angularVelocity_flags.w <= -1.0) { motionA.angularVelocity_flags.w = 0.0; }
+    if (poseB.position_invMass.w > 0.0 && motionB.angularVelocity_flags.w <= -1.0) { motionB.angularVelocity_flags.w = 0.0; }
     motions[pair.keyHigh] = motionA;
     motions[pair.keyLow] = motionB;
     manifolds[rank] = manifold;
@@ -1784,6 +1805,7 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
     workgroupBarrier();
 
     if (lane == 0u) {
+        var maximumLevel = 0u;
         for (var rank = 0u; rank < contactCount; rank += 1u) {
             var cache = constraintCaches[rank];
             var level = SENTINEL;
@@ -1792,6 +1814,7 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
                 level = max(serialBodyNextLevel[pair.keyHigh],
                             serialBodyNextLevel[pair.keyLow]);
                 let nextLevel = level + 1u;
+                maximumLevel = max(maximumLevel, nextLevel);
                 serialBodyNextLevel[pair.keyHigh] = nextLevel;
                 serialBodyNextLevel[pair.keyLow] = nextLevel;
                 serialLevelCounts[level] += 1u;
@@ -1801,6 +1824,7 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
             constraintCaches[rank] = cache;
         }
 
+        serialLevelCount = maximumLevel;
         var offset = 0u;
         for (var level = 0u; level < SERIAL_LEVEL_CAPACITY; level += 1u) {
             serialLevelOffsets[level] = offset;
@@ -1823,7 +1847,7 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
 }
 
 fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
-                      dependencyLevels : bool) {
+                      dependencyLevels : bool, levelBound : u32) {
     if (!dependencyLevels) {
         if (lane == 0u) {
             for (var rank = 0u; rank < contactCount; rank += 1u) {
@@ -1833,11 +1857,9 @@ fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
         return;
     }
 
-    // Pairs arrive in lexicographic (minimum, maximum) order. For n bodies,
-    // the complete graph reaches level 2n-4; removing pairs can only lower
-    // the per-body next levels. A uniform-buffer bound keeps every lane's
-    // barriers in uniform control flow, as required by browser WebGPU.
-    let levelBound = min(2u * params.capacities.x, contactCount);
+    // The builder's exact maximum is loaded uniformly by the caller. Empty
+    // trailing levels need no barriers; every populated level retains its
+    // original rank ordering and synchronization. Capacity fallback is unchanged.
     for (var level = 0u; level < levelBound; level += 1u) {
         let offset = serialLevelOffsets[level];
         let count = serialLevelCounts[level];
@@ -1882,10 +1904,14 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
     workgroupBarrier();
 
     let dependencyLevels =
-        contactCount >= SERIAL_LEVEL_CONTACT_THRESHOLD;
+        contactCount >= SERIAL_LEVEL_CONTACT_THRESHOLD
+        && contactCount <= SERIAL_LEVEL_CAPACITY;
     if (dependencyLevels) {
         build_serial_dependency_levels(lane, contactCount);
     }
+    // A regular workgroup read is not a statically uniform loop bound in
+    // browser WGSL. This builtin provides the required uniformity proof once.
+    let actualLevelCount = workgroupUniformLoad(&serialLevelCount);
 
     // Detailed classification is diagnostic-only. Every body/contact owns an
     // independent lane; integer max/sum reductions are exact and commutative.
@@ -1921,10 +1947,10 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
         workgroupBarrier();
         if (substep == 0u) {
             solve_serial_stage(lane, contactCount, STAGE_WARM_START,
-                               dependencyLevels);
+                               dependencyLevels, actualLevelCount);
         }
         solve_serial_stage(lane, contactCount, STAGE_BIASED,
-                           dependencyLevels);
+                           dependencyLevels, actualLevelCount);
         storageBarrier();
         workgroupBarrier();
         let finalSubstep = substep + 1u == params.control.z;
@@ -1934,12 +1960,12 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
         storageBarrier();
         workgroupBarrier();
         solve_serial_stage(lane, contactCount, STAGE_RELAX,
-                           dependencyLevels);
+                           dependencyLevels, actualLevelCount);
         storageBarrier();
         workgroupBarrier();
     }
     solve_serial_stage(lane, contactCount, STAGE_RESTITUTION,
-                       dependencyLevels);
+                       dependencyLevels, actualLevelCount);
     if (lane == 0u) {
         let activeCount = atomicLoad(&solverTelemetry[32]);
         let maximumDegree = atomicLoad(&solverTelemetry[36]);

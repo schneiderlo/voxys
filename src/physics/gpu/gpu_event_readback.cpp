@@ -208,7 +208,7 @@ public:
         if (sources_.hasHits()) {
             wgpuCommandEncoderCopyBufferToBuffer(
                 encoder, sources_.narrowPhaseTelemetry,
-                11u * sizeof(uint32_t), sourceTelemetry_,
+                (sources_.useActiveManifoldCount ? 24u : 11u) * sizeof(uint32_t), sourceTelemetry_,
                 5u * sizeof(uint32_t), sizeof(uint32_t));
             wgpuCommandEncoderCopyBufferToBuffer(
                 encoder, sources_.narrowPhaseTelemetry,

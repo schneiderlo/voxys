@@ -8,6 +8,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "terrain/lego_surface.hpp"
+#include "game/adventure/imported_assembly.hpp"
 
 #include <gtest/gtest.h>
 #include <atomic>
@@ -19,6 +20,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
@@ -848,6 +850,7 @@ struct AuthoredContactFixture {
         GpuContactManifold manifold;
         std::array<uint32_t,32> telemetry;
         std::array<glm::vec4,6> poses,motions;
+        std::array<GpuContactManifold,8> patches{};
     };
     Context& context;
     IAuthoredShapeResources& store;
@@ -858,8 +861,10 @@ struct AuthoredContactFixture {
     std::array<glm::ivec4,3> metadata{};
     std::array<ShapeHandle,3> handles{};
     std::array<WGPUBuffer,7> buffers{};
-    AuthoredContactFixture(Context& c,IAuthoredShapeResources& s):context(c),store(s) {
+    uint32_t patchSlots = 1;
+    AuthoredContactFixture(Context& c,IAuthoredShapeResources& s,uint32_t patches=1):context(c),store(s),patchSlots(patches) {
         GpuNarrowPhase::Config config; config.pairCapacity=1; config.workgroupSize=64;
+        config.normalPatchesPerPair=patches;
         if(!narrow.initialize(context.getDevice(),context.getQueue(),config))
             throw std::runtime_error("contact pipeline");
         const auto uploadBuffer=[&](auto& values,const char* label) {
@@ -923,7 +928,7 @@ struct AuthoredContactFixture {
         }
         if(solver) {
             solver->setInput({buffers[0],buffers[6],buffers[1],buffers[2],
-                narrow.activeManifolds(),narrow.telemetryBuffer(),3,1,
+                narrow.activeManifolds(),narrow.telemetryBuffer(),3,patchSlots,
                 narrow.activeContactDispatchBuffer(),GpuNarrowPhase::kActiveContactDispatchOffset});
             if(!solver->encode(encoder) || !narrow.encodeCommitActiveManifolds(encoder)) {
                 wgpuCommandEncoderRelease(encoder); (void)store.discard(ticket);
@@ -932,6 +937,7 @@ struct AuthoredContactFixture {
         }
         wgpuCommandEncoderCopyBufferToBuffer(encoder,narrow.manifolds(),0,buffers[5],0,sizeof(GpuContactManifold));
         wgpuCommandEncoderCopyBufferToBuffer(encoder,narrow.telemetryBuffer(),0,buffers[5],sizeof(GpuContactManifold),128);
+        wgpuCommandEncoderCopyBufferToBuffer(encoder,narrow.manifolds(),0,buffers[5],offsetof(Snapshot,patches),patchSlots*sizeof(GpuContactManifold));
         wgpuCommandEncoderCopyBufferToBuffer(encoder,buffers[0],0,buffers[5],offsetof(Snapshot,poses),sizeof(poses));
         wgpuCommandEncoderCopyBufferToBuffer(encoder,buffers[6],0,buffers[5],offsetof(Snapshot,motions),sizeof(motions));
         WGPUCommandBufferDescriptor cd{}; auto command=wgpuCommandEncoderFinish(encoder,&cd);
@@ -1012,6 +1018,359 @@ TEST_F(GpuAuthoredShapes,ContactBoxClipsToExteriorPatchesAndLeavesNotchOpen) {
         hit=contact.run(); contactHit(hit,-.05f,{-1,0,0});
         contact.primitive(2,{1.3f,-.25f,.25f},{.2f,.2f,.2f,2});
         hit=contact.run(); EXPECT_EQ(hit.manifold.state[0],0u); EXPECT_EQ(hit.telemetry[16],0u);
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity) {
+    auto store=create(context);const auto handle=upload(context,*store,7,false);
+    {
+        AuthoredContactFixture contact(context,*store);
+        for(const float angle:{-.001f,0.f,.001f}) {
+            SCOPED_TRACE(angle);
+            AuthoredRootMotion root;root.orientation=glm::angleAxis(angle,glm::vec3(0,0,1));
+            contact.authored(1,handle,root);
+            // Wide, level floor makes the support normal vertical. The cube's
+            // bottom corner also lies on a side face with tiny positive normal
+            // alignment; that side must not steal the support feature ID.
+            contact.primitive(2,{0,-1.49f,0},{6,1,6,2});
+            const auto hit=contact.run();ASSERT_EQ(hit.telemetry[16],0u);
+            ASSERT_GE(hit.manifold.state[0],2u);
+            EXPECT_GT(hit.manifold.normal[1],.999f);
+            for(uint32_t i=0;i<hit.manifold.state[0];++i) {
+                const auto feature=hit.manifold.points[i].features[1];
+                ASSERT_NE(feature&0x80000000u,0u);
+                const auto faceIndex=feature&0x7fffffffu;
+                ASSERT_LT(faceIndex,store->get(handle)->faces().size());
+                const auto& face=store->get(handle)->faces()[faceIndex];
+                const auto world=contact.anchorWorld(hit.manifold.points[i],false);
+                const auto local=glm::inverse(root.orientation)*world;
+                EXPECT_NEAR(local.y,-1.f,.0001f);
+                EXPECT_EQ(face.axis,1u)<<"point "<<i<<" root "<<local.x<<","<<local.y<<","<<local.z;
+                EXPECT_EQ(face.sign,-1);
+            }
+        }
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,ContactReductionRetainsBothEndsOfManyCoplanarExteriorPatches) {
+    std::vector<geometry::UnionBox> boxes;
+    for(int32_t i=0;i<10;++i) {
+        const int32_t x=-450+i*100;
+        boxes.push_back({{{x-25,-50,-50},{x+25,0,50}},uint32_t(i+1)});
+    }
+    boxes.push_back({{{-475,0,-50},{475,50,50}},11});
+    geometry::BoxUnionIssue unionIssue;const auto volume=geometry::BoxUnion::compile(boxes,unionIssue);ASSERT_TRUE(volume);
+    const RigidMassInput mass{5,{0,0,0},{10,0,0,0,100,0,0,0,100}};
+    AuthoredShapeIssue shapeIssue;auto shape=AuthoredShape::prepare(*volume,mass,shapeIssue);ASSERT_TRUE(shape);
+    auto store=create(context);ShapeResourceError error;
+    const auto handle=store->upload(std::move(*shape),error);ASSERT_TRUE(handle.valid());ASSERT_TRUE(drain(context,*store));
+    const geometry::UnionBox ground{{{-750,-25,-250},{750,25,250}},1};
+    const auto groundVolume=geometry::BoxUnion::compile(std::span(&ground,1),unionIssue);ASSERT_TRUE(groundVolume);
+    auto groundShape=AuthoredShape::prepare(*groundVolume,mass,shapeIssue);ASSERT_TRUE(groundShape);
+    const auto groundHandle=store->upload(std::move(*groundShape),error);ASSERT_TRUE(groundHandle.valid());ASSERT_TRUE(drain(context,*store));
+    for(const bool authoredGround:{false,true}) {
+        SCOPED_TRACE(authoredGround?"authored ground":"primitive ground");
+        AuthoredContactFixture contact(context,*store);contact.authored(2,handle);
+        if(authoredGround) {
+            AuthoredRootMotion root;root.position=worldPositionFromAbsolute({0,-1.45,0});
+            contact.authored(1,groundHandle,root);
+        } else contact.primitive(1,{0,-1.45f,0},{30,1,10,2});
+        const auto hit=contact.run();ASSERT_EQ(hit.manifold.state[0],4u);
+        float minX=INFINITY,maxX=-INFINITY,minZ=INFINITY,maxZ=-INFINITY;
+        for(const auto& point:hit.manifold.points) {
+            const auto p=contact.anchorWorld(point,true);
+            minX=std::min(minX,p.x);maxX=std::max(maxX,p.x);minZ=std::min(minZ,p.z);maxZ=std::max(maxZ,p.z);
+        }
+        // Ten separate bottom patches yield forty raw clipped corners. The
+        // final four constraints must support both ends, not the first four
+        // patches encountered before the sixteen-candidate work buffer fills.
+        EXPECT_LT(minX,-8);EXPECT_GT(maxX,8);EXPECT_LT(minZ,-.9f);EXPECT_GT(maxZ,.9f);
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide) {
+    game::adventure::ImportedAssemblySource source;source.assetId="support-normal";source.sourceSha256=std::string(64,'a');
+    source.parts={{1,"lower","98283.dat",4,1,{0,0,0},{1,3.774895063202166e-8,0,0}},
+                  {2,"upper","3005.dat",4,2,{0,0,0},{1,3.774895063202166e-8,0,0}}};
+    std::string error;const auto graph=game::adventure::ImportedAssembly::prepare(source,error);ASSERT_TRUE(graph)<<error;
+    auto limits=smallLimits();limits.cpu.cells=512;limits.cpu.faces=4096;limits.cpu.nodes=1024;limits.cpu.bytes=1024*1024;limits.gpuBytes=1024*1024;
+    auto store=create(context,limits);std::array<ShapeHandle,2> handles{};ShapeResourceError status;
+    for(size_t i=0;i<2;++i){auto shape=graph->roots()[i].shape;handles[i]=store->upload(std::move(shape),status);ASSERT_TRUE(handles[i].valid());}
+    ASSERT_TRUE(drain(context,*store));
+    {
+        AuthoredContactFixture contact(context,*store);
+        const auto pose=[&](uint32_t body,glm::dvec3 p,glm::dquat q) {
+            contact.authored(body,handles[body-1]);const auto position=worldPositionFromAbsolute(p);
+            contact.poses[body*2]=glm::vec4(position.local,contact.poses[body*2].w);
+            contact.poses[body*2+1]={float(q.x),float(q.y),float(q.z),float(q.w)};
+            contact.metadata[body]=glm::ivec4(position.sector,contact.metadata[body].w);
+        };
+        // Real adjacent masonry/1x1 poses isolate a tiny stud-side contact
+        // competing with the already coherent vertical supporting patch.
+        pose(1,{1194.9104843139648,13.649364471435547,-1034.4612321853638},
+            {-.010204754769802094,.0002891026088036597,-.9999476671218872,.0006663290550932288});
+        pose(2,{1195.4047775268555,14.82012939453125,-1034.468822479248},
+            {.5074785351753235,-.49262332916259766,-.4917924106121063,.5078660845756531});
+        auto hit=contact.run();ASSERT_GT(hit.manifold.state[0],0u);ASSERT_LT(hit.manifold.normal[1],-.9f);
+        pose(1,{1194.9093704223633,13.650254249572754,-1034.461166381836},
+            {-.010301144793629646,-.00032086853752844036,-.9999467134475708,.0004865774535574019});
+        pose(2,{1195.405174255371,14.821036338806152,-1034.4688501358032},
+            {.5074757933616638,-.492708295583725,-.4920057952404022,.5075796842575073});
+        hit=contact.run();ASSERT_GT(hit.manifold.state[0],0u);EXPECT_LT(hit.manifold.normal[1],-.9f);
+        // A genuinely deeper side collision must override temporal preference.
+        contact.poses[4].z-=.03f;hit=contact.run();ASSERT_GT(hit.manifold.state[0],0u);
+        EXPECT_LT(hit.manifold.normal[2],-.9f);EXPECT_GT(hit.manifold.normal[1],-.2f);
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,CompoundKeepsSimultaneousSupportAndSidePatches) {
+    game::adventure::ImportedAssemblySource source;source.assetId="support-normal";source.sourceSha256=std::string(64,'a');
+    source.parts={{1,"lower","98283.dat",4,1,{0,0,0},{1,3.774895063202166e-8,0,0}},
+                  {2,"upper","3005.dat",4,2,{0,0,0},{1,3.774895063202166e-8,0,0}}};
+    std::string error;const auto graph=game::adventure::ImportedAssembly::prepare(source,error);ASSERT_TRUE(graph)<<error;
+    auto limits=smallLimits();limits.cpu.cells=512;limits.cpu.faces=4096;limits.cpu.nodes=1024;limits.cpu.bytes=1024*1024;limits.gpuBytes=1024*1024;
+    auto store=create(context,limits);std::array<ShapeHandle,2> handles{};ShapeResourceError status;
+    for(size_t i=0;i<2;++i){auto shape=graph->roots()[i].shape;handles[i]=store->upload(std::move(shape),status);ASSERT_TRUE(handles[i].valid());}
+    ASSERT_TRUE(drain(context,*store));
+    {
+        AuthoredContactFixture contact(context,*store,8);
+        const auto pose=[&](uint32_t body,glm::dvec3 p,glm::dquat q) {
+            contact.authored(body,handles[body-1]);const auto position=worldPositionFromAbsolute(p);
+            contact.poses[body*2]=glm::vec4(position.local,contact.poses[body*2].w);
+            contact.poses[body*2+1]={float(q.x),float(q.y),float(q.z),float(q.w)};
+            contact.metadata[body]=glm::ivec4(position.sector,contact.metadata[body].w);
+        };
+        // Real adjacent masonry/1x1 poses isolate a tiny stud-side contact
+        // competing with the already coherent vertical supporting patch.
+        pose(1,{1194.9104843139648,13.649364471435547,-1034.4612321853638},
+            {-.010204754769802094,.0002891026088036597,-.9999476671218872,.0006663290550932288});
+        pose(2,{1195.4047775268555,14.82012939453125,-1034.468822479248},
+            {.5074785351753235,-.49262332916259766,-.4917924106121063,.5078660845756531});
+        auto hit=contact.run();
+        std::ostringstream diagnostics;for(size_t i=0;i<32;++i)diagnostics<<i<<'='<<hit.telemetry[i]<<' ';
+        for(const auto& m:hit.patches)diagnostics<<" patch "<<m.state[0]<<" normal="<<m.normal[0]<<','<<m.normal[1]<<','<<m.normal[2];
+        ASSERT_EQ(hit.telemetry[25],0u)<<diagnostics.str();ASSERT_GT(hit.telemetry[24],0u)<<diagnostics.str();
+        pose(1,{1194.9093704223633,13.650254249572754,-1034.461166381836},
+            {-.010301144793629646,-.00032086853752844036,-.9999467134475708,.0004865774535574019});
+        pose(2,{1195.405174255371,14.821036338806152,-1034.4688501358032},
+            {.5074757933616638,-.492708295583725,-.4920057952404022,.5075796842575073});
+        hit=contact.run();ASSERT_EQ(hit.telemetry[25],0u);ASSERT_EQ(hit.telemetry[27],0u);
+        const auto hasNormal=[&](const auto& snapshot,size_t axis,float limit) {
+            return std::any_of(snapshot.patches.begin(),snapshot.patches.end(),[&](const auto& patch){return patch.state[0]!=0u&&patch.normal[axis]<limit;});
+        };
+        EXPECT_TRUE(hasNormal(hit,1,-.9f));EXPECT_TRUE(hasNormal(hit,2,-.9f));
+        EXPECT_GE(hit.telemetry[24],2u);
+        // A genuinely deeper side collision must override temporal preference.
+        contact.poses[4].z-=.03f;hit=contact.run();ASSERT_EQ(hit.telemetry[27],0u);
+        EXPECT_TRUE(hasNormal(hit,1,-.9f));EXPECT_TRUE(hasNormal(hit,2,-.9f));
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow) {
+    auto store=create(context);
+    const auto uploadBoxes=[&](std::span<const geometry::UnionBox> boxes) {
+        geometry::BoxUnionIssue unionIssue;const auto volume=geometry::BoxUnion::compile(boxes,unionIssue);
+        if(!volume)throw std::runtime_error("corner union");
+        const RigidMassInput mass{1,{0,0,0},{1,0,0,0,1,0,0,0,1}};
+        AuthoredShapeIssue issue;auto shape=AuthoredShape::prepare(*volume,mass,issue);
+        if(!shape)throw std::runtime_error("corner shape");
+        ShapeResourceError error;const auto handle=store->upload(std::move(*shape),error);
+        if(!handle.valid()||!drain(context,*store))throw std::runtime_error("corner upload");
+        return handle;
+    };
+    const std::array<geometry::UnionBox,3> walls{{
+        {{{-100,-100,-100},{100,-50,100}},1},
+        {{{-100,-50,-100},{-50,100,100}},2},
+        {{{-50,-50,-100},{100,100,-50}},3}}};
+    const geometry::UnionBox box{{{-25,-25,-25},{25,25,25}},1};
+    const auto corner=uploadBoxes(walls),cube=uploadBoxes(std::span(&box,1));
+    for(const uint32_t slots:{8u,4u,2u}) {
+        SCOPED_TRACE(slots);AuthoredContactFixture contact(context,*store,slots);
+        contact.authored(1,corner);AuthoredRootMotion root;
+        root.position=worldPositionFromAbsolute({-.51,-.51,-.51});contact.authored(2,cube,root);
+        auto hit=contact.run();
+        if(slots>=4) {
+            ASSERT_EQ(hit.telemetry[27],0u);EXPECT_EQ(hit.telemetry[24],3u);
+            for(size_t axis=0;axis<3;++axis) {
+                EXPECT_TRUE(std::any_of(hit.patches.begin(),hit.patches.end(),[&](const auto& m){
+                    return m.state[0]>0u&&m.normal[axis]<-.99f;
+                }))<<"missing corner normal "<<axis;
+            }
+            // History slot order is not identity. Distinct impulses must follow
+            // their matching normal/anchors after the previous slots rotate.
+            auto history=hit.patches;
+            for(auto& manifold:history) {
+                const float tag=1.f-manifold.normal[0]-2.f*manifold.normal[1]-3.f*manifold.normal[2];
+                for(uint32_t point=0;point<manifold.state[0];++point)
+                    manifold.points[point].localAnchorBNormalImpulse[3]=tag;
+            }
+            std::rotate(history.begin(),history.begin()+1,history.begin()+slots);
+            ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),contact.narrow.manifolds(),0,
+                std::span<const GpuContactManifold>(history).first(slots)));
+            hit=contact.run();ASSERT_EQ(hit.telemetry[24],3u);ASSERT_EQ(hit.telemetry[27],0u);
+            for(const auto& manifold:hit.patches) {
+                const float expected=1.f-manifold.normal[0]-2.f*manifold.normal[1]-3.f*manifold.normal[2];
+                for(uint32_t point=0;point<manifold.state[0];++point)
+                    EXPECT_NEAR(manifold.points[point].localAnchorBNormalImpulse[3],expected,.0001f);
+            }
+            if(slots==8) {
+                for(auto& manifold:hit.patches)for(auto& point:manifold.points)
+                    point.localAnchorBNormalImpulse[3]=0;
+                ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),contact.narrow.manifolds(),0,
+                    std::span<const GpuContactManifold>(hit.patches)));
+                contact.poses[2].w=0;
+                contact.shapes[1].inverseInertiaMaterial={0,0,0,0};
+                contact.motions[4]={-1,-1,-1,0};
+                GpuDynamicSolver solver;GpuDynamicSolver::Config config;
+                config.bodyCapacity=3;config.contactCapacity=8;config.workgroupSize=64;
+                config.gravity={0,0,0};config.friction=0;config.rollingResistance=0;
+                config.linearDamping=0;config.angularDamping=0;
+                config.sphereRestitution=0;config.otherRestitution=0;
+                ASSERT_TRUE(solver.initialize(context.getDevice(),context.getQueue(),config));
+                hit=contact.run(true,true,&solver);ASSERT_EQ(hit.telemetry[24],3u);
+                for(size_t slot=0;slot<hit.patches.size();++slot) {
+                    const auto& manifold=hit.patches[slot];if(manifold.state[0]==0)continue;
+                    EXPECT_EQ(manifold.pair.ordinal,slot);
+                    float impulse=0;for(uint32_t point=0;point<manifold.state[0];++point)
+                        impulse+=manifold.points[point].localAnchorBNormalImpulse[3];
+                    EXPECT_GT(impulse,0.f)<<"solver result missing from raw patch "<<slot;
+                }
+                for(glm::length_t axis=0;axis<3;++axis)EXPECT_GT(hit.motions[4][axis],-.5f);
+                solver.shutdown();
+            }
+        } else {
+            EXPECT_EQ(hit.telemetry[25],1u);EXPECT_NE(hit.telemetry[27],0u);EXPECT_EQ(hit.telemetry[24],0u);
+            root.position=worldPositionFromAbsolute({5,5,5});contact.authored(2,cube,root);
+            hit=contact.run();EXPECT_EQ(hit.telemetry[25],0u);
+            EXPECT_NE(hit.telemetry[27],0u);EXPECT_EQ(hit.telemetry[24],0u);
+        }
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,RelocatedContactDoesNotInheritUnmatchedFrictionOrTorque) {
+    auto store=create(context);const auto handle=upload(context,*store,7,false);
+    {
+        AuthoredContactFixture contact(context,*store,8);contact.authored(1,handle);
+        contact.primitive(2,{0,-1.49f,0},{6,1,6,2});
+        auto hit=contact.run();ASSERT_GT(hit.manifold.state[0],0u);
+        auto history=hit.manifold;
+        for(uint32_t point=0;point<history.state[0];++point)
+            history.points[point].localAnchorBNormalImpulse[3]=2;
+        history.tangent1[3]=3;history.tangent2[3]=4;
+        history.frictionAnchorA[3]=5;history.rollingImpulse={6,7,8,0};
+        ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),contact.narrow.manifolds(),0,
+            std::span<const GpuContactManifold>(&history,1)));
+        // Same horizontal face and normal, but every floor anchor moves much
+        // farther than the existing recycling distance. No constraint survives.
+        contact.poses[2].x+=.5f;hit=contact.run();ASSERT_GT(hit.manifold.state[0],0u);
+        EXPECT_EQ(hit.telemetry[14],0u);EXPECT_EQ(hit.telemetry[15],0u);
+        for(uint32_t point=0;point<hit.manifold.state[0];++point)
+            EXPECT_EQ(hit.manifold.points[point].localAnchorBNormalImpulse[3],0.f);
+        EXPECT_EQ(hit.manifold.tangent1[3],0.f);EXPECT_EQ(hit.manifold.tangent2[3],0.f);
+        EXPECT_EQ(hit.manifold.frictionAnchorA[3],0.f);
+        EXPECT_EQ(hit.manifold.rollingImpulse,(std::array<float,4>{0,0,0,0}));
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,OptionalActualWallPairContactReplay) {
+    const char* tracePath=std::getenv("VOXY_IMPORTED_PAIR_REPLAY");
+    const char* workspace=std::getenv("VOXY_ADVENTURE_TEST_WORKSPACE");
+    if(!tracePath||!workspace)GTEST_SKIP()<<"Opt-in native recorded-pose diagnostic, not a default acceptance gate.";
+    std::string error;
+    const auto source=game::adventure::loadImportedSection(std::filesystem::path(workspace)/"data/adventure/ldraw-blacksmith-parts-r01/wall.json",error);
+    ASSERT_TRUE(source)<<error;
+    const auto graph=game::adventure::ImportedAssembly::prepare(*source,error);ASSERT_TRUE(graph)<<error;
+    std::vector<uint64_t> bonds;for(const auto& bond:source->bonds)if(bond.active)bonds.push_back(bond.id);
+    const auto cut=graph->prepareCut(source->revision,bonds,source->anchors,error);ASSERT_TRUE(cut)<<error;
+    constexpr std::array<uint64_t,2> ids{74942832682433725ull,139456561832398802ull};
+    auto limits=smallLimits();limits.cpu.cells=512;limits.cpu.faces=4096;limits.cpu.nodes=1024;limits.cpu.bytes=1024*1024;limits.gpuBytes=1024*1024;
+    auto store=create(context,limits);std::array<ShapeHandle,2> handles{};ShapeResourceError status;
+    for(size_t i=0;i<ids.size();++i) {
+        const auto root=cut->rootForPart(ids[i]);ASSERT_TRUE(root);
+        auto shape=cut->roots()[*root].shape;handles[i]=store->upload(std::move(shape),status);ASSERT_TRUE(handles[i].valid());
+    }
+    ASSERT_TRUE(drain(context,*store));
+    {
+        AuthoredContactFixture contact(context,*store);std::ifstream input(tracePath);ASSERT_TRUE(input.good());
+        std::ostringstream trace;trace<<"tick,count,nx,ny,nz,anchorAx,anchorAy,anchorAz,separation,featureA,featureB\n";
+        uint64_t tick=0;size_t samples=0,contacts=0,sides=0;float minNormalY=1,maxNormalY=-1;
+        while(input>>tick) {
+            ASSERT_LT(samples,120u);
+            for(size_t i=0;i<2;++i) {
+                glm::dvec3 absolute;glm::dquat orientation;
+                ASSERT_TRUE(bool(input>>absolute.x>>absolute.y>>absolute.z>>orientation.w>>orientation.x>>orientation.y>>orientation.z));
+                const uint32_t body=uint32_t(i+1);contact.authored(body,handles[i]);
+                const auto position=worldPositionFromAbsolute(absolute);
+                contact.poses[body*2]=glm::vec4(position.local,contact.poses[body*2].w);
+                contact.poses[body*2+1]=glm::vec4(float(orientation.x),float(orientation.y),float(orientation.z),float(orientation.w));
+                contact.metadata[body]=glm::ivec4(position.sector,contact.metadata[body].w);
+            }
+            const auto hit=contact.run();++samples;EXPECT_EQ(hit.telemetry[16],0u);
+            const uint32_t count=hit.manifold.state[0];
+            if(count) {
+                ++contacts;const float ny=hit.manifold.normal[1];minNormalY=std::min(minNormalY,ny);maxNormalY=std::max(maxNormalY,ny);
+                if(ny>-.7f)++sides;
+            }
+            for(uint32_t i=0;i<std::max(count,1u);++i) {
+                const auto& point=hit.manifold.points[i];const auto p=contact.anchorWorld(point,true);
+                trace<<tick<<','<<count<<','<<hit.manifold.normal[0]<<','<<hit.manifold.normal[1]<<','<<hit.manifold.normal[2]
+                    <<','<<p.x<<','<<p.y<<','<<p.z<<','<<point.localAnchorASeparation[3]<<','<<point.features[0]<<','<<point.features[1]<<'\n';
+            }
+        }
+        EXPECT_EQ(samples,120u);EXPECT_GT(contacts,0u);
+        RecordProperty("contactReplay",trace.str());RecordProperty("contactSamples",int(contacts));RecordProperty("nonSupportNormals",int(sides));
+        RecordProperty("minimumNormalY",minNormalY);RecordProperty("maximumNormalY",maxNormalY);
+    }
+    close(context,*store);
+}
+
+TEST_F(GpuAuthoredShapes,ContactAuthoredPatchWarmStartFollowsAnchorsRatherThanCornerOrder) {
+    auto store=create(context);const auto handle=upload(context,*store,7,false);
+    {
+        AuthoredContactFixture contact(context,*store);
+        AuthoredRootMotion left,right;right.position=worldPositionFromAbsolute({1.95,0,0});
+        contact.authored(1,handle,left);contact.authored(2,handle,right);
+        const auto initial=contact.run();ASSERT_EQ(initial.manifold.state[0],4u);
+        auto seeded=initial.manifold;
+        for(uint32_t i=0;i<4;++i) {
+            EXPECT_EQ(seeded.points[i].features[0],seeded.points[0].features[0]);
+            EXPECT_EQ(seeded.points[i].features[1],seeded.points[0].features[1]);
+            seeded.points[i].localAnchorBNormalImpulse[3]=float(i+1);
+        }
+        const auto original=seeded;
+        std::reverse(seeded.points.begin(),seeded.points.end());
+        ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),contact.narrow.manifolds(),0,
+            std::span<const GpuContactManifold>(&seeded,1)));
+        const auto reordered=contact.run();ASSERT_EQ(reordered.manifold.state[0],4u);
+        for(uint32_t i=0;i<4;++i) {
+            const auto& p=reordered.manifold.points[i];size_t closest=0;double distance=INFINITY;
+            for(size_t j=0;j<4;++j) {
+                double next=0;
+                for(size_t axis=0;axis<3;++axis) {
+                    const double a=double(p.localAnchorASeparation[axis])-double(original.points[j].localAnchorASeparation[axis]);
+                    const double b=double(p.localAnchorBNormalImpulse[axis])-double(original.points[j].localAnchorBNormalImpulse[axis]);
+                    next+=a*a+b*b;
+                }
+                if(next<distance){distance=next;closest=j;}
+            }
+            EXPECT_LT(distance,1e-9);
+            EXPECT_FLOAT_EQ(p.localAnchorBNormalImpulse[3],original.points[closest].localAnchorBNormalImpulse[3]);
+        }
+        // Face IDs denote a patch, not an immortal point. Newly appearing
+        // corners must not inherit an impulse from an old distant corner.
+        seeded=reordered.manifold;
+        for(auto& p:seeded.points){p.localAnchorASeparation[1]+=3;p.localAnchorBNormalImpulse[1]+=3;p.localAnchorBNormalImpulse[3]=17;}
+        ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),contact.narrow.manifolds(),0,
+            std::span<const GpuContactManifold>(&seeded,1)));
+        const auto changed=contact.run();ASSERT_EQ(changed.manifold.state[0],4u);
+        for(const auto& p:changed.manifold.points)EXPECT_FLOAT_EQ(p.localAnchorBNormalImpulse[3],0);
     }
     close(context,*store);
 }
@@ -1292,6 +1651,43 @@ PhysicsInitContext backendContext(Context& context) {
     return value;
 }
 
+// The mandatory proof must reject contact loss even with all diagnostic
+// telemetry disabled, and must retain that failure across a queued batch.
+TEST_F(GpuAuthoredShapes, ContactOverflowCannotCertifyOwnedTicksWithoutTelemetry) {
+    GpuPhysicsBackend backend;auto config=backendContext(context);
+    config.maxContacts=1;config.gpu.authoredContactPatches=4;
+    config.gpu.enableTelemetryReadback=false;config.gpu.maximumCatchUpTicks=2;
+    ASSERT_TRUE(backend.initialize(config));
+    ASSERT_EQ(backend.enableAuthoredShapeResources(smallLimits()),ShapeResourceError::None);
+    auto& resources=*backend.authoredShapeResources();ASSERT_TRUE(drain(context,resources));
+    const auto shape=upload(context,resources,7,false);
+    // Two separate touching pairs require two live contacts, exceeding the
+    // deliberate one-contact budget without exceeding body/pair/shape storage.
+    for(int i=0;i<3;++i) {
+        AuthoredBodySpawnDesc desc;desc.shape=shape;
+        desc.motion.position.local={float(i)*1.5f,10,0};
+        ASSERT_TRUE(backend.spawnAuthoredBody(desc));
+    }
+    ASSERT_TRUE(backend.scheduleFixedTicks(2));
+    ShapeResourceError error;const auto ticket=backend.prepareGpuSubmission(error);
+    ASSERT_TRUE(ticket.valid());
+    WGPUCommandEncoderDescriptor ed{};const auto encoder=wgpuDeviceCreateCommandEncoder(context.getDevice(),&ed);
+    ASSERT_NE(encoder,nullptr);ASSERT_TRUE(backend.encodeGpuStepChecked(encoder).succeeded());
+    WGPUCommandBufferDescriptor cd{};const auto command=wgpuCommandEncoderFinish(encoder,&cd);
+    wgpuCommandEncoderRelease(encoder);ASSERT_NE(command,nullptr);
+    ASSERT_EQ(backend.submitGpuSubmission(ticket,std::span{&command,1}),ShapeResourceError::None);
+    wgpuCommandBufferRelease(command);
+    ASSERT_TRUE(wait(context,[&]{backend.stepCpu(0);return backend.tickFrontier().failed;}));
+    const auto frontier=backend.tickFrontier();
+    EXPECT_TRUE(frontier.supported);EXPECT_EQ(frontier.submitted,2u);
+    EXPECT_EQ(frontier.completed,0u);EXPECT_FALSE(backend.isInitialized());
+    EXPECT_FALSE(backend.scheduleFixedTicks(1));
+    EXPECT_FALSE(backend.pollDebugSnapshot().has_value());
+    // A failed world is abandoned, never treated as a successful certified
+    // release/rebuild. Its normal owner teardown releases remaining handles.
+    backend.shutdown();
+}
+
 TEST_F(GpuAuthoredShapes, BackendOwnsHeapAndSubmitsItsReadWithLegacyPhysics) {
     GpuPhysicsBackend backend;
     EXPECT_EQ(backend.enableAuthoredShapeResources(smallLimits()),ShapeResourceError::NotInitialized);
@@ -1363,6 +1759,157 @@ std::optional<DebugSnapshot> liveTick(Context& context, GpuPhysicsBackend& backe
     std::optional<DebugSnapshot> snapshot;
     if (!wait(context,[&]{ snapshot=backend.pollDebugSnapshot(); return snapshot.has_value(); })) return {};
     return snapshot;
+}
+
+// Cannonballs must reach the real authored contact solver, not merely stop at
+// a broad bounding box. No terrain is attached in these cases.
+void verifyStaticCannonSweep(Context& context, bool opening, bool rotated, bool distant, float height=0, bool accelerating=false) {
+    GpuPhysicsBackend backend; auto config=backendContext(context);
+    if (accelerating) config.gpu.gravity={14400,0,0};
+    ASSERT_TRUE(backend.initialize(config));
+    ASSERT_EQ(backend.enableAuthoredShapeResources(smallLimits()),ShapeResourceError::None);
+    auto& resources=*backend.authoredShapeResources(); ASSERT_TRUE(drain(context,resources));
+    std::vector<geometry::UnionBox> boxes;
+    if (opening) {
+        boxes={{{{-1,-100,-100},{1,-25,100}},1},{{{-1,25,-100},{1,100,100}},2}};
+    } else { boxes={{{{-1,-100,-100},{1,100,100}},1}}; }
+    geometry::BoxUnionIssue unionIssue;
+    auto geometry=geometry::BoxUnion::compile(boxes,unionIssue); ASSERT_TRUE(geometry);
+    AuthoredShapeIssue shapeIssue;
+    auto prepared=AuthoredShape::prepare(*geometry,{10,{0,0,0},{10,0,0,0,10,0,0,0,10}},shapeIssue);
+    ASSERT_TRUE(prepared); ShapeResourceError error;
+    const auto shape=resources.upload(std::move(*prepared),error); ASSERT_TRUE(shape.valid());
+    ASSERT_TRUE(drain(context,resources));
+    AuthoredBodySpawnDesc wall; wall.shape=shape; wall.motionType=AuthoredBodyMotionType::Static;
+    wall.motion.position.sector=distant ? glm::ivec3(2000000000,-2000000000,1800000000) : glm::ivec3(0);
+    wall.motion.position.local=distant ? glm::vec3(127,0,0) : glm::vec3(0);
+    wall.motion.orientation=rotated ? glm::angleAxis(.6f,glm::vec3(0,1,0)) : glm::quat(1,0,0,0);
+    const auto target=backend.spawnAuthoredBody(wall); ASSERT_TRUE(target);
+    for (int shot=0;shot<2;shot++) {
+        BodySpawnDesc ball; ball.shape=ThrowableShape::Sphere; ball.dimensions={.2f,.2f,.2f};
+        ball.bullet=true; ball.inverseMass=1; ball.sector=wall.motion.position.sector;
+        ball.position=wall.motion.position.local+wall.motion.orientation*glm::vec3(-1,height,0);
+        ball.linearVelocity=wall.motion.orientation*glm::vec3(accelerating ? 0.f : 240.f,rotated ? 12.f : 0.f,0);
+        const auto projectile=backend.spawnBody(ball); ASSERT_TRUE(projectile.valid());
+        auto snapshot=liveTick(context,backend,projectile); ASSERT_TRUE(snapshot);
+        ASSERT_EQ(snapshot->bodies.size(),1u); const auto& actual=snapshot->bodies[0];
+        const auto velocity=glm::inverse(wall.motion.orientation)*actual.linearVelocity;
+        const auto relative=glm::inverse(wall.motion.orientation)*(actual.position-wall.motion.position.local
+            +glm::vec3(actual.sector-wall.motion.position.sector)*256.f);
+        if (opening || height>2.1f) {
+            EXPECT_NEAR(velocity.x,240,0.001f);
+            EXPECT_NEAR(relative.x,3,0.001f);
+        } else {
+            EXPECT_LT(velocity.x,-10.f) << "Normal solver restitution must remain active";
+            EXPECT_LE(relative.x,-.115f) << "A 0.04-stud wall must stop a four-stud sweep";
+            EXPECT_GT(relative.x,-4.1f) << "Time before impact must not be integrated twice";
+            if (!accelerating) {
+                const auto next=liveTick(context,backend,projectile); ASSERT_TRUE(next);
+                const auto nextVelocity=glm::inverse(wall.motion.orientation)*next->bodies[0].linearVelocity;
+                EXPECT_LT(nextVelocity.x,-10.f) << "Leaving the wall must not retrigger a zero-time hit";
+            }
+        }
+        ASSERT_TRUE(backend.destroyBody(projectile)); ASSERT_TRUE(liveTick(context,backend,projectile));
+    }
+    ASSERT_TRUE(backend.destroyBody(target.body)); ASSERT_TRUE(liveTick(context,backend,target.body));
+    ASSERT_EQ(resources.retire(shape),ShapeResourceError::None); ASSERT_TRUE(drain(context,resources));
+    close(context,resources); backend.shutdown();
+}
+TEST_F(GpuAuthoredShapes,CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots) {
+    GpuPhysicsBackend backend;auto config=backendContext(context);config.gpu.authoredContactPatches=8;
+    config.gpu.substeps=16;ASSERT_TRUE(backend.initialize(config));
+    ASSERT_TRUE(backend.setEventReadbackEnabled(true));
+    ASSERT_EQ(backend.enableAuthoredShapeResources(smallLimits()),ShapeResourceError::None);
+    auto& resources=*backend.authoredShapeResources();ASSERT_TRUE(drain(context,resources));
+    const auto shape=upload(context,resources,7,false);
+    AuthoredBodySpawnDesc wall;wall.shape=shape;wall.motionType=AuthoredBodyMotionType::Static;
+    const auto target=backend.spawnAuthoredBody(wall);ASSERT_TRUE(target);
+    std::array<BodyHandle,2> balls;
+    for(size_t i=0;i<balls.size();++i) {
+        BodySpawnDesc ball;ball.shape=ThrowableShape::Sphere;ball.dimensions={.2f,.2f,.2f};
+        ball.bullet=true;ball.inverseMass=1;ball.position={-2,float(i)*1.2f-.6f,0};ball.linearVelocity={240,0,0};
+        balls[i]=backend.spawnBody(ball);ASSERT_TRUE(balls[i].valid());
+    }
+    const auto snapshot=liveTick(context,backend,balls[0]);ASSERT_TRUE(snapshot);
+    ASSERT_EQ(snapshot->bodies.size(),1u);EXPECT_LT(snapshot->bodies[0].linearVelocity.x,-10.f);
+    std::optional<PhysicsEventBatch> events;
+    ASSERT_TRUE(wait(context,[&]{events=backend.pollEvents();return events.has_value();}));
+    EXPECT_FALSE(events->overflow);EXPECT_EQ(events->tick,snapshot->tick);
+    std::array<bool,2> hit{};
+    for(const auto& event:events->events)if(event.type==PhysicsEventType::ContactHit) {
+        for(size_t i=0;i<balls.size();++i)if(event.bodyHandleA()==balls[i]||event.bodyHandleB()==balls[i]) {
+            hit[i]=true;EXPECT_GT(event.impactSpeed,200.f);EXPECT_GT(event.impulse,0.f);
+            EXPECT_TRUE(event.bodyHandleA()==target.body||event.bodyHandleB()==target.body);
+            const auto feature=event.bodyHandleA()==target.body?event.featureId:event.otherFeatureId;
+            EXPECT_NE(feature&0x80000000u,0u);
+        }
+    }
+    EXPECT_TRUE(hit[0]);EXPECT_TRUE(hit[1])<<"Second dense contact lives beyond the first eight raw patch slots";
+    for(auto ball:balls){ASSERT_TRUE(backend.destroyBody(ball));}
+    ASSERT_TRUE(backend.destroyBody(target.body));
+    ASSERT_TRUE(liveTick(context,backend,balls[0]));
+    ASSERT_TRUE(wait(context,[&]{return backend.pollEvents().has_value();}));
+    ASSERT_EQ(resources.retire(shape),ShapeResourceError::None);ASSERT_TRUE(drain(context,resources));
+    close(context,resources);backend.shutdown();
+}
+TEST_F(GpuAuthoredShapes,CannonCcdThinStaticWallRetainsSolverBounce) {
+    verifyStaticCannonSweep(context,false,false,false);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdObliqueWallInDistantSectorRetainsSolverBounce) {
+    verifyStaticCannonSweep(context,false,true,true);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdGrazingMissDoesNotHitWallBounds) {
+    verifyStaticCannonSweep(context,false,false,false,2.12f);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdUsesVelocityAfterForces) {
+    verifyStaticCannonSweep(context,false,false,false,0,true);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdRealOpeningRemainsClear) {
+    verifyStaticCannonSweep(context,true,false,false);
+}
+
+void verifyCannonReviewCase(Context& context, bool separatingCompound, bool slow, bool zeroSpeculation) {
+    GpuPhysicsBackend backend; auto config=backendContext(context);
+    if (zeroSpeculation) config.gpu.speculativeDistance=0;
+    ASSERT_TRUE(backend.initialize(config));
+    ASSERT_EQ(backend.enableAuthoredShapeResources(smallLimits()),ShapeResourceError::None);
+    auto& resources=*backend.authoredShapeResources(); ASSERT_TRUE(drain(context,resources));
+    std::vector<geometry::UnionBox> boxes{{{{-1,-100,-100},{1,100,100}},1}};
+    if (separatingCompound) boxes.push_back({{{99,-100,-100},{101,100,100}},2});
+    geometry::BoxUnionIssue unionIssue;
+    auto geometry=geometry::BoxUnion::compile(boxes,unionIssue); ASSERT_TRUE(geometry);
+    AuthoredShapeIssue shapeIssue;
+    auto prepared=AuthoredShape::prepare(*geometry,{10,{0,0,0},{10,0,0,0,10,0,0,0,10}},shapeIssue);
+    ASSERT_TRUE(prepared); ShapeResourceError error;
+    const auto shape=resources.upload(std::move(*prepared),error); ASSERT_TRUE(shape.valid());
+    ASSERT_TRUE(drain(context,resources));
+    const auto wall=backend.spawnAuthoredBody({.shape=shape,.motionType=AuthoredBodyMotionType::Static});
+    ASSERT_TRUE(wall);
+    BodySpawnDesc ball; ball.shape=ThrowableShape::Sphere;
+    ball.dimensions=glm::vec3(separatingCompound ? .4f : .2f);
+    ball.bullet=!slow; ball.inverseMass=1;
+    ball.position={separatingCompound ? .22f : (slow ? -.16f : -1.f),0,0};
+    ball.linearVelocity={slow ? 2.88f : 240.f,0,0};
+    const auto projectile=backend.spawnBody(ball); ASSERT_TRUE(projectile.valid());
+    const auto snapshot=liveTick(context,backend,projectile); ASSERT_TRUE(snapshot);
+    ASSERT_EQ(snapshot->bodies.size(),1u);
+    EXPECT_LT(snapshot->bodies[0].linearVelocity.x,0.f) << "A real entering face must produce solver response";
+    EXPECT_LE(snapshot->bodies[0].position.x,separatingCompound ? 1.781f : -.119f);
+    EXPECT_GT(snapshot->bodies[0].position.x,separatingCompound ? 1.5f : -2.f)
+        << "The first separating face must not steal the later impact";
+    ASSERT_TRUE(backend.destroyBody(projectile)); ASSERT_TRUE(backend.destroyBody(wall.body));
+    ASSERT_TRUE(liveTick(context,backend,projectile));
+    ASSERT_EQ(resources.retire(shape),ShapeResourceError::None); ASSERT_TRUE(drain(context,resources));
+    close(context,resources); backend.shutdown();
+}
+TEST_F(GpuAuthoredShapes,CannonCcdLeavingOneFaceStillHitsAnotherInSameCompound) {
+    verifyCannonReviewCase(context,true,false,false);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdSlowNonBulletStillReachesSolver) {
+    verifyCannonReviewCase(context,false,true,false);
+}
+TEST_F(GpuAuthoredShapes,CannonCcdZeroSpeculativeDistanceStillReachesSolver) {
+    verifyCannonReviewCase(context,false,false,true);
 }
 
 TEST_F(GpuAuthoredShapes, LiveBodyReceivesRootForceWithPreparedMassAndPrincipalInertia) {

@@ -93,6 +93,9 @@ struct CameraConfig {
 };
 
 struct LightingConfig {
+    bool dayNightEnabled = false;
+    float dayCycleMinutes = 24.0f;
+    float dayStartHour = 9.0f;
     std::array<float, 3> sunDirection = {0.5f, 0.8f, 0.3f};
     std::array<float, 3> sunColor = {1.0f, 0.95f, 0.9f};
     std::array<float, 3> ambientColor = {0.1f, 0.12f, 0.15f};

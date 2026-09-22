@@ -64,6 +64,7 @@ public:
 
     bool initialize(WGPUDevice device, WGPUQueue queue, const Config& config) {
         if (device_ || !device || !queue || config.pairCapacity == 0
+            || config.normalPatchesPerPair == 0 || config.normalPatchesPerPair > 8
             || config.linearSlop <= 0.0f || config.speculativeDistance < 0.0f
             || config.recycleDistance < config.linearSlop
             || (config.workgroupSize != 64 && config.workgroupSize != 128
@@ -76,11 +77,29 @@ public:
         if (config_.manifoldCapacity == 0u) {
             config_.manifoldCapacity = config_.pairCapacity;
         }
+        if (uint64_t{config_.manifoldCapacity} * config_.normalPatchesPerPair > UINT32_MAX) {
+            shutdown(); return false;
+        }
+        config_.manifoldCapacity *= config_.normalPatchesPerPair;
         if (config_.dispatchContactCapacity == 0u) {
             config_.dispatchContactCapacity = config_.manifoldCapacity;
         }
         config_.dispatchContactCapacity = std::min(
             config_.dispatchContactCapacity, config_.manifoldCapacity);
+
+        rawScanCapacity_ = config_.normalPatchesPerPair == 1
+            ? config_.dispatchContactCapacity : config_.manifoldCapacity;
+
+        WGPULimits deviceLimits{};
+        const uint64_t historyBytes = uint64_t{config_.manifoldCapacity}
+            * sizeof(GpuContactManifold);
+        if (!gpu::getDeviceLimits(device_, deviceLimits)
+            || historyBytes > deviceLimits.maxStorageBufferBindingSize
+            || historyBytes > deviceLimits.maxBufferSize
+            || (uint64_t{rawScanCapacity_} + config_.workgroupSize - 1u)
+                    / config_.workgroupSize > deviceLimits.maxComputeWorkgroupsPerDimension) {
+            shutdown(); return false;
+        }
 
         const auto makeStorage = [this](uint64_t bytes, const char* label) {
             return gpu::createBuffer(device_, gpu::BufferDesc{
@@ -129,10 +148,10 @@ public:
         telemetry_ = makeStorage(kTelemetryWords * sizeof(uint32_t),
                                  "narrow_phase_telemetry");
         activePredicates_ = makeStorage(
-            uint64_t{config_.dispatchContactCapacity} * sizeof(uint32_t),
+            uint64_t{rawScanCapacity_} * sizeof(uint32_t),
             "narrow_phase_active_predicates");
         activeOffsets_ = makeStorage(
-            uint64_t{config_.dispatchContactCapacity} * sizeof(uint32_t),
+            uint64_t{rawScanCapacity_} * sizeof(uint32_t),
             "narrow_phase_active_offsets");
         if (!parameterBuffer_ || !bucketedPairs_ || !classTable_
             || !classDispatchArgs_
@@ -149,7 +168,7 @@ public:
         }
 
         DeterministicGpuPrimitives::Config primitiveConfig;
-        primitiveConfig.capacity = config_.dispatchContactCapacity;
+        primitiveConfig.capacity = rawScanCapacity_;
         primitiveConfig.workgroupSize = config_.workgroupSize;
         primitiveConfig.shaderPath = config_.primitivesShaderPath;
         primitiveConfig.shaderSources = config_.shaderSources;
@@ -165,7 +184,7 @@ public:
                 * sizeof(uint32_t)
             + uint64_t{config_.manifoldCapacity} * 2u
                 * sizeof(GpuContactManifold)
-            + uint64_t{config_.dispatchContactCapacity} * 2u
+            + uint64_t{rawScanCapacity_} * 2u
                 * sizeof(uint32_t)
             + kTelemetryWords * sizeof(uint32_t)
             + kClassTableWords * sizeof(uint32_t) + sizeof(emptyShapeHeap));
@@ -514,7 +533,7 @@ public:
                            config_.manifoldCapacity, config_.workgroupSize},
             .tolerances = {config_.linearSlop, config_.speculativeDistance,
                            config_.recycleDistance, 0.0f},
-            .dispatch = {config_.dispatchContactCapacity, 0u, 0u, 0u},
+            .dispatch = {rawScanCapacity_, config_.normalPatchesPerPair, config_.dispatchContactCapacity, 0u},
         };
         if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
             return false;
@@ -576,7 +595,7 @@ public:
 
         WGPUBindGroup compactGroup = compactGroups_[parity];
         const uint32_t compactGroups =
-            (config_.dispatchContactCapacity + config_.workgroupSize - 1u)
+            (rawScanCapacity_ + config_.workgroupSize - 1u)
             / config_.workgroupSize;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         if (!pass) return false;
@@ -589,7 +608,7 @@ public:
         wgpuComputePassEncoderRelease(pass);
         if (!primitives_.encodeScanU32(
                 encoder, activePredicates_, activeOffsets_,
-                config_.dispatchContactCapacity)) {
+                rawScanCapacity_)) {
             return false;
         }
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
@@ -684,6 +703,7 @@ public:
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
     Config config_{};
+    uint32_t rawScanCapacity_ = 0;
     GpuNarrowPhaseInput input_{};
     size_t scratchBytes_ = 0;
     size_t inputBindGroupCacheMisses_ = 0;
@@ -801,6 +821,9 @@ GpuNarrowPhaseTelemetry GpuNarrowPhase::decodeTelemetry(
     result.matchedFeaturePoints = words[14];
     result.recycledAnchorPoints = words[15];
     result.invalidManifolds = words[16];
+    result.patchOverflow = words[25] != 0u;
+    result.activeContactOverflow = words[26] != 0u;
+    result.requiredPatchHighWater = words[28];
     result.pairOverflow = words[17] != 0u;
     result.highInputPairs = words[18];
     result.highManifolds = words[19];

@@ -1601,13 +1601,13 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
         return false;
     }
 
-    if (uploadGeneratedEnvironment(
+    if (!config.dayNightSky && uploadGeneratedEnvironment(
             queue_, skyLutTexture_, config.environmentPath)) {
         skyLutBaked_ = true;
         return true;
     }
 
-    LOG_WARN("Generated environment unavailable; using procedural sky bake");
+    LOG_INFO("Using procedural sky bake (day/night: {})", config.dayNightSky);
     skyLutBaseView_ = gpu::createMipView(
         skyLutTexture_, 0, WGPUTextureFormat_RGBA16Float);
     if (!skyLutBaseView_) {
@@ -1652,6 +1652,11 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     pipelineDesc.layout = skyLutPipelineLayout_;
     pipelineDesc.compute.module = skyLutShaderModule_;
     WGPU_SET_ENTRY_POINT(pipelineDesc.compute, "main");
+    WGPUConstantEntry neutralClouds{};
+    neutralClouds.key = gpu::toStringView("NEUTRAL_CLOUDS");
+    neutralClouds.value = config.dayNightSky ? 1.0 : 0.0;
+    pipelineDesc.compute.constantCount = 1;
+    pipelineDesc.compute.constants = &neutralClouds;
     skyLutPipeline_ = wgpuDeviceCreateComputePipeline(device_, &pipelineDesc);
     if (!skyLutPipeline_) {
         LOG_ERROR("Failed to create sky LUT compute pipeline");
@@ -2725,6 +2730,13 @@ void BlitPath::setCameraUniforms(const CameraUniforms& uniforms) {
         return;
     }
 
+    const bool cycling = uniforms.fogColor.w > 0.0f;
+    const bool wasCycling = uniforms_->fogColor.w > 0.0f;
+    if (skyLutPipeline_ && (cycling != wasCycling ||
+        (!cycling && glm::vec3(uniforms.lightDirWS) != glm::vec3(uniforms_->lightDirWS)))) {
+        skyLutBaked_ = false;
+        backgroundDirty_ = true;
+    }
     *uniforms_ = uniforms;
     uniformsDirty_ = true;
     updateStaticUniforms();

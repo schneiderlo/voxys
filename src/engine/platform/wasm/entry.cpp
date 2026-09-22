@@ -322,6 +322,8 @@ namespace {
             << app.raycastStaticCacheFrames
             << ",\"geometry_water_frames\":"
             << app.geometryWaterFrames
+            << ",\"physics_deferred_frames\":" << app.physicsDeferredFrames
+            << ",\"surface_acquired_frames\":" << app.surfaceAcquiredFrames
             << ",\"submitted_primitives\":"
             << app.primitiveSubmittedCount << '}';
 
@@ -1066,6 +1068,9 @@ int main(int argc, char* argv[]) {
     appConfig.heightScale = config.terrain.heightScale;
     appConfig.cellScale = config.terrain.cellScale;
     appConfig.ambientIntensity = config.lighting.ambientIntensity;
+    appConfig.dayNightEnabled = config.lighting.dayNightEnabled;
+    appConfig.dayCycleMinutes = config.lighting.dayCycleMinutes;
+    appConfig.dayStartHour = config.lighting.dayStartHour;
     appConfig.sunDirection = {
         config.lighting.sunDirection[0], config.lighting.sunDirection[1],
         config.lighting.sunDirection[2]};

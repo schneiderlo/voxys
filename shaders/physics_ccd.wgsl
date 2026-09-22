@@ -1,3 +1,332 @@
+// BEGIN GENERATED AUTHORED GEOMETRY
+// Authored shape heap format 1. The including pipeline declares
+// var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
+// One binding holds the header, seven-row descriptors, three-row cells/faces
+// and two-row preorder BVH nodes. All geometric coordinates are root-local
+// integer ticks at .02 m. Every index inside a shape is local to that resource.
+
+struct AuthoredShapeView {
+    valid: bool,
+    cell_base: u32,
+    cell_count: u32,
+    face_base: u32,
+    face_count: u32,
+    node_base: u32,
+    node_count: u32,
+    center_inverse_mass: vec4<f32>,
+    root_from_body: vec4<f32>,
+    inverse_inertia_radius: vec4<f32>,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+};
+
+fn authored_shape(index: u32, generation: u32) -> AuthoredShapeView {
+    var result: AuthoredShapeView;
+    let rows = arrayLength(&authored_shape_heap);
+    if (rows < 2u || index == 0u || generation == 0u) { return result; }
+    let sections = authored_shape_heap[0];
+    let capacity = authored_shape_heap[1];
+    if (sections.x != 1u || sections.y == 0u || sections.y > 512u || index > sections.y) { return result; }
+    if (sections.z != 2u + 7u * (sections.y + 1u) || sections.w < sections.z || capacity.x < sections.w
+        || capacity.y < capacity.x || capacity.y > rows) { return result; }
+    if ((sections.w-sections.z)%3u != 0u || (capacity.x-sections.w)%3u != 0u || (capacity.y-capacity.x)%2u != 0u) { return result; }
+    let cell_capacity = (sections.w-sections.z)/3u;
+    let face_capacity = (capacity.x-sections.w)/3u;
+    let node_capacity = (capacity.y-capacity.x)/2u;
+    if (capacity.z != cell_capacity || capacity.w != face_capacity) { return result; }
+    let descriptor = 2u + 7u*index;
+    // sections.z bounds the descriptor area, and the area is inside the binding.
+    let identity = authored_shape_heap[descriptor];
+    let ranges = authored_shape_heap[descriptor+1u];
+    if (identity.x != generation || identity.y != 1u || identity.w == 0u
+        || ranges.y == 0u || ranges.w == 0u) { return result; }
+    if (identity.z > cell_capacity || identity.w > cell_capacity-identity.z
+        || ranges.x > face_capacity || ranges.y > face_capacity-ranges.x
+        || ranges.z > node_capacity || ranges.w > node_capacity-ranges.z) { return result; }
+    result.cell_base = sections.z + 3u*identity.z;
+    result.cell_count = identity.w;
+    result.face_base = sections.w + 3u*ranges.x;
+    result.face_count = ranges.y;
+    result.node_base = capacity.x + 2u*ranges.z;
+    result.node_count = ranges.w;
+    result.center_inverse_mass = bitcast<vec4<f32>>(authored_shape_heap[descriptor+2u]);
+    result.root_from_body = bitcast<vec4<f32>>(authored_shape_heap[descriptor+3u]);
+    result.inverse_inertia_radius = bitcast<vec4<f32>>(authored_shape_heap[descriptor+4u]);
+    result.minimum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+5u]).xyz)*0.02;
+    result.maximum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+6u]).xyz)*0.02;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeCell {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    first_face: u32,
+    face_count: u32,
+};
+
+fn authored_shape_ref(reference: vec4<u32>) -> AuthoredShapeView {
+    if (reference.z != 1u || reference.w != 0u) {
+        var invalid: AuthoredShapeView;
+        return invalid;
+    }
+    return authored_shape(reference.x, reference.y);
+}
+fn authored_cell(shape: AuthoredShapeView, index: u32) -> AuthoredShapeCell {
+    var result: AuthoredShapeCell;
+    if (!shape.valid || index >= shape.cell_count) { return result; }
+    let row = shape.cell_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    if (upper.w > shape.face_count || detail.x > shape.face_count-upper.w || lower.w == 0u) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.first_face = upper.w;
+    result.face_count = detail.x;
+    // Zero exterior patches is valid for a completely enclosed union cell.
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeFace {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    cell: u32,
+    axis: u32,
+    sign: i32,
+};
+fn authored_face(shape: AuthoredShapeView, index: u32) -> AuthoredShapeFace {
+    var result: AuthoredShapeFace;
+    if (!shape.valid || index >= shape.face_count) { return result; }
+    let row = shape.face_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    let sign = bitcast<i32>(detail.y);
+    if (lower.w == 0u || upper.w >= shape.cell_count || detail.x > 2u || (sign != -1 && sign != 1)) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.cell = upper.w;
+    result.axis = detail.x;
+    result.sign = sign;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeNode {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    cell: u32,
+    escape: u32,
+};
+fn authored_node(shape: AuthoredShapeView, index: u32) -> AuthoredShapeNode {
+    var result: AuthoredShapeNode;
+    if (!shape.valid || index >= shape.node_count) { return result; }
+    let row = shape.node_base + 2u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    if ((lower.w != 0xffffffffu && lower.w >= shape.cell_count) || upper.w <= index || upper.w > shape.node_count) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.cell = lower.w;
+    result.escape = upper.w;
+    result.valid = true;
+    return result;
+}
+
+fn authored_quat_conjugate(q: vec4<f32>) -> vec4<f32> { return vec4<f32>(-q.xyz,q.w); }
+fn authored_quat_product(a: vec4<f32>, b: vec4<f32>) -> vec4<f32> {
+    return vec4<f32>(a.w*b.xyz+b.w*a.xyz+cross(a.xyz,b.xyz),a.w*b.w-dot(a.xyz,b.xyz));
+}
+fn authored_quat_rotate(q: vec4<f32>, v: vec3<f32>) -> vec3<f32> {
+    let t=2.0*cross(q.xyz,v);
+    return v+q.w*t+cross(q.xyz,t);
+}
+fn authored_root_vector(shape: AuthoredShapeView, body_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(shape.root_from_body,body_vector);
+}
+fn authored_body_vector(shape: AuthoredShapeView, root_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(authored_quat_conjugate(shape.root_from_body),root_vector);
+}
+fn authored_root_point(shape: AuthoredShapeView, body_point: vec3<f32>) -> vec3<f32> {
+    return shape.center_inverse_mass.xyz+authored_root_vector(shape,body_point);
+}
+fn authored_body_point(shape: AuthoredShapeView, root_point: vec3<f32>) -> vec3<f32> {
+    return authored_body_vector(shape,root_point-shape.center_inverse_mass.xyz);
+}
+fn authored_body_orientation(shape: AuthoredShapeView, world_root_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_root_orientation,shape.root_from_body);
+}
+fn authored_root_orientation(shape: AuthoredShapeView, world_body_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_body_orientation,authored_quat_conjugate(shape.root_from_body));
+}
+fn authored_com_position(shape: AuthoredShapeView, root_position: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_position+authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz);
+}
+fn authored_root_position(shape: AuthoredShapeView, com_position: vec3<f32>, body_orientation: vec4<f32>) -> vec3<f32> {
+    return com_position-authored_quat_rotate(authored_root_orientation(shape,body_orientation),shape.center_inverse_mass.xyz);
+}
+fn authored_com_velocity(shape: AuthoredShapeView, root_velocity: vec3<f32>, world_omega: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_velocity+cross(world_omega,authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz));
+}
+fn authored_world_inverse_inertia(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>) -> vec3<f32> {
+    let body_impulse=authored_quat_rotate(authored_quat_conjugate(body_orientation),world_impulse);
+    return authored_quat_rotate(body_orientation,body_impulse*shape.inverse_inertia_radius.xyz);
+}
+struct AuthoredImpulseDelta { linear: vec3<f32>, angular: vec3<f32>, };
+fn authored_impulse_at_root_point(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>, root_point: vec3<f32>) -> AuthoredImpulseDelta {
+    let world_lever=authored_quat_rotate(body_orientation,authored_body_point(shape,root_point));
+    return AuthoredImpulseDelta(world_impulse*shape.center_inverse_mass.w,
+        authored_world_inverse_inertia(shape,body_orientation,cross(world_lever,world_impulse)));
+}
+// Exact exterior queries in authored root space. Included after the immutable
+// heap accessors. Feature ordinals resolve through the same retained shape.
+struct AuthoredQuerySurface {
+    valid: bool, distance: f32, point: vec3<f32>, normal: vec3<f32>,
+    feature: u32, source: u32,
+};
+struct AuthoredSegmentClosest { squared: f32, query: vec3<f32>, surface: vec3<f32>, };
+
+// Squared distance from a segment to an axis-aligned closed box/rectangle.
+// Clamp changes polynomial only at the six slab boundaries. Minimize each
+// quadratic interval exactly; sampling can miss a thin crane/rail between taps.
+fn authored_segment_box(a: vec3<f32>, b: vec3<f32>, lo: vec3<f32>, hi: vec3<f32>) -> AuthoredSegmentClosest {
+    let v = b-a;
+    var cuts: array<f32,8>;
+    cuts[0] = 0.0; cuts[1] = 1.0;
+    var count = 2u;
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(v[axis]) <= 1e-20) { continue; }
+        let first = (lo[axis]-a[axis])/v[axis];
+        let last = (hi[axis]-a[axis])/v[axis];
+        if (first>0.0 && first<1.0) { cuts[count]=first; count++; }
+        if (last>0.0 && last<1.0) { cuts[count]=last; count++; }
+    }
+    for (var i=1u; i<count; i++) {
+        let value=cuts[i]; var at=i;
+        while (at>0u) { if (cuts[at-1u]<=value) { break; } cuts[at]=cuts[at-1u]; at--; }
+        cuts[at]=value;
+    }
+    let initial=clamp(a,lo,hi);
+    var best=AuthoredSegmentClosest(dot(a-initial,a-initial),a,initial);
+    for (var i=0u; i+1u<count; i++) {
+        let midpoint=a+v*(.5*(cuts[i]+cuts[i+1u]));
+        var numerator=0.0; var denominator=0.0;
+        for (var axis=0u; axis<3u; axis++) {
+            if (midpoint[axis]<lo[axis] || midpoint[axis]>hi[axis] || lo[axis]==hi[axis]) {
+                let bound=select(hi[axis],lo[axis],midpoint[axis]<=lo[axis]);
+                numerator+=v[axis]*(a[axis]-bound); denominator+=v[axis]*v[axis];
+            }
+        }
+        // A flat minimum spans the interval. Its midpoint avoids cancellation
+        // at a slab edge on long segments (and an artificial sideways normal).
+        var t=.5*(cuts[i]+cuts[i+1u]);
+        if (denominator>1e-30) { t=clamp(-numerator/denominator,cuts[i],cuts[i+1u]); }
+        let query=a+v*t; let surface=clamp(query,lo,hi); let delta=query-surface;
+        let squared=dot(delta,delta);
+        if (squared<best.squared) { best=AuthoredSegmentClosest(squared,query,surface); }
+    }
+    return best;
+}
+
+fn authored_ray_interval(lo: vec3<f32>, hi: vec3<f32>, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> vec2<f32> {
+    var interval=vec2<f32>(0.0,maximum);
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(direction[axis])<1e-20) {
+            if (origin[axis]<lo[axis] || origin[axis]>hi[axis]) { return vec2<f32>(1.0,-1.0); }
+        } else {
+            let a=(lo[axis]-origin[axis])/direction[axis];
+            let b=(hi[axis]-origin[axis])/direction[axis];
+            interval.x=max(interval.x,min(a,b)); interval.y=min(interval.y,max(a,b));
+            if (interval.x>interval.y) { return vec2<f32>(1.0,-1.0); }
+        }
+    }
+    return interval;
+}
+
+fn authored_segment_surface(shape: AuthoredShapeView, a: vec3<f32>, b: vec3<f32>) -> AuthoredQuerySurface {
+    var result=AuthoredQuerySurface(false,1e30,a,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    var squared=1e30; var inside=false; var closest=a;
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let lower=authored_segment_box(a,b,node.minimum,node.maximum);
+        if (lower.squared>squared) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        let segmentRange=authored_ray_interval(cell.minimum,cell.maximum,a,b-a,1.0);
+        inside=inside || segmentRange.x<=segmentRange.y;
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            let candidate=authored_segment_box(a,b,face.minimum,face.maximum);
+            if (candidate.squared<squared || (candidate.squared==squared && index<result.feature)) {
+                squared=candidate.squared; closest=candidate.query;
+                result.point=candidate.surface; result.feature=index; result.source=face.source;
+                result.normal=vec3<f32>(0); result.normal[face.axis]=f32(face.sign);
+                result.valid=true;
+            }
+        }
+    }
+    if (result.valid) {
+        let distance=sqrt(squared);
+        result.distance=select(distance,-distance,inside);
+        if (distance>1e-7) { result.normal=(closest-result.point)/result.distance; }
+        result.feature |= 0x80000000u;
+    }
+    return result;
+}
+
+struct AuthoredQueryRay { valid: bool, distance: f32, normal: vec3<f32>, feature: u32, source: u32, };
+fn authored_ray(shape: AuthoredShapeView, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> AuthoredQueryRay {
+    var result=AuthoredQueryRay(false,maximum,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    let start=authored_segment_surface(shape,origin,origin);
+    if (start.valid && start.distance<=0.0) {
+        return AuthoredQueryRay(true,0.0,start.normal,start.feature,start.source);
+    }
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let range=authored_ray_interval(node.minimum,node.maximum,origin,direction,result.distance);
+        if (range.x>range.y) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            if (abs(direction[face.axis])<1e-20) { continue; }
+            let distance=(face.minimum[face.axis]-origin[face.axis])/direction[face.axis];
+            if (distance<0.0 || distance>result.distance) { continue; }
+            let point=origin+direction*distance;
+            let u=(face.axis+1u)%3u; let v=(face.axis+2u)%3u;
+            if (point[u]<face.minimum[u]-1e-6 || point[u]>face.maximum[u]+1e-6
+                || point[v]<face.minimum[v]-1e-6 || point[v]>face.maximum[v]+1e-6) { continue; }
+            let feature=index|0x80000000u;
+            if (result.valid && distance==result.distance && feature>=result.feature) { continue; }
+            var normal=vec3<f32>(0); normal[face.axis]=f32(face.sign);
+            result=AuthoredQueryRay(true,distance,normal,feature,face.source);
+        }
+    }
+    return result;
+}
+// END GENERATED AUTHORED GEOMETRY
+
 // BEGIN GENERATED LEGO SURFACE
 // Canonical LEGO geometry. Generated into standalone shader modules by
 // scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
@@ -143,6 +472,8 @@ struct SweepResult {
 @group(0) @binding(8) var<storage, read_write> telemetry : array<atomic<u32>>;
 @group(0) @binding(9) var<uniform> ccd : CcdParams;
 @group(0) @binding(10) var maxHeightTexture : texture_2d<u32>;
+@group(0) @binding(11) var<storage, read> authored_shape_heap: array<vec4<u32>>;
+@group(0) @binding(12) var<storage, read> static_authored_bodies: array<vec2<u32>>;
 
 fn quaternion_rotate(q : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
     let twiceCross = 2.0 * cross(q.xyz, value);
@@ -289,6 +620,25 @@ fn point_clearance(point : vec3<f32>, radius : f32) -> Clearance {
 fn shape_clearance(center : vec3<f32>, pose : BodyPose,
                    shape : BodyShape) -> Clearance {
     let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+    let material = bitcast<u32>(shape.invInertia_material.w);
+    if (legoIsBrick(material)) {
+        // The enclosing sphere is only a broad-phase bound. Treating it as
+        // the brick's collision surface leaves a 2x1 brick hovering ~0.67
+        // units above flat ground and prevents the real contact solver running.
+        var best = Clearance(1e20, vec3<f32>(0,1,0), false);
+        for (var part=0u; part<legoBrickParts(shape.dimensions_type.xyz,material); part++) {
+            let offset = legoBrickPartOffset(shape.dimensions_type.xyz,part);
+            let size = legoBrickPartSize(shape.dimensions_type.xyz,part);
+            var sample = point_clearance(center+quaternion_rotate(pose.orientation,offset),0.0);
+            if (!sample.valid) { continue; }
+            let localNormal = quaternion_rotate(vec4<f32>(-pose.orientation.xyz,pose.orientation.w),sample.normal);
+            var extent = dot(abs(localNormal),size*0.5);
+            if (part>0u) { extent = length(localNormal.xz)*size.x*0.5+abs(localNormal.y)*size.y*0.5; }
+            sample.distance -= extent;
+            if (sample.distance < best.distance) { best = sample; }
+        }
+        return best;
+    }
     if (shapeType != SHAPE_CAPSULE) {
         return point_clearance(center, shape_bounding_radius(shape));
     }
@@ -312,6 +662,8 @@ fn sweep_terrain(pose : BodyPose, shape : BodyShape,
     var previous = shape_clearance(
         pose.position_invMass.xyz, pose, shape);
     if (previous.valid && previous.distance <= ccd.tuning.z) {
+        if (legoIsBrick(bitcast<u32>(shape.invInertia_material.w))
+            && dot(translation,previous.normal)>=0.0) { return result; }
         result.hit = true;
         result.fraction = 0.0;
         result.normal = previous.normal;
@@ -381,6 +733,88 @@ fn sweep_terrain(pose : BodyPose, shape : BodyShape,
     return result;
 }
 
+// Earliest sphere/exterior contact via monotone prefix distance. Unlike
+// uniformly sampling a trajectory, a prefix segment cannot skip a thin face.
+// The BVH rejects distant cells and only union exterior patches participate.
+fn sweep_authored_static(body: u32, pose: BodyPose, translation: vec3<f32>,
+                          radius: f32, maximum: f32) -> SweepResult {
+    var result = SweepResult(false, maximum, vec3<f32>(0,1,0), 0u);
+    // Terrain-only scenes never scan body slots. The compact membership list
+    // contains only static authored bodies, whose metadata cannot be modified
+    // by another CCD invocation; dynamic transforms/flags are never sampled.
+    for (var entry=0u; entry<u32(ccd.worldSector.w); entry++) {
+        let identity=static_authored_bodies[entry];
+        let obstacle=identity.x;
+        if (obstacle>=ccd.counts.x) { continue; }
+        if (obstacle == body || shapes[obstacle].authored_shape.x == 0u) { continue; }
+        let flags = u32(metadata[obstacle].w);
+        if ((flags & 0x000fffffu) != identity.y || (flags & BODY_ALIVE) == 0u
+            || (flags & 0x80000000u) != 0u
+            || poses[obstacle].position_invMass.w != 0.0) { continue; }
+        let geometry = authored_shape_ref(shapes[obstacle].authored_shape);
+        if (!geometry.valid) { continue; }
+        let reach = u32(ceil((length(translation)+radius+
+            geometry.inverse_inertia_radius.w)/WORLD_SECTOR_SIZE))+2u;
+        let delta = vec3<i32>(
+            bounded_sector_delta(metadata[obstacle].x,metadata[body].x,reach),
+            bounded_sector_delta(metadata[obstacle].y,metadata[body].y,reach),
+            bounded_sector_delta(metadata[obstacle].z,metadata[body].z,reach));
+        if (any(delta == vec3<i32>(2147483647))) { continue; }
+        let targetPose=poses[obstacle];
+        let inverse=authored_quat_conjugate(targetPose.orientation);
+        let start=authored_root_point(geometry,quaternion_rotate(inverse,
+            pose.position_invMass.xyz+vec3<f32>(delta)*WORLD_SECTOR_SIZE-targetPose.position_invMass.xyz));
+        let travel=authored_root_vector(geometry,quaternion_rotate(inverse,translation));
+        // Land a tiny distance inside the surface so a legal zero speculative
+        // distance still produces a real narrow-phase contact and solver hit.
+        let contactRadius=max(radius-min(0.0001,radius*0.001),0.000001);
+        let padding=vec3<f32>(radius);
+        let broad=authored_ray_interval(geometry.minimum-padding,
+            geometry.maximum+padding,start,travel,result.fraction);
+        if (broad.x>broad.y) { continue; }
+        var nodeIndex=0u;
+        while (nodeIndex<geometry.node_count) {
+            let node=authored_node(geometry,nodeIndex);
+            if (!node.valid) { break; }
+            let range=authored_ray_interval(node.minimum-padding,node.maximum+padding,
+                start,travel,result.fraction);
+            if (range.x>range.y) { nodeIndex=node.escape; continue; }
+            nodeIndex++;
+            if (node.cell==0xffffffffu) { continue; }
+            let cell=authored_cell(geometry,node.cell);
+            for (var f=0u; f<cell.face_count; f++) {
+                let face=authored_face(geometry,cell.first_face+f);
+                if (!face.valid) { continue; }
+                let initial=start-clamp(start,face.minimum,face.maximum);
+                // Squared distance to this convex rectangle is convex along
+                // the ray. If already touching and separating, this face can
+                // never be a later entry. Other faces in this SAME compound
+                // must still be tested (e.g. leaving one side of a doorway).
+                if (dot(initial,initial)<=radius*radius+1e-7
+                    && dot(initial,travel)>=0.0) { continue; }
+                let entire=authored_segment_box(start,start+travel*result.fraction,
+                    face.minimum,face.maximum);
+                if (entire.squared>contactRadius*contactRadius) { continue; }
+                var lower=0.0; var upper=result.fraction;
+                for (var iteration=0u; iteration<22u; iteration++) {
+                    let middle=0.5*(lower+upper);
+                    let sample=authored_segment_box(start,start+travel*middle,
+                        face.minimum,face.maximum);
+                    if (sample.squared<=contactRadius*contactRadius) { upper=middle; }
+                    else { lower=middle; }
+                }
+                let center=start+travel*upper;
+                let offset=center-clamp(center,face.minimum,face.maximum);
+                var normal=vec3<f32>(0); normal[face.axis]=f32(face.sign);
+                if (dot(offset,offset)>1e-16) { normal=normalize(offset); }
+                result=SweepResult(true,upper,quaternion_rotate(targetPose.orientation,
+                    authored_body_vector(geometry,normal)),22u);
+            }
+        }
+    }
+    return result;
+}
+
 fn mark_bullets_impl(gid : vec3<u32>) {
     let body = gid.x;
     if (body >= ccd.counts.x) { return; }
@@ -423,6 +857,7 @@ fn process_body(body : u32, bullet : bool) {
     let flags = u32(metadata[body].w);
     if ((flags & (BODY_ALIVE | BODY_AWAKE))
         != (BODY_ALIVE | BODY_AWAKE)) { return; }
+    if (poses[body].position_invMass.w <= 0.0) { return; }
     let shape = shapes[body];
     let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
     if (!bullet && shapeType != SHAPE_SPHERE
@@ -432,19 +867,41 @@ fn process_body(body : u32, bullet : bool) {
     let translation = motion.linearVelocity_sleep.xyz * ccd.tuning.x;
     let distance = length(translation);
     let radius = shape_bounding_radius(shape);
-    if (!bullet && distance <= ccd.tuning.y * radius) { return; }
-    if (!bullet) { atomicAdd(&telemetry[0], 1u); }
+    let brick = legoIsBrick(bitcast<u32>(shape.invInertia_material.w));
+    let dimensions = abs(shape.dimensions_type.xyz);
+    // Ordinary contact solving owns slow/resting bricks. CCD is needed once
+    // a tick can travel through a substantial fraction of the thinnest side.
+    let terrainCandidate=(bullet || distance>ccd.tuning.y*radius)
+        && (!brick || distance>0.5*min(dimensions.x,min(dimensions.y,dimensions.z)));
+    let authoredCandidate=ccd.worldSector.w>0 && shapeType==SHAPE_SPHERE
+        && shape.authored_shape.x==0u;
+    if (!terrainCandidate && !authoredCandidate) { return; }
+    if (!bullet && terrainCandidate) { atomicAdd(&telemetry[0], 1u); }
     if (distance <= 1e-8) { return; }
     var terrainFrameValid = false;
     let terrainPose = terrain_frame_pose(
         pose, metadata[body], radius, &terrainFrameValid);
-    if (!terrainFrameValid) { return; }
-    let underResolved = distance > f32(ccd.counts.z)
+
+    let underResolved = ccd.terrain.w != 0u && distance > f32(ccd.counts.z)
                      * ccd.terrainOrigin_cell_height.z;
     if (underResolved) {
         atomicAdd(&telemetry[5], 1u);
     }
-    let sweep = sweep_terrain(terrainPose, shape, translation);
+    var sweep = SweepResult(false, 1.0, vec3<f32>(0,1,0), 0u);
+    if (terrainCandidate && terrainFrameValid && ccd.terrain.w != 0u) {
+        sweep = sweep_terrain(terrainPose, shape, translation);
+    }
+    // Only primitive spheres against immobile authored targets are covered.
+    // Targets cannot be concurrently updated in this dispatch (zero inverse
+    // mass and not kinematic); moving obstacle CCD needs relative trajectories.
+    var authoredHit = false;
+    if (authoredCandidate) {
+        let authored = sweep_authored_static(body, pose, translation, radius, sweep.fraction);
+        if (authored.hit && (!sweep.hit || authored.fraction < sweep.fraction)) {
+            sweep = authored;
+            authoredHit = true;
+        }
+    }
     atomicMax(&telemetry[7], sweep.iterations);
     if (!sweep.hit) {
         if (bullet && underResolved) {
@@ -454,16 +911,29 @@ fn process_body(body : u32, bullet : bool) {
         }
         return;
     }
-    let safeFraction = max(
-        sweep.fraction - ccd.tuning.z / max(distance, 1e-8), 0.0);
+    let safeFraction = select(max(
+        sweep.fraction - ccd.tuning.z / max(distance, 1e-8), 0.0),
+        sweep.fraction, authoredHit);
     pose.position_invMass = vec4<f32>(
         pose.position_invMass.xyz + translation * safeFraction,
         pose.position_invMass.w);
     let velocity = motion.linearVelocity_sleep.xyz;
     let inward = min(dot(velocity, sweep.normal), 0.0);
     let tangent = velocity - sweep.normal * inward;
-    motion.linearVelocity_sleep = vec4<f32>(
-        tangent * (1.0 - safeFraction), motion.linearVelocity_sleep.w);
+    if (brick && !authoredHit) {
+        // Preserve incoming momentum for terrain restitution. Stop positional
+        // integration at the impact; the terrain pass follows the body solver.
+        motion.angularVelocity_flags.w = -2.0;
+    } else if (authoredHit) {
+        // Keep incoming velocity: narrow phase produces a real manifold and
+        // the normal GPU solver owns restitution, friction and ContactHit.
+        // The dynamic-only spare lane carries consumed tick time. Kinematic
+        // bodies use this lane for a command tick and never enter this path.
+        motion.angularVelocity_flags.w = -1.0 - safeFraction;
+    } else {
+        motion.linearVelocity_sleep = vec4<f32>(
+            tangent * (1.0 - safeFraction), motion.linearVelocity_sleep.w);
+    }
     var worldMeta = metadata[body];
     normalize_world_position(&pose, &worldMeta);
     poses[body] = pose;
@@ -479,7 +949,7 @@ fn execute_ccd_impl(gid : vec3<u32>) {
         && (u32(metadata[index].w) & BODY_BULLET) == 0u) {
         process_body(index, false);
     }
-    let bulletCount = min(compactResult[0], ccd.counts.y);
+    let bulletCount = atomicLoad(&telemetry[2]);
     if (index < bulletCount) {
         process_body(bulletIds[index], true);
     }

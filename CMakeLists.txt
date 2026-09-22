@@ -456,7 +456,9 @@ if(VOXY_BUILD_WASM)
             # Web APIs such as TextDecoder and WebGPU reject views backed by
             # resizable WebAssembly memory. Keep the heap fixed for browser use.
             "-s ALLOW_MEMORY_GROWTH=0"
-            "-s INITIAL_MEMORY=512MB"
+            # The full LDraw set adds ~78 MiB of mesh data plus bounded
+            # decode/upload working copies during startup.
+            "-s INITIAL_MEMORY=768MB"
             "-s STACK_SIZE=1MB"
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
@@ -535,6 +537,44 @@ if(VOXY_BUILD_WASM)
             data/adventure/door-r01/cooked/manifest.json
             data/adventure/human-r01/manifest.json
             data/adventure/human-r01/human.vmesh
+            data/adventure/creative-props-horizon-r01/creative-props.vmesh
+            data/adventure/creative-props-horizon-r01/manifest.json
+            data/adventure/forest-r02/forest-lod0.vmesh
+            data/adventure/forest-r02/forest-lod1.vmesh
+            data/adventure/forest-r02/forest-lod2.vmesh
+            data/adventure/forest-r02/manifest.json
+            data/adventure/forest-r02/source/ATTRIBUTION.md
+            data/adventure/forest-r02/source/ldraw-manifest.json
+            data/adventure/forest-r02/source/ldraw/CAreadme.txt
+            data/adventure/forest-r02/source/ldraw/CAlicense4.txt
+            data/adventure/creative-props-far-r01/creative-props.vmesh
+            data/adventure/creative-props-far-r01/manifest.json
+            data/adventure/creative-village-r01/creative-village.vmesh
+            data/adventure/creative-village-r01/manifest.json
+            data/adventure/ldraw-cannon-r01/cannon.vmesh
+            data/adventure/ldraw-cannon-r01/manifest.json
+            data/adventure/ldraw-cannon-r01/articulation.json
+            data/adventure/ldraw-cannon-r01/source/ATTRIBUTION.md
+            data/adventure/ldraw-cannon-r01/source/manifest.json
+            data/adventure/ldraw-cannon-r01/source/ldraw/CAreadme.txt
+            data/adventure/ldraw-cannon-r01/source/ldraw/CAlicense4.txt
+            data/adventure/ldraw-blacksmith-ground-r01/wall-parts.vmesh
+            data/adventure/ldraw-blacksmith-ground-r01/wall.json
+            data/adventure/ldraw-blacksmith-ground-r01/manifest.json
+            data/adventure/ldraw-blacksmith-r01/manifest.json
+            data/adventure/ldraw-blacksmith-r01/source/ATTRIBUTION.md
+            data/adventure/ldraw-blacksmith-r01/source/manifest.json
+            data/adventure/ldraw-blacksmith-r01/source/ldraw/CAreadme.txt
+            data/adventure/ldraw-blacksmith-r01/source/ldraw/CAlicense.txt
+            data/adventure/ldraw-blacksmith-r01/source/ldraw/CAlicense4.txt
+            data/adventure/creative-props-r01/creative-props.vmesh
+            data/adventure/creative-props-r01/manifest.json
+            data/adventure/motorbike-r01/motorbike.vmesh
+            data/adventure/motorbike-r01/manifest.json
+            data/adventure/builder-r01/manifest.json
+            data/adventure/builder-r01/human.vmesh
+            data/adventure/builder-r01/lod1.vmesh
+            data/adventure/builder-r01/lod2.vmesh
             data/adventure/human-r01/lod1.vmesh
             data/adventure/human-r01/lod2.vmesh
             data/adventure/residents-r01/moss/manifest.json

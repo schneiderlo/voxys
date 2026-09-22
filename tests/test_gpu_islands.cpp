@@ -176,6 +176,47 @@ IslandSnapshot runAndRead(gpu::Context& context, GpuIslandManager& manager,
 
 class GpuIslandTest : public ::testing::TestWithParam<uint32_t> {};
 
+TEST(GpuIslands, FixedSupportDoesNotJoinIndependentDynamicIslands) {
+    gpu::Context context;
+    if(!context.initHeadless())GTEST_SKIP()<<"Headless WebGPU unavailable";
+    constexpr uint32_t count=32, contacts=8;
+    for(const bool compact:{false,true}) {
+        std::vector<TestPose> poses(count);
+        std::vector<TestMotion> motions(count);
+        std::vector<TestMetadata> metadata(count);
+        for(uint32_t body:{1u,2u,3u}) {
+            poses[body].positionInvMass={float(body),0,0,body==1u?0.f:1.f};
+            metadata[body]=awakeMetadata();
+        }
+        motions[3].linearVelocitySleep={1,0,0,0};
+        std::vector<GpuContactManifold> manifolds(contacts);
+        for(uint32_t i=0;i<2;++i) {
+            manifolds[i].pair={1u,i+2u,i,i};
+            manifolds[i].state={1u,0u,0u,0u};
+        }
+        std::array<uint32_t,32> telemetry{};telemetry[24]=2;
+        auto pb=makeStorage<TestPose>(context,poses,"fixed_islands_pose");
+        auto mb=makeStorage<TestMotion>(context,motions,"fixed_islands_motion");
+        auto meta=makeStorage<TestMetadata>(context,metadata,"fixed_islands_metadata");
+        auto cb=makeStorage<GpuContactManifold>(context,manifolds,"fixed_islands_contacts");
+        auto tb=makeStorage<uint32_t>(context,telemetry,"fixed_islands_telemetry");
+        {
+            GpuIslandManager manager;GpuIslandManager::Config config;
+            config.bodyCapacity=count;config.contactCapacity=contacts;config.eventCapacity=count;config.sleepTicks=2;
+            ASSERT_TRUE(manager.initialize(context.getDevice(),context.getQueue(),config));
+            manager.setInput({pb,mb,meta,cb,tb,count,contacts});
+            IslandSnapshot snapshot;
+            for(int tick=0;tick<4;++tick)snapshot=runAndRead(context,manager,meta,count,count,compact);
+            EXPECT_EQ(snapshot.roots[1],1u);EXPECT_EQ(snapshot.roots[2],2u);EXPECT_EQ(snapshot.roots[3],3u);
+            EXPECT_EQ(snapshot.metadata[1][3]&kGpuBodyAwakeFlag,0u);
+            EXPECT_EQ(snapshot.metadata[2][3]&kGpuBodyAwakeFlag,0u);
+            EXPECT_NE(snapshot.metadata[3][3]&kGpuBodyAwakeFlag,0u);
+            EXPECT_EQ(snapshot.telemetry.sleepingGridEntries,2u)<<"Fixed support must remain discoverable.";
+        }
+        releaseBuffer(tb);releaseBuffer(cb);releaseBuffer(meta);releaseBuffer(mb);releaseBuffer(pb);
+    }
+}
+
 TEST(GpuIslandSectorTest, RejectsCellSizeThatDoesNotDivideSector) {
     gpu::Context context;
     gpu::ContextConfig contextConfig;
@@ -208,6 +249,7 @@ TEST(GpuIslandGlobalTest, LogarithmicRoundsConvergeLongChain) {
     std::vector<TestMetadata> metadata(bodyCapacity);
     std::vector<GpuContactManifold> manifolds(contactCapacity);
     for (uint32_t body = 1u; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass.w = 1.f; // This fixture is a dynamic chain.
         metadata[body] = awakeMetadata();
     }
     for (uint32_t contact = 0u; contact + 1u < bodyCapacity - 1u;

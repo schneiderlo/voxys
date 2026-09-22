@@ -440,7 +440,7 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     context.shutdown();
 }
 
-static void drawResidentBody(int capDirection=0, bool lego=false) {
+static void drawResidentBody(int capDirection=0, bool lego=false, size_t legoCount=1, bool invisible=false) {
     gpu::Context context;
     gpu::ContextConfig contextConfig;
     contextConfig.enableValidation = false;
@@ -472,12 +472,23 @@ static void drawResidentBody(int capDirection=0, bool lego=false) {
     bodyDesc.position = capDirection ? glm::vec3(0) : glm::vec3(0,0,2.2f);
     bodyDesc.dimensions = physics::throwableShapeDimensions(bodyDesc.shape);
     bodyDesc.inverseMass=0;
+    if(invisible){physics::PhysicsMaterial material;material.flags=physics::kInvisiblePhysicsMaterial;bodyDesc.material=material;}
     if(lego){bodyDesc.shape=physics::ThrowableShape::Box;bodyDesc.dimensions={.96f,1.14f,.96f};
         physics::PhysicsMaterial m;m.flags=packPrimitiveMaterial({{.15f,.35f,.65f},.4f,0,false});
         m.flags=(m.flags&0x0fffffffu)|physics::kLegoBrickMaterial;bodyDesc.material=m;
     }
     const auto handle=world.spawnBody(bodyDesc);ASSERT_TRUE(handle.valid());
-    if(lego){const std::array<uint32_t,1> ids{handle.index};path.setLegoBodyIds(ids);}
+    if(lego){
+        std::vector<uint32_t> ids(legoCount,handle.index);
+        if(legoCount>1){
+            // Only the last ID is visible. A truncated instance list must fail
+            // this pixel check, even when all earlier IDs render correctly.
+            bodyDesc.position={1000,0,0};
+            const auto hidden=world.spawnBody(bodyDesc);ASSERT_TRUE(hidden.valid());
+            std::fill(ids.begin(),ids.end()-1,hidden.index);
+        }
+        path.setLegoBodyIds(ids);
+    }
     world.update(1.0f / 60.0f);
     path.setPhysicsRenderView(world.renderView());
 
@@ -604,7 +615,8 @@ static void drawResidentBody(int capDirection=0, bool lego=false) {
                           || pixels[offset + 2u] != 0u;
         }
     }
-    EXPECT_GT(coloredPixels, 16u);
+    if(invisible)EXPECT_EQ(coloredPixels,0u);
+    else EXPECT_GT(coloredPixels, 16u);
     if(capDirection){
         // A reversed cap exposes the opposite, unlit inside face. Merely
         // counting silhouette pixels would miss that winding regression.
@@ -630,5 +642,7 @@ static void drawResidentBody(int capDirection=0, bool lego=false) {
 TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) { drawResidentBody(); }
 TEST(PrimitivePathGPUTest, CylinderCapsFaceOutwardAboveAndBelow) { drawResidentBody(1);drawResidentBody(-1); }
 TEST(PrimitivePathGPUTest, DrawsResidentLegoStudCap) { drawResidentBody(1,true); }
+TEST(PrimitivePathGPUTest, DrawsLastBrickAtThrowCapacity) { drawResidentBody(1,true,600); }
+TEST(PrimitivePathGPUTest, PlayerColliderDoesNotDrawOverFigurine) { drawResidentBody(0,false,1,true); }
 
 } // namespace voxy::render

@@ -83,6 +83,9 @@ struct GpuNarrowPhaseTelemetry {
     uint32_t matchedFeaturePoints = 0;
     uint32_t recycledAnchorPoints = 0;
     uint32_t invalidManifolds = 0;
+    bool patchOverflow = false;
+    bool activeContactOverflow = false;
+    uint32_t requiredPatchHighWater = 0; // Lower bound when collection overflows.
     uint32_t highInputPairs = 0;
     uint32_t highManifolds = 0;
     uint32_t highManifoldPoints = 0;
@@ -104,11 +107,17 @@ public:
 
     struct Config {
         uint32_t pairCapacity = 65'536;
-        // Zero preserves the historical behavior: one manifold slot per pair.
+        // Logical pair-history capacity; zero uses pairCapacity. Allocation is
+        // multiplied by normalPatchesPerPair.
         uint32_t manifoldCapacity = 0;
-        // Zero uses manifoldCapacity. The composed backend caps this to the
-        // downstream solver's contact capacity.
+        // Zero uses the expanded raw manifold capacity. The composed backend
+        // caps this to the downstream solver's contact capacity.
         uint32_t dispatchContactCapacity = 0;
+        // Fixed raw slots per broad pair. Primitive pairs use slot zero.
+        // Authored compounds preserve independent normal/friction patches (1..8).
+        // Values >1 scan all raw slots and latch any active-capacity overflow.
+        // Value 1 retains the historical capped scan for existing workloads.
+        uint32_t normalPatchesPerPair = 1;
         uint32_t workgroupSize = 128;
         float linearSlop = 0.005f;
         float speculativeDistance = 0.02f;

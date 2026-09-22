@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Environment lighting diagnostics</title>
+<style>
+body{margin:32px;background:#18202b;color:#eaf0f6;font:18px system-ui}h1{font-size:28px}
+#sheet{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}figure{margin:0;background:#263140;padding:16px}
+canvas{width:128px;max-height:640px;image-rendering:pixelated}figcaption{font-size:14px;max-width:230px}
+pre{white-space:pre-wrap;font-size:13px}
+</style>
+<h1>Environment lighting diagnostics</h1>
+<p>Shared C++ tests on hardware WebGPU. Colors below show linear values divided by four, in test order. They are data plots, not game images.</p>
+<p id="status">Running…</p><div id="sheet"></div><pre id="log"></pre>
+<script src="mesh_diagnostics.js"></script>
+<script>
+globalThis.diagnostic={done:false,passed:false,output:[],gpuErrors:[],captures:[]};
+(async()=>{
+    const r=globalThis.diagnostic;
+    const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
+    if(!adapter||adapter.info.isFallbackAdapter)throw Error('Hardware WebGPU required');
+    r.adapter={vendor:adapter.info.vendor,architecture:adapter.info.architecture,device:adapter.info.device,
+        description:adapter.info.description,isFallbackAdapter:adapter.info.isFallbackAdapter};
+    const device=await adapter.requestDevice();
+    device.addEventListener('uncapturederror',e=>r.gpuErrors.push(String(e.error)));
+    device.lost.then(info=>{r.lost={reason:info.reason,message:info.message};});
+    let exit,abort;
+    const completion=new Promise((resolve,reject)=>{exit=resolve;abort=reject;});
+    const log=text=>{r.output.push(text);document.querySelector('#log').textContent+=text+'\n';};
+    const module=await MeshDiagnosticModule({preinitializedWebGPUDevice:device,
+        preRun:[m=>{m.FS.mkdir('/captures');m.ENV.VOXY_ENVIRONMENT_CAPTURE_DIR='/captures';}],
+        print:log,printErr:log,onExit:exit,onAbort:reason=>abort(Error(String(reason)))});
+    r.exitCode=await completion;
+    await device.queue.onSubmittedWorkDone();
+    await new Promise(resolve=>setTimeout(resolve,100));
+    for(const name of module.FS.readdir('/captures').filter(n=>n.endsWith('.rgba')).sort((a,b)=>parseInt(a)-parseInt(b))){
+        const base='/captures/'+name.slice(0,-5),bytes=module.FS.readFile(base+'.rgba');
+        const metadata=JSON.parse(module.FS.readFile(base+'.json',{encoding:'utf8'}));
+        const float32=module.FS.readFile(base+'.f32'),requests=module.FS.readFile(base+'.requests.f32');
+        if(bytes.length!==metadata.width*metadata.height*4||float32.length!==metadata.values*16||requests.length!==float32.length)
+            throw Error('Unexpected readback size');
+        const figure=document.createElement('figure'),canvas=document.createElement('canvas'),caption=document.createElement('figcaption');
+        canvas.width=metadata.width;canvas.height=metadata.height;
+        canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(bytes),canvas.width,canvas.height),0,0);
+        caption.textContent=name+' · '+metadata.values+' values';figure.append(canvas,caption);document.querySelector('#sheet').append(figure);
+        r.captures.push({name,metadata,pixels:Array.from(bytes),float32:Array.from(float32),requests:Array.from(requests),png:canvas.toDataURL('image/png')});
+    }
+    r.passed=r.exitCode===0&&r.gpuErrors.length===0&&!r.lost&&r.captures.length===5
+        &&r.output.some(line=>/\[  PASSED  \] 5 tests\./.test(line))
+        &&!r.output.some(line=>/\[  SKIPPED \]|\[  FAILED  \]/.test(line));
+    r.done=true;document.querySelector('#status').textContent=r.passed?'Passed · 5 tests · 5 GPU readbacks':'Failed';
+})().catch(error=>{
+    Object.assign(globalThis.diagnostic,{done:true,passed:false,error:String(error),stack:error.stack});
+    document.querySelector('#status').textContent='Failed: '+error;
+});
+</script>

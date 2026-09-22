@@ -23,6 +23,11 @@ struct WorldDefinition {
 [[nodiscard]] const WorldDefinition& installedWorld() noexcept;
 [[nodiscard]] bool matchesInstalledTerrain(const terrain::lego::Surface&) noexcept;
 [[nodiscard]] glm::dvec3 townSpawn(const terrain::lego::Surface&) noexcept;
+// New creative worlds open on a sunlit, level shelf above the main bay.
+// This is presentation/startup policy, not durable content or a saved home.
+inline constexpr glm::dvec2 creativeStart{1200,-1120};
+inline constexpr double creativeStartYaw=.75;
+[[nodiscard]] glm::dvec3 creativeSpawn(const terrain::lego::Surface&,double bodyRadius) noexcept;
 [[nodiscard]] bool protectedConstruction(glm::dvec3 minimum,glm::dvec3 maximum) noexcept;
 
 } // namespace voxy::game::adventure

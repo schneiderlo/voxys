@@ -73,6 +73,46 @@ TEST(RobotAsset, AdventureBrickPersonAdmitsItsOwnPackageAndPreservesLegacyIdenti
     EXPECT_EQ(legacy.requests.size(),1u);
 }
 
+TEST(RobotAsset, CreativeBuilderHasReferenceToyProportionsAndGroundedRigidClips) {
+    RobotPackage package("data/adventure/builder-r01/","human.vmesh");std::string error;
+    const auto builder=loadBuilderAsset(package.provider(),error);ASSERT_TRUE(builder)<<error;
+    EXPECT_LE(builder->prefab.counts.gpuBytes,1024u*1024u);
+    EXPECT_FALSE(loadHumanAsset(package.provider(),error));
+    RobotPackage legacy(true);EXPECT_FALSE(loadBuilderAsset(legacy.provider(),error));
+    for(size_t clip=0;clip<builder->clips.size();++clip)for(int sample=0;sample<=8;++sample) {
+        RigidAnimationPose pose;
+        const auto index=builder->clips[clip];
+        const auto time=double(builder->mesh.anims[index].duration)*double(sample)/8.;
+        ASSERT_TRUE(sampleRigidAnimation(*builder,index,time,false,{},glm::dmat4(1),pose,error))<<error;
+        ASSERT_TRUE(pose.bounds.valid);
+        if(clip==0||clip==1||clip==3||clip==7) {EXPECT_GE(pose.bounds.minimum.y,-1e-5);}
+        if(clip==0&&sample==0) {
+            EXPECT_NEAR(pose.bounds.maximum.y,1.7,.001);
+            EXPECT_GT(pose.bounds.maximum.x-pose.bounds.minimum.x,.86);
+            EXPECT_LT(pose.bounds.maximum.x-pose.bounds.minimum.x,1.0);
+            for(uint32_t i=0;i<pose.drawCount;++i) {
+                const auto& draw=pose.draws[i];
+                const std::string_view name=builder->mesh.name(builder->mesh.nodes[draw.nodeIndex].nameOffset);
+                const bool wrist=name=="robot_forearm_l"||name=="robot_forearm_r";
+                if(name!="robot_torso"&&name!="robot_head"&&!wrist)continue;
+                const auto& bounds=builder->prefab.meshBounds[draw.meshIndex];
+                glm::dvec3 low(1e9),high(-1e9);
+                for(int corner=0;corner<8;++corner) {
+                    const glm::dvec3 local((corner&1)?bounds.maximum.x:bounds.minimum.x,
+                        (corner&2)?bounds.maximum.y:bounds.minimum.y,(corner&4)?bounds.maximum.z:bounds.minimum.z);
+                    const auto p=glm::dvec3(glm::dmat4(draw.modelMatrix)*glm::dvec4(local,1));
+                    low=glm::min(low,p);high=glm::max(high,p);
+                }
+                if(wrist) {
+                    // Wrists must clear the reference jacket, whose half-width is .286.
+                    // Both visible wrists must now sit wholly outside that silhouette.
+                    EXPECT_GT(std::min(std::abs(low.x),std::abs(high.x)),.30);
+                } else EXPECT_GT(high.x-low.x,name=="robot_torso"?.54:.40);
+            }
+        }
+    }
+}
+
 TEST(RobotAsset, ResidentRolesUseDistinctInstalledIdentitiesAndCannotSubstituteEachOther) {
     constexpr std::array names{"moss","rivet","lumen"};
     for(uint32_t id=1;id<=3;++id) {

@@ -675,6 +675,12 @@ fn intersectStud(origin: vec3<f32>, dir: vec3<f32>,
 /// needed. The smooth band hides the reduced bake resolution and gives the
 /// shadow edge a soft penumbra for free.
 fn sampleBakedShadow(worldPos : vec3<f32>, terrainOrigin : vec2<f32>, cellScale : f32) -> f32 {
+    if (camera.lightDirWS.w > 0.5) {
+        let light = normalize(camera.lightDirWS.xyz);
+        if (light.y <= 0.0) { return 1.0; }
+        return intersectShadow(worldPos + light * cellScale * 0.02 +
+            vec3<f32>(0.0, cellScale * 0.005, 0.0), light);
+    }
     let dims = vec2<i32>(textureDimensions(shadowHeightTex));
     let cellF = (worldPos.xz + terrainOrigin) / cellScale;
     let scale = vec2<f32>(dims) / camera.terrainSize;
@@ -695,6 +701,7 @@ fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
                     hitDistance : f32) -> f32 {
     let terrainShadow = sampleBakedShadow(
         worldPos, terrainOrigin, cellScale);
+    if (camera.lightDirWS.w > 0.5) { return terrainShadow; }
     // Beyond this distance a stud is smaller than a pixel in the intended
     // Lego views. Keep the baked brick shadow and skip sub-pixel cylinders.
     if (terrainShadow <= 0.001 || lightDir.y <= 1e-4

@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Opaque scene diagnostics</title>
+<style>
+body{margin:32px;background:#18202b;color:#eaf0f6;font:18px system-ui}h1{font-size:28px}
+#sheet{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1300px}
+figure{margin:0;background:#263140;padding:16px}canvas{width:192px;height:192px;image-rendering:pixelated}
+figcaption{font-size:15px;max-width:230px;margin-top:10px}pre{white-space:pre-wrap;font-size:13px}
+</style>
+<h1>Opaque scene diagnostics</h1>
+<p>Analytic texel checks from the shared C++ renderer. No screenshot comparison.</p>
+<p id="status">Running…</p><div id="sheet"></div><pre id="log"></pre>
+<script src="mesh_diagnostics.js"></script>
+<script>
+globalThis.diagnostic = {done:false, passed:false, output:[], gpuErrors:[], captures:[]};
+(async()=>{
+    const r = globalThis.diagnostic;
+    const adapter = await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
+    if(!adapter || adapter.info.isFallbackAdapter) throw Error('Hardware WebGPU adapter required');
+    r.adapter = {vendor:adapter.info.vendor, architecture:adapter.info.architecture,
+        device:adapter.info.device, description:adapter.info.description,
+        isFallbackAdapter:adapter.info.isFallbackAdapter};
+    const device = await adapter.requestDevice();
+    device.addEventListener('uncapturederror', e=>r.gpuErrors.push(String(e.error)));
+    device.lost.then(info=>{r.lost={reason:info.reason,message:info.message};});
+    let exit, abort;
+    const completion = new Promise((resolve,reject)=>{exit=resolve;abort=reject;});
+    const log = text=>{r.output.push(text);document.querySelector('#log').textContent += text+'\n';};
+    const module = await MeshDiagnosticModule({preinitializedWebGPUDevice:device,
+        arguments:['--gtest_filter=MeshOpaqueGPUTest.*'],
+        preRun:[m=>{m.FS.mkdir('/captures');m.ENV['VOXY_MESH_CAPTURE_DIR']='/captures';}],
+        print:log, printErr:log, onExit:exit, onAbort:reason=>abort(Error(String(reason)))});
+    r.exitCode = await completion;
+    await device.queue.onSubmittedWorkDone();
+    // Allow queued GPU error events to arrive before accepting the run.
+    await new Promise(resolve=>setTimeout(resolve,100));
+    r.passed = r.exitCode===0 && r.gpuErrors.length===0 && !r.lost
+        && r.output.some(line=>/\[  PASSED  \] 1 test\./.test(line))
+        && !r.output.some(line=>/\[  SKIPPED \]|\[  FAILED  \]/.test(line));
+    r.done=true;
+    document.querySelector('#status').textContent=r.passed?'Passed · HDR, depth, cache and removal':'Failed';
+})().catch(error=>{
+    Object.assign(globalThis.diagnostic,{done:true,passed:false,error:String(error),stack:error.stack});
+    document.querySelector('#status').textContent='Failed: '+error;
+});
+</script>

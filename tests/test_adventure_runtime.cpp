@@ -5,6 +5,7 @@
 #include "engine/platform/input.hpp"
 #include "camera/camera.hpp"
 #include "gpu/context.hpp"
+#include "physics/authored_shape_resources.hpp"
 #include <gtest/gtest.h>
 #include <json.hpp>
 #include <atomic>
@@ -596,6 +597,108 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         auto read=[&]{return nlohmann::json::parse(runtime.json());};
         auto startup=read();EXPECT_EQ(startup.at("mode"),"build");EXPECT_EQ(startup.at("piece"),10);EXPECT_EQ(startup.at("costText"),"Unlimited pieces");
         EXPECT_TRUE(startup.at("creative"));
+        EXPECT_EQ(startup.at("forest").at("drawDistance"),2000);
+        EXPECT_GT(startup.at("forest").at("distantTrees").get<size_t>(),1000u);
+        ASSERT_TRUE(startup.at("cannon").at("available"));
+        EXPECT_FALSE(startup.at("cannon").at("active"));
+        ASSERT_TRUE(startup.at("blacksmith").at("available"));
+        EXPECT_DOUBLE_EQ(startup.at("blacksmith").at("x"),1208);
+        EXPECT_DOUBLE_EQ(startup.at("blacksmith").at("z"),-1032);
+        // Probe the accepted runtime packet against independently identified
+        // original LDraw surfaces, not another copy of the baked box array.
+        // The installed model is centered on its base and rotated 180 degrees.
+        const double setFloor=startup.at("blacksmith").at("y").get<double>();
+        const auto setPoint=[&](double x,double y,double z){return glm::dvec3(1208-x,setFloor+y,-1032-z);};
+        const auto& geometry=runtime.spatialQueries();
+        constexpr double figureRadius=AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale;
+        constexpr double figureHeight=1.7*AdventurePlayer::creativeScale;
+        EXPECT_GE(geometry.solidCount(),4054u);
+        EXPECT_LE(geometry.solidCount(),AdventureSpatialQueries::maximumSolids);
+        EXPECT_TRUE(geometry.clearCapsule(setPoint(-10,.185,-3),figureRadius,figureHeight)); // Open courtyard.
+        EXPECT_TRUE(geometry.clearCapsule(setPoint(3,1.01,-2),figureRadius,figureHeight)); // Air inside the room.
+        const auto interior=setPoint(3,1.01,-2);
+        EXPECT_NEAR(geometry.supportHeight({interior.x,interior.z},figureRadius,setFloor+1.4),setFloor+1.,.001);
+        EXPECT_FALSE(geometry.clearCapsule(setPoint(.6,1,-7),figureRadius,figureHeight)); // Actual masonry.
+        const auto wallSweep=geometry.sweepCapsule(setPoint(3,1.01,-2),setPoint(-1,1.01,-2),figureRadius,figureHeight);
+        ASSERT_TRUE(wallSweep.complete);EXPECT_TRUE(wallSweep.hit);EXPECT_FALSE(wallSweep.startOverlapped);
+        EXPECT_GT(wallSweep.distance,0);EXPECT_LT(wallSweep.distance,4);
+        // Each tile is a separate stair tread, 24 LDraw units (1.2 studs) higher.
+        for(int step=0;step<5;++step) {
+            const double height=2.4+1.2*step;
+            const auto tread=setPoint(-2.2,height,1.5-2*step);
+            EXPECT_NEAR(geometry.supportHeight({tread.x,tread.z},.05,tread.y+.2),tread.y,.001)<<step;
+        }
+        // Traverse the actual imported staircase with the full-size figure.
+        // Start near the front edge: the center of the narrow first tread is
+        // already within the rounded capsule's reach of the following riser.
+        for(const double pace:{1.,1.75}) {
+            SCOPED_TRACE(pace);
+            AdventurePlayer stairWalker;
+            const auto firstTread=setPoint(-2.2,2.405,3);
+            ASSERT_TRUE(stairWalker.initialize(geometry,firstTread,installedWorld().waterHeight,0,
+                AdventurePlayer::creativeScale,AdventurePlayer::creativeRadius));
+            double highest=firstTread.y;
+            for(int tick=0;tick<150;++tick) {
+                stairWalker.advance(AdventurePlayer::fixedStep,{{0,1},false,pace});
+                const auto feet=stairWalker.feet();
+                highest=std::max(highest,feet.y);
+                EXPECT_TRUE(geometry.clearCapsule(feet,figureRadius,figureHeight))<<tick;
+                EXPECT_EQ(stairWalker.mode(),AdventurePlayer::Mode::Walking)<<tick;
+                EXPECT_NEAR(feet.y,geometry.supportHeight({feet.x,feet.z},figureRadius,feet.y+.01)+.005,.001)<<tick;
+            }
+            EXPECT_GE(highest,setFloor+6.005); // At least three full brick risers.
+            EXPECT_GT(stairWalker.feet().z-firstTread.z,5.);
+        }
+        const auto roofRay=geometry.raycast(setPoint(6,40,-3),{0,-1,0},20);
+        ASSERT_TRUE(roofRay.complete);ASSERT_TRUE(roofRay.hit);EXPECT_FALSE(roofRay.terrain);
+        EXPECT_GT(roofRay.point.y,setFloor+30);EXPECT_LT(roofRay.point.y,setFloor+33);
+        const auto roofCamera=geometry.sweepSphere(setPoint(6,40,-3),setPoint(6,25,-3),.3,geometry.revision());
+        ASSERT_TRUE(roofCamera.complete);EXPECT_TRUE(roofCamera.hit);EXPECT_FALSE(roofCamera.startOverlapped);
+        const auto opening=runtime.state();
+        EXPECT_DOUBLE_EQ(opening.player.x,creativeStart.x);EXPECT_DOUBLE_EQ(opening.player.z,creativeStart.y);
+        EXPECT_DOUBLE_EQ(opening.player.yaw,creativeStartYaw);
+        EXPECT_GT(opening.player.y,double(installedWorld().waterHeight)+150);
+        // The meadow behind the overlook offers a 32-stud building area with
+        // less than two plates of terrain relief, away from the descending shore.
+        double low=1e9,high=-1e9;
+        for(int z=-16;z<=16;++z)for(int x=-16;x<=16;++x) {
+            const double top=surface.heightAt(float(creativeStart.x-20+x),float(creativeStart.y+50+z));
+            low=std::min(low,top);high=std::max(high,top);
+        }
+        EXPECT_LE(high-low,.65);
+        // New-world presentation must never teleport an existing saved player
+        // or invalidate the old recovery/content contract.
+        auto oldLocation=opening;oldLocation.player=runtime.content().town;
+        std::vector<std::byte> oldLocationBytes,openingBytes;
+        ASSERT_TRUE(runtime.snapshot(openingBytes,error))<<error;
+        // The imported set is scenery: adding it must not eject a saved
+        // player standing inside its new masonry footprint. Collision and
+        // rendering suppress together; the original set returns on clear load.
+        auto occupiedPlot=opening;
+        occupiedPlot.player={1202,.185,-1026,0};
+        std::vector<std::byte> occupiedPlotBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(occupiedPlot,runtime.content(),occupiedPlotBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(occupiedPlotBytes,occupiedPlot.world,error))<<error;
+        EXPECT_EQ(runtime.state(),occupiedPlot);
+        EXPECT_FALSE(read().at("blacksmith").at("available"));
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        EXPECT_TRUE(read().at("blacksmith").at("available"));
+        // A saved actor in real interior air does not suppress the whole set.
+        // The former solid building-wide proxy incorrectly rejected this room.
+        auto roomSave=opening;
+        roomSave.player={interior.x,interior.y,interior.z,0};
+        std::vector<std::byte> roomBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(roomSave,runtime.content(),roomBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(roomBytes,roomSave.world,error))<<error;
+        EXPECT_EQ(runtime.state(),roomSave);
+        EXPECT_TRUE(read().at("blacksmith").at("available"));
+        EXPECT_TRUE(runtime.spatialQueries().clearCapsule(interior,figureRadius,figureHeight));
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        ASSERT_TRUE(AdventureSaveCodec::encode(oldLocation,runtime.content(),oldLocationBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(oldLocationBytes,oldLocation.world,error))<<error;
+        EXPECT_EQ(runtime.state(),oldLocation);
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        EXPECT_EQ(runtime.state(),opening);
         for(const auto& resident:startup.at("residents"))EXPECT_FALSE(resident.at("available"));
         for(const auto& site:startup.at("trailSites"))EXPECT_FALSE(site.at("available"));
         const auto empty=runtime.state().backpack;
@@ -603,6 +706,113 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         const auto frame=[&]{input.beginFrame();input.computeDeltas();runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{1280,800});input.endFrame();};
         for(int i=0;i<10;++i)frame();
         EXPECT_EQ(runtime.state().combat.tick,0u);
+        const auto scaledView=read();
+        EXPECT_NEAR(scaledView.at("camera").at("viewTarget")[1].get<double>()
+            -scaledView.at("player").at("y").get<double>(),1.2*AdventurePlayer::creativeScale,.01);
+        // Real Shift events alter on-foot pace, including when the brick
+        // palette is open. Releasing Shift immediately restores walking.
+        const auto travel=[&](std::optional<Key> sprint,bool building) {
+            EXPECT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+            runtime.action(building?21:22);frame();
+            const auto start=runtime.state().player;
+            if(sprint)input.onKeyDown(int(*sprint));
+            input.onKeyDown(int(Key::D));for(int i=0;i<24;++i)frame();
+            input.onKeyUp(int(Key::D));if(sprint)input.onKeyUp(int(*sprint));frame();
+            const auto finish=runtime.state().player;
+            return glm::length(glm::dvec2(finish.x-start.x,finish.z-start.z));
+        };
+        const double walk=travel(std::nullopt,false);
+        EXPECT_GT(walk,2.);
+        EXPECT_NEAR(travel(Key::LeftShift,false)/walk,1.75,.06);
+        EXPECT_NEAR(travel(Key::RightShift,false)/walk,1.75,.06);
+        EXPECT_NEAR(travel(Key::LeftShift,true)/walk,1.75,.06);
+        EXPECT_NEAR(travel(std::nullopt,false)/walk,1.,.03);
+        // Jump edges carry the Shift state at key-down, independently of the
+        // held-key modifier used for movement. Exercise the real input path.
+        for(const auto sprint:{Key::LeftShift,Key::RightShift})for(bool building:{false,true}) {
+            SCOPED_TRACE(::testing::Message()<<"shift="<<int(sprint)<<" building="<<building);
+            ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+            runtime.action(building?21:22);frame();
+            input.onKeyDown(int(sprint));input.onKeyDown(int(Key::D));
+            for(int i=0;i<6;++i)frame();
+            const auto takeoff=runtime.state().player;
+            input.onKeyDown(int(Key::Space));frame();
+            const auto jumped=runtime.state().player;
+            EXPECT_GT(jumped.y-takeoff.y,.1);
+            EXPECT_NEAR(glm::length(glm::dvec2(jumped.x-takeoff.x,jumped.z-takeoff.z)),
+                3.6*std::sqrt(AdventurePlayer::creativeScale)*1.75*AdventurePlayer::fixedStep,.01);
+            input.onKeyUp(int(Key::Space));
+            for(int i=0;i<6;++i)frame();
+            EXPECT_GT(runtime.state().player.y-takeoff.y,.7);
+            input.onKeyUp(int(Key::D));input.onKeyUp(int(sprint));frame();
+        }
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        for(int i=0;i<10;++i)frame();
+        // Exercise swimming through real held Input events on the installed
+        // terrain, including a submerged save and the menu ownership boundary.
+        auto waterSave=opening;
+        const double swimSurface=double(installedWorld().waterHeight)-double(AdventurePlayer::swimImmersion)*double(AdventurePlayer::creativeScale);
+        bool foundWater=false;
+        for(int z=-3840;z<=3840&&!foundWater;z+=512)for(int x=-3840;x<=3840&&!foundWater;x+=512) {
+            if(double(surface.heightAt(float(x),float(z)))>swimSurface-20)continue;
+            const glm::dvec3 feet(double(x),swimSurface,double(z));
+            if(!runtime.spatialQueries().clearCapsule(feet,figureRadius,figureHeight))continue;
+            waterSave.player={feet.x,feet.y,feet.z,0};foundWater=true;
+        }
+        ASSERT_TRUE(foundWater);
+        std::vector<std::byte> waterBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(waterSave,runtime.content(),waterBytes,error))<<error;
+        for(bool building:{false,true}) {
+            SCOPED_TRACE(::testing::Message()<<"swim building="<<building);
+            ASSERT_TRUE(runtime.restore(waterBytes,waterSave.world,error))<<error;
+            runtime.action(building?21:22);frame();frame();
+            EXPECT_TRUE(read().at("swimming"));
+            input.onKeyDown(int(Key::X));for(int i=0;i<60;++i)frame();
+            input.onKeyUp(int(Key::X));for(int i=0;i<30;++i)frame();
+            const auto depth=runtime.state().player.y;
+            EXPECT_LT(depth,swimSurface-3.);
+            for(int i=0;i<20;++i)frame();
+            EXPECT_NEAR(runtime.state().player.y,depth,1e-6);
+            std::vector<std::byte> underwaterBytes;
+            ASSERT_TRUE(runtime.snapshot(underwaterBytes,error))<<error;
+            ASSERT_TRUE(runtime.restore(underwaterBytes,waterSave.world,error))<<error;
+            frame();EXPECT_NEAR(runtime.state().player.y,depth,1e-6);EXPECT_TRUE(read().at("swimming"));
+            input.onKeyDown(int(Key::Space));for(int i=0;i<150;++i)frame();
+            input.onKeyUp(int(Key::Space));frame();
+            EXPECT_NEAR(runtime.state().player.y,swimSurface,1e-6);
+            const auto beforeSwim=runtime.state().player;
+            input.onKeyDown(int(Key::W));for(int i=0;i<60;++i)frame();
+            input.onKeyUp(int(Key::W));for(int i=0;i<30;++i)frame();
+            EXPECT_GT(glm::length(glm::dvec2(runtime.state().player.x-beforeSwim.x,runtime.state().player.z-beforeSwim.z)),3.);
+            EXPECT_NEAR(runtime.state().player.y,swimSurface,1e-6);
+            input.onKeyDown(int(Key::Escape));frame();input.onKeyUp(int(Key::Escape));frame();
+            input.onKeyDown(int(Key::X));for(int i=0;i<20;++i)frame();
+            EXPECT_NEAR(runtime.state().player.y,swimSurface,1e-6);
+            input.onKeyDown(int(Key::Escape));frame();input.onKeyUp(int(Key::Escape));
+            for(int i=0;i<20;++i)frame();
+            EXPECT_NEAR(runtime.state().player.y,swimSurface,1e-6);
+            input.onKeyUp(int(Key::X));frame();
+        }
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        for(int i=0;i<10;++i)frame();
+        // Real M key edges mount/dismount; held M never repeatedly toggles.
+        input.onKeyDown(int(Key::M));frame();
+        ASSERT_TRUE(read().at("riding"))<<runtime.json();
+        EXPECT_EQ(read().at("mode"),"explore");
+        for(int i=0;i<5;++i)frame();
+        EXPECT_TRUE(read().at("riding"));
+        input.onKeyUp(int(Key::M));frame();
+        const auto bikeStart=runtime.state().player;
+        input.onKeyDown(int(Key::W));for(int i=0;i<60;++i)frame();
+        input.onKeyUp(int(Key::W));frame();
+        EXPECT_GT(glm::length(position(runtime.state().player)-position(bikeStart)),1.);
+        input.onKeyDown(int(Key::Space));for(int i=0;i<60;++i)frame();
+        input.onKeyUp(int(Key::Space));frame();
+        EXPECT_NEAR(read().at("bikeSpeed").get<double>(),0,1e-6);
+        input.onKeyDown(int(Key::M));frame();input.onKeyUp(int(Key::M));frame();
+        EXPECT_FALSE(read().at("riding"))<<runtime.json();
+        ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
+        for(int i=0;i<10;++i)frame();
         // Wheel selects a pictured piece without rotating or zooming the camera.
         input.onScroll(-1);frame();EXPECT_EQ(read().at("piece"),2);
         input.onScroll(1);frame();EXPECT_EQ(read().at("piece"),10);
@@ -613,6 +823,9 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         runtime.action(30,0x1000000);frame();EXPECT_EQ(read().at("paint"),0x86a789);
         runtime.action(31);frame();EXPECT_EQ(read().at("mode"),"pause");
         runtime.action(20);frame();EXPECT_EQ(read().at("mode"),"build");
+        // Pick a safe location for the rotated brick: rotation near the wider
+        // character can correctly invalidate a previously clear long edge.
+        runtime.action(3);frame();
         bool aim=false;
         for(int y:{560,640,480,400}) {
             for(int x:{640,480,800,320,960}) {
@@ -622,7 +835,6 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
             if(aim)break;
         }
         ASSERT_TRUE(aim)<<runtime.json();
-        runtime.action(3);frame(); // Quarter-turn retains a real placement preview.
         ASSERT_TRUE(read().at("valid"))<<runtime.json();
         runtime.action(4);frame();
         ASSERT_EQ(runtime.state().structures.size(),1u)<<runtime.json();
@@ -731,6 +943,36 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         runtime.action(5);stillFrame();
         EXPECT_TRUE(runtime.state().structures.empty())<<runtime.json();
         EXPECT_FALSE(read().at("canRemove"));
+        // An old small figure can stand between studs where the larger body
+        // cannot. Restore relocates only that pose, keeping every saved brick,
+        // then a newly saved checkpoint must round-trip exactly at the new size.
+        auto oldScale=saved;
+        AdventureSpatialQueries savedGeometry;std::vector<AdventureSpatialQueries::Solid> savedSolids;
+        ASSERT_TRUE(compileSolids(oldScale,savedSolids,error))<<error;
+        ASSERT_TRUE(savedGeometry.bindTerrain(surface));ASSERT_TRUE(savedGeometry.publish(savedSolids,1));
+        bool foundOldPose=false;
+        for(int z=-3;z<=3&&!foundOldPose;++z)for(int x=-3;x<=3;++x) {
+            const double px=std::floor(saved.player.x)+.5+x,pz=std::floor(saved.player.z)+.5+z;
+            const double py=double(terrain::lego::supportHeight(surface,{float(px),float(pz)},float(AdventurePlayer::radius)))+.005;
+            const glm::dvec3 point(px,py,pz);
+            if(savedGeometry.clearCapsule(point)&&!savedGeometry.clearCapsule(point,
+                AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale,AdventurePlayer::height*AdventurePlayer::creativeScale)) {
+                oldScale.player={px,py,pz,saved.player.yaw};foundOldPose=true;break;
+            }
+        }
+        ASSERT_TRUE(foundOldPose);
+        std::vector<std::byte> oldScaleBytes;
+        ASSERT_TRUE(AdventureSaveCodec::encode(oldScale,runtime.content(),oldScaleBytes,error))<<error;
+        ASSERT_TRUE(runtime.restore(oldScaleBytes,oldScale.world,error))<<error;
+        EXPECT_EQ(runtime.state().structures,oldScale.structures);EXPECT_EQ(runtime.state().components,oldScale.components);
+        const auto resized=runtime.state();
+        EXPECT_NE(resized.player,oldScale.player);EXPECT_TRUE(read().at("dirty"));
+        EXPECT_TRUE(savedGeometry.clearCapsule({resized.player.x,resized.player.y,resized.player.z},
+            AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale,AdventurePlayer::height*AdventurePlayer::creativeScale));
+        std::vector<std::byte> resizedBytes,resizedAgain;
+        ASSERT_TRUE(runtime.snapshot(resizedBytes,error));
+        ASSERT_TRUE(runtime.restore(resizedBytes,resized.world,error))<<error;
+        EXPECT_EQ(runtime.state(),resized);ASSERT_TRUE(runtime.snapshot(resizedAgain,error));EXPECT_EQ(resizedAgain,resizedBytes);
         wgpuQueueSubmit(context.getQueue(),0,nullptr);
         auto* callback=new std::shared_ptr<GpuSignals>(signals);
         wgpuQueueOnSubmittedWorkDone(context.getQueue(),[](WGPUQueueWorkDoneStatus status,void* data){
@@ -744,5 +986,393 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
     context.tick();{std::lock_guard guard(signals->mutex);EXPECT_EQ(signals->errors.load(),0u)<<signals->message;}
 #endif
 }
+
+// This is full-world component integration with synthetic Input events. It
+// exercises the actual runtime and GPU authority, not a rendered browser or
+// platform keyboard route. A normal build skips it without the explicit terrain.
+class ImportedWallRuntimeIntegration: public testing::TestWithParam<int> {};
+TEST_P(ImportedWallRuntimeIntegration, CannonInputAndFullWorldGpuAdmission) {
+    const bool removeSupport=GetParam()==1;
+    const bool cannonImpact=GetParam()==2;
+#if !defined(VOXY_NATIVE)
+    GTEST_SKIP()<<"Native headless runtime only.";
+#else
+    const char* raw=std::getenv("VOXY_ADVENTURE_TEST_TERRAIN");
+    if(!raw||!*raw)GTEST_SKIP()<<"Set VOXY_ADVENTURE_TEST_TERRAIN to the installed full raw terrain.";
+    std::vector<uint16_t> samples(8192*8192);std::ifstream terrainFile(raw,std::ios::binary);
+    ASSERT_TRUE(terrainFile.read(reinterpret_cast<char*>(samples.data()),static_cast<std::streamsize>(samples.size()*sizeof(uint16_t))));
+    ASSERT_EQ(terrainFile.peek(),std::char_traits<char>::eof());
+    const terrain::lego::Surface surface{samples,8192,8192,600.f,1.f};
+    auto resources=std::filesystem::current_path();
+    if(const char* workspace=std::getenv("BUILD_WORKSPACE_DIRECTORY");workspace&&*workspace)resources=workspace;
+    if(const char* workspace=std::getenv("VOXY_ADVENTURE_TEST_WORKSPACE");workspace&&*workspace)resources=workspace;
+    resources=std::filesystem::absolute(resources);
+    TemporaryWorld folder;
+    EnvironmentValue saveRoot("VOXY_ADVENTURE_ROOT",folder.path.c_str());
+    EnvironmentValue preferences("VOXY_ADVENTURE_PREFERENCES",nullptr);
+    EnvironmentValue fresh("VOXY_ADVENTURE_NEW","1");
+    EnvironmentValue selected("VOXY_ADVENTURE_WORLD",nullptr);
+    EnvironmentValue observation("VOXY_ADVENTURE_OBSERVE",nullptr);
+    EnvironmentValue assetRoot("BUILD_WORKSPACE_DIRECTORY",resources.c_str());
+    gpu::Context context;if(!context.initHeadless())GTEST_SKIP()<<"No headless WebGPU adapter.";
+    const auto signals=std::make_shared<GpuSignals>();
+    context.setErrorCallback([signals](WGPUErrorType,const char* message){
+        ++signals->errors;std::lock_guard lock(signals->mutex);signals->message=message?message:"GPU error";
+    });
+    RecordProperty("adapter",context.getAdapterInfo().description);
+    RecordProperty("scope","actual full-world runtime and borrowed GPU PhysicsWorld; synthetic input; no rendered/browser evidence");
+    physics::PhysicsWorld world;
+    physics::PhysicsInitContext init;init.requestedBackend=physics::BackendType::WebGpuSoft;
+    init.device=context.getDevice();init.queue=context.getQueue();init.maxBodies=256;init.maxActiveBodies=256;
+    init.maxPairs=8192;init.maxContacts=4096;init.maxManifolds=8192;
+    init.gpu.authoredContactPatches=8;
+    init.gpu.substeps=16;
+    init.gpu.commandCapacity=4096;init.gpu.attachmentCapacity=8;init.gpu.attachmentCommandCapacity=16;
+    init.gpu.asyncQueryCapacity=64;init.gpu.debugReadbackBodyCapacity=256;
+    ASSERT_TRUE(world.initialize(init));
+    ASSERT_TRUE(world.setLegoTerrain(samples,8192,8192,600.f,1.f));
+    {
+        AdventureRuntime runtime(true);std::string error;
+        ASSERT_TRUE(runtime.initialize(surface,context.getDevice(),context.getQueue(),resources/"shaders",WGPUTextureFormat_RGBA8Unorm,error))<<error;
+        auto read=[&]{return nlohmann::json::parse(runtime.json());};
+        ASSERT_TRUE(read().at("cannon").at("available"));
+        ASSERT_TRUE(read().at("blacksmith").at("available"));
+        // Exercise the user-facing Visit cannon action from the normal start.
+        // It must choose a supported clear landing without injecting a pose.
+        auto save=runtime.state();
+        runtime.attachPhysics(world);
+        Input input;input.onFocusChanged(true);input.onMouseMove(640,400);Camera camera;
+        auto frame=[&](bool updateRuntime=true) {
+            context.tick();
+            if(updateRuntime) {
+                input.beginFrame();input.computeDeltas();
+                runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{1280,800});input.endFrame();
+            }
+            world.update(runtime.isPaused()||runtime.physicsWaiting()?0.f:float(AdventurePlayer::fixedStep));
+            auto* pool=world.authoredShapeResources();
+            if(!pool||pool->stats().phase!=physics::ShapeResourcePhase::Ready)return true;
+            physics::ShapeResourceError status;const auto ticket=world.prepareGpuSubmission(status);
+            if(!ticket.valid())return status==physics::ShapeResourceError::Busy||status==physics::ShapeResourceError::NotReady;
+            WGPUCommandEncoderDescriptor ed{};const auto encoder=wgpuDeviceCreateCommandEncoder(context.getDevice(),&ed);
+            if(!encoder){(void)world.discardGpuSubmission(ticket);return false;}
+            const auto encoded=world.encodeGpuStepChecked(encoder);
+            WGPUCommandBufferDescriptor cd{};const auto command=encoded.succeeded()?wgpuCommandEncoderFinish(encoder,&cd):nullptr;
+            wgpuCommandEncoderRelease(encoder);
+            if(!command){(void)world.discardGpuSubmission(ticket);return false;}
+            status=world.submitGpuSubmission(ticket,std::span(&command,1));wgpuCommandBufferRelease(command);
+            if(status!=physics::ShapeResourceError::None)return false;
+            const auto submitted=world.tickFrontier().submitted;
+            const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+            while(world.tickFrontier().completed<submitted&&std::chrono::steady_clock::now()<deadline) {
+                context.tick();world.update(0);std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+            return !world.tickFrontier().failed&&world.tickFrontier().completed==submitted;
+        };
+        const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(40);
+        while(!read().at("cannon").at("ready").get<bool>()&&read().at("cannon").at("error").get<std::string>().empty()
+            &&std::chrono::steady_clock::now()<deadline) {
+            ASSERT_TRUE(frame())<<runtime.json();std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        ASSERT_TRUE(read().at("cannon").at("ready"))<<runtime.json();
+        EXPECT_GE(world.stats().residentBodies,32u);
+        RecordProperty("sceneBodies",std::to_string(world.stats().residentBodies));
+        ASSERT_NE(world.authoredShapeResources(),nullptr);
+        const auto admittedCost=world.authoredShapeResources()->stats().cpu.charged;
+        RecordProperty("sceneShapeCells",std::to_string(admittedCost.cells));
+        RecordProperty("sceneShapeFaces",std::to_string(admittedCost.faces));
+        RecordProperty("sceneShapeNodes",std::to_string(admittedCost.nodes));
+        RecordProperty("sceneShapeBytes",std::to_string(admittedCost.bytes));
+        RecordProperty("retainedNearbyProps",read().at("forest").at("nearProps").get<int>());
+        const auto press=[&](Key key) {
+            input.onKeyDown(int(key));const bool down=frame();input.onKeyUp(int(key));return frame()&&down;
+        };
+        if(GetParam()==0) {
+            input.onKeyDown(int(Key::LeftControl));input.onScroll(-100);ASSERT_TRUE(frame());
+            input.onKeyUp(int(Key::LeftControl));ASSERT_TRUE(frame());
+            EXPECT_DOUBLE_EQ(read().at("camera").at("requestedDistance").get<double>(),64.);
+            ASSERT_TRUE(press(Key::B));ASSERT_EQ(read().at("mode"),"explore");
+            // Throw with the pointer above the landscape: no picked surface
+            // is needed, and building-only aim hints must not leak into play.
+            input.onMouseMove(640,1);ASSERT_TRUE(frame());
+            EXPECT_FALSE(read().at("aimRay").at("hit").get<bool>());
+            EXPECT_EQ(read().at("previewReason"),"");
+            input.onMouseDown(int(MouseButton::Left));ASSERT_TRUE(frame());
+            ASSERT_EQ(read().at("thrownBricks").at("total"),1)<<runtime.json();
+            ASSERT_TRUE(frame());EXPECT_EQ(read().at("thrownBricks").at("total"),1);
+            input.onMouseUp(int(MouseButton::Left));ASSERT_TRUE(frame());
+            input.onMouseDown(int(MouseButton::Right));ASSERT_TRUE(frame());
+            EXPECT_EQ(read().at("thrownBricks").at("total"),1);
+            input.onMouseUp(int(MouseButton::Right));ASSERT_TRUE(frame());
+            ASSERT_EQ(read().at("thrownBricks").at("total"),101)<<runtime.json();
+            EXPECT_EQ(read().at("thrownBricks").at("live"),101);
+            EXPECT_EQ(runtime.thrownBrickBodyIds().size(),101u);
+            EXPECT_TRUE(read().at("thrownBricks").at("playerCollider").get<bool>());
+            input.onMouseDown(int(MouseButton::Right));input.onMouseMove(660,400);ASSERT_TRUE(frame());
+            input.onMouseUp(int(MouseButton::Right));ASSERT_TRUE(frame());
+            EXPECT_EQ(read().at("thrownBricks").at("total"),101);
+            ASSERT_TRUE(press(Key::Escape));
+            input.onMouseDown(int(MouseButton::Left));ASSERT_TRUE(frame());
+            input.onMouseUp(int(MouseButton::Left));ASSERT_TRUE(frame());
+            EXPECT_EQ(read().at("thrownBricks").at("total"),101);
+            ASSERT_TRUE(press(Key::Escape));ASSERT_TRUE(press(Key::B));
+            input.onMouseDown(int(MouseButton::Right));input.onMouseUp(int(MouseButton::Right));ASSERT_TRUE(frame());
+            EXPECT_EQ(read().at("thrownBricks").at("total"),101);
+            std::vector<std::byte> restoreBytes;
+            ASSERT_TRUE(AdventureSaveCodec::encode(save,runtime.content(),restoreBytes,error));
+            ASSERT_TRUE(runtime.restore(restoreBytes,save.world,error));ASSERT_TRUE(frame());
+            EXPECT_EQ(read().at("thrownBricks").at("live"),0);
+            EXPECT_TRUE(runtime.thrownBrickBodyIds().empty());
+        }
+        ASSERT_TRUE(press(Key::C));ASSERT_TRUE(read().at("cannon").at("active"))<<runtime.json();
+        ASSERT_TRUE(read().at("cannon").at("nearby"))<<runtime.json();
+        EXPECT_TRUE(runtime.spatialQueries().clearCapsule({runtime.state().player.x,runtime.state().player.y,runtime.state().player.z},1.12,4.76));
+        RecordProperty("visitCannonSupportedLanding",true);
+        const auto player=runtime.state().player;
+        const double yaw=read().at("cannon").at("yaw").get<double>();
+        const double elevation=read().at("cannon").at("elevation").get<double>();
+        input.onKeyDown(int(Key::A));input.onKeyDown(int(Key::W));
+        for(int i=0;i<2;++i)ASSERT_TRUE(frame());
+        input.onKeyUp(int(Key::A));input.onKeyUp(int(Key::W));ASSERT_TRUE(frame());
+        EXPECT_GT(read().at("cannon").at("yaw").get<double>(),yaw);
+        EXPECT_GT(read().at("cannon").at("elevation").get<double>(),elevation);
+        input.onKeyDown(int(Key::D));input.onKeyDown(int(Key::S));
+        for(int i=0;i<2;++i)ASSERT_TRUE(frame());
+        input.onKeyUp(int(Key::D));input.onKeyUp(int(Key::S));ASSERT_TRUE(frame());
+        EXPECT_NEAR(read().at("cannon").at("yaw").get<double>(),yaw,1e-6);
+        EXPECT_NEAR(read().at("cannon").at("elevation").get<double>(),elevation,1e-6);
+        EXPECT_EQ(runtime.state().player,player); // Aiming does not walk/jump.
+        const auto readyDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(40);
+        while(!read().at("cannon").at("ready").get<bool>()&&std::chrono::steady_clock::now()<readyDeadline)
+            ASSERT_TRUE(frame());
+        ASSERT_TRUE(read().at("cannon").at("ready"))<<runtime.json();
+        ASSERT_TRUE(press(Key::Space));
+        ASSERT_EQ(read().at("cannon").at("shots"),1)<<runtime.json();
+        EXPECT_EQ(read().at("cannon").at("live"),1);
+        ASSERT_TRUE(press(Key::Space));EXPECT_EQ(read().at("cannon").at("shots"),1);
+        EXPECT_EQ(runtime.state().player,player);
+        // Real published pause action uses the same application scheduling gate.
+        runtime.action(31);ASSERT_TRUE(frame());ASSERT_TRUE(runtime.isPaused());
+        const auto pausedTick=world.encodedTick();
+        ASSERT_TRUE(press(Key::Space));for(int i=0;i<4;++i)ASSERT_TRUE(frame());
+        EXPECT_EQ(world.encodedTick(),pausedTick);EXPECT_EQ(read().at("cannon").at("shots"),1);
+        runtime.action(20);ASSERT_TRUE(frame());ASSERT_FALSE(runtime.isPaused());
+        // The actual imported wall uses the same borrowed world and completed
+        // submission frontier. Release goes through its public HUD command.
+        ASSERT_TRUE(read().at("cannon").at("wallReady"));
+        EXPECT_FALSE(read().at("cannon").at("wallReleased"));
+        const auto originalSpan=runtime.spatialQueries().solids();
+        const std::vector<AdventureSpatialQueries::Solid> intactSolids(originalSpan.begin(),originalSpan.end());
+        std::vector<std::byte> intactSave;
+        ASSERT_TRUE(runtime.snapshot(intactSave,error))<<error;
+        if(cannonImpact) {
+            const auto impactDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(30);
+            const auto beforeImpactTick=world.encodedTick();
+            while(!read().at("cannon").at("wallReleased").get<bool>()
+                &&world.encodedTick()-beforeImpactTick<180
+                &&std::chrono::steady_clock::now()<impactDeadline) {
+                ASSERT_TRUE(frame())<<runtime.json();
+            }
+            ASSERT_EQ(read().at("cannon").at("impacts"),1)<<runtime.json();
+            RecordProperty("impactReleasedParts",read().at("cannon").at("releasedParts").get<int>());
+            RecordProperty("impactEnergy",std::to_string(read().at("cannon").at("impactEnergy").get<double>()));
+            RecordProperty("certifiedCannonImpacts",1);
+            RecordProperty("impactDetails",read().at("cannon").dump());
+        } else {runtime.action(removeSupport?37:35);ASSERT_TRUE(frame());}
+        ASSERT_TRUE(read().at("cannon").at("wallReleased"))<<runtime.json();
+        ASSERT_TRUE(read().at("cannon").at("wallBusy"))<<runtime.json();
+        EXPECT_TRUE(read().at("dirty"));
+        const auto releaseTick=world.encodedTick();
+        ASSERT_TRUE(frame());
+        EXPECT_TRUE(read().at("cannon").at("inspectingWall"));
+        const auto closeView=read().at("camera").at("viewTarget");
+        EXPECT_LT(std::abs(closeView[0].get<double>()-read().at("blacksmith").at("x").get<double>()),22.);
+        EXPECT_GT(closeView[1].get<double>(),read().at("blacksmith").at("y").get<double>());
+        const glm::dvec3 cameraAbsolute=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize)+glm::dvec3(camera.position());
+        EXPECT_LT(glm::length(cameraAbsolute-glm::dvec3(closeView[0].get<double>(),closeView[1].get<double>(),closeView[2].get<double>())),25.);
+        ASSERT_TRUE(press(Key::C));EXPECT_TRUE(read().at("cannon").at("active"));
+        ASSERT_TRUE(press(Key::Space));EXPECT_EQ(read().at("cannon").at("shots"),1);
+        EXPECT_EQ(read().at("cannon").at("live"),0);
+        EXPECT_EQ(runtime.state().player,player);
+        std::vector<std::byte> refusedSave;
+        EXPECT_FALSE(runtime.snapshot(refusedSave,error));EXPECT_FALSE(error.empty());
+        EXPECT_FALSE(runtime.restore(intactSave,save.world,error));
+        EXPECT_TRUE(read().at("cannon").at("wallReleased"));
+        // Pausing also pauses falling pieces; a paused frame cannot certify
+        // new simulation or silently restore the intact wall.
+        runtime.action(31);ASSERT_TRUE(frame());ASSERT_TRUE(runtime.isPaused());
+        const auto fallingPausedTick=world.encodedTick();
+        for(int i=0;i<4;++i)ASSERT_TRUE(frame());
+        EXPECT_EQ(world.encodedTick(),fallingPausedTick);
+        EXPECT_TRUE(read().at("cannon").at("wallReleased"));
+        runtime.action(20);ASSERT_TRUE(frame());
+        if(std::getenv("VOXY_WALL_ACTIVITY_TRACE")) {
+            // Bounded opt-in diagnostics borrow the shared body readback while
+            // the wall is falling. The owner resumes normally afterward.
+            for(int i=0;i<100&&read().at("cannon").at("wallPhase")!=4;++i)ASSERT_TRUE(frame());
+            ASSERT_EQ(read().at("cannon").at("wallPhase"),4);
+            auto trace=nlohmann::json::array();
+            for(int tick=0;tick<120;++tick) {
+                world.requestDebugSnapshot({1,256});ASSERT_TRUE(frame(false));
+                const auto requested=world.encodedTick();
+                const auto readDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(3);
+                bool captured=false;
+                while(std::chrono::steady_clock::now()<readDeadline) {
+                    context.tick();world.update(0);
+                    auto snapshot=world.pollDebugSnapshot();
+                    if(snapshot&&snapshot->tick>=requested) {
+                        for(const auto& body:snapshot->bodies)if(body.alive&&glm::length(body.inverseInertia)>0) {
+                            const auto p=physics::worldPositionToAbsolute({body.sector,body.position});
+                            const auto* shape=world.authoredShapeResources()->get(body.authoredShape);
+                            trace.push_back({{"tick",snapshot->tick},{"body",body.handle.index},{"awake",body.awake},
+                                {"sourceLabel",shape&&!shape->cells().empty()?shape->cells().front().source:0},
+                                {"p",{p.x,p.y,p.z}},
+                                {"q",{body.orientation.w,body.orientation.x,body.orientation.y,body.orientation.z}},
+                                {"v",{body.linearVelocity.x,body.linearVelocity.y,body.linearVelocity.z}},
+                                {"w",{body.angularVelocity.x,body.angularVelocity.y,body.angularVelocity.z}}});
+                        }
+                        captured=true;break;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+                ASSERT_TRUE(captured);
+            }
+            RecordProperty("wallEarlyActivityTrace",trace.dump());
+        }
+        const auto settleDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(180);
+        while(!read().at("cannon").at("wallReady").get<bool>()&&world.encodedTick()-releaseTick<1200
+            &&std::chrono::steady_clock::now()<settleDeadline) {
+            ASSERT_TRUE(frame())<<runtime.json();
+            // Readback and retirement are asynchronous, so service frames are
+            // not simulation ticks and must not consume the 1200-tick budget.
+            if(runtime.physicsWaiting())std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        RecordProperty("wallSettlementTicks",std::to_string(world.encodedTick()-releaseTick));
+        std::string unsettledBodies;
+        if(!read().at("cannon").at("wallReady").get<bool>()) {
+            // Failure-only diagnostics deliberately bypass the runtime owner
+            // for one submission so it cannot consume this shared debug readback.
+            world.requestDebugSnapshot({1,256});ASSERT_TRUE(frame(false));
+            const auto target=world.encodedTick();
+            const auto diagnosticDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(3);
+            while(std::chrono::steady_clock::now()<diagnosticDeadline) {
+                context.tick();world.update(0);
+                const auto capturedBodies=world.pollDebugSnapshot();
+                if(capturedBodies&&capturedBodies->tick>=target) {
+                    auto bodies=nlohmann::json::array();
+                    for(const auto& body:capturedBodies->bodies)if(body.alive&&glm::length(body.inverseInertia)>0) {
+                        const auto p=physics::worldPositionToAbsolute({body.sector,body.position});
+                        bodies.push_back({{"body",body.handle.index},{"awake",body.awake},
+                            {"position",{p.x,p.y,p.z}},
+                            {"linearVelocity",{body.linearVelocity.x,body.linearVelocity.y,body.linearVelocity.z}},
+                            {"angularVelocity",{body.angularVelocity.x,body.angularVelocity.y,body.angularVelocity.z}},
+                            {"contacts",body.staticContactCount},{"flags",body.runtimeFlags}});
+                    }
+                    unsettledBodies=bodies.dump();RecordProperty("unsettledBodies",unsettledBodies);break;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        }
+        const bool physicallySettled=read().at("cannon").at("wallReady").get<bool>();
+        EXPECT_TRUE(physicallySettled)<<"encoded="<<world.encodedTick()<<" release="<<releaseTick
+            <<" physicsWaiting="<<runtime.physicsWaiting()<<" bodies="<<unsettledBodies<<' '<<runtime.json();
+        EXPECT_TRUE(read().at("cannon").at("wallReleased"));
+        EXPECT_EQ(runtime.state().player,player);
+        EXPECT_FALSE(runtime.snapshot(refusedSave,error)); // Settling is still session-only.
+        if(physicallySettled) {
+        EXPECT_FALSE(read().at("cannon").at("wallBusy"));
+        const auto settledSolids=runtime.spatialQueries().solids();
+        size_t changedCells=intactSolids.size()>settledSolids.size()?intactSolids.size()-settledSolids.size():settledSolids.size()-intactSolids.size();
+        for(size_t i=0;i<std::min(intactSolids.size(),settledSolids.size());++i)
+            if(intactSolids[i].part!=settledSolids[i].part||glm::length(intactSolids[i].minimum-settledSolids[i].minimum)>.001
+                ||glm::length(intactSolids[i].maximum-settledSolids[i].maximum)>.001)++changedCells;
+        EXPECT_GT(changedCells,0u)<<"Settled walking geometry must not keep the old intact wall.";
+        RecordProperty("wallChangedQueryCells",std::to_string(changedCells));
+        size_t vacatedCenters=0, vacatedUpperCenters=0;
+        const auto house=read().at("blacksmith");
+        const glm::dvec3 upperBrick(house.at("x").get<double>()+4.399569,
+            house.at("y").get<double>()+1.999990,house.at("z").get<double>()+1.038921);
+        for(const auto& old:intactSolids) {
+            const auto center=(old.minimum+old.maximum)*.5;
+            const bool occupied=std::any_of(settledSolids.begin(),settledSolids.end(),[&](const auto& now) {
+                return glm::all(glm::greaterThanEqual(center,now.minimum-glm::dvec3(.005)))
+                    &&glm::all(glm::lessThanEqual(center,now.maximum+glm::dvec3(.005)));
+            });
+            if(!occupied) {
+                ++vacatedCenters;
+                // Only the surviving brick ABOVE the removed support qualifies.
+                // The removed brick's own empty cells cannot prove gravity motion.
+                if(std::abs(center.x-upperBrick.x)<.51&&std::abs(center.z-upperBrick.z)<3.01
+                    &&center.y>upperBrick.y-1.15&&center.y<upperBrick.y-.05)++vacatedUpperCenters;
+            }
+        }
+        // A different cell partition/order alone is not evidence of motion:
+        // require previously occupied volume to become physically vacant.
+        if(cannonImpact) {
+            EXPECT_GT(vacatedCenters,4u)<<"A cannon hit must leave visibly empty source volume.";
+            // Stud collision removal alone must not satisfy visual acceptance.
+            const auto displacement=read().at("cannon").at("partDisplacement").get<double>();
+            EXPECT_GT(displacement,.5)<<"An authentic rendered part must move visibly.";
+            RecordProperty("maximumSourcePartDisplacement",displacement);
+        }
+        if(removeSupport) {
+            // This ground-floor plate has neighboring bearing masonry; unlike
+            // the earlier isolated upper 1x1, an upper drop is not guaranteed.
+            EXPECT_EQ(read().at("cannon").at("sourceParts"),19);
+            EXPECT_GT(vacatedCenters,0u)<<"The deleted source plate must leave empty collision volume.";
+        }
+        // A pure bond cut does not remove the source house's bearing masonry.
+        // Supported pieces are allowed to settle at their original poses.
+        RecordProperty("supportRemoved",removeSupport);
+        RecordProperty("wallVacatedUpperBrickCenters",std::to_string(vacatedUpperCenters));
+        RecordProperty("wallVacatedCellCenters",std::to_string(vacatedCenters));
+        }
+        // Restoring the source assembly must complete before walking or saves
+        // become normal again. No fixture teleport is used during this change.
+        runtime.action(36);ASSERT_TRUE(frame());
+        const auto rebuildDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+        while(!read().at("cannon").at("wallReady").get<bool>()&&std::chrono::steady_clock::now()<rebuildDeadline) {
+            ASSERT_TRUE(frame());
+            if(runtime.physicsWaiting())std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        ASSERT_TRUE(read().at("cannon").at("wallReady"))<<runtime.json();
+        EXPECT_FALSE(read().at("cannon").at("wallReleased"));
+        ASSERT_TRUE(runtime.snapshot(refusedSave,error))<<error;
+        RecordProperty("wallRebuildSaveRecovered",true);
+        EXPECT_FALSE(read().at("cannon").at("inspectingWall"));
+        const auto rebuiltSolids=runtime.spatialQueries().solids();
+        ASSERT_EQ(rebuiltSolids.size(),intactSolids.size());
+        for(size_t i=0;i<intactSolids.size();++i) {
+            EXPECT_EQ(rebuiltSolids[i].part,intactSolids[i].part);
+            EXPECT_LT(glm::length(rebuiltSolids[i].minimum-intactSolids[i].minimum),.0001);
+            EXPECT_LT(glm::length(rebuiltSolids[i].maximum-intactSolids[i].maximum),.0001);
+        }
+        ASSERT_TRUE(press(Key::C));EXPECT_FALSE(read().at("cannon").at("active"));
+        ASSERT_TRUE(press(Key::B));EXPECT_EQ(read().at("mode"),"build");
+        bool aim=false;
+        for(int py:{560,640,480,400}) {
+            for(int px:{640,480,800,320,960}) {
+                input.onMouseMove(float(px),float(py));ASSERT_TRUE(frame());
+                if(read().at("valid").get<bool>()){aim=true;break;}
+            }
+            if(aim)break;
+        }
+        ASSERT_TRUE(aim)<<runtime.json();const auto count=runtime.state().structures.size();
+        runtime.action(4);ASSERT_TRUE(frame());
+        EXPECT_EQ(runtime.state().structures.size(),count+1)<<runtime.json();
+        EXPECT_EQ(read().at("cannon").at("shots"),1);
+        RecordProperty("shotsFired",1);
+        RecordProperty("physicsTicks",std::to_string(world.encodedTick()));
+        // No submission is unresolved. Runtime releases its handles first;
+        // immediate world shutdown below owns final pool abandonment, exactly
+        // as Application shutdown. No continued simulation reuses those handles.
+    }
+    world.shutdown();context.tick();
+    {std::lock_guard lock(signals->mutex);EXPECT_EQ(signals->errors.load(),0u)<<signals->message;}
+#endif
+}
+
+INSTANTIATE_TEST_SUITE_P(SourceHouse,ImportedWallRuntimeIntegration,testing::Values(0,1,2),
+    [](const testing::TestParamInfo<int>& variant){return variant.param==2?"CannonImpact":variant.param==1?"RemoveSupport":"ReleaseConnections";});
+
 
 } // namespace voxy::game::adventure

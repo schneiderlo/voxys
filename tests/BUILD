@@ -17,6 +17,7 @@ TEST_SRCS = [
     "test_replay.cpp",
     "test_timer.cpp",
     "test_config.cpp",
+    "test_day_night.cpp",
     "test_window.cpp",
     "test_input.cpp",
     "test_gamepad.cpp",
@@ -214,9 +215,11 @@ cc_test(
 
 cc_test(
     name = "gpu_authored_shapes",
+    # Native GPU pipeline setup for the full authored suite exceeds 300 s.
+    timeout = "long",
     srcs = ["test_gpu_authored_shapes.cpp"],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
-    deps = ["//src/physics:gpu_authored_shapes", "//src/physics:body_shape_layout", "//src/physics:physics", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    deps = ["//src/game:imported_assembly", "//src/physics:gpu_authored_shapes", "//src/physics:body_shape_layout", "//src/physics:physics", "//src/gpu:gpu", "@googletest//:gtest_main"],
     data = ["//shaders:shaders"],
 )
 
@@ -509,6 +512,7 @@ cc_test(
         "@googletest//:gtest_main",
     ],
     data = [
+        "//data:adventure_runtime",
         "//data:data",
         "//shaders:shaders",
         "//:asan_suppressions",
@@ -1016,7 +1020,7 @@ cc_test(
         "test_wreckwater_client_replication.cpp",
         "test_wreckwater_client_runtime.cpp",
         "test_wreckwater_protocol.cpp",
-    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_adventure_saves.cpp", "test_adventure_runtime.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp", "test_adventure_preferences_store.cpp"], "//conditions:default": []}),
+    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_adventure_saves.cpp", "test_adventure_runtime.cpp", "test_imported_assembly.cpp", "test_imported_wall_physics.cpp", "test_imported_stack.cpp", "test_cannon_physics_scene.cpp", "test_cannon_physics_scene_gpu.cpp", "test_builder_cannon.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp", "test_adventure_preferences_store.cpp"], "//conditions:default": []}),
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/game:cove_rigid_roots",
@@ -1036,7 +1040,9 @@ cc_test(
         "//src/game:fixture_registry",
         "//src/game:workshop_camera",
         "//src/game:cove_player",
-        "//src/game:adventure_core", "//src/game:adventure_runtime",
+        "//src/game:adventure_core", "//src/game:adventure_runtime", "//src/game:cannon_physics_scene",
+        "//src/game:imported_assembly",
+        "//src/game:imported_wall_physics",
         "//src/game:cove_camera",
         "//src/game:cove_environment",
         "//src/game:cove_environment_collision",
@@ -1533,4 +1539,44 @@ cc_test(
     data = ["fixtures/adventure/schema5-component-r01.bin"],
     copts = ["-std=c++20"],
     deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cannon_physics_scene",
+    srcs = ["test_cannon_physics_scene.cpp", "test_builder_cannon.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cannon_physics_scene", "//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cannon_physics_scene_gpu",
+    srcs = ["test_cannon_physics_scene_gpu.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:cannon_physics_scene", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "imported_assembly",
+    srcs = ["test_imported_assembly.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:imported_assembly", "//src/game:cannon_physics_scene", "@googletest//:gtest_main"],
+    data = ["//data:adventure_runtime"],
+)
+
+cc_test(
+    name = "imported_wall_physics",
+    srcs = ["test_imported_wall_physics.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:imported_wall_physics", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders", "//data:adventure_runtime"],
+)
+
+
+cc_test(
+    name = "imported_stack",
+    srcs = ["test_imported_stack.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:imported_wall_physics", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    data = ["//shaders:shaders", "//data:adventure_runtime"],
 )

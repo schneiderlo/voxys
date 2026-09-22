@@ -54,7 +54,7 @@ struct CameraUniforms {
     glm::vec4 waterMotion;     ///< offset: 432, size: 16 - (time, local surface offset, submerged, reserved)
     glm::vec4 lightingColor;   ///< offset: 448, size: 16 - sun rgb, intensity
     glm::vec4 ambientExposure; ///< offset: 464, size: 16 - ambient rgb, exposure
-    glm::vec4 fogColor;        ///< offset: 480, size: 16 - fog rgb, reserved
+    glm::vec4 fogColor;        ///< offset: 480, size: 16 - fog rgb, day hour + 1 (zero = fixed sky)
     glm::vec4 waterOptics;     ///< offset: 496, size: 16 - IOR, distortion, absorption, scatter
     glm::vec4 waterFoam;       ///< offset: 512, size: 16 - size, opacity, coverage, reflection distance
     glm::vec4 waterSpectrum;   ///< offset: 528, size: 16 - broad/detail patch lengths

@@ -1,5 +1,7 @@
 #include "game/adventure/adventure_runtime.hpp"
 #include "game/adventure/building_doors.hpp"
+#include "game/adventure/ldraw_blacksmith_ground_remainder.hpp"
+#include "game/adventure/cannon_physics_scene.hpp"
 #include "game/adventure/adventure_input.hpp"
 #include "game/adventure/adventure_save.hpp"
 #include "game/adventure/construction_policy.hpp"
@@ -14,8 +16,10 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <chrono>
 #include <cfenv>
 #include <locale>
+#include <limits>
 #include <iomanip>
 #include <fstream>
 #include <numbers>
@@ -116,6 +120,175 @@ std::optional<moto::VmeshData> installedDoorMesh(std::string& error) {
     }
     return mesh;
 }
+std::optional<moto::VmeshData> installedMotorbikeMesh(std::string& error) {
+    constexpr size_t expectedBytes=573429;
+    constexpr std::string_view digest="bcd29e0eb7037c483301d5cd6127a6bea7bc1de3b912166a2ed0cef6fbeb7e4e";
+    std::ifstream file(installedPath("data/adventure/motorbike-r01/motorbike.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed motorbike is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed motorbike does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=4||mesh.nodes.size()!=4) {error="Unsupported motorbike layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedCreativePropsMesh(std::string& error) {
+    constexpr size_t expectedBytes=1076559;
+    constexpr std::string_view digest="a09287c7f880885f244b1fa3ed7d9cf7b589b88695e64774b239db251ec3b736";
+    std::ifstream file(installedPath("data/adventure/creative-props-r01/creative-props.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed creative scenery is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed creative scenery does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=6||mesh.nodes.size()!=6) {error="Unsupported creative scenery layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedCreativeVillageMesh(std::string& error) {
+    constexpr size_t expectedBytes=15529402;
+    constexpr std::string_view digest="7c3703c12d6b5bcf1a384c21a98de5376e36ff24033dfeceb7d621bdc8f3242f";
+    std::ifstream file(installedPath("data/adventure/creative-village-r01/creative-village.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed creative scenery is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed creative scenery does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=15||mesh.nodes.size()!=15) {error="Unsupported creative scenery layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedCreativePropsFarMesh(std::string& error) {
+    constexpr size_t expectedBytes=384279;
+    constexpr std::string_view digest="2e8440bbc5aab754440b60e035ffa1af8a1127ecffa6026f6202e052cc68b061";
+    std::ifstream file(installedPath("data/adventure/creative-props-far-r01/creative-props.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed creative scenery is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed creative scenery does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=6||mesh.nodes.size()!=6) {error="Unsupported creative scenery layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedCreativePropsHorizonMesh(std::string& error) {
+    constexpr size_t expectedBytes=204351;
+    constexpr std::string_view digest="dfcd25fb7b3dbb7d419caaf62ba0b0efc64021ffe6c24b07b2f6eddda3dcd8fa";
+    std::ifstream file(installedPath("data/adventure/creative-props-horizon-r01/creative-props.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed creative scenery is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed creative scenery does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=6||mesh.nodes.size()!=6) {error="Unsupported creative scenery layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedForestMesh(uint32_t lod,std::string& error) {
+    constexpr std::array<size_t,3> sizes{6641643,310227,348059};
+    constexpr std::array<std::string_view,3> digests{"212969ccf052eb54f281028a57c9f93d3d1b9fb1b70133a32a99782cc95a91f6","fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b","9ca6371dc633831762b198da312ceeb3e96707b5a53848ff10385544e06c7aed"};
+    if(lod>=sizes.size())return {};
+    std::ifstream file(installedPath("data/adventure/forest-r02/forest-lod"+std::to_string(lod)+".vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(sizes[lod]+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(sizes[lod])) {
+        error="The installed forest is missing or has changed.";return {};
+    }
+    bytes.resize(sizes[lod]);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digests[lod]) {
+        error="The installed forest does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=6||mesh.nodes.size()!=6) {error="Unsupported forest layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedLdrawBlacksmithMesh(std::string& error) {
+    // Pin the inspected material-batched derivative of the original LDraw set.
+    constexpr size_t expectedBytes=81656239;
+    constexpr std::string_view digest="4ee13dc6e14e8c33a6e7c2507c23db986e6e81fe777f5304b727ae37a45232c5";
+    std::ifstream file(installedPath("data/adventure/ldraw-blacksmith-ground-r01/wall-parts.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed Blacksmith set is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed Blacksmith set does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=11||mesh.nodes.size()!=11) {error="Unsupported Blacksmith set layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedLdrawCannonMesh(std::string& error) {
+    // Pin the inspected material-batched derivative of the original LDraw set.
+    constexpr size_t expectedBytes=182911;
+    constexpr std::string_view digest="b325847338285be34266cb6f02b0363f113852c9ba78e9cb12db1a102aea1170";
+    std::ifstream file(installedPath("data/adventure/ldraw-cannon-r01/cannon.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed cannon is missing or has changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed cannon does not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=2||mesh.nodes.size()!=2) {error="Unsupported cannon layout.";return {};}
+    return mesh;
+}
+// Separate ID range from village groups (1,500,000+) and world props (<1,050,000).
+constexpr uint64_t blacksmithPartId=creativeSceneryPartBase-2000000u;
+constexpr uint64_t blacksmithWallPartId=creativeSceneryPartBase-2000002u;
+constexpr uint64_t cannonPartId=creativeSceneryPartBase-2000001u;
+constexpr glm::dvec2 cannonPlot(1240,-1027);
+constexpr glm::dvec3 cannonMinimum(-4.4,0,-4.4),cannonMaximum(4.4,5.3,4.4);
+constexpr glm::dvec3 blacksmithMinimum(-20.250372,0,-19.394726);
+constexpr glm::dvec3 blacksmithMaximum(20.250372,34.799988,19.394724);
+constexpr glm::dvec2 blacksmithPlot(1208,-1032);
+bool blacksmithSolid(const AdventureSpatialQueries::Solid& solid) {
+    return solid.structure.counter==creativeSceneryStructureId&&(solid.part.counter==blacksmithPartId||solid.part.counter==blacksmithWallPartId);
+}
+bool intersects(const AdventureSpatialQueries::Solid& a,const AdventureSpatialQueries::Solid& b,double margin=0) {
+    return glm::all(glm::lessThan(a.minimum,b.maximum+glm::dvec3(margin)))
+        &&glm::all(glm::greaterThan(a.maximum,b.minimum-glm::dvec3(margin)));
+}
+AdventureSpatialQueries::Solid blacksmithBox(glm::dvec3 feet,glm::dvec3 lo,glm::dvec3 hi,
+    construction::WorldNamespace world={}) {
+    // The original set faces +Z. Turn its front toward the arrival path (-Z).
+    return {{world,creativeSceneryStructureId},{world,blacksmithPartId},
+        feet+glm::dvec3(-hi.x,lo.y,-hi.z),feet+glm::dvec3(-lo.x,hi.y,-lo.z)};
+}
 std::array<glm::dvec3,2> markerPositions(const terrain::lego::Surface& surface) {
     const auto& world=installedWorld();const std::array points{world.town+glm::dvec2(0,-3),world.landmark};
     std::array<glm::dvec3,2> result;
@@ -125,6 +298,29 @@ std::array<glm::dvec3,2> markerPositions(const terrain::lego::Surface& surface) 
 void appendMarkers(construction::WorldNamespace world,const terrain::lego::Surface& terrain,std::vector<AdventureSpatialQueries::Solid>& solids) {
     const auto positions=markerPositions(terrain);
     for(size_t i=0;i<positions.size();++i)solids.push_back({{world,i+1},{world,i+1},positions[i]+glm::dvec3(-.5,0,-.5),positions[i]+glm::dvec3(.5,i?4.:2.,.5)});
+}
+// Existing creative archives can place the old smaller figure under a low
+// roof or beside a stud. Keep every brick; find a nearby supported position
+// for the larger body only when its original position no longer fits.
+std::optional<glm::dvec3> creativeStandingPoint(const AdventureSpatialQueries& queries,glm::dvec3 preferred) {
+    constexpr double radius=AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale;
+    constexpr double height=AdventurePlayer::height*AdventurePlayer::creativeScale;
+    for(int ring=0;ring<=4;++ring) {
+        const int count=ring?8:1;
+        for(int i=0;i<count;++i) {
+            const double angle=double(i)*std::numbers::pi/4;
+            const auto xz=glm::dvec2(preferred.x,preferred.z)
+                +glm::dvec2(std::cos(angle),std::sin(angle))*double(ring*2);
+            std::array<double,64> levels{};
+            const auto found=queries.walkableFeet(xz,preferred.y-2,preferred.y+16,levels,radius,height);
+            if(!found.complete||!found.count)continue;
+            auto closest=levels[0];
+            for(size_t j=1;j<found.count;++j)
+                if(std::abs(levels[j]-preferred.y)<std::abs(closest-preferred.y))closest=levels[j];
+            return glm::dvec3(xz.x,closest,xz.y);
+        }
+    }
+    return {};
 }
 std::string quote(std::string_view value) {
     constexpr char digits[]="0123456789abcdef";std::string result="\"";
@@ -147,8 +343,17 @@ std::string costLabel(MaterialCost cost) {
     return result.empty()?"No materials":result;
 }
 }
-AdventureRuntime::AdventureRuntime(bool freeBuild):routingPreferences_(adventureRoutingPreferences(preferences_)),freeBuild_(freeBuild){}
+AdventureRuntime::AdventureRuntime(bool freeBuild):routingPreferences_(adventureRoutingPreferences(preferences_)),freeBuild_(freeBuild){
+    if(freeBuild_) {
+        auto settings=orbit_.settings();settings.distanceLimit=expedition::CoveCamera::extendedMaximumDistance;
+        (void)orbit_.settings(settings);(void)orbit_.setUserDistance(10.5);
+    }
+}
 AdventureRuntime::~AdventureRuntime(){
+    if(physics_){cannon_.clear(*physics_);brickThrower_.retire(*physics_,true);playerPhysics_.clear(*physics_);}
+    // Application destroys its PhysicsWorld later in the same shutdown, with
+    // no intervening simulation. It owns the pool and all body references;
+    // dropping these plain bridge handles is abandonment, not certified retirement.
     // An interrupted Application can still have submitted queue work. The
     // commands retain these references; do not Destroy their textures here.
     meshes_.releaseHandles();
@@ -199,7 +404,9 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     const std::filesystem::path& shaders,WGPUTextureFormat color,std::string& error) {
     previewResult_.reset();structureJson_.reset();aimRayResult_.reset();
     if(!matchesInstalledTerrain(surface)||!queries_.bindTerrain(surface)) {error="Adventure terrain does not match the installed world.";return false;}
-    const auto spawn=townSpawn(surface);
+    auto spawn=townSpawn(surface);
+    if(freeBuild_)spawn.y=double(terrain::lego::supportHeight(surface,glm::vec2(spawn.x,spawn.z),
+        float(AdventurePlayer::radius*AdventurePlayer::creativeScale)))+.005;
     content_.town={spawn.x,spawn.y,spawn.z,0};
     // Bind the exact terrain recipe and full sample bytes once. No second copy.
     static_assert(std::endian::native==std::endian::little);
@@ -243,6 +450,9 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         core::Sha256 creative;creative.string("voxys.free-build.v1");creative.string(installedWorld().samplesSha256);
         creative.string(buildingCatalogFingerprint());creative.string("unlimited-grounded-bricks-r01");
         content_={};content_.freeBuilding=true;content_.identity=creative.finish();content_.town={spawn.x,spawn.y,spawn.z,0};
+        // Keep the existing recovery/content contract so old saves still load
+        // exactly. Only a newly created world's player starts at the new vista.
+        spawn=creativeSpawn(surface,AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale);
         building_=true;selected_=PieceKind::Brick2x4;catalogCategory_=1;
         status_="Choose a brick, aim and build.";saveStatus_="Unsaved build";
     }
@@ -268,10 +478,13 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     if(pendingBootstrap)world=pendingBootstrap->world;
 #endif
     session_=AdventureSession::create(world,content_,error);
+    if(session_&&freeBuild_&&!session_->updatePlayer({spawn.x,spawn.y,spawn.z,creativeStartYaw},100,error))return false;
     std::vector<AdventureSpatialQueries::Solid> markers;if(!freeBuild_)appendMarkers(world,surface,markers);
     if(!session_||!queries_.publish(markers,session_->state().revision+1)
-        ||!player_.initialize(queries_,spawn,installedWorld().waterHeight)) {error="Could not start on safe ground.";return false;}
-    robot_=assets::loadHumanAsset(installedPath("data/adventure/human-r01"),error);
+        ||!player_.initialize(queries_,spawn,installedWorld().waterHeight,freeBuild_?creativeStartYaw:0,
+            freeBuild_?AdventurePlayer::creativeScale:1,freeBuild_?AdventurePlayer::creativeRadius:AdventurePlayer::radius)) {error="Could not start on safe ground.";return false;}
+    robot_=freeBuild_?assets::loadBuilderAsset(installedPath("data/adventure/builder-r01"),error)
+        :assets::loadHumanAsset(installedPath("data/adventure/human-r01"),error);
     if(!robot_)return false;
     raider_=assets::loadRaiderAsset(installedPath("data/adventure/raider-r01"),error);
     if(!raider_)return false;
@@ -285,11 +498,14 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     if(!buildingMesh)return false;
     render::MeshPathConfig config;
     config.shaderPath=shaders/"mesh_path.wgsl";config.colorFormat=WGPUTextureFormat_RGBA16Float;
-    config.frontFace=WGPUFrontFace_CW;config.linearHdrOutput=true;config.sunShadows=true;
-    // Reserve expanded submesh draws once, not merely logical piece count.
-    // 1,024 parts at four draws, fixed village (64 pieces/32 props),
+    config.frontFace=WGPUFrontFace_CW;config.linearHdrOutput=true;config.sunShadows=true;config.farSunShadows=freeBuild_;config.toySkyGroundFill=freeBuild_;
+    // Reserve expanded submesh instance records once, not logical piece count.
+    // 1,024 parts (furniture capped at32), the authored village,
     // four animated figures, supplies/markers and a whole-room preview.
-    config.maxInstances=6144;config.maxDrawsPerFrame=6144;
+    config.maxInstances=freeBuild_?131072u:8192u;
+    // Denser eight-stud forest cells still use shared meshes and batched draws.
+    // Expanded material records grow only to the actual view's requirement.
+    config.maxDrawsPerFrame=freeBuild_?524288u:8192u;
     if(!meshes_.init(device,queue,config)
         ||!meshes_.loadMeshData(*buildingMesh)
         ||!meshes_.loadMeshData(robot_->mesh)
@@ -301,6 +517,50 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     if(!villageMesh||!meshes_.loadMeshData(*villageMesh)||!meshes_.loadMeshData(raider_->mesh))return false;
     const auto doorMesh=installedDoorMesh(error);
     if(!doorMesh||!meshes_.loadMeshData(*doorMesh))return false;
+    if(freeBuild_) {
+        const auto bike=installedMotorbikeMesh(error);
+        if(!bike||!meshes_.loadMeshData(*bike))return false;
+        const auto sceneryMesh=installedCreativePropsMesh(error);
+        if(!sceneryMesh||!meshes_.loadMeshData(*sceneryMesh))return false;
+        const auto farScenery=installedCreativePropsFarMesh(error);
+        if(!farScenery||!meshes_.loadMeshData(*farScenery))return false;
+        const auto villageScenery=installedCreativeVillageMesh(error);
+        if(!villageScenery||!meshes_.loadMeshData(*villageScenery))return false;
+        const auto blacksmith=installedLdrawBlacksmithMesh(error);
+        if(!blacksmith||!meshes_.loadMeshData(*blacksmith))return false;
+        double low=INFINITY,high=-INFINITY;
+        for(int z=-20;z<=20;++z)for(int x=-21;x<=21;++x) {
+            const double y=surface.heightAt(float(blacksmithPlot.x+x),float(blacksmithPlot.y+z));
+            low=std::min(low,y);high=std::max(high,y);
+        }
+        if(!std::isfinite(high)||high-low>.33||low<=double(installedWorld().waterHeight)+2) {
+            error="The Blacksmith set's installed plot is not level dry ground.";return false;
+        }
+        blacksmithFeet_=glm::dvec3(blacksmithPlot.x,high+.005,blacksmithPlot.y);
+        wallSource_=loadImportedSection(installedPath("data/adventure/ldraw-blacksmith-ground-r01/wall.json"),error,
+            "ab8965411b228bd78c9becf16288c09e50a139f6e4ef02ecc282346887f357ab");
+        wall_=std::make_unique<ImportedWallPhysics>();
+        if(!wallSource_||!wall_->initialize(*wallSource_,*blacksmithFeet_,glm::angleAxis(std::numbers::pi_v<float>,glm::vec3(0,1,0)),error))return false;
+        const auto cannonMesh=installedLdrawCannonMesh(error);
+        if(!cannonMesh||!meshes_.loadMeshData(*cannonMesh))return false;
+        const auto horizon=installedCreativePropsHorizonMesh(error);
+        if(!horizon||!meshes_.loadMeshData(*horizon))return false;
+        for(uint32_t lod=0;lod<3;++lod) {
+            const auto forest=installedForestMesh(lod,error);
+            if(!forest||!meshes_.loadMeshData(*forest))return false;
+        }
+        double cannonLow=INFINITY,cannonHigh=-INFINITY;
+        for(int z=-4;z<=4;++z)for(int x=-4;x<=4;++x) {
+            const double y=surface.heightAt(float(cannonPlot.x+x),float(cannonPlot.y+z));
+            cannonLow=std::min(cannonLow,y);cannonHigh=std::max(cannonHigh,y);
+        }
+        if(std::isfinite(cannonHigh)&&cannonHigh-cannonLow<.4&&cannonLow>double(installedWorld().waterHeight)+2)
+            cannonFeet_=glm::dvec3(cannonPlot.x,cannonHigh+.005,cannonPlot.y);
+        // A clear shot at the source side wall, including gravity and muzzle
+        // offset; the porch overhang obstructs the original front-wall setup.
+        cannon_.heading=-std::numbers::pi/2;
+        cannon_.yaw=-.0360332748563;cannon_.elevation=.0726767584712;
+    }
 #if defined(VOXY_NATIVE)
     if(!saves_->loadedBytes().empty()&&!restore(saves_->loadedBytes(),world,error))return false;
 #else
@@ -309,14 +569,18 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         if(!bootstrap->bytes.empty()&&!restore(bootstrap->bytes,world,error))return false;
     }
 #endif
-    AdventureSpatialQueries populated;TownResidents residents;VillageLayout village;TrailSites sites;
-    if(!prepareGeometry(state(),populated,residents,village,sites,error))return false;
+    AdventureSpatialQueries populated;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;
+    if(!prepareGeometry(state(),populated,residents,village,sites,scenery,error))return false;
     AdventureSpatialQueries actors;AdventureEncounters encounters;
     if(!prepareActors(state(),populated,actors,encounters,error))return false;
-    walkQueries_=std::move(populated);queries_=std::move(actors);encounters_=std::move(encounters);
-    town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
+    ++staticGeometryEpoch_;walkQueries_=std::move(populated);queries_=std::move(actors);encounters_=std::move(encounters);
+    town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     if(!freeBuild_&&!combat_.initialize(content_,walkQueries_,installedWorld().waterHeight)) {error="The trail navigation is unavailable.";return false;}
     for(size_t i=0;i<residentFacing_.size();++i)residentFacing_[i]=town_.entries()[i].yaw;
+    if(freeBuild_) {
+        const auto p=player_.feet()+glm::dvec3(std::cos(player_.facingYaw())*3.2,0,-std::sin(player_.facingYaw())*3.2);
+        (void)motorbike_.place(queries_,p,player_.facingYaw(),installedWorld().waterHeight);
+    }
     refreshHud();return true;
 }
 CommandStamp AdventureRuntime::stamp() const {return {state().revision,state().lastRequestSequence+1,1};}
@@ -341,11 +605,33 @@ CandidateValidator AdventureRuntime::npcValidator(uint8_t npc,bool requireHome) 
         return validator()(before,after,error);
     };
 }
-bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpatialQueries& out,TownResidents& residents,VillageLayout& village,TrailSites& sites,std::string& error,bool preserveInstalled) const {
+bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpatialQueries& out,TownResidents& residents,VillageLayout& village,TrailSites& sites,CreativeScenery& scenery,std::string& error,bool preserveInstalled,bool validate) const {
     if(state.revision==UINT64_MAX){error="World revision capacity reached.";return false;}
     std::vector<AdventureSpatialQueries::Solid> solids;
-    if(!validateInstalledGeometry(state,queries_,error,freeBuild_)||!compileSolids(state,solids,error))return false;
-    if(freeBuild_){residents={};village={};sites={};return out.bindTerrain(queries_.terrain())&&out.publish(solids,state.revision+1);}
+    if((validate&&!validateInstalledGeometry(state,queries_,error,freeBuild_))||!compileSolids(state,solids,error))return false;
+    if(freeBuild_) {
+        residents={};village={};sites={};
+        std::vector<AdventureSpatialQueries::Solid> swings;
+        if(!compileDoorSwingSolids(state,swings,error))return false;
+        auto reserved=solids;reserved.insert(reserved.end(),swings.begin(),swings.end());
+        std::vector<AdventureSpatialQueries::Solid> blacksmithSolids;
+        appendBlacksmith(state,blacksmithSolids,reserved,preserveInstalled);
+        appendCannon(state,blacksmithSolids,reserved,preserveInstalled);
+        std::vector<AdventureSpatialQueries::Solid> clearance;
+        if(preserveInstalled&&motorbike_.available()) {
+            const auto feet=motorbike_.state().feet;
+            clearance.push_back({{},{},feet-glm::dvec3(3.5,.5,3.5),feet+glm::dvec3(3.5,6,3.5)});
+        }
+        scenery=CreativeScenery::admit(state,queries_.terrain(),reserved,preserveInstalled?&scenery_:nullptr,clearance);
+        if(!scenery.appendSolids(state.world,solids)){error="Scenery collision capacity reached.";return false;}
+        if(solids.size()+blacksmithSolids.size()>AdventureSpatialQueries::maximumSolids) {
+            error="Blacksmith collision capacity reached.";return false;
+        }
+        // Append after the scenery's user-ID alias guard; this is another
+        // installed member of that namespace, not a conflicting saved build.
+        solids.insert(solids.end(),blacksmithSolids.begin(),blacksmithSolids.end());
+        return out.bindTerrain(queries_.terrain())&&out.publish(solids,state.revision+1);
+    }
     appendMarkers(state.world,queries_.terrain(),solids);
     // Scenery admission reserves a built door's complete opening space. The
     // temporary reservation is never published as a walking/picking collider.
@@ -369,11 +655,63 @@ bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpat
     if(!sites.appendSolids(state.world,solids)){error="Trail scenery capacity reached.";return false;}
     return out.bindTerrain(queries_.terrain())&&out.publish(solids,state.revision+1);
 }
+bool AdventureRuntime::blacksmithVisible() const noexcept {
+    return blacksmithFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),blacksmithSolid);
+}
+void AdventureRuntime::appendBlacksmith(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
+    std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {
+    if(!blacksmithFeet_)return;
+    // Keep a displaced landmark absent until reload, including scenery refresh
+    // and deletion of the build which displaced it. Never respawn through actors.
+    if(preserveInstalled&&walkQueries_.revision()!=0&&!blacksmithVisible())return;
+    const auto aliases=[](uint64_t id){return id==creativeSceneryStructureId||id==blacksmithPartId||id==blacksmithWallPartId;};
+    for(const auto& structure:state.structures) {
+        if(aliases(structure.id))return;
+        for(const auto& part:structure.parts)if(aliases(part.id))return;
+    }
+    for(const auto& component:state.components)if(aliases(component.id))return;
+    const auto footprint=blacksmithBox(*blacksmithFeet_,blacksmithMinimum,blacksmithMaximum,state.world);
+    for(const auto& other:reserved)if(intersects(footprint,other,.5))return;
+    // Physical surfaces come from the imported part geometry, including bases,
+    // stair treads, walls, ceilings and roofs. Room/garden air stays traversable.
+    const auto& boxes=blacksmithRemainderSolids;
+    if(solids.size()+boxes.size()>AdventureSpatialQueries::maximumSolids)return;
+    std::vector<AdventureSpatialQueries::Solid> collision(boxes.size());
+    const bool newlyAdmitted=!preserveInstalled||walkQueries_.revision()==0;
+    const glm::dvec3 player(state.player.x,state.player.y,state.player.z);
+    const AdventureSpatialQueries::Solid playerClearance{{},{},player-glm::dvec3(1.12,0,1.12),player+glm::dvec3(1.12,5.7,1.12)};
+    for(size_t i=0;i<boxes.size();++i) {
+        collision[i]=blacksmithBox(*blacksmithFeet_,boxes[i].minimum,boxes[i].maximum,state.world);
+        if(newlyAdmitted&&intersects(collision[i],playerClearance))return;
+        if(newlyAdmitted&&preserveInstalled&&motorbike_.available()) {
+            const auto feet=motorbike_.state().feet;
+            if(intersects(collision[i],{{},{},feet-glm::dvec3(3.5,.5,3.5),feet+glm::dvec3(3.5,6,3.5)}))return;
+        }
+    }
+    if(wall_) {
+        const auto cells=wall_->ready()?wall_->settledSolids():wall_->initialSolids();
+        if(solids.size()+collision.size()+cells.size()>AdventureSpatialQueries::maximumSolids)return;
+        for(const auto& cell:cells) {
+            AdventureSpatialQueries::Solid solid{{state.world,creativeSceneryStructureId},{state.world,blacksmithWallPartId},cell.minimum,cell.maximum};
+            if(newlyAdmitted&&intersects(solid,playerClearance))return;
+            if(newlyAdmitted&&preserveInstalled&&motorbike_.available()) {
+                const auto feet=motorbike_.state().feet;
+                if(intersects(solid,{{},{},feet-glm::dvec3(3.5,.5,3.5),feet+glm::dvec3(3.5,6,3.5)}))return;
+            }
+            collision.push_back(solid);
+        }
+    }
+    solids.insert(solids.end(),collision.begin(),collision.end());
+    // Also reserve their capacity before the scenery admission fills the packet.
+    reserved.insert(reserved.end(),collision.begin(),collision.end());
+    reserved.push_back(footprint);
+}
 bool AdventureRuntime::commit(std::optional<AdventureSession::PreparedChange> prepared) {
     if(!prepared)return false;
     const bool homeChanged=state().structures!=prepared->state().structures;
-    AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;
-    if(!prepareGeometry(prepared->state(),next,residents,village,sites,status_))return false;
+    AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;
+    if(!prepareGeometry(prepared->state(),next,residents,village,sites,scenery,status_))return false;
+    if(wall_&&wall_->released()&&!std::any_of(next.solids().begin(),next.solids().end(),blacksmithSolid)) {status_="Rebuild the wall before changing this plot.";return false;}
     AdventureSpatialQueries actors;AdventureEncounters encounters;
     if(!prepareActors(prepared->state(),next,actors,encounters,status_))return false;
     for(const auto& actor:encounters_.entries())if(actor.available) {
@@ -384,7 +722,7 @@ bool AdventureRuntime::commit(std::optional<AdventureSession::PreparedChange> pr
     const auto placed=changed&&!AdventureSession::findPart(state(),changed)&&AdventureSession::findPart(prepared->state(),changed)?changed:0;
     if(!session_->commit(std::move(*prepared),status_))return false;
     // The player holds the address of queries_, not its replaceable packet.
-    walkQueries_=std::move(next);queries_=std::move(actors);encounters_=std::move(encounters);town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);if(homeChanged)fieldHome_=fieldHomeReadiness(state(),walkQueries_);lastPlaced_=placed?placed:lastPlaced_;
+    ++staticGeometryEpoch_;walkQueries_=std::move(next);queries_=std::move(actors);encounters_=std::move(encounters);town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);if(homeChanged)fieldHome_=fieldHomeReadiness(state(),walkQueries_);lastPlaced_=placed?placed:lastPlaced_;
     saveStatus_="Changes not saved";
     return true;
 }
@@ -493,7 +831,7 @@ void AdventureRuntime::action(int action,int value) {
     // Focus is presentation metadata. Apply its token-validated selection
     // before the next input tick so pad Confirm cannot activate the old row.
     if(action==26){if(const auto row=menuIntents_.resolve(value))menuSelection_=static_cast<int>(*row);return;}
-    if(action>=1&&action<=31&&action!=26&&pendingActions_.size()<32) {
+    if(action>=1&&action<=37&&action!=26&&pendingActions_.size()<32) {
         // A queued door use keeps the observed target and desired state.
         // A second queued click cannot reinterpret Open as Close after commit.
         pendingActions_.push_back(observedAction(action,value,menuIntents_.token()));
@@ -514,7 +852,7 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     if(framePointer_){pointer=framePointer_->framebuffer;ndc=framePointer_->ndc;}
     else if(!input.isMouseCaptured()&&!padAim_&&!uiInputOwned_&&!hudPointerOwned_) {
         hasTarget_=false;targetPart_=0;previewValid_=false;observedRayHit_={};
-        previewReason_="The pointer view is unavailable.";return;
+        previewReason_=building_?"The pointer view is unavailable.":"";return;
     }
     if(input.isMouseCaptured()||padAim_){pointer={double(width)*.5,double(height)*.5};ndc={0,0};}
     if(uiInputOwned_||hudPointerOwned_) {
@@ -527,21 +865,29 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     const auto origin=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize);
     const auto eye=origin+glm::dvec3(camera.position());
     const auto direction=glm::normalize(origin+glm::dvec3(world)-eye);
+    // Preserve reach around the figure when the camera backs away. Short
+    // contiguous segments retain the terrain query's bounded work per sweep.
+    const double rayDistance=25.+(freeBuild_?std::max(0.,orbit_.pose().distance-10.5):0.);
     // Match exact IEEE values, including signed zero; restore clears even an
-    // equal revision. This is only the fixed 25 m picking query.
+    // equal revision, and a change of zoom/reach invalidates this query too.
     const AimRayKey rayKey{state().world,state().epoch,queries_.revision(),{
         std::bit_cast<uint64_t>(eye.x),std::bit_cast<uint64_t>(eye.y),std::bit_cast<uint64_t>(eye.z),
-        std::bit_cast<uint64_t>(direction.x),std::bit_cast<uint64_t>(direction.y),std::bit_cast<uint64_t>(direction.z)}};
+        std::bit_cast<uint64_t>(direction.x),std::bit_cast<uint64_t>(direction.y),std::bit_cast<uint64_t>(direction.z),
+        std::bit_cast<uint64_t>(rayDistance)}};
     const bool cacheRay=freeBuild_&&std::fegetround()==FE_TONEAREST;
     AdventureSpatialQueries::RayHit hit;
     if(cacheRay&&aimRayResult_&&aimRayResult_->key==rayKey)hit=aimRayResult_->hit;
     else {
-        hit=queries_.raycast(eye,direction,25);
+        for(double travelled=0;travelled<rayDistance;travelled+=25.) {
+            hit=queries_.raycast(eye+direction*travelled,direction,std::min(25.,rayDistance-travelled));
+            hit.distance+=travelled;
+            if(!hit.complete||hit.hit)break;
+        }
         if(cacheRay)aimRayResult_=AimRayResult{rayKey,hit};
     }
-    observedRayFrom_=eye;observedRayTo_=eye+direction*25.;observedRayHit_=hit;
+    observedRayFrom_=eye;observedRayTo_=eye+direction*rayDistance;observedRayHit_=hit;
     hasTarget_=hit.complete&&hit.hit;targetPart_=hasTarget_?hit.part.counter:0;
-    if(!hasTarget_){previewValid_=false;previewReason_="Aim at nearby ground or a building.";return;}
+    if(!hasTarget_){previewValid_=false;previewReason_=building_?"Aim at nearby ground or a building.":"";return;}
     aimPoint_=hit.point;
     // Exploration still needs picking for interaction, but does not need a
     // speculative copy, material calculation and support graph every frame.
@@ -553,7 +899,9 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     glm::dvec3 half=metres(bounds.maximum)-metres(bounds.minimum);half*=.5;
     if(yaw_%2)std::swap(half.x,half.z);
     glm::dvec3 p=hit.point;
-    if(hit.terrain) {
+    if(hit.terrain||(freeBuild_&&isCreativeScenerySolid({hit.structure,hit.part,{},{}}))) {
+        // Decorative props yield to supported building; never anchor a brick
+        // to scenery that will disappear when the placement is accepted.
         p.x=snap(p.x);p.z=snap(p.z);
         const auto y=terrainPlacementHeight(selected_,yaw_,{p.x,p.z},queries_.terrain());
         if(!y){previewValid_=false;previewReason_="Aim inside the landscape.";return;}
@@ -597,12 +945,12 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     if(cachePreview)previewResult_=PreviewResult{key,previewValid_,previewReason_};
 }
 uint64_t AdventureRuntime::nearbyComponent() const {
-    double best=3.25;uint64_t result=0;
+    double best=3.25*player_.bodyScale();uint64_t result=0;
     for(const auto& component:state().components)if(!freeBuild_||component.kind==FurnitureKind::Door)if(const auto* part=AdventureSession::findPart(state(),component.part)) {
         double distance=glm::length(metres(part->position)-player_.feet());
         if(component.part==targetPart_)distance-=.25;
         std::string reason;
-        if(distance<best&&reachableComponent(state(),component.id,queries_,reason)){best=distance;result=component.id;}
+        if(distance<best&&reachableComponent(state(),component.id,queries_,reason,freeBuild_)){best=distance;result=component.id;}
     }
     return result;
 }
@@ -692,7 +1040,7 @@ void AdventureRuntime::use(bool allowDoor) {
     if(const auto npc=town_.nearestInteractable(state().player,queries_,targetPart_)){talk(uint8_t(npc));return;}
     const auto id=nearbyComponent();const auto* component=AdventureSession::findComponent(state(),id);
     if(component) {
-        if(!reachableComponent(state(),id,queries_,status_))return;
+        if(!reachableComponent(state(),id,queries_,status_,freeBuild_))return;
         if(component->kind==FurnitureKind::Door) {
             if(allowDoor)useDoor(id,!component->doorOpen,component->revision);
             return;
@@ -754,7 +1102,7 @@ void AdventureRuntime::equipCompass(uint8_t slot) {
         status_=slot==255?"Compass returned to your backpack.":"Compass equipped. Choose a destination in your bag.";
 }
 void AdventureRuntime::craftAtBench(bool compass) {
-    if(!reachableComponent(state(),bench_,queries_,status_))return;
+    if(!reachableComponent(state(),bench_,queries_,status_,freeBuild_))return;
     if(compass) {
         if(commit(session_->prepareCraftCompass(stamp(),bench_,validator(),status_)))status_="Trail Compass crafted. Equip it to find your way.";
     } else if(commit(session_->prepareCraftHammer(stamp(),bench_,validator(),status_))) {
@@ -764,7 +1112,297 @@ void AdventureRuntime::craftAtBench(bool compass) {
         }
     }
 }
+void AdventureRuntime::attachPhysics(physics::PhysicsWorld& world) {
+    if(!freeBuild_||physics_)return;
+    physics_=&world;cannonPhysics_=std::make_unique<CannonPhysicsScene>();
+    cannonEventsReady_=world.setEventReadbackEnabled(true);
+    cannonEventsThrough_=world.encodedTick();
+    if(!cannonEventsReady_)cannonPhysicsError_="Impact detection could not start.";
+}
+void AdventureRuntime::throwBricks(uint32_t count) {
+    ++interactionStatusSerial_;
+    if(!physics_||physics_->backendType()!=physics::BackendType::WebGpuSoft) {
+        status_="Throwing bricks needs GPU physics.";return;
+    }
+    const auto hand=player_.feet()+glm::dvec3(0,1.2*player_.bodyScale(),0);
+    const auto yaw=orbit_.pose().yaw,elevation=orbit_.pose().elevation;
+    // Throw from the figure without requiring a picked surface or clear ray.
+    // The GPU solver handles contacts with the surrounding scene.
+    const auto spawned=brickThrower_.launch(*physics_,hand,yaw,elevation,count);
+    status_=spawned==count?(count==1?"Threw a 2×1 brick.":"Threw 100 2×1 bricks.")
+        :"Threw "+std::to_string(spawned)+" bricks. Wait for space in the physics world.";
+}
+bool AdventureRuntime::physicsWaiting() const noexcept {
+    return (cannonPhysics_&&cannonPhysics_->needsQuiescentBoundary())||(wall_&&wall_->needsQuiescentBoundary());
+}
+bool AdventureRuntime::cannonVisible() const noexcept {
+    return cannonFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),[](const auto& solid){
+        return solid.structure.counter==creativeSceneryStructureId&&solid.part.counter==cannonPartId;
+    });
+}
+void AdventureRuntime::appendCannon(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
+    std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {
+    if(!cannonFeet_||(preserveInstalled&&walkQueries_.revision()!=0&&!cannonVisible()))return;
+    for(const auto& structure:state.structures) {
+        if(structure.id==cannonPartId||structure.id==creativeSceneryStructureId)return;
+        for(const auto& part:structure.parts)if(part.id==cannonPartId||part.id==creativeSceneryStructureId)return;
+    }
+    const AdventureSpatialQueries::Solid footprint{{state.world,creativeSceneryStructureId},{state.world,cannonPartId},
+        *cannonFeet_+cannonMinimum,*cannonFeet_+cannonMaximum};
+    for(const auto& other:reserved)if(intersects(footprint,other,.3))return;
+    const glm::dvec3 player(state.player.x,state.player.y,state.player.z);
+    if((!preserveInstalled||walkQueries_.revision()==0)&&intersects(footprint,{{},{},
+        player-glm::dvec3(1.12,0,1.12),player+glm::dvec3(1.12,5.7,1.12)}))return;
+    solids.push_back(footprint);reserved.push_back(footprint);
+}
+void AdventureRuntime::updateCannonPhysics() {
+    if(!physics_||!cannonPhysics_||!cannonFeet_)return;
+    updateCannonImpacts();
+    const auto activeShots=cannon_.liveShots();
+    cannon_.retire(*physics_);
+    if(activeShots&&!cannon_.liveShots()&&(!wall_||!wall_->busy())) {
+        ++interactionStatusSerial_;status_="Shot finished. Adjust your aim and fire again.";
+    }
+    if(!cannonVisible())usingCannon_=false;
+    if(cannonObservedEpoch_!=staticGeometryEpoch_) {
+        std::vector<AdventureSpatialQueries::Solid> region;
+        for(const auto& solid:walkQueries_.solids()) {
+            if(solid.part.counter==cannonPartId||solid.part.counter==blacksmithWallPartId)continue;
+            const auto closest=glm::clamp(*cannonFeet_,solid.minimum,solid.maximum);
+            if(glm::length(glm::dvec2(closest.x-cannonFeet_->x,closest.z-cannonFeet_->z))<=140.)region.push_back(solid);
+        }
+        const bool same=region.size()==cannonRegion_.size()&&std::equal(region.begin(),region.end(),cannonRegion_.begin(),[](const auto& a,const auto& b){
+            return a.minimum==b.minimum&&a.maximum==b.maximum&&a.structure==b.structure&&a.part==b.part;
+        });
+        if(!same){cannonRegion_=std::move(region);++cannonGeometryEpoch_;}
+        cannonObservedEpoch_=staticGeometryEpoch_;
+    }
+    if(cannonPreparedEpoch_!=cannonGeometryEpoch_&&cannonFailedEpoch_!=cannonGeometryEpoch_) {
+        if(!cannon_.clear(*physics_))return;
+        // Finish any submitted transition before changing its ownership.
+        if(!cannonPhysics_->pendingRevision()) {
+            cannonPhysicsError_.clear();
+            if(cannonPhysics_->prepare(cannonRegion_,*cannonFeet_,cannonGeometryEpoch_,cannonPhysicsError_))cannonPreparedEpoch_=cannonGeometryEpoch_;
+            else cannonFailedEpoch_=cannonGeometryEpoch_;
+        }
+    }
+    if(cannonFailedEpoch_==cannonGeometryEpoch_) {
+        if(usingCannon_)status_="Cannon unavailable: "+cannonPhysicsError_;
+        return;
+    }
+    const auto progress=cannonPhysics_->update(*physics_,cannonPhysicsError_);
+    if(progress==CannonPhysicsScene::Progress::Failed) {
+        cannonFailedEpoch_=cannonGeometryEpoch_;
+        if(usingCannon_)status_="Cannon unavailable: "+cannonPhysicsError_;
+    }
+}
+void AdventureRuntime::updateCannonImpacts() {
+    if(!physics_||!cannonEventsReady_)return;
+    while(auto batch=physics_->pollEvents()) {
+        const auto frontier=physics_->tickFrontier();
+        if(batch->overflow||!batch->confirmedIncarnation||batch->confirmedIncarnation!=frontier.incarnation
+            ||batch->tick!=cannonEventsThrough_+1||batch->tick>frontier.completed) {
+            cannonEventsReady_=false;wallQueryFailure_=true;
+            status_="Impact detection stopped safely. Reload the world.";return;
+        }
+        cannonEventsThrough_=batch->tick;
+        for(const auto& event:batch->events)if(event.tick==batch->tick)
+            player_.addContactImpulse(playerPhysics_.contactImpulse(event,brickThrower_));
+        if(!wall_||!wall_->ready()||wallQueryFailure_)continue;
+        // A compound can produce several exterior patches for the same shot.
+        // Prefer its strongest patch, then transfer ownership of the shot once.
+        std::stable_sort(batch->events.begin(),batch->events.end(),[](const auto& a,const auto& b){
+            const auto strength=[](const auto& e){return std::isfinite(e.impulse)?e.impulse:0.f;};
+            return strength(a)>strength(b);
+        });
+        for(const auto& event:batch->events) {
+            if(event.type==physics::PhysicsEventType::ContactHit)for(const auto& shot:cannon_.shots) {
+                const bool a=shot.body.valid()&&shot.body==event.bodyHandleA();
+                if(a||(shot.body.valid()&&shot.body==event.bodyHandleB())) {
+                    ++cannonContacts_;cannonContactFeature_=a?event.otherFeatureId:event.featureId;
+                    cannonContactBody_=a?event.bodyB:event.bodyA;
+                    cannonContactSpeed_=event.impactSpeed;cannonContactImpulse_=event.impulse;
+                }
+            }
+            if(event.type!=physics::PhysicsEventType::ContactHit||event.tick!=batch->tick
+                ||!std::isfinite(event.impactSpeed)||event.impactSpeed<8
+                ||!std::isfinite(event.impulse)||event.impulse<=0)continue;
+            for(auto& shot:cannon_.shots) {
+                if(!shot.body.valid())continue;
+                const bool ballA=shot.body==event.bodyHandleA();
+                if(!ballA&&shot.body!=event.bodyHandleB())continue;
+                const auto target=ballA?event.bodyHandleB():event.bodyHandleA();
+                const auto feature=ballA?event.otherFeatureId:event.featureId;
+                if(!wall_->contactPart(target,feature))continue;
+                ImportedWallPhysics::Impact impact;
+                impact.geometryRevision=wall_->geometryRevision();impact.target=target;
+                impact.projectile=shot.body;impact.targetFeature=feature;
+                impact.targetLocalPoint=ballA?event.localAnchorB:event.localAnchorA;
+                impact.direction=ballA?event.normalAtoB:-event.normalAtoB;
+                impact.normalImpulse=event.impulse;impact.closingSpeed=event.impactSpeed;
+                impact.projectileMass=2.;
+                impact.projectileEnergy=BuilderCannon::shotSpeed*BuilderCannon::shotSpeed;
+                std::string error;
+                if(wall_->impact(impact,error)) {
+                    // The wall's atomic replacement now owns retirement. Never
+                    // expire or destroy this projectile twice via the shot list.
+                    shot={};++cannonImpacts_;++interactionStatusSerial_;
+                    wallInspectionPoint_=wall_->impactStats().worldPoint;
+                    inspectWall_=true;status_="Hit! Bricks are breaking free.";
+                } else if(!error.empty()) {++interactionStatusSerial_;status_=error;}
+                break;
+            }
+            if(!wall_->ready())break;
+        }
+    }
+}
+bool AdventureRuntime::wallLocked() const noexcept {
+    return wall_&&(wallQueryFailure_||(wall_->released()&&wall_->busy()));
+}
+void AdventureRuntime::updateImportedWall() {
+    if(!physics_||!wall_||!wallSource_||!blacksmithFeet_)return;
+    if(physics_->tickFrontier().failed) {
+        std::string failure;
+        static_cast<void>(wall_->update(*physics_,failure));
+        wallQueryFailure_=true;
+        status_=failure.empty()?"Physics stopped safely. Reload the world to restore the house.":failure;
+        return;
+    }
+    if(!blacksmithVisible()) {
+        if(!wall_->empty())wall_->requestClear();
+    } else if(wall_->empty()) {
+        wall_=std::make_unique<ImportedWallPhysics>();wallGeometryRevision_=0;
+        if(!wall_->initialize(*wallSource_,*blacksmithFeet_,glm::angleAxis(std::numbers::pi_v<float>,glm::vec3(0,1,0)),status_))return;
+    }
+    std::string error;
+    if(!wall_->update(*physics_,error)) {if(!error.empty())status_=error;return;}
+    if(wall_->ready()&&wall_->geometryRevision()!=wallGeometryRevision_) {
+        AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;
+        if(!prepareGeometry(state(),next,residents,village,sites,scenery,error)) {wallQueryFailure_=true;status_=error;return;}
+        // Scenery admission may refuse a complete house for capacity/clearance.
+        // Never publish that omission as if it were a successful wall update.
+        if(!std::any_of(next.solids().begin(),next.solids().end(),blacksmithSolid)) {
+            wallQueryFailure_=true;status_="Wall collision could not be installed. Rebuild the wall.";return;
+        }
+        walkQueries_=next;queries_=std::move(next);scenery_=std::move(scenery);++staticGeometryEpoch_;
+        aimRayResult_.reset();previewResult_.reset();wallGeometryRevision_=wall_->geometryRevision();wallQueryFailure_=false;
+        if(wall_->released())status_="The pieces have settled. C: leave the cannon.";
+    }
+}
+void AdventureRuntime::changeImportedWall(bool rebuild, bool removeSupport) {
+    ++interactionStatusSerial_;
+    if(!usingCannon_||!wall_||!blacksmithVisible()||!physics_)return;
+    if(physics_->tickFrontier().failed) {
+        status_="Physics stopped safely. Reload the world to restore the house.";
+        return;
+    }
+    if(!cannon_.clear(*physics_)){status_="Wait for the shot to finish.";return;}
+    if(rebuild) {
+        // Never restore source masonry through a player-built part.
+        std::vector<AdventureSpatialQueries::Solid> owned;
+        if(!compileSolids(state(),owned,status_))return;
+        for(const auto& cell:wall_->initialSolids())for(const auto& solid:owned)
+            if(intersects(solid,{{},{},cell.minimum,cell.maximum})) {status_="Move your bricks away from the wall before rebuilding it.";return;}
+        if(wall_->reset(status_)){inspectWall_=false;status_="Rebuilding the wall…";}
+    } else if(cannonPhysics_&&cannonPhysics_->ready(cannonGeometryEpoch_)) {
+        // Stable source floor plate supporting side-wall masonry. Removing a
+        // shared meshNode would hide unrelated instances of the same part.
+        constexpr uint64_t supportPart=30700057810174424ull;
+        if(wall_->release(status_,removeSupport?std::optional<uint64_t>(supportPart):std::nullopt)) {
+            glm::dvec3 localCenter{};
+            for(const auto& part:wallSource_->parts)localCenter+=part.translation;
+            localCenter/=double(wallSource_->parts.size());
+            wallInspectionPoint_=*blacksmithFeet_+glm::dvec3(-localCenter.x,localCenter.y,-localCenter.z);
+            inspectWall_=true;
+            status_=removeSupport?"Support brick removed. Wait while the pieces settle.":"Connections released. Bearing bricks may remain standing.";
+        }
+    }
+}
+void AdventureRuntime::toggleCannon() {
+    ++interactionStatusSerial_;
+    if(usingCannon_&&cannon_.liveShots()){status_="Wait for the cannonball to land.";return;}
+    if(usingCannon_&&wallLocked()){status_="Wait for the pieces to settle, or rebuild the wall.";return;}
+    if(usingCannon_){usingCannon_=false;inspectWall_=false;discontinuity_=true;status_="Left the cannon. B: build · M: ride";return;}
+    if(!freeBuild_||!cannonVisible()){status_="There is no cannon on this plot.";return;}
+    if(!physics_){status_="The cannon needs the GPU physics world.";return;}
+    if(riding_){status_="Press M to get off before using the cannon.";return;}
+    if(glm::length(player_.feet()-*cannonFeet_)>=12) {
+        // The distant HUD action is explicitly labelled Visit cannon. Free
+        // Build travel still requires a supported, unobstructed landing spot.
+        const auto heading=cannon_.heading+cannon_.yaw;
+        const glm::dvec3 back(-std::sin(heading),0,-std::cos(heading));
+        bool landed=false;
+        for(const auto offset:{back*8.,glm::dvec3(8,0,0),glm::dvec3(-8,0,0),glm::dvec3(0,0,-8)}) {
+            auto feet=*cannonFeet_+offset;
+            feet.y=queries_.supportHeight({feet.x,feet.z},AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale,cannonFeet_->y+3)+.005;
+            if(!queries_.clearCapsule(feet,AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale,1.7*AdventurePlayer::creativeScale))continue;
+            const auto before=player_.state();auto pose=before;pose.feet=feet;pose.velocity={};pose.mode=AdventurePlayer::Mode::Walking;
+            if(!player_.restore(pose))continue;
+            std::string error;
+            if(!session_->updatePlayer({feet.x,feet.y,feet.z,pose.facingYaw},state().health,error)) {
+                (void)player_.restore(before);continue;
+            }
+            landed=true;discontinuity_=true;break;
+        }
+        if(!landed){status_="There is no clear place beside the cannon. Walk closer.";return;}
+    }
+    if(player_.mode()!=AdventurePlayer::Mode::Walking){status_="Stand on the ground to use the cannon.";return;}
+    usingCannon_=true;building_=false;hasTarget_=false;player_.discardPendingInput();
+    status_="A/D: turn · W/S: elevation · Click or Space: fire · C: leave";
+}
+void AdventureRuntime::fireCannon() {
+    ++interactionStatusSerial_;
+    if(!cannonEventsReady_){status_="Impact detection is unavailable. Reload the world.";return;}
+    if(cannon_.liveShots()){status_="Wait for the cannonball to land.";return;}
+    if(wall_&&(!wall_->ready()||wallQueryFailure_)){status_="Wait for the wall to settle, or rebuild it.";return;}
+    if(!usingCannon_||!physics_||!cannonFeet_||!cannonPhysics_||!cannonPhysics_->ready(cannonGeometryEpoch_)) {
+        status_=cannonPhysicsError_.empty()?"Preparing cannon collisions…":"Cannon unavailable: "+cannonPhysicsError_;return;
+    }
+    const auto desc=cannon_.projectile(*cannonFeet_);
+    const auto center=physics::worldPositionToAbsolute({desc.sector,desc.position});
+    // Ignore only the conservative cannon guard; actual source muzzle lies
+    // outside its barrel. Everything else must leave room for the whole ball.
+    for(const auto& solid:walkQueries_.solids()) {
+        if(solid.part.counter==cannonPartId)continue;
+        const auto nearest=glm::clamp(center,solid.minimum,solid.maximum);
+        if(glm::length(center-nearest)<double(BuilderCannon::ballRadius)){status_="The muzzle is blocked.";return;}
+    }
+    if(center.y-double(BuilderCannon::ballRadius)<double(walkQueries_.terrain().heightAt(float(center.x),float(center.z)))) {
+        status_="Raise the barrel clear of the ground.";return;
+    }
+    const bool fired=cannon_.fire(*physics_,*cannonFeet_);
+    if(fired)inspectWall_=false;
+    status_=fired?"Fired."
+        :physics_->encodedTick()<cannon_.nextShotTick?"Reloading…":"Wait for a cannonball to clear.";
+}
+void AdventureRuntime::toggleMotorbike() {
+    ++interactionStatusSerial_;
+    if(!freeBuild_)return;
+    if(usingCannon_){status_="Press C to leave the cannon first.";return;}
+    if(riding_) {
+        const auto landing=motorbike_.dismount(queries_,installedWorld().waterHeight);
+        if(!landing){status_=std::abs(motorbike_.state().speed)>2?"Brake before getting off.":"Move to clear, level ground to get off.";return;}
+        auto next=player_.state();next.feet=*landing;next.velocity={};next.mode=AdventurePlayer::Mode::Walking;
+        if(!player_.restore(next)){status_="There is no safe place to get off here.";return;}
+        motorbike_.pause();riding_=false;character_.reset();
+        (void)orbit_.setUserDistance(10.5);status_="Off the motorbike. B: build · M: ride";
+    } else {
+        if(player_.mode()!=AdventurePlayer::Mode::Walking){status_="Stand on dry ground to ride.";return;}
+        auto next=motorbike_;
+        if(!next.place(queries_,player_.feet(),player_.facingYaw(),installedWorld().waterHeight)) {
+            status_="The motorbike needs clear, dry ground with room ahead and behind.";return;
+        }
+        auto proxy=player_.state();proxy.feet=next.state().feet;proxy.velocity={};proxy.mode=AdventurePlayer::Mode::Airborne;
+        if(!player_.restore(proxy)){status_="Move to clearer ground to ride.";return;}
+        motorbike_=next;riding_=true;building_=false;hasTarget_=false;
+        (void)orbit_.setUserDistance(12.);status_="W/S: accelerate / brake and reverse · A/D: steer · Space: brake · M: get off";
+    }
+    player_.discardPendingInput();discontinuity_=true;
+}
 void AdventureRuntime::recover() {
+    if(cannon_.liveShots()){status_="Wait for the cannonball to land.";return;}
+    if(wallLocked()){status_="Rebuild the wall before returning home.";return;}
+    if(usingCannon_)toggleCannon();
     if(state().health)for(const auto& enemy:encounters_.entries())if(enemy.available
         &&glm::length(glm::dvec3(enemy.pose.x,enemy.pose.y,enemy.pose.z)-player_.feet())<=encounterDefinition(enemy.id)->noticeRadius) {
         status_="Retreat from the raiders before returning home.";return;
@@ -780,11 +1418,11 @@ void AdventureRuntime::recover() {
     auto pose=player_.state();pose.feet={recovery.x,recovery.y,recovery.z};pose.facingYaw=recovery.yaw;
     pose.velocity={};pose.mode=AdventurePlayer::Mode::Walking;
     AdventurePlayer checked;
-    if(!checked.initialize(queries_,pose.feet,installedWorld().waterHeight,pose.facingYaw)) {
+    if(!checked.initialize(queries_,pose.feet,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())) {
         status_="No safe recovery point is available.";return;
     }
     if(!commit(std::move(prepared)))return;
-    (void)player_.restore(pose);combat_.reset();combatSeconds_=0;
+    (void)player_.restore(pose);swimAnimation_.reset();motorbike_.reset();riding_=false;combat_.reset();combatSeconds_=0;
     pendingAttack_=false;pendingDodge_=false;pendingJump_=false;discontinuity_=true;
     status_="Recovered safely. Your buildings and items are kept.";menu_=Menu::None;building_=false;
 }
@@ -817,7 +1455,7 @@ bool AdventureRuntime::closeCurrentMode() {
     if(menu_==Menu::Controls){menu_=Menu::Settings;menuSelection_=0;return true;}
     if(menu_==Menu::Settings){menu_=Menu::Main;menuSelection_=0;return true;}
     if(menu_!=Menu::None){menu_=Menu::None;menuSelection_=0;player_.discardPendingInput();return true;}
-    if(building_){building_=false;player_.discardPendingInput();return true;}
+    if(building_){building_=false;if(freeBuild_)status_.clear();player_.discardPendingInput();return true;}
     return false;
 }
 void AdventureRuntime::menuRow(int row) {
@@ -832,7 +1470,7 @@ void AdventureRuntime::activateMenuIntent(int intent) {
     const auto command=menuCommands_[*row];
     switch(command.operation) {
     case MenuOperation::Close:(void)closeCurrentMode();break;
-    case MenuOperation::Catalog:building_=true;menu_=Menu::Catalog;menuSelection_=0;break;
+    case MenuOperation::Catalog:if(wallLocked()){status_="Rebuild the wall before building.";break;}if(usingCannon_)toggleCannon();if(riding_){status_="Press M to get off before building.";break;}building_=true;menu_=Menu::Catalog;menuSelection_=0;break;
     case MenuOperation::Save:saveRequested_=true;saveStatus_="Saving...";break;
     case MenuOperation::Recover:recover();break;
     case MenuOperation::Settings:menu_=Menu::Settings;menuSelection_=0;break;
@@ -878,7 +1516,7 @@ void AdventureRuntime::activateMenuIntent(int intent) {
         }
         (void)applyPreferences(next);break;
     }
-    case MenuOperation::Starter:selectBlueprint(BlueprintKind::StarterRoom);break;
+    case MenuOperation::Starter:if(wallLocked()){status_="Rebuild the wall before building.";break;}if(usingCannon_)toggleCannon();selectBlueprint(BlueprintKind::StarterRoom);break;
     case MenuOperation::BuildRecipe:selectBlueprint(static_cast<BlueprintKind>(command.argument));break;
     case MenuOperation::Journal:openJournal();break;
     case MenuOperation::Bag:menu_=Menu::Bag;menuSelection_=0;break;
@@ -925,6 +1563,16 @@ void AdventureRuntime::activateMenuIntent(int intent) {
 }
 void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_t width,uint32_t height,glm::dvec2 logicalPointerExtent) {
     using A=expedition::CoveAction;using C=expedition::CoveInputContext;
+    // Stream before movement. Draws/colliders change together, using the next
+    // accepted geometry revision; cached picks/preview keys therefore expire.
+    // Accepted buildings need no repeated terrain/support graph validation.
+    if(freeBuild_&&scenery_.needsRefresh({state().player.x,state().player.z})) {
+        AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;std::string error;
+        if(prepareGeometry(state(),next,residents,village,sites,scenery,error,true,false)) {
+            scenery_=std::move(scenery);++staticGeometryEpoch_;walkQueries_=next;queries_=std::move(next);
+            aimRayResult_.reset();previewResult_.reset();structureJson_.reset();
+        } else status_=error;
+    }
     menuIntents_.beginFrame();
     const double residentSeconds=std::isfinite(seconds)?std::clamp(seconds,0.,.25):0.;
     framePointer_=adventurePointer(glm::dvec2(input.mousePosition()),logicalPointerExtent,{width,height});
@@ -953,7 +1601,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     ++observationSerial_;
     (void)input.setGamepadDeadzones(static_cast<float>(preferences_.moveDeadzone),static_cast<float>(preferences_.lookDeadzone));
     const auto sample=expedition::sampleCoveInput(input);
-    inputRouter_.tick(adventureMovementSample(sample,building_),menu_==Menu::None&&!uiInputOwned_?C::World:C::Menu,routingPreferences_);
+    inputRouter_.tick(adventureMovementSample(sample,building_,freeBuild_),menu_==Menu::None&&!uiInputOwned_?C::World:C::Menu,routingPreferences_);
     buildRouter_.tick(sample,menu_==Menu::None&&building_&&!uiInputOwned_?C::Workshop:C::Menu,routingPreferences_);
     const auto& pad=input.gamepad();
     auto pressed=[&](Key k){return input.wasKeyPressed(k);};
@@ -965,17 +1613,34 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     }
     if(pressed(Key::Escape)||pressed(static_cast<Key>(291))||pad.pressed(PadButton::Menu)) {
         const bool wasInMenu=menu_!=Menu::None;
-        if(freeBuild_&&menu_==Menu::None)menu_=Menu::Main;
+        if(usingCannon_&&menu_==Menu::None){toggleCannon();dismissedMenu=true;}
+        else if(freeBuild_&&menu_==Menu::None)menu_=Menu::Main;
         else if(!closeCurrentMode())menu_=Menu::Main;
-        dismissedMenu=wasInMenu&&menu_==Menu::None;
+        dismissedMenu=dismissedMenu||(wasInMenu&&menu_==Menu::None);
         menuSelection_=0;input.releaseMouse();player_.discardPendingInput();
-    } else if(inputRouter_.pressed(A::Workshop)) {building_=!building_;heightSteps_=0;input.releaseMouse();}
+    } else if(inputRouter_.pressed(A::Workshop)) {
+        if(usingCannon_)status_="Press C to leave the cannon first.";
+        else if(riding_)status_="Press M to get off before building.";
+        else {building_=!building_;if(freeBuild_&&!building_)status_.clear();heightSteps_=0;input.releaseMouse();}
+    }
+    if(freeBuild_&&pressed(Key::M)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleMotorbike();
+    if(freeBuild_&&pressed(Key::C)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleCannon();
+    updateImportedWall();
+    updateCannonPhysics();
+    if(physics_)brickThrower_.retire(*physics_);
+    if(!usingCannon_&&menu_==Menu::None&&input.focused())cannon_.aim(0,0,seconds);
     if(inputRouter_.pressed(A::Save)||pressed(static_cast<Key>(294))) {saveRequested_=true;saveStatus_="Saving...";}
-    combatInput_.tick(sample,menu_==Menu::None&&!building_&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked,preferences_,
+    combatInput_.tick(sample,!freeBuild_&&menu_==Menu::None&&!building_&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked,preferences_,
         {input.wasMouseButtonPressed(MouseButton::Left),input.wasMouseButtonPressed(MouseButton::Right),input.wasMouseButtonPressed(MouseButton::Middle)});
+    const auto throwCount=brickThrower_.input(freeBuild_&&!building_&&!usingCannon_&&!wallLocked()
+        &&menu_==Menu::None&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked&&!dismissedMenu
+        &&input.focused()&&inputRouter_.mouseGesturesAllowed()&&!inputRouter_.pressed(A::Workshop),
+        input.wasMouseButtonPressed(MouseButton::Left),input.wasMouseButtonPressed(MouseButton::Right),
+        input.wasMouseButtonReleased(MouseButton::Right),input.mouseDragDelta(MouseButton::Right));
     // Closing a modal must not also consume raw placement, shoulder or height
     // edges from that frame. Routed actions already require release to rearm.
-    if(menu_!=Menu::None||uiInputOwned_||dismissedMenu) {
+    if(menu_!=Menu::None||uiInputOwned_||dismissedMenu||!input.focused()) {
+        if(riding_)motorbike_.pause();
         player_.discardPendingInput();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
         if((nativeHudVisible&&pressed(Key::Up))||pad.navigation(0))menuSelection_=std::max(0,menuSelection_-1);
         if((nativeHudVisible&&pressed(Key::Down))||pad.navigation(1))++menuSelection_;
@@ -984,11 +1649,64 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         }
         if((nativeHudVisible&&pressed(Key::Enter))||pad.pressed(PadButton::Confirm))menuRow(menuSelection_);
         if(pad.pressed(PadButton::Back)){(void)closeCurrentMode();input.resetState();}
+    } else if(usingCannon_&&cannonFeet_) {
+        player_.discardPendingInput();
+        const double turn=double(input.isKeyDown(Key::A))-double(input.isKeyDown(Key::D));
+        const double elevate=double(input.isKeyDown(Key::W))-double(input.isKeyDown(Key::S));
+        if(turn!=0||elevate!=0)inspectWall_=false;
+        cannon_.aim(turn,elevate,seconds);
+        if(!hudClicked&&!hudPointerOwned_&&(input.wasMouseButtonPressed(MouseButton::Left)||pressed(Key::Space)))fireCannon();
+        camera.setAspectRatio(width,height);
+        const auto direction=cannon_.direction(),muzzle=cannon_.muzzle(*cannonFeet_);
+        const auto cameraAnchor=*cannonFeet_+glm::dvec3(0,6,0);
+        const auto horizontal=glm::dvec3(std::sin(cannon_.heading+cannon_.yaw),0,std::cos(cannon_.heading+cannon_.yaw));
+        auto desiredEye=*cannonFeet_-horizontal*6.+glm::dvec3(0,4.3,0);
+        auto viewTarget=muzzle+direction*40.;
+        if(inspectWall_&&blacksmithFeet_) {
+            // Frame the actual hit or selected section, not a hardcoded point
+            // elsewhere on the house. The camera still respects intact scenery.
+            viewTarget=wallInspectionPoint_;
+            desiredEye=viewTarget-horizontal*16.+glm::dvec3(0,3,0);
+        }
+        const auto sweep=queries_.sweepSphere(cameraAnchor,desiredEye,.25);
+        if(!sweep.complete||sweep.startOverlapped)desiredEye=cameraAnchor;
+        else if(sweep.hit)desiredEye=cameraAnchor+glm::normalize(desiredEye-cameraAnchor)*std::max(0.,sweep.distance-.05);
+        const auto eye=physics::worldPositionFromAbsolute(desiredEye);
+        camera.setWorldPosition(eye.sector,eye.local);
+        camera.lookAt(glm::vec3(viewTarget-glm::dvec3(eye.sector)*double(physics::kWorldSectorSize)));
+        character_.update(seconds,player_.mode(),0,0,false);
+    } else if(wallLocked()) {
+        // A shot can land after C has left the cannon. Do not let either actor
+        // traverse stale static cells while the accepted debris is moving.
+        player_.discardPendingInput();motorbike_.pause();
+        character_.update(seconds,player_.mode(),0,0,false);
     } else {
         const auto movement=inputRouter_.movement();const double yaw=orbit_.pose().valid?orbit_.pose().yaw:player_.facingYaw();
         const bool attack=combatInput_.pressed(CombatAction::Attack);
         const bool dodge=combatInput_.pressed(CombatAction::Dodge);
-        advanceCombat(seconds,{{adventureCameraRelativeMovement(movement,yaw),inputRouter_.pressed(A::Jump)},attack,dodge});
+        if(riding_) {
+            const auto before=motorbike_;
+            motorbike_.advance(queries_,seconds,{movement[1],movement[0],input.isKeyDown(Key::Space)||pad.down(PadButton::Confirm)},installedWorld().waterHeight);
+            const auto& bike=motorbike_.state();auto proxy=player_.state();
+            proxy.feet=bike.feet;proxy.facingYaw=bike.yaw;
+            proxy.velocity={-std::sin(bike.yaw)*bike.speed,bike.verticalSpeed,-std::cos(bike.yaw)*bike.speed};
+            proxy.tick=bike.tick;proxy.mode=AdventurePlayer::Mode::Airborne;
+            if(!player_.restore(proxy)){motorbike_=before;motorbike_.pause();}
+            const auto p=player_.feet();std::string error;
+            if(!session_->updatePlayer({p.x,p.y,p.z,player_.facingYaw()},100,error))status_=error;
+        } else {
+            // Hold either Shift to run on foot. Fine-placement still reads
+            // Shift independently; the bike keeps its own throttle controls.
+            const double pace=freeBuild_&&(input.isKeyDown(Key::LeftShift)||input.isKeyDown(Key::RightShift))?1.75:1.;
+            AdventurePlayer::Input motion{adventureCameraRelativeMovement(movement,yaw),inputRouter_.pressed(A::Jump),pace};
+            if(player_.mode()==AdventurePlayer::Mode::Swimming||player_.feet().y<=player_.swimSurfaceHeight()) {
+                const bool steer=inputRouter_.orbitDrag()||(padAim_&&sample.axes[1]!=0);
+                const auto swim=adventureSwimmingMovement(movement,yaw,orbit_.pose().elevation,steer,
+                    inputRouter_.down(A::Jump)||inputRouter_.down(A::ReelIn),inputRouter_.down(A::PayOut));
+                motion.movement={swim.x,swim.z};motion.swimVertical=swim.y;
+            }
+            advanceCombat(seconds,{motion,attack,dodge});
+        }
         const auto p=player_.feet();
         expedition::CoveCamera::Input orbitInput;
         const auto look=inputRouter_.look();
@@ -1013,15 +1731,18 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         orbitInput.zoomSteps=brickWheel?0:input.scrollDelta();orbitInput.active=input.focused();
         orbitInput.recenter=inputRouter_.pressed(A::Recenter);
         camera.setAspectRatio(width,height);
-        const expedition::CoveCamera::Target target{p+glm::dvec3(0,1.2,0),player_.facingYaw(),queries_.revision(),{},discontinuity_,glm::length(player_.worldVelocity())>.1};
+        const expedition::CoveCamera::Target target{p+glm::dvec3(0,1.2*player_.bodyScale()+(riding_?motorbike_.state().groundOffset:0.),0),player_.facingYaw(),queries_.revision(),{},discontinuity_,glm::length(player_.worldVelocity())>.1};
         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
         if(orbit_.pose().valid) {
             const auto pose=orbit_.pose();const auto cameraPosition=physics::worldPositionFromAbsolute(pose.eye);
             const auto origin=glm::dvec3(cameraPosition.sector)*double(physics::kWorldSectorSize);
             camera.setWorldPosition(cameraPosition.sector,cameraPosition.local);camera.lookAt(glm::vec3(pose.viewTarget-origin));discontinuity_=false;
         }
-        character_.update(seconds,player_.mode(),glm::length(glm::dvec2(player_.worldVelocity().x,player_.worldVelocity().z)),player_.worldVelocity().y,state().combat.player.attackImpactTick!=0);
+        character_.update(seconds,player_.mode(),glm::length(glm::dvec2(player_.worldVelocity().x,player_.worldVelocity().z))/player_.bodyScale(),player_.worldVelocity().y,state().combat.player.attackImpactTick!=0);
+        swimAnimation_.update(seconds,player_.mode()==AdventurePlayer::Mode::Swimming,
+            player_.worldVelocity(),player_.bodyScale(),preferences_.reducedMotion);
         updateTarget(camera,input,width,height);
+        if(throwCount)throwBricks(throwCount);
         if(building_) {
             if(pressed(Key::Tab)){menu_=Menu::Catalog;menuSelection_=int(selected_)-1;}
             if(buildRouter_.pressed(A::RotateY))yaw_=uint8_t((yaw_+1)%4);
@@ -1036,7 +1757,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             if(buildRouter_.pressed(A::Keep)||(input.wasMouseButtonPressed(MouseButton::Left)&&!hudClicked&&!hudPointerOwned_))action(4);
             if(buildRouter_.pressed(A::Remove)||pad.pressed(PadButton::Back))action(5);
             if(buildRouter_.pressed(A::Undo))action(6);
-        } else if(inputRouter_.pressed(A::Interact))use();
+        } else if(!riding_&&inputRouter_.pressed(A::Interact))use();
     }
     const auto commands=std::exchange(pendingActions_,{});
     if(!commands.empty())refreshHud();
@@ -1045,8 +1766,18 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         // A queued control belongs to the menu/mode that displayed it. Save is
         // global; every other control must still have that published context.
         if(command!=8&&pending.menuToken!=menuIntents_.token())continue;
+        if(usingCannon_&&command!=33&&command!=34&&command!=35&&command!=36&&command!=37&&command!=8&&command!=9&&command!=10&&command!=20&&command!=25&&command!=31) {status_="Press C to leave the cannon first.";continue;}
+        if(riding_&&(command==1||command==2||command==4||command==5||command==6||command==7||command==13||command==21||command==23)) {
+            status_="Press M to get off before building.";continue;
+        }
         switch(command) {
-        case 1:building_=!building_;menu_=Menu::None;break;
+        case 32:if(freeBuild_&&menu_==Menu::None)toggleMotorbike();break;
+        case 33:if(freeBuild_&&menu_==Menu::None)toggleCannon();break;
+        case 34:if(usingCannon_&&menu_==Menu::None)fireCannon();break;
+        case 35:if(usingCannon_&&menu_==Menu::None)changeImportedWall(false);break;
+        case 36:if(usingCannon_&&menu_==Menu::None)changeImportedWall(true);break;
+        case 37:if(usingCannon_&&menu_==Menu::None)changeImportedWall(false,true);break;
+        case 1:building_=!building_;if(freeBuild_&&!building_)status_.clear();menu_=Menu::None;break;
         case 2:if(value>0&&pieceKindValid(uint32_t(value))){blueprint_=BlueprintKind::None;selected_=PieceKind(value);building_=true;menu_=Menu::None;heightSteps_=0;}break;
         case 3:yaw_=uint8_t((yaw_+1)%4);break;
         case 4:if(building_&&menu_==Menu::None) {
@@ -1062,7 +1793,8 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             } else if(!previewValid_)status_=previewReason_;
         }break;
         case 5:
-            if(isVillagePartId(targetPart_))status_="Village scenery belongs to the town. Build beside it.";
+            if(freeBuild_&&isCreativeScenerySolid({observedRayHit_.structure,observedRayHit_.part,{},{}}))status_="Place a brick here to make room for your build.";
+            else if(isVillagePartId(targetPart_))status_="Village scenery belongs to the town. Build beside it.";
             else if(isTrailPartId(targetPart_))status_="This landmark belongs to the trail. Build beside it.";
             else if(targetPart_&&commit(session_->prepareRemove(stamp(),targetPart_,validator(),status_)))status_=freeBuild_?"Removed.":"Removed. Materials returned.";
             break;
@@ -1086,7 +1818,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         case 18:cycleCompass();break;
         case 20:(void)closeCurrentMode();break;
         case 21:building_=true;menu_=Menu::None;player_.discardPendingInput();break;
-        case 22:building_=false;menu_=Menu::None;player_.discardPendingInput();break;
+        case 22:building_=false;if(freeBuild_)status_.clear();menu_=Menu::None;player_.discardPendingInput();break;
         case 23:building_=true;menu_=menu_==Menu::Catalog?Menu::None:Menu::Catalog;menuSelection_=0;player_.discardPendingInput();break;
         case 24:menu_=Menu::Bag;menuSelection_=0;player_.discardPendingInput();break;
         case 25:menuSelection_=std::clamp(menuSelection_+std::clamp(value,-1,1),0,std::max(0,int(menuCommands_.size())-1));break;
@@ -1121,12 +1853,12 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     if(!freeBuild_&&menu_==Menu::None&&residentRetrySeconds_>=.25&&glm::length(player_.feet()-residentRetryPlayer_)>.25
         &&std::any_of(town_.entries().begin(),town_.entries().end(),[](const auto& resident){return !resident.available;})) {
         residentRetrySeconds_=0;residentRetryPlayer_=player_.feet();
-        AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;std::string error;
-        if(prepareGeometry(state(),next,residents,village,sites,error)) {
+        AdventureSpatialQueries next;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;std::string error;
+        if(prepareGeometry(state(),next,residents,village,sites,scenery,error)) {
             AdventureSpatialQueries actors;AdventureEncounters encounters;
             if(prepareActors(state(),next,actors,encounters,error)) {
-                walkQueries_=std::move(next);queries_=std::move(actors);encounters_=std::move(encounters);
-                town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
+                ++staticGeometryEpoch_;walkQueries_=std::move(next);queries_=std::move(actors);encounters_=std::move(encounters);
+                town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
             }
         }
     }
@@ -1144,8 +1876,13 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     // property name instead of allowing the optimized bundle to rename it.
     if(consumeSaveRequest())EM_ASM({if(typeof window['voxyAdventureSaveRequested']==='function')window['voxyAdventureSaveRequested']();});
 #endif
-    observedEye_=orbit_.pose().eye;observedTarget_=orbit_.pose().viewTarget;
+    if(physics_)playerPhysics_.sync(*physics_,player_.feet(),player_.bodyRadius(),player_.bodyHeight(),!riding_);
     observedOrigin_=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize);
+    observedEye_=observedOrigin_+glm::dvec3(camera.position());
+    observedTarget_=orbit_.pose().viewTarget;
+    if(usingCannon_&&cannonFeet_)observedTarget_=inspectWall_&&blacksmithFeet_
+        ?wallInspectionPoint_
+        :cannon_.muzzle(*cannonFeet_)+cannon_.direction()*40.;
     observedViewProjection_=glm::dmat4(camera.projectionMatrix()*camera.viewMatrix());observedWidth_=width;observedHeight_=height;
     refreshHud();
 #if defined(VOXY_NATIVE)
@@ -1184,7 +1921,11 @@ void AdventureRuntime::refreshHud() {
     const auto compass=trailCompassReadout(state(),queries_,trailSites_,compassTarget_);
     const auto fieldHome=fieldHome_;
     hud.objective=freeBuild_?"":trailObjective(state(),readiness,fieldHome);
-    if(freeBuild_){hud.title="Free build";hud.context=saveFailure_.empty()?"B: Build / walk":saveFailure_;}
+    if(freeBuild_) {
+        hud.title="Free build";
+        hud.context=saveFailure_.empty()?(player_.mode()==AdventurePlayer::Mode::Swimming
+            ?"Space: Rise   X: Dive   Right-drag: Steer":"B: Build / walk"):saveFailure_;
+    }
     if(!freeBuild_&&compass.available)hud.compass=compass.label+"  "+compass.direction+"  "+std::to_string(int(std::round(compass.distance)))+" m";
     hud.tone=building_&&!previewValid_?render::CoveHudTone::Blocked:render::CoveHudTone::Ready;
     hud.textScale=float(preferences_.textScale);hud.highContrast=preferences_.highContrast;
@@ -1216,7 +1957,9 @@ void AdventureRuntime::refreshHud() {
         menuTitle_="Build at your own pace";
         menuText_="Choose a piece, aim and place. R rotates; Ctrl+Z undoes the last placement. ";
         menuText_+=preferences_.orbitToggle?"Right-click to start or stop looking. ":"Right-drag to look. ";
-        menuText_+="Scroll chooses a piece; Ctrl+scroll zooms while building. B switches between building and walking. Save from Menu.";
+        menuText_+="Scroll chooses a piece; Ctrl+scroll zooms while building. B switches between building and walking. Hold Shift while moving to run. ";
+        menuText_+="While walking, scroll to zoom. Left-click throws one 2×1 brick; right-click throws 100. Right-drag still looks around. ";
+        menuText_+="In water, hold Space to rise or X to dive. Right-drag while moving to steer underwater. Controller triggers rise and dive. Save from Menu.";
         add(guideReturnMenu_==Menu::Main?"Back to menu":"Return to building",true,{O::GuideExit});
     } else if(menu_==Menu::GuideTopics||menu_==Menu::Guide) {
         const auto exitLabel=guideReturnMenu_==Menu::Main?"Back to menu":building_?"Return to building":"Return to adventure";
@@ -1313,7 +2056,7 @@ void AdventureRuntime::refreshHud() {
         if(!reachable)menuStatus_=reason;
     } else if(menu_==Menu::Workbench) {
         menuTitle_="Workbench";menuText_="Choose what to craft from your supplies.";menuStatus_=status_;
-        std::string reason;const bool reachable=reachableComponent(state(),bench_,queries_,reason);
+        std::string reason;const bool reachable=reachableComponent(state(),bench_,queries_,reason,freeBuild_);
         const auto canCraft=[&](MaterialCost ingredients,ItemKind output) {
             auto backpack=state().backpack;return reachable&&consumeMaterials(backpack,ingredients)&&addItems(backpack,{output,1});
         };
@@ -1351,7 +2094,7 @@ void AdventureRuntime::refreshHud() {
     } else if(menu_==Menu::Chest) {
         menuTitle_="Chest";menuText_="Move up to 10 items at a time.";menuStatus_=status_;
         if(const auto* chest=AdventureSession::findComponent(state(),chest_)) {
-            std::string reason;const bool reachable=reachableComponent(state(),chest_,queries_,reason);
+            std::string reason;const bool reachable=reachableComponent(state(),chest_,queries_,reason,freeBuild_);
             for(uint8_t i=0;i<state().backpack.size();++i)if(const auto stack=state().backpack[i];stack.quantity) {
                 const auto quantity=static_cast<uint16_t>(std::min<int>(10,stack.quantity));auto destination=chest->slots;
                 add("Store "+std::string(itemDefinition(stack.kind)->name)+" ("+std::to_string(stack.quantity)+")",
@@ -1382,7 +2125,7 @@ void AdventureRuntime::refreshHud() {
         }
         add("Close bag",true,{O::Close});
     }
-    const auto context=std::string(mode())+":"+std::to_string(dialogueNpc_)+":"+std::to_string(bench_)+":"+std::to_string(chest_)+":"+std::to_string(catalogCategory_)+":"+std::to_string(journalQuest_)
+    const auto context=std::string(mode())+":"+std::to_string(usingCannon_)+":"+std::to_string(dialogueNpc_)+":"+std::to_string(bench_)+":"+std::to_string(chest_)+":"+std::to_string(catalogCategory_)+":"+std::to_string(journalQuest_)
         +":"+std::to_string(static_cast<int>(bindingAction_))+":"+std::to_string(bindingDevice_)+":"+std::to_string(preferencesRevision_)
         +":"+std::to_string(static_cast<int>(menu_))+":"+std::to_string(static_cast<int>(guideTopic_))+":"+std::to_string(static_cast<int>(guideReturnMenu_));
     if(!menuIntents_.publish(context,std::move(identities)))menuStatus_="Menu unavailable. Save and reopen the adventure.";
@@ -1399,6 +2142,17 @@ void AdventureRuntime::refreshHud() {
         if(row.action==27)row.enabled=state().equippedTool.kind==ItemKind::TrailStaff&&state().combat.tick>=state().combat.player.attackReadyTick;
         if(row.action==28)row.enabled=state().combat.tick>=state().combat.player.dodgeReadyTick;
     }
+    if(usingCannon_) {
+        hud.context="A/D: turn · W/S: elevation · Click/Space: fire · C: leave";
+        auto fire=button("Fire",34);
+        fire.enabled=cannonPhysics_&&cannonPhysics_->ready(cannonGeometryEpoch_)
+            &&(!wall_||wall_->ready())&&!wallQueryFailure_&&cannonEventsReady_&&!cannon_.liveShots();
+        hud.quickActions={std::move(fire)};
+        if(wall_&&(wall_->released()||wall_->phase()==ImportedWallPhysics::Phase::Failed))
+            hud.quickActions.push_back(button("Rebuild wall",36));
+        auto leave=button("Leave cannon",33);leave.enabled=!wallLocked()&&!cannon_.liveShots();
+        hud.quickActions.push_back(std::move(leave));hud.quickActions.push_back(button("Pause",9));
+    }
     hud.buildControls={button("Pieces",23),button("Rotate",3),button("Raise",12,1),button("Lower",12,-1),button("Remove",5),button("Undo",6),button("Help",29,1),button("Done",22)};
     if(menu_!=Menu::None)hud.buildControls={button("Previous",25,-1),button("Next",25,1),button("Close",20)};
     if(menu_==Menu::Guide||menu_==Menu::GuideTopics)hud.buildControls.clear();
@@ -1410,6 +2164,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
     const Camera& camera,const render::PrimitiveLighting& lighting,uint32_t width,uint32_t height,render::SceneShadowConsumer background) {
     if(!meshes_.setSceneTextures(environment,rayDepth))return false;
     meshes_.clearInstances();const auto origin=glm::dvec3(camera.worldSector())*double(physics::kWorldSectorSize);
+    render::FootContacts footContacts{};
     const auto drawBuilding=[&](const WorldPart& part,bool doorOpen,glm::vec4 tint=glm::vec4(1),bool preview=false) {
         const bool door=part.kind==PieceKind::HingedDoor;
         glm::vec4 paint(0);
@@ -1435,6 +2190,139 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
         if(part.kind==PieceKind::HingedDoor)for(const auto& c:state().components)
             if(c.part==part.id&&c.kind==FurnitureKind::Door){open=c.doorOpen;break;}
         drawBuilding(part,open);
+    }
+    if(freeBuild_)for(const auto& group:scenery_.village().groups())for(const auto& piece:group.pieces) {
+        const double distance=glm::length(glm::dvec2(piece.feet.x-state().player.x,piece.feet.z-state().player.z));
+        if(distance>420)continue;
+        const auto transform=glm::translate(glm::dmat4(1),piece.feet-origin)
+            *glm::rotate(glm::dmat4(1),double(piece.yaw)*std::numbers::pi/2,glm::dvec3(0,1,0))
+            *glm::scale(glm::dmat4(1),piece.scale);
+        meshes_.addInstance({.assetIndex=11,.meshIndex=piece.mesh,.modelMatrix=glm::mat4(transform),.surface={0,0,1,0}});
+    }
+    if(freeBuild_&&blacksmithVisible()
+        &&glm::length(glm::dvec2(blacksmithFeet_->x-state().player.x,blacksmithFeet_->z-state().player.z))<220) {
+        const auto transform=glm::translate(glm::dmat4(1),*blacksmithFeet_-origin)
+            *glm::rotate(glm::dmat4(1),std::numbers::pi,glm::dvec3(0,1,0));
+        meshes_.addInstance({.assetIndex=12,.meshIndex=0,.modelMatrix=glm::mat4(transform),.surface={0,0,1,0}});
+        if(wall_&&!wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0).empty()) {
+            for(const auto& binding:wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0))meshes_.addInstance({.assetIndex=12,.meshIndex=binding.meshNode,
+                .modelMatrix=glm::mat4(binding.localMatrix),.physicsBody=binding.body,.surface={0,0,1,0}});
+        } else if(wallSource_)for(const auto& part:wallSource_->parts) {
+            const auto model=transform*glm::translate(glm::dmat4(1),part.translation)*glm::mat4_cast(part.rotation);
+            meshes_.addInstance({.assetIndex=12,.meshIndex=part.meshNode,.modelMatrix=glm::mat4(model),.surface={0,0,1,0}});
+        }
+    }
+    if(freeBuild_&&cannonVisible()) {
+        meshes_.addInstance({.assetIndex=13,.meshIndex=0,.modelMatrix=glm::mat4(cannon_.baseMatrix(*cannonFeet_-origin)),.surface={0,0,1,0}});
+        meshes_.addInstance({.assetIndex=13,.meshIndex=1,.modelMatrix=glm::mat4(cannon_.barrelMatrix(*cannonFeet_-origin)),.surface={0,0,1,0}});
+    }
+    if(freeBuild_) {
+        const auto forestBegin=std::chrono::steady_clock::now();
+        forestVisited_=forestVisible_=0;
+        const auto eye=origin+glm::dvec3(camera.position());
+        const auto rows=glm::transpose(camera.projectionMatrix()*camera.viewMatrix());
+        const std::array planes{rows[3]+rows[0],rows[3]-rows[0],rows[3]+rows[1],rows[3]-rows[1],rows[2],rows[3]-rows[2]};
+        const auto visible=[&](glm::dvec3 minimum,glm::dvec3 maximum) {
+            const auto lo=glm::vec3(minimum-origin),hi=glm::vec3(maximum-origin);
+            for(const auto& plane:planes) {
+                const glm::vec3 corner(plane.x>=0?hi.x:lo.x,plane.y>=0?hi.y:lo.y,plane.z>=0?hi.z:lo.z);
+                if(glm::dot(glm::vec3(plane),corner)+plane.w<0)return false;
+            }
+            return true;
+        };
+        if(forestDrawEpoch_!=staticGeometryEpoch_ || forestDrawOrigin_!=origin) {
+            // Compare exact membership, not a probabilistic hash. Near/far
+            // collision reclassification need not rebuild immutable tree data.
+            constexpr size_t identityWords=(1024u*1024u+1024u+63u)/64u;
+            std::vector<uint64_t> admitted(identityWords,0);
+            const auto mark=[&](const CreativeProp& p){if(p.forestVariant<6 && p.id/64<admitted.size())admitted[p.id/64]|=uint64_t(1)<<(p.id%64);};
+            for(const auto& prop:scenery_.props())mark(prop);
+            for(const auto& prop:scenery_.distantTrees())mark(prop);
+            if(forestDrawOrigin_==origin && forestDrawSource_==scenery_.forestSource() && admitted==forestAdmissionMask_)forestDrawEpoch_=staticGeometryEpoch_;
+            else forestAdmissionMask_=std::move(admitted);
+        }
+        if(forestDrawEpoch_!=staticGeometryEpoch_ || forestDrawOrigin_!=origin) {
+            forestDraws_.clear();forestTiles_.clear();
+            const auto cache=[&](const CreativeProp& prop) {
+                if(prop.forestVariant>=6)return;
+                auto transform=glm::translate(glm::dmat4(1),prop.feet-origin)
+                    *glm::rotate(glm::dmat4(1),double(prop.yawQuarterTurns)*std::numbers::pi/2,glm::dvec3(0,1,0));
+                const float tone=.94f+.01f*float((prop.id*2654435761u>>24)%13u);
+                forestDraws_.push_back({prop,{.assetIndex=17,.meshIndex=prop.forestVariant,
+                    .modelMatrix=glm::mat4(transform),.tintColor={tone,tone,tone,1},.castsSunShadow=false,.surface={0,0,1,0}}});
+            };
+            for(const auto& prop:scenery_.props())cache(prop);
+            for(const auto& prop:scenery_.distantTrees())cache(prop);
+            const auto tileKey=[](const ForestDraw& tree){return std::pair(int(std::floor(tree.prop.feet.z/64)),int(std::floor(tree.prop.feet.x/64)));};
+            std::sort(forestDraws_.begin(),forestDraws_.end(),[&](const auto& a,const auto& b){
+                const auto ka=tileKey(a),kb=tileKey(b);return ka!=kb ? ka<kb : a.prop.id<b.prop.id;
+            });
+            std::vector<render::MeshDrawInstance> retained;retained.reserve(forestDraws_.size());
+            for(uint32_t i=0;i<forestDraws_.size();++i) {
+                const auto& tree=forestDraws_[i];retained.push_back(tree.instance);
+                if(i==0 || tileKey(tree)!=tileKey(forestDraws_[i-1]))forestTiles_.push_back({tree.prop.minimum,tree.prop.maximum,i,0});
+                auto& tile=forestTiles_.back();++tile.count;
+                tile.minimum=glm::min(tile.minimum,tree.prop.minimum);tile.maximum=glm::max(tile.maximum,tree.prop.maximum);
+            }
+            if(!meshes_.setStaticInstances(retained))return false;
+            forestDrawEpoch_=staticGeometryEpoch_;forestDrawOrigin_=origin;forestDrawSource_=scenery_.forestSource();
+        }
+        forestSelection_.clear();
+        for(const auto& tile:forestTiles_) {
+            const auto nearest=glm::clamp(eye,tile.minimum,tile.maximum)-eye;
+            const double nearestSquared=nearest.x*nearest.x+nearest.z*nearest.z;
+            if(nearestSquared>CreativeScenery::forestDrawDistance*CreativeScenery::forestDrawDistance)continue;
+            if(nearestSquared>280.*280. && !visible(tile.minimum,tile.maximum))continue;
+            for(uint32_t i=tile.first;i<tile.first+tile.count;++i) {
+                ++forestVisited_;const auto& tree=forestDraws_[i];const auto& prop=tree.prop;
+                const auto delta=prop.feet-eye;const double squared=delta.x*delta.x+delta.z*delta.z;
+                if(squared>CreativeScenery::forestDrawDistance*CreativeScenery::forestDrawDistance)continue;
+                const bool shadow=squared<280.*280.;
+                if(!shadow && !visible(prop.minimum,prop.maximum))continue;
+                ++forestVisible_;
+                const double nearLimit=48.+double(prop.id%21u),horizonLimit=260.+double(prop.id%81u);
+                if(!shadow && squared>horizonLimit*horizonLimit)forestSelection_.push_back(i);
+                else {
+                    auto instance=tree.instance;
+                    instance.assetIndex=squared>horizonLimit*horizonLimit?17u:squared>nearLimit*nearLimit?16u:15u;
+                    instance.castsSunShadow=shadow;meshes_.addInstance(instance);
+                }
+            }
+        }
+        if(!meshes_.selectStaticInstances(forestSelection_))return false;
+        forestSelectionMs_=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-forestBegin).count();
+        const auto drawProp=[&](const CreativeProp& prop) {
+            if(prop.forestVariant<6)return;
+            const bool tree=prop.kind==CreativePropKind::Broadleaf||prop.kind==CreativePropKind::Pine;
+            const double range=tree?CreativeScenery::forestDrawDistance:prop.kind==CreativePropKind::Flowers?80:prop.kind==CreativePropKind::Rocks?140:280;
+            const glm::dvec2 delta(prop.feet.x-eye.x,prop.feet.z-eye.z);
+            const double squared=glm::dot(delta,delta);
+            if(squared>range*range)return;
+            const bool shadow=squared<280.*280.;
+            if(!shadow) {
+                // Cull distant instances before constructing matrices or
+                // expanding material records. Near offscreen casters stay.
+                const auto lo=glm::vec3(prop.minimum-origin),hi=glm::vec3(prop.maximum-origin);
+                for(const auto& plane:planes) {
+                    const glm::vec3 corner(plane.x>=0?hi.x:lo.x,plane.y>=0?hi.y:lo.y,plane.z>=0?hi.z:lo.z);
+                    if(glm::dot(glm::vec3(plane),corner)+plane.w<0)return;
+                }
+            }
+            const double distance=std::sqrt(squared);
+            // Distribute switches over a short band so a grove never changes
+            // its entire silhouette in one frame. IDs make the bands stable.
+            const bool forest=prop.forestVariant<6;
+            const double nearLimit=(forest?48.:70.)+double(prop.id%21u);
+            const double horizonLimit=260.+double(prop.id%81u);
+            const uint32_t asset=forest?(distance>horizonLimit?17u:distance>nearLimit?16u:15u):
+                tree&&distance>horizonLimit?14u:distance>nearLimit?10u:9u;
+            const auto transform=glm::translate(glm::dmat4(1),prop.feet-origin)
+                *glm::rotate(glm::dmat4(1),double(prop.yawQuarterTurns)*std::numbers::pi/2,glm::dvec3(0,1,0));
+            const float tone=tree?.94f+.01f*float((prop.id*2654435761u>>24)%13u):1.f;
+            meshes_.addInstance({.assetIndex=asset,.meshIndex=forest?uint32_t(prop.forestVariant):uint32_t(prop.kind),
+                .modelMatrix=glm::mat4(transform),.tintColor={tone,tone, tone,1},.castsSunShadow=shadow,.surface={0,0,1,0}});
+        };
+        for(const auto& prop:scenery_.props())drawProp(prop);
     }
     if(!freeBuild_) {
     for(const auto& group:village_.groups())if(group.available) {
@@ -1525,10 +2413,134 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
             drawBuilding(ghost,false,previewValid_?(freeBuild_?glm::vec4(1,1,1,.45):glm::vec4(.3,1,.55,.45)):glm::vec4(1,.24,.15,.45),true);
         }
     }
+    glm::dmat4 bikeRoot(1);
+    if(freeBuild_&&motorbike_.available()) {
+        const auto& bike=motorbike_.state();
+        bikeRoot=glm::translate(glm::dmat4(1),bike.feet-origin+glm::dvec3(0,bike.groundOffset,0))
+            *glm::rotate(glm::dmat4(1),bike.yaw,glm::dvec3(0,1,0))
+            *glm::translate(glm::dmat4(1),glm::dvec3(0,BuilderMotorbike::wheelRadius,0))
+            *glm::rotate(glm::dmat4(1),bike.pitch,glm::dvec3(1,0,0))
+            *glm::rotate(glm::dmat4(1),bike.lean,glm::dvec3(0,0,1))
+            *glm::translate(glm::dmat4(1),glm::dvec3(0,-BuilderMotorbike::wheelRadius,0));
+        const auto around=[](glm::dvec3 p,double angle,glm::dvec3 axis) {
+            return glm::translate(glm::dmat4(1),p)*glm::rotate(glm::dmat4(1),angle,axis)*glm::translate(glm::dmat4(1),-p);
+        };
+        const glm::dvec3 front(0,BuilderMotorbike::wheelRadius,-BuilderMotorbike::halfWheelbase);
+        const glm::dvec3 rear(0,BuilderMotorbike::wheelRadius,BuilderMotorbike::halfWheelbase);
+        const auto steering=around(front,bike.steering,{0,1,0});
+        const std::array transforms{bikeRoot,bikeRoot*steering,
+            bikeRoot*around(rear,-bike.spin,{1,0,0}),bikeRoot*steering*around(front,-bike.spin,{1,0,0})};
+        for(uint32_t i=0;i<4;++i)meshes_.addInstance({.assetIndex=8,.meshIndex=i,.modelMatrix=glm::mat4(transforms[i]),.surface={0,0,1,0}});
+        if(riding_)for(size_t i=0;i<2;++i) {
+            if(!bike.wheelGrounded[i])continue;
+            const auto p=bikeRoot*glm::dvec4(i?front:rear,1);
+            footContacts[i]={float(p.x),float(p.y-BuilderMotorbike::wheelRadius),float(p.z),.55f};
+        }
+    }
     if(orbit_.pose().valid&&!orbit_.pose().hideAvatar) {
         assets::RigidAnimationPose pose;std::string error;
         const auto root=glm::translate(glm::dmat4(1),player_.feet()-origin)*glm::rotate(glm::dmat4(1),player_.facingYaw(),glm::dvec3(0,1,0));
-        if(!character_.sample(*robot_,root,pose,error))return false;
+        if(riding_) {
+            if(!assets::sampleRigidAnimation(*robot_,robot_->clips[5],0,true,{},glm::dmat4(1),pose,error))return false;
+            const auto seated=bikeRoot*glm::translate(glm::dmat4(1),glm::dvec3(0,.26*2.8,.15*2.8))
+                *glm::scale(glm::dmat4(1),glm::dvec3(2.8));
+            // Read the molded leg's real axle from the sampled asset. A visual
+            // proportion revision must not rotate the rider about an old hip.
+            std::array<glm::dvec3,2> hipPivots{},shoulderPivots{};
+            for(uint32_t i=0;i<pose.drawCount;++i) {
+                const auto& draw=pose.draws[i];
+                const std::string_view name=robot_->mesh.name(robot_->mesh.nodes[draw.nodeIndex].nameOffset);
+                if(name=="robot_thigh_l"||name=="robot_thigh_r")
+                    hipPivots[name.ends_with("_l")?0:1]=glm::dvec3(draw.modelMatrix[3]);
+                if(name=="robot_arm_l"||name=="robot_arm_r")
+                    shoulderPivots[name.ends_with("_l")?0:1]=glm::dvec3(draw.modelMatrix[3]);
+            }
+            for(uint32_t i=0;i<pose.drawCount;++i) {
+                auto& draw=pose.draws[i];const std::string_view name=robot_->mesh.name(robot_->mesh.nodes[draw.nodeIndex].nameOffset);
+                glm::dmat4 adjust(1);
+                if(name.find("thigh")!=std::string_view::npos||name.find("shin")!=std::string_view::npos||name.find("foot")!=std::string_view::npos) {
+                    const double side=name.ends_with("_l")?-1.:1.;
+                    const auto hip=hipPivots[name.ends_with("_l")?0:1];
+                    adjust=glm::translate(glm::dmat4(1),hip+glm::dvec3(side*.12,0,0))
+                        *glm::rotate(glm::dmat4(1),.85,glm::dvec3(1,0,0))*glm::translate(glm::dmat4(1),-hip);
+                }
+                if(name.find("arm_")!=std::string_view::npos||name.find("hand_")!=std::string_view::npos) {
+                    const bool left=name.ends_with("_l");const double side=left?-1.:1.;
+                    const auto shoulder=shoulderPivots[left?0:1];
+                    const glm::dvec3 axis(0,1,0),front(0,.28,-.63);
+                    const auto steering=glm::rotate(glm::dmat4(1),motorbike_.state().steering,axis);
+                    const auto grip=front+glm::dvec3(steering*glm::dvec4(glm::dvec3(side*.462,1.089,-.234)-front,0))-glm::dvec3(0,.26,.15);
+                    const auto from=glm::normalize(glm::dvec3(pose.anchors[left?1:2][3])-shoulder);
+                    const auto to=glm::normalize(grip-shoulder);const auto cross=glm::cross(from,to);
+                    if(glm::length(cross)>1e-8)adjust=glm::translate(glm::dmat4(1),shoulder)
+                        *glm::rotate(glm::dmat4(1),std::acos(std::clamp(glm::dot(from,to),-1.,1.)),glm::normalize(cross))
+                        *glm::translate(glm::dmat4(1),-shoulder);
+                }
+                draw.modelMatrix=glm::mat4(seated*adjust*glm::dmat4(draw.modelMatrix));
+            }
+            for(auto& anchor:pose.anchors)anchor=seated*anchor;
+        } else {
+            // Use the neutral toy pose for swimming, then animate the actual
+            // shoulder/hip pivots. The head and hand anchors follow the same
+            // body/stroke transforms as their visible meshes.
+            if(player_.mode()==AdventurePlayer::Mode::Swimming) {
+                if(!assets::sampleRigidAnimation(*robot_,robot_->clips[0],0,true,{},glm::dmat4(1),pose,error))return false;
+            } else if(!character_.sample(*robot_,glm::dmat4(1),pose,error))return false;
+            std::array<glm::dvec3,2> shoulders{},hips{};
+            if(swimAnimation_.active())for(uint32_t i=0;i<pose.drawCount;++i) {
+                const auto& draw=pose.draws[i];
+                const std::string_view name=robot_->mesh.name(robot_->mesh.nodes[draw.nodeIndex].nameOffset);
+                const size_t side=name.ends_with("_l")?0:1;
+                if(name=="robot_arm_l"||name=="robot_arm_r")shoulders[side]=glm::dvec3(draw.modelMatrix[3]);
+                if(name=="robot_thigh_l"||name=="robot_thigh_r")hips[side]=glm::dvec3(draw.modelMatrix[3]);
+            }
+            const auto body=root*swimAnimation_.body();
+            for(uint32_t i=0;i<pose.drawCount;++i) {
+                auto& draw=pose.draws[i];const std::string_view name=robot_->mesh.name(robot_->mesh.nodes[draw.nodeIndex].nameOffset);
+                glm::dmat4 limb(1);const bool left=name.ends_with("_l");const size_t side=left?0:1;
+                if(swimAnimation_.active()) {
+                    if(name.find("arm_")!=std::string_view::npos||name.find("hand_")!=std::string_view::npos)
+                        limb=swimAnimation_.arm(shoulders[side],left);
+                    if(name.find("thigh_")!=std::string_view::npos||name.find("shin_")!=std::string_view::npos||name.find("foot_")!=std::string_view::npos)
+                        limb=swimAnimation_.leg(hips[side],left);
+                }
+                draw.modelMatrix=glm::mat4(body*limb*glm::dmat4(draw.modelMatrix));
+            }
+            for(size_t i=0;i<pose.anchors.size();++i) {
+                auto limb=glm::dmat4(1);
+                if(swimAnimation_.active()&&(i==1||i==2||i==3)) {
+                    const bool left=i==1;limb=swimAnimation_.arm(shoulders[left?0:1],left);
+                }
+                pose.anchors[i]=body*limb*pose.anchors[i];
+            }
+        }
+        // Sample the trusted rigid animation unchanged, then scale its complete
+        // presentation around the feet. Colour and shadow draws use this matrix.
+        if(freeBuild_&&!riding_) {
+            const auto feet=player_.feet()-origin;
+            const auto scale=glm::translate(glm::dmat4(1),feet)
+                *glm::scale(glm::dmat4(1),glm::dvec3(player_.bodyScale()))
+                *glm::translate(glm::dmat4(1),-feet);
+            for(uint32_t i=0;i<pose.drawCount;++i)pose.draws[i].modelMatrix=glm::mat4(scale*glm::dmat4(pose.draws[i].modelMatrix));
+            for(auto& anchor:pose.anchors)anchor=scale*anchor;
+            // Follow the actual animated boot soles in the same rebased frame
+            // as mesh receivers. Do not attach a shadow to a hidden/swimming body.
+            if(player_.mode()!=AdventurePlayer::Mode::Swimming)for(uint32_t i=0;i<pose.drawCount;++i) {
+                const auto& draw=pose.draws[i];
+                const std::string_view name=robot_->mesh.name(robot_->mesh.nodes[draw.nodeIndex].nameOffset);
+                if(name!="robot_foot_l"&&name!="robot_foot_r")continue;
+                const auto& bounds=robot_->prefab.meshBounds[draw.meshIndex];
+                glm::vec3 lower(std::numeric_limits<float>::max()),upper(std::numeric_limits<float>::lowest());
+                for(int corner=0;corner<8;++corner) {
+                    const glm::vec3 p((corner&1)?bounds.maximum.x:bounds.minimum.x,
+                        (corner&2)?bounds.maximum.y:bounds.minimum.y,(corner&4)?bounds.maximum.z:bounds.minimum.z);
+                    const auto point=glm::vec3(draw.modelMatrix*glm::vec4(p,1));
+                    lower=glm::min(lower,point);upper=glm::max(upper,point);
+                }
+                const auto center=(lower+upper)*.5f;
+                footContacts[name=="robot_foot_l"?0:1]={center.x,lower.y,center.z,.7f};
+            }
+        }
         for(uint32_t i=0;i<pose.drawCount;++i)meshes_.addInstance({.assetIndex=1,.meshIndex=pose.draws[i].meshIndex,.modelMatrix=pose.draws[i].modelMatrix,.surface={0,0,1,0}});
         if(state().equippedTool.kind==ItemKind::TrailStaff) {
             // Attach a small wooden beam to the actual exported right-hand
@@ -1538,7 +2550,10 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 .tintColor=glm::vec4(1),.surface={0,0,1,0}});
         }
     }
-    return meshes_.render(encoder,color,depth,camera.viewMatrix(),camera.projectionMatrix(),camera.position(),lighting,width,height,true,linearDepth,background,glm::vec3(origin));
+    const auto bodyView=physics_&&wall_&&!wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0).empty()
+        ?physics_->renderView():physics::PhysicsRenderView{};
+    if(!meshes_.setAuthoredBodyView(bodyView,{camera.worldSector(),camera.position()}))return false;
+    return meshes_.render(encoder,color,depth,camera.viewMatrix(),camera.projectionMatrix(),camera.position(),lighting,width,height,true,linearDepth,background,glm::vec3(origin),footContacts);
 }
 bool AdventureRuntime::renderHud(WGPUCommandEncoder encoder,WGPUTextureView view,uint32_t width,uint32_t height){
 #if !defined(VOXY_NATIVE)
@@ -1552,10 +2567,11 @@ std::string AdventureRuntime::json() const {
     const auto cost=blueprint?blueprint->cost:buildingDefinition(selected_)->cost;
     std::ostringstream out;out<<std::setprecision(17)<<"{\"costText\":"<<quote(freeBuild_?"Unlimited pieces":costLabel(cost))<<",\"creative\":"<<(freeBuild_?"true":"false")<<",\"build\":"<<(building_?"true":"false")<<",\"selected\":"<<quote(blueprint?blueprint->name:buildingDefinition(selected_)->name)
         <<",\"blueprintKind\":"<<int(blueprint_)<<",\"piece\":"<<(blueprint_==BlueprintKind::StarterRoom?0:int(selected_))<<",\"status\":"<<quote(status_)<<",\"previewReason\":"<<quote(previewReason_)<<",\"interaction\":"<<quote(interactionLabel())
+        <<",\"statusEvent\":"<<quote(std::to_string(interactionStatusSerial_))
         <<",\"valid\":"<<(previewValid_?"true":"false")<<",\"wood\":"<<itemCount(state().backpack,ItemKind::Wood)
         <<",\"stone\":"<<itemCount(state().backpack,ItemKind::Stone)<<",\"scrap\":"<<itemCount(state().backpack,ItemKind::Scrap)
         <<",\"parts\":"<<parts<<",\"menu\":"<<quote(menu_==Menu::None?"":menu_==Menu::Main?"Adventure paused":menuTitle_)
-        <<",\"saveFailure\":"<<quote(saveFailure_)<<",\"saveStatus\":"<<quote(saveStatus_)<<",\"dirty\":"<<(migrationDirty_||state().revision!=savedRevision_?"true":"false")
+        <<",\"saveFailure\":"<<quote(saveFailure_)<<",\"saveStatus\":"<<quote(saveStatus_)<<",\"dirty\":"<<(migrationDirty_||state().revision!=savedRevision_||(wall_&&wall_->released())?"true":"false")
         <<",\"textScale\":"<<preferences_.textScale<<",\"highContrast\":"<<(preferences_.highContrast?"true":"false")<<",\"rows\":[";
     for(size_t i=0;i<hudContent_.rows.size();++i){if(i)out<<',';
         const auto& row=hudContent_.rows[i];
@@ -1570,12 +2586,55 @@ std::string AdventureRuntime::json() const {
         <<",\"attackControl\":"<<quote(combatBindingLabel(preferences_,CombatAction::Attack,padAim_))
         <<",\"dodgeControl\":"<<quote(combatBindingLabel(preferences_,CombatAction::Dodge,padAim_))
         <<",\"lookControl\":"<<quote(preferences_.orbitToggle?"Click the right mouse button to start or stop looking. The right stick looks around.":"Hold the right mouse button to look around, or use the right stick.");
+    if(freeBuild_)out<<",\"forest\":{\"seed\":"<<CreativeScenery::forestSeed
+        <<",\"recipe\":"<<CreativeScenery::forestRecipeVersion<<",\"drawDistance\":"<<CreativeScenery::forestDrawDistance
+        <<",\"nearProps\":"<<scenery_.props().size()<<",\"distantTrees\":"<<scenery_.distantTrees().size()
+        <<",\"horizonDraws\":"<<(meshes_.lastEncodedDrawCountForAsset(14)+meshes_.lastEncodedDrawCountForAsset(17))
+        <<",\"visitedTrees\":"<<forestVisited_<<",\"visibleTrees\":"<<forestVisible_
+        <<",\"selectionMs\":"<<forestSelectionMs_<<",\"instanceUploadBytes\":"<<meshes_.lastInstanceUploadBytes()
+        <<",\"meshColorTriangles\":"<<meshes_.lastColorTriangles()<<",\"meshShadowTriangles\":"<<meshes_.lastShadowTriangles()<<'}';
+    out<<",\"riding\":"<<(riding_?"true":"false")<<",\"bikeSpeed\":"<<motorbike_.state().speed;
+    const double cannonDistance=cannonFeet_?glm::length(player_.feet()-*cannonFeet_):0;
+    // Event admission is attempted synchronously by attachPhysics. Its failure
+    // cannot be repaired by a later successful wall rebuild/query publication.
+    const bool impactDetectionFailed=physics_&&!cannonEventsReady_;
+    const bool wallFailed=impactDetectionFailed||wallQueryFailure_||(wall_&&wall_->phase()==ImportedWallPhysics::Phase::Failed);
+    std::string wallFailureMessage=wall_?wall_->message():std::string{};
+    if(impactDetectionFailed)wallFailureMessage="Impact detection stopped safely. Reload the world.";
+    else if(wallQueryFailure_&&wallFailureMessage.empty())wallFailureMessage="Wall collision could not be installed. Rebuild the wall.";
+    if(freeBuild_)out<<",\"cannon\":{\"available\":"<<(cannonVisible()?"true":"false")
+        <<",\"x\":"<<(cannonFeet_?cannonFeet_->x:0)<<",\"y\":"<<(cannonFeet_?cannonFeet_->y:0)<<",\"z\":"<<(cannonFeet_?cannonFeet_->z:0)
+        <<",\"distanceStuds\":"<<(std::isfinite(cannonDistance)?std::ceil(cannonDistance):0)
+        <<",\"active\":"<<(usingCannon_?"true":"false")<<",\"ready\":"<<(cannonPhysics_&&cannonPhysics_->ready(cannonGeometryEpoch_)&&(!wall_||wall_->ready())&&!wallQueryFailure_&&cannonEventsReady_?"true":"false")
+        <<",\"error\":"<<quote(cannonPhysicsError_)<<",\"shots\":"<<cannon_.shotsFired<<",\"impacts\":"<<cannonImpacts_<<",\"live\":"<<cannon_.liveShots()<<",\"yaw\":"<<cannon_.yaw<<",\"elevation\":"<<cannon_.elevation
+        <<",\"awaitingHit\":"<<(cannon_.liveShots()>0?"true":"false")
+        <<",\"contacts\":"<<cannonContacts_<<",\"contactFeature\":"<<cannonContactFeature_
+        <<",\"contactBody\":"<<cannonContactBody_<<",\"contactSpeed\":"<<cannonContactSpeed_<<",\"contactImpulse\":"<<cannonContactImpulse_
+        <<",\"releasedParts\":"<<(wall_?wall_->impactStats().releasedParts:0)
+        <<",\"sourceParts\":"<<(wall_?wall_->bindings().size():0)
+        <<",\"partDisplacement\":"<<(wall_?wall_->maximumPartDisplacement():0)
+        <<",\"impactDirection\":["<<(wall_?wall_->impactStats().worldDirection.x:0)<<','<<(wall_?wall_->impactStats().worldDirection.y:0)<<','<<(wall_?wall_->impactStats().worldDirection.z:0)<<']'
+        <<",\"impactSource\":"<<quote(std::to_string(wall_?wall_->impactStats().sourceId:0))
+        <<",\"impactEnergy\":"<<(wall_?wall_->impactStats().addedEnergy:0)
+        <<",\"wallReady\":"<<(wall_&&wall_->ready()?"true":"false")<<",\"wallReleased\":"<<(wall_&&wall_->released()?"true":"false")
+        <<",\"inspectingWall\":"<<(inspectWall_?"true":"false")
+        <<",\"wallBusy\":"<<(wallLocked()?"true":"false")
+        <<",\"wallPhase\":"<<(wall_?int(wall_->phase()):0)<<",\"wallMessage\":"<<quote(wallFailureMessage)
+        <<",\"wallFailed\":"<<(wallFailed?"true":"false")
+        <<",\"nearby\":"<<(cannonVisible()&&glm::length(player_.feet()-*cannonFeet_)<12?"true":"false")<<'}';
+    if(freeBuild_&&blacksmithFeet_)out<<",\"blacksmith\":{\"available\":"<<(blacksmithVisible()?"true":"false")
+        <<",\"x\":"<<blacksmithFeet_->x<<",\"y\":"<<blacksmithFeet_->y<<",\"z\":"<<blacksmithFeet_->z<<'}';
     out<<",\"paint\":"<<selectedPaint_<<",\"colourAvailable\":"<<(freeBuild_?"true":"false")
         <<",\"canUndo\":"<<(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_?"true":"false")
-        <<",\"canRemove\":"<<(targetPart_&&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_)?"true":"false");
+        <<",\"canRemove\":"<<(targetPart_&&targetPart_!=blacksmithPartId&&targetPart_!=blacksmithWallPartId&&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_)?"true":"false");
     out<<",\"observation\":"<<quote(std::to_string(observationSerial_))<<",\"revision\":"<<quote(std::to_string(state().revision))<<",\"menuSelected\":"<<menuSelection_;
     const auto p=player_.feet();out<<",\"player\":{\"x\":"<<p.x<<",\"y\":"<<p.y<<",\"z\":"<<p.z<<",\"yaw\":"<<player_.facingYaw()<<",\"tick\":"<<quote(std::to_string(player_.tick()))<<"}";
-    out<<",\"camera\":{\"yaw\":"<<orbit_.pose().yaw<<",\"width\":"<<observedWidth_<<",\"height\":"<<observedHeight_;
+    out<<",\"swimming\":"<<(player_.mode()==AdventurePlayer::Mode::Swimming?"true":"false");
+    out<<",\"thrownBricks\":{\"total\":"<<brickThrower_.thrown<<",\"live\":"<<brickThrower_.live()
+        <<",\"playerCollider\":"<<(playerPhysics_.body.valid()&&!playerPhysics_.retiring?"true":"false")
+        <<",\"playerContacts\":"<<playerPhysics_.contacts<<'}';
+    out<<",\"camera\":{\"yaw\":"<<orbit_.pose().yaw<<",\"distance\":"<<orbit_.pose().distance
+        <<",\"requestedDistance\":"<<orbit_.pose().requestedDistance<<",\"width\":"<<observedWidth_<<",\"height\":"<<observedHeight_;
     const auto vector=[&](const char* name,glm::dvec3 v){out<<",\""<<name<<"\":["<<v.x<<','<<v.y<<','<<v.z<<']';};
     vector("eye",observedEye_);vector("viewTarget",observedTarget_);vector("origin",observedOrigin_);
     out<<",\"viewProjection\":[";for(int i=0;i<16;++i){if(i)out<<',';out<<observedViewProjection_[i/4][i%4];}out<<"]}";
@@ -1674,27 +2733,44 @@ std::string AdventureRuntime::json() const {
     out<<",\"components\":[";for(size_t i=0;i<state().components.size();++i){if(i)out<<',';
         const auto& c=state().components[i];out<<"{\"id\":"<<quote(std::to_string(c.id))<<",\"part\":"<<quote(std::to_string(c.part))<<",\"kind\":"<<int(c.kind)<<",\"doorOpen\":"<<(c.doorOpen?"true":"false")<<",\"wood\":"<<itemCount(c.slots,ItemKind::Wood)<<",\"stone\":"<<itemCount(c.slots,ItemKind::Stone)<<",\"scrap\":"<<itemCount(c.slots,ItemKind::Scrap)<<'}';}out<<"]}";return out.str();
 }
-bool AdventureRuntime::snapshot(std::vector<std::byte>& bytes,std::string& error) const {const bool ok=AdventureSaveCodec::encode(state(),content_,bytes,error);if(ok)savingRevision_=state().revision;return ok;}
+bool AdventureRuntime::snapshot(std::vector<std::byte>& bytes,std::string& error) const {if(wall_&&wall_->released()){error="Rebuild the wall before saving. Wall changes are session-only for now.";return false;}const bool ok=AdventureSaveCodec::encode(state(),content_,bytes,error);if(ok)savingRevision_=state().revision;return ok;}
 bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::WorldNamespace world,std::string& error) {
+    if(wall_&&wall_->released()){error="Rebuild the wall before loading another save.";return false;}
     AdventureState restored;AdventureSaveLoadMetadata metadata;
     if(!AdventureSaveCodec::decode(bytes,world,content_,restored,error,&metadata))return false;
-    auto next=AdventureSession::restore(restored,content_,error);AdventureSpatialQueries geometry;TownResidents residents;VillageLayout village;TrailSites sites;
-    if(!next||!prepareGeometry(restored,geometry,residents,village,sites,error,false))return false;
+    auto next=AdventureSession::restore(restored,content_,error);AdventureSpatialQueries geometry;TownResidents residents;VillageLayout village;TrailSites sites;CreativeScenery scenery;
+    if(!next||!prepareGeometry(restored,geometry,residents,village,sites,scenery,error,false))return false;
     AdventureSpatialQueries actors;AdventureEncounters encounters;
     if(!prepareActors(restored,geometry,actors,encounters,error))return false;
     const auto p=restored.player;auto pose=player_.state();pose.feet={p.x,p.y,p.z};pose.velocity={};pose.facingYaw=p.yaw;
-    pose.mode=AdventurePlayer::Mode::Airborne;
-    if(!actors.clearCapsule(pose.feet)){error="Saved player position is blocked.";return false;}
+    bool resizedRecovery=false;
+    if(!actors.clearCapsule(pose.feet,player_.bodyRadius(),player_.bodyHeight())) {
+        if(!freeBuild_){error="Saved player position is blocked.";return false;}
+        const auto point=creativeStandingPoint(actors,pose.feet);
+        if(!point){error="No nearby space fits the resized figure. Your saved build is unchanged.";return false;}
+        pose.feet=*point;resizedRecovery=true;
+        if(!next->updatePlayer({point->x,point->y,point->z,pose.facingYaw},restored.health,error))return false;
+    }
     AdventurePlayer checkedPlayer;
-    if(!checkedPlayer.initialize(actors,townSpawn(actors.terrain()),installedWorld().waterHeight)
+    pose.mode=pose.feet.y<=player_.swimSurfaceHeight()?AdventurePlayer::Mode::Swimming:AdventurePlayer::Mode::Airborne;
+    auto start=pose.mode==AdventurePlayer::Mode::Swimming?std::optional(pose.feet)
+        :freeBuild_?creativeStandingPoint(actors,pose.feet)
+        :std::optional<glm::dvec3>(townSpawn(actors.terrain()));
+    if(freeBuild_&&!start)start=creativeStandingPoint(actors,
+        {content_.town.x,content_.town.y,content_.town.z});
+    if(!start||!checkedPlayer.initialize(actors,*start,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())
         ||!checkedPlayer.restore(pose)) {error="Saved player position is unavailable.";return false;}
-    session_=std::move(next);walkQueries_=std::move(geometry);queries_=std::move(actors);encounters_=std::move(encounters);
+    session_=std::move(next);++staticGeometryEpoch_;walkQueries_=std::move(geometry);queries_=std::move(actors);encounters_=std::move(encounters);
     previewResult_.reset();structureJson_.reset();aimRayResult_.reset(); // A restored checkpoint can reuse the same revision.
-    town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
+    town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     combat_.reset();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
     if(!player_.restore(pose)){error="Saved player position is unavailable.";return false;}
+    swimAnimation_.reset();
     // Builder previews, undo targets and queued menu choices belong to the
     // previous checkpoint. Invalidate their tokens without recycling IDs.
+    motorbike_.reset();riding_=false;usingCannon_=false;inspectWall_=false;
+    if(physics_){cannon_.clear(*physics_);brickThrower_.retire(*physics_,true);playerPhysics_.clear(*physics_);}
+    (void)brickThrower_.input(false,false,false,false,{});
     selectedPaint_=0;brickScroll_=0;building_=freeBuild_;blueprint_=BlueprintKind::None;selected_=freeBuild_?PieceKind::Brick2x4:PieceKind::Foundation;
     menu_=Menu::None;menuSelection_=0;heightSteps_=0;lastPlaced_=0;lastBlueprint_=0;
     guideReturnMenu_=Menu::None;guideReturnSelection_=0;guideTopic_=AdventureGuideTopic::Movement;guideGamepad_=false;
@@ -1702,8 +2778,8 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     pendingActions_.clear();previewValid_=false;hasTarget_=false;previewReason_.clear();
     player_.discardPendingInput();inputRouter_.reset();buildRouter_.reset();combatInput_.reset();
     (void)menuIntents_.publish("restored-checkpoint",{});
-    discontinuity_=true;status_=freeBuild_?"Your build is restored.":"Welcome home. Your adventure is restored.";
-    migrationDirty_=metadata.migrated;
+    discontinuity_=true;status_=resizedRecovery?"Your build is restored. The resized figure moved to nearby clear ground.":freeBuild_?"Your build is restored.":"Welcome home. Your adventure is restored.";
+    migrationDirty_=metadata.migrated||resizedRecovery;
     saveStatus_=migrationDirty_?"World updated. Save to keep the new format.":(freeBuild_?"Saved build loaded":"Saved adventure loaded");
     savedRevision_=state().revision;refreshHud();return true;
 }

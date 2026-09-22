@@ -5,6 +5,11 @@
     const UI_STORAGE_KEY = 'voxy.renderer-inspector-ui.v1';
     const PRESET_STORAGE_KEY = 'voxy.renderer-presets.v1';
     const NUMBER_TYPES = ['number', 'select', 'boolean'];
+    const CYCLE_LIGHTING_KEYS = new Set([
+        'lighting.sunAzimuth', 'lighting.sunElevation', 'lighting.sunColor',
+        'lighting.sunIntensity', 'lighting.ambientColor', 'lighting.ambientIntensity',
+        'lighting.fogColor', 'lighting.exposure',
+    ]);
     // KeyboardEvent.code names physical key positions. These are WASD on a
     // QWERTY keyboard and ZQSD on an AZERTY keyboard.
     const MOVEMENT_KEY_CODES = new Map([
@@ -36,6 +41,12 @@
         {
             id: 'lighting', label: 'Lighting', icon: '☀', open: true,
             controls: [
+                toggle('lighting.dayNightEnabled', 'Day / Night', 'A gentle cycle for free building. Manual lighting edits switch it off.'),
+                toggle('lighting.dayNightPaused', 'Hold Time', 'Keep the current time of day.'),
+                number('lighting.dayHour', 'Time of Day', 0, 24, 0.05, 'h',
+                    '6: sunrise. 12: noon. 18: sunset. 0: midnight.'),
+                number('lighting.dayCycleMinutes', 'Day Length', 1, 240, 1, 'min',
+                    'Real minutes for one full day and night.'),
                 number('lighting.sunAzimuth', 'Sun Azimuth', -180, 180, 0.1, '°',
                     'Horizontal sun angle.', 'rebuild'),
                 number('lighting.sunElevation', 'Sun Elevation', 1, 89, 0.1, '°',
@@ -748,6 +759,7 @@
             this.sendControl(control, value, commit);
             this.updateRow(control, source);
             if (commit) {
+                if (control.key.startsWith('lighting.')) this.refreshLightingControls(source);
                 this.finishTransaction();
                 this.schedulePersist();
                 if (control.cost) this.toast(
@@ -807,8 +819,14 @@
             if (options.recordHistory !== false) this.beginTransaction();
             const controls = groups.flatMap(group => group.controls);
             const touched = [];
+            const restoringFixedLighting = Number(snapshot['lighting.dayNightEnabled']) === 0 &&
+                this.getEngineNumber('lighting.dayNightEnabled') === 1;
             for (const control of controls) {
                 if (!(control.key in snapshot)) continue;
+                // A saved cycling preset owns its lighting through the clock.
+                // Replaying sampled light values would otherwise switch it off.
+                if (Number(snapshot['lighting.dayNightEnabled']) === 1 &&
+                    CYCLE_LIGHTING_KEYS.has(control.key)) continue;
                 let value = snapshot[control.key];
                 if (control.type === 'number') value = clamp(Number(value), control.min, control.max);
                 if (control.type === 'boolean') value = Number(Boolean(Number(value)));
@@ -823,7 +841,8 @@
                     if (!control.options.some(option => option.value === value)) continue;
                 }
                 if (NUMBER_TYPES.includes(control.type) && !Number.isFinite(Number(value))) continue;
-                if (valuesEqual(value, this.values.get(control.key))) continue;
+                if (valuesEqual(value, this.values.get(control.key)) &&
+                    !(restoringFixedLighting && CYCLE_LIGHTING_KEYS.has(control.key))) continue;
                 this.values.set(control.key, clone(value));
                 this.sendControl(control, value, false);
                 this.updateRow(control);
@@ -834,6 +853,7 @@
             for (const control of touched) {
                 this.sendControl(control, this.values.get(control.key), true);
             }
+            this.refreshLightingControls();
             if (options.recordHistory !== false) this.finishTransaction();
             if (options.persist !== false) this.schedulePersist();
             this.updateResolutionLabel();
@@ -874,6 +894,7 @@
                     'water.foamOpacity': 0.12,
                 }},
                 storm: {label: 'Heavy Storm', values: {
+                    'lighting.dayNightEnabled': 0,
                     'water.waveStrength': 1.55,
                     'water.spectrum.significantHeight': 42,
                     'water.spectrum.choppiness': 3.6,
@@ -886,6 +907,7 @@
                     'lighting.exposure': 0.82,
                 }},
                 sunset: {label: 'Low Golden Sun', values: {
+                    'lighting.dayNightEnabled': 0,
                     'lighting.sunElevation': 8,
                     'lighting.sunAzimuth': -38,
                     'lighting.sunColor': [1, 0.43, 0.16],
@@ -1046,6 +1068,18 @@
             label.textContent = `${this.canvas.width} × ${this.canvas.height}`;
         }
 
+        refreshLightingControls(source) {
+            for (const control of groups.find(group => group.id === 'lighting').controls) {
+                const value = control.type === 'color'
+                    ? ['r', 'g', 'b'].map(channel => this.getEngineNumber(`${control.key}.${channel}`))
+                    : this.getEngineNumber(control.key);
+                if ((Array.isArray(value) ? value : [value]).every(Number.isFinite)) {
+                    this.values.set(control.key, clone(value));
+                    this.updateRow(control, source);
+                }
+            }
+        }
+
         pollStatus() {
             const poll = () => {
                 if (!this.root.isConnected) return;
@@ -1055,6 +1089,20 @@
                 this.root.classList.toggle('is-applying', pending);
                 this.status.textContent = pending ? 'Applying…' : 'Live';
                 this.updateResolutionLabel();
+                // The cycle changes lighting without renderer edits. Reflect it
+                // while the panel is open, without interrupting an active edit.
+                if (this.isOpen() && !this.transactionBefore) {
+                    for (const control of groups.find(group => group.id === 'lighting').controls) {
+                        if (this.rows.get(control.key)?.contains(document.activeElement)) continue;
+                        const value = control.type === 'color'
+                            ? ['r', 'g', 'b'].map(channel => this.getEngineNumber(`${control.key}.${channel}`))
+                            : this.getEngineNumber(control.key);
+                        if ((Array.isArray(value) ? value : [value]).every(Number.isFinite)) {
+                            this.values.set(control.key, clone(value));
+                            this.updateRow(control);
+                        }
+                    }
+                }
                 setTimeout(poll, 250);
             };
             poll();

@@ -823,7 +823,10 @@ Config load(std::string_view path) {
             else if (key == "eye_height") config.camera.eyeHeight = parseFloat(value, config.camera.eyeHeight);
         }
         else if (currentSection == "lighting") {
-            if (key == "sun_direction") config.lighting.sunDirection = parseVec3(value, config.lighting.sunDirection);
+            if (key == "day_night_enabled") config.lighting.dayNightEnabled = parseBool(value, config.lighting.dayNightEnabled);
+            else if (key == "day_cycle_minutes") config.lighting.dayCycleMinutes = parseFloat(value, config.lighting.dayCycleMinutes);
+            else if (key == "day_start_hour") config.lighting.dayStartHour = parseFloat(value, config.lighting.dayStartHour);
+            else if (key == "sun_direction") config.lighting.sunDirection = parseVec3(value, config.lighting.sunDirection);
             else if (key == "sun_color") config.lighting.sunColor = parseVec3(value, config.lighting.sunColor);
             else if (key == "ambient_color") config.lighting.ambientColor = parseVec3(value, config.lighting.ambientColor);
             else if (key == "fog_density") config.lighting.fogDensity = parseFloat(value, config.lighting.fogDensity);
@@ -1083,6 +1086,8 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("eye_height = {}\n\n", config.camera.eyeHeight);
     
     file << "[lighting]\n";
+    file << std::format("day_night_enabled = {}\nday_cycle_minutes = {}\nday_start_hour = {}\n",
+        config.lighting.dayNightEnabled, config.lighting.dayCycleMinutes, config.lighting.dayStartHour);
     file << std::format("sun_direction = [{}, {}, {}]\n", 
                         config.lighting.sunDirection[0], 
                         config.lighting.sunDirection[1], 

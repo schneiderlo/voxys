@@ -103,6 +103,7 @@ cc_library(
         "periodic_gradient_lut.hpp",
         "debug_visualizer.hpp",
         "environment_lighting.hpp",
+        "day_night.hpp",
         "mesh_path.hpp",
         "scene_shadows.hpp",
         "primitive_gpu_culling.hpp",

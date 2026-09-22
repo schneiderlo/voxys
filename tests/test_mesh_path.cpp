@@ -8,6 +8,7 @@
 #include "render/opaque_scene.hpp"
 #include <glm/gtc/packing.hpp>
 #include "render/primitive_path.hpp"
+#include "render/day_night.hpp"
 
 #include <cstring>
 #include <bit>
@@ -151,7 +152,7 @@ struct PixelResources {
 
 bool drawDiagnosticPixels(MeshPath& path, DiagnosticContext& context, glm::vec3 camera,
                           const PrimitiveLighting& lighting, std::vector<uint8_t>& pixels,
-                          bool perspective = false, bool releaseBeforeSubmit = false) {
+                          bool perspective = false, bool releaseBeforeSubmit = false, float farPlane = 10.0f, float fovDegrees = 55.0f) {
     constexpr uint32_t extent = 64u;
     constexpr uint32_t rowBytes = 256u;
     constexpr size_t byteCount = size_t{rowBytes} * extent;
@@ -186,8 +187,8 @@ bool drawDiagnosticPixels(MeshPath& path, DiagnosticContext& context, glm::vec3 
     wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
     if (!path.render(resources.encoder, resources.colorView, resources.depthView,
         glm::lookAt(camera, glm::vec3(0), glm::vec3(0,1,0)),
-        perspective ? glm::perspective(glm::radians(55.0f),1.0f,0.1f,10.0f)
-                    : glm::ortho(-1.6f,1.6f,-1.6f,1.6f,0.1f,10.0f),
+        perspective ? glm::perspective(glm::radians(fovDegrees),1.0f,0.1f,farPlane)
+                    : glm::ortho(-1.6f,1.6f,-1.6f,1.6f,0.1f,farPlane),
         camera, lighting, extent, extent, false)) {
         path.discardEnvironmentEncoding();
         return false;
@@ -534,6 +535,242 @@ TEST(MeshPathGPUTest, LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses) 
     const int ambient = sample(0,0);
     EXPECT_NEAR(sample(3,0),ambient,2);
     std::printf("Live sun: clear %d, shadow %d, ambient %d\n",clear,shadowed,ambient);
+}
+
+TEST(MeshPathGPUTest, VillageDistanceReceiverRetainsRealCasterShadow) {
+    DiagnosticContext context; ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config; config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;config.farSunShadows=true;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto surface=diagnosticQuad();surface.materials[0].roughnessFactor=1;
+    ASSERT_TRUE(path.loadMeshData(surface));
+    PrimitiveLighting light;light.direction=glm::normalize(glm::vec3(.6f,.14f,-.78f));light.sunIntensity=2;
+    light.ambientIntensity=.08f;light.fogDensity=0;
+    std::vector<uint8_t> pixels;
+    const auto sample=[&](bool caster,float cameraDistance) {
+        path.clearInstances();path.addInstance({});
+        if(caster)path.addInstance({.modelMatrix=glm::translate(glm::mat4(1),light.direction*4.0f)});
+        if(!drawDiagnosticPixels(path,context,{0,0,-cameraDistance},light,pixels,false,false,200))return -1;
+        return pixelAt(pixels,32,32).r;
+    };
+    const int clear=sample(false,100),shadow=sample(true,100);
+    EXPECT_GT(clear,100);EXPECT_GT(shadow,0);EXPECT_LT(shadow,clear-40);
+    // A repeated camera relocation must update both regions, never reuse the near pose.
+    EXPECT_LT(sample(true,120),sample(false,120)-40);
+    EXPECT_LT(sample(true,3),sample(false,3)-40);
+    std::printf("Village sun at 100 studs: clear=%d shadow=%d\n",clear,shadow);
+}
+
+TEST(MeshPathGPUTest, ToySkyGroundFillSeparatesShadedPlanesAndPreservesDirectSun) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    std::array<MeshPath,2> paths;
+    auto surface=diagnosticQuad();surface.materials[0].roughnessFactor=1;
+    for(size_t i=0;i<paths.size();++i) {
+        MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+        config.frontFace=WGPUFrontFace_CW;config.toySkyGroundFill=i!=0;
+        ASSERT_TRUE(paths[i].init(context.getDevice(),context.getQueue(),config));
+        ASSERT_TRUE(paths[i].loadMeshData(surface));
+    }
+    PrimitiveLighting light;light.direction={.1f,.2f,-1};light.sunIntensity=0;
+    light.ambientIntensity=.7f;light.fogDensity=0;
+    std::vector<uint8_t> pixels;
+    const auto sample=[&](size_t index,float angle) {
+        auto& path=paths[index];path.clearInstances();
+        path.addInstance({.modelMatrix=glm::rotate(glm::mat4(1),angle,glm::vec3(1,0,0))});
+        if(!drawDiagnosticPixels(path,context,{0,0,-3},light,pixels))return -1;
+        return pixelAt(pixels,32,32).r;
+    };
+    const float tilt=glm::radians(60.0f);
+    const int up=sample(1,tilt),side=sample(1,0),down=sample(1,-tilt);
+    const int legacySide=sample(0,0);
+    EXPECT_GT(up,side+12);EXPECT_GT(side,down+12);
+    EXPECT_GT(side*5,legacySide*2); // Keep useful fill; never turn shade into black.
+    // The legacy route keeps its isotropic fallback environment and no sun is
+    // needed to read the silhouette. Both tests use the real fragment shader.
+    EXPECT_NEAR(sample(0,tilt),sample(0,-tilt),2);
+    light.ambientIntensity=0;light.sunIntensity=1.5f;
+    EXPECT_NEAR(sample(0,0),sample(1,0),1);
+    std::printf("Toy shaded planes: up=%d side=%d down=%d legacySide=%d\n",up,side,down,legacySide);
+}
+
+TEST(MeshPathGPUTest, RepeatedMeshesBatchWithoutLosingPaintTransformsOrShadowEligibility) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;config.farSunShadows=true;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto surface=diagnosticQuad();surface.materials[0].unlit=1;
+    ASSERT_TRUE(path.loadMeshData(surface));ASSERT_TRUE(path.loadMeshData(surface));
+    PrimitiveLighting light;light.sunIntensity=0;light.ambientIntensity=1;light.fogDensity=0;
+    std::vector<uint8_t> reference,actual;
+    const auto setup=[&](bool distinctAssets,bool mixedShadows) {
+        path.clearInstances();
+        for(uint32_t i=0;i<2;++i) {
+            const auto transform=glm::translate(glm::mat4(1),glm::vec3(i?.65f:-.65f,0,0))
+                *glm::scale(glm::mat4(1),glm::vec3(.4f));
+            path.addInstance({.assetIndex=distinctAssets?i:0u,.modelMatrix=transform,
+                .castsSunShadow=!(mixedShadows&&i==1),
+                .baseColorOverride=i?glm::vec4(.02f,.04f,.8f,1):glm::vec4(.8f,.03f,.01f,1)});
+        }
+    };
+    setup(true,false);ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,reference));
+    EXPECT_EQ(path.lastSubmittedDrawCount(),2u);
+    setup(false,false);ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(path.lastSubmittedDrawCount(),1u);EXPECT_EQ(path.lastEncodedDrawCountForAsset(0),1u);
+    EXPECT_EQ(actual,reference);
+    const auto left=pixelAt(actual,19,32),right=pixelAt(actual,45,32);
+    EXPECT_GT(std::max(left.r,right.r),150);EXPECT_GT(std::max(left.b,right.b),150);
+    EXPECT_GT(std::abs(int(left.r)-int(right.r)),100);
+    setup(false,true);ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(path.lastSubmittedDrawCount(),2u);EXPECT_EQ(actual,reference);
+    // Overlapping transparent instances must retain distance order inside the
+    // same draw. Deliberately submit the nearer red plane before the blue one.
+    auto blended=surface;blended.materials[0].alphaMode=moto::VmeshAlphaBlend;
+    blended.materials[0].baseColorFactor[3]=.5f;
+    ASSERT_TRUE(path.loadMeshData(blended));ASSERT_TRUE(path.loadMeshData(blended));
+    const auto transparent=[&](bool distinctAssets) {
+        path.clearInstances();
+        for(uint32_t i=0;i<2;++i)path.addInstance({.assetIndex=2u+(distinctAssets?i:0u),
+            .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(0,0,i?.15f:-.15f)),
+            .baseColorOverride=i?glm::vec4(.02f,.04f,.8f,1):glm::vec4(.8f,.03f,.01f,1)});
+    };
+    transparent(true);ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,reference));
+    EXPECT_EQ(path.lastSubmittedDrawCount(),2u);
+    transparent(false);ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(path.lastSubmittedDrawCount(),1u);EXPECT_EQ(actual,reference);
+}
+
+TEST(MeshPathGPUTest, RetainedSceneryMatchesLiveDrawsAcrossSelectionGrowthAndReplacement) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.maxInstances=1;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto mesh=diagnosticQuad();mesh.materials[0].unlit=1;ASSERT_TRUE(path.loadMeshData(mesh));
+    PrimitiveLighting light;light.sunIntensity=0;light.ambientIntensity=1;light.fogDensity=0;
+    std::array<MeshDrawInstance,2> scenery;
+    for(size_t i=0;i<scenery.size();++i) {
+        scenery[i].modelMatrix=glm::translate(glm::mat4(1),glm::vec3(i?.65f:-.65f,0,0))*glm::scale(glm::mat4(1),glm::vec3(.4f));
+        scenery[i].castsSunShadow=false;
+        scenery[i].baseColorOverride=i?glm::vec4(.02f,.04f,.8f,1):glm::vec4(.8f,.03f,.01f,1);
+        path.addInstance(scenery[i]);
+    }
+    std::vector<uint8_t> reference,actual;
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,reference));
+    path.clearInstances();ASSERT_TRUE(path.setStaticInstances(scenery));
+    const std::array<uint32_t,2> both{0,1};ASSERT_TRUE(path.selectStaticInstances(both));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+    EXPECT_EQ(path.lastInstanceUploadBytes(),2*(MeshPath::gpuInstanceBytes+sizeof(uint32_t)));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+    EXPECT_EQ(path.lastInstanceUploadBytes(),0u);
+    // Growing the shared buffer must re-upload retained records before live
+    // records. Overlapping identical opaque pieces leave the same image.
+    for(int i=0;i<64;++i)path.addInstance(scenery[1]);
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+    EXPECT_EQ(path.lastInstanceUploadBytes(),66*(MeshPath::gpuInstanceBytes+sizeof(uint32_t)));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+    EXPECT_EQ(path.lastInstanceUploadBytes(),64*(MeshPath::gpuInstanceBytes+sizeof(uint32_t)));
+    const std::array<uint32_t,1> invalid{2};EXPECT_FALSE(path.selectStaticInstances(invalid));
+    auto invalidScenery=scenery;invalidScenery[0].castsSunShadow=true;
+    EXPECT_FALSE(path.setStaticInstances(invalidScenery));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+    path.clearInstances();ASSERT_TRUE(path.selectStaticInstances(std::array<uint32_t,1>{1}));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    const auto single=actual;EXPECT_NE(single,reference);
+    ASSERT_TRUE(path.setStaticInstances({}));path.addInstance(scenery[1]);
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,single);
+    // A new geometry/origin revision must replace the old GPU transforms.
+    auto moved=scenery;
+    std::swap(moved[0].modelMatrix,moved[1].modelMatrix);
+    path.clearInstances();for(const auto& instance:moved)path.addInstance(instance);
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,reference));
+    path.clearInstances();ASSERT_TRUE(path.setStaticInstances(moved));ASSERT_TRUE(path.selectStaticInstances(both));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
+}
+
+TEST(MeshPathGPUTest, ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto mesh=diagnosticQuad();mesh.materials[0].unlit=1;ASSERT_TRUE(path.loadMeshData(mesh));
+    PrimitiveLighting light;light.fogDensity=0;
+    const auto offscreen=glm::translate(glm::mat4(1),glm::vec3(20,0,0));
+    path.addInstance({});
+    path.addInstance({.modelMatrix=offscreen,.castsSunShadow=false});
+    path.addInstance({.modelMatrix=offscreen,.castsSunShadow=true});
+    std::vector<uint8_t> pixels;ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,pixels));
+    EXPECT_EQ(path.lastCulledInstanceCount(),1u);
+    EXPECT_EQ(path.lastSubmittedDrawCount(),1u);
+    EXPECT_GT(pixelAt(pixels,32,32).r,20);
+}
+
+TEST(MeshPathGPUTest, AuthoredForestHorizonMeshesRenderAtTwoKilometres) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    std::filesystem::path resources=std::filesystem::current_path();
+    if(const char* root=std::getenv("VOXY_ADVENTURE_TEST_WORKSPACE"))resources=root;
+    const auto file=resources/"data/adventure/creative-props-horizon-r01/creative-props.vmesh";
+    std::ifstream input(file,std::ios::binary);ASSERT_TRUE(input);
+    const std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(input)),{});
+    moto::VmeshData data;std::string error;
+    ASSERT_TRUE(moto::readVmesh(bytes.data(),bytes.size(),&data,&error))<<error;
+    std::array<uint32_t,2> triangles{};
+    for(const auto& sub:data.submeshes)if(sub.meshIndex<2)triangles[sub.meshIndex]+=sub.indexCount/3;
+    EXPECT_LE(triangles[0],512u);EXPECT_LE(triangles[1],256u);
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));ASSERT_TRUE(path.loadMeshData(data));
+    PrimitiveLighting light;light.fogDensity=0;light.ambientIntensity=1;light.sunIntensity=1;
+    for(uint32_t kind=0;kind<2;++kind) {
+        path.clearInstances();path.addInstance({.meshIndex=kind,
+            .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(0,-5,0)),.castsSunShadow=false});
+        std::vector<uint8_t> pixels;
+        // Narrow FOV resolves the real 7–10 m asset in this 64-pixel GPU test.
+        // Its actual camera distance is 2,000 m; no enlargement of the model.
+        ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-2000},light,pixels,true,false,2500,.8f));
+        size_t covered=0;for(size_t i=0;i<pixels.size();i+=4)covered+=pixels[i]>8||pixels[i+1]>8||pixels[i+2]>8;
+        EXPECT_GT(covered,30u)<<kind;EXPECT_EQ(path.lastCulledInstanceCount(),0u);
+        EXPECT_GT(path.lastSubmittedDrawCount(),0u);
+        std::cout<<"Forest horizon mesh "<<kind<<": triangles="<<triangles[kind]<<" pixels at 2000 m="<<covered<<'\n';
+    }
+}
+
+TEST(MeshPathGPUTest, ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    std::filesystem::path resources=std::filesystem::current_path();
+    if(const char* root=std::getenv("VOXY_ADVENTURE_TEST_WORKSPACE"))resources=root;
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    for(uint32_t lod=0;lod<3;++lod) {
+        std::ifstream input(resources/("data/adventure/forest-r02/forest-lod"+std::to_string(lod)+".vmesh"),std::ios::binary);
+        ASSERT_TRUE(input);
+        const std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(input)),{});
+        moto::VmeshData data;std::string error;
+        ASSERT_TRUE(moto::readVmesh(bytes.data(),bytes.size(),&data,&error))<<error;
+        ASSERT_EQ(data.header.meshCount,6u);
+        if(lod==2) {
+            std::array<uint32_t,6> triangles{};
+            for(const auto& sub:data.submeshes)triangles[sub.meshIndex]+=sub.indexCount/3;
+            for(auto n:triangles)EXPECT_LE(n,700u);
+        }
+        ASSERT_TRUE(path.loadMeshData(data));
+    }
+    PrimitiveLighting light;light.fogDensity=0;light.ambientIntensity=1;light.sunIntensity=1;
+    for(uint32_t tree=0;tree<6;++tree) {
+        std::array<size_t,3> coverage{};
+        for(uint32_t lod=0;lod<3;++lod) {
+            path.clearInstances();path.addInstance({.assetIndex=lod,.meshIndex=tree,
+                .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(0,-10,0)),.castsSunShadow=false});
+            std::vector<uint8_t> pixels;
+            // Narrow FOV resolves an unscaled tree at an actual 2 km distance.
+            ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-2000},light,pixels,true,false,2500,1.2f));
+            for(size_t i=0;i<pixels.size();i+=4)coverage[lod]+=pixels[i]>8||pixels[i+1]>8||pixels[i+2]>8;
+            EXPECT_GT(coverage[lod],30u)<<tree<<":"<<lod;
+            EXPECT_EQ(path.lastCulledInstanceCount(),0u);
+        }
+        for(uint32_t lod=1;lod<3;++lod) {
+            EXPECT_GT(coverage[lod],coverage[0]*.75)<<tree;
+            EXPECT_LT(coverage[lod],coverage[0]*1.25)<<tree;
+        }
+        std::cout<<"Forest family "<<tree<<" pixels at 2000 m: "<<coverage[0]<<", "<<coverage[1]<<", "<<coverage[2]<<'\n';
+    }
 }
 
 TEST(MeshPathGPUTest, ExceptionalReleasePreservesEncodedTextureDependencies) {
@@ -1150,6 +1387,68 @@ TEST(MeshEnvironmentGPUTest, WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnerg
         EXPECT_TRUE(path.environmentLightingReady());
         EXPECT_EQ(path.environmentBakeCount(),1u);
     }
+}
+
+TEST(MeshEnvironmentGPUTest, DayNightReflectionsChangeWithoutChangingAmbientUniforms) {
+    DiagnosticContext context;
+    ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;
+    config.colorFormat = WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace = WGPUFrontFace_CW;
+    MeshPath path;
+    ASSERT_TRUE(path.init(context.getDevice(), context.getQueue(), config));
+    auto data = diagnosticQuad();
+    data.materials[0].metallicFactor = 1.0f;
+    data.materials[0].roughnessFactor = 0.35f;
+    ASSERT_TRUE(path.loadMeshData(data));
+    path.addInstance({});
+    auto lighting = environmentOnly();
+    const auto draw = [&](float hour, std::vector<uint8_t>& pixels) {
+        lighting.dayNightHour = hour;
+        return drawDiagnosticPixels(path, context, {0, 0, -3}, lighting, pixels);
+    };
+    std::vector<uint8_t> fixed, noon, sunset, night, restored;
+    ASSERT_TRUE(draw(0.0f, fixed));
+    ASSERT_TRUE(draw(13.0f, noon));
+    ASSERT_TRUE(draw(18.5f, sunset));
+    ASSERT_TRUE(draw(1.0f, night));
+    ASSERT_TRUE(draw(0.0f, restored));
+    const auto dayPixel = pixelAt(noon, 32, 32);
+    const auto duskPixel = pixelAt(sunset, 32, 32);
+    const auto nightPixel = pixelAt(night, 32, 32);
+    EXPECT_GT(dayPixel[0] + dayPixel[1] + dayPixel[2],
+              nightPixel[0] + nightPixel[1] + nightPixel[2] + 60);
+    EXPECT_GT(nightPixel[2], nightPixel[0]);
+    EXPECT_GT(int(duskPixel[0]) - int(duskPixel[2]),
+              int(dayPixel[0]) - int(dayPixel[2]));
+    EXPECT_EQ(fixed, restored);
+}
+
+TEST(MeshEnvironmentGPUTest, DayNightToyFillKeepsShadowedWallsReadable) {
+    DiagnosticContext context;
+    ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;
+    config.colorFormat = WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace = WGPUFrontFace_CW;
+    config.toySkyGroundFill = true;
+    MeshPath path;
+    ASSERT_TRUE(path.init(context.getDevice(), context.getQueue(), config));
+    auto data = diagnosticQuad();
+    data.materials[0].metallicFactor = 0.0f;
+    data.materials[0].roughnessFactor = 1.0f;
+    ASSERT_TRUE(path.loadMeshData(data));
+    path.addInstance({});
+    auto lighting = environmentOnly();
+    const auto night = sampleDayNight(0.0);
+    lighting.dayNightHour = 1.0f;
+    lighting.ambientColor = night.ambientColor;
+    lighting.ambientIntensity = night.ambientIntensity;
+    lighting.exposure = night.exposure;
+    std::vector<uint8_t> pixels;
+    ASSERT_TRUE(drawDiagnosticPixels(path, context, {0, 0, -3}, lighting, pixels));
+    const auto wall = pixelAt(pixels, 32, 32);
+    EXPECT_GT(wall[0], 65); // A shadowed pale wall remains readable without sun.
+    EXPECT_GT(wall[2], wall[0]);
 }
 
 TEST(MeshEnvironmentGPUTest, CoveWetFilmKeepsWhiteFurnaceBoundedAndUsesSharedFilteredOwner) {

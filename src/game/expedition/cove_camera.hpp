@@ -17,6 +17,7 @@ public:
     struct Settings {
         Mode mode=Mode::Chase;
         bool reducedMotion=false,frameLoad=false;
+        double distanceLimit=12.0;
     };
     struct Projection { double verticalFov=1.05,aspect=16./9,nearPlane=.1; };
     struct Target {
@@ -52,6 +53,7 @@ public:
         Result status=Result::GeometryUnavailable;
     };
     static constexpr double minimumDistance=1.5,maximumDistance=12.0;
+    static constexpr double extendedMaximumDistance=64.0;
     static constexpr double minimumElevation=-.45,maximumElevation=1.20;
     static constexpr double presentationSkin=.02,contactPadding=.002;
 

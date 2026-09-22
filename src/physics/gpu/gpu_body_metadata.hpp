@@ -6,6 +6,10 @@ namespace voxy::physics {
 
 // GPU body metadata packs a 20-bit generation and runtime flags into the
 // fourth lane. The first three lanes are signed world-sector coordinates.
+// BodyMotion.angularVelocity_flags.w is not this metadata lane. Static
+// kinematics use it as a bitcast command tick. During a dynamic sphere CCD hit,
+// it temporarily holds -(1 + consumedTickFraction); all solver position paths
+// consume the remaining time and clear it at their final substep.
 inline constexpr uint32_t kGpuBodyGenerationMask = 0x000f'ffffu;
 inline constexpr uint32_t kGpuBodyAliveFlag = 1u << 20u;
 inline constexpr uint32_t kGpuBodyAwakeFlag = 1u << 21u;

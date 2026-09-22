@@ -142,6 +142,9 @@ TEST(ConfigDefaultsTest, CameraConfig) {
 
 TEST(ConfigDefaultsTest, LightingConfig) {
     LightingConfig config;
+    EXPECT_FALSE(config.dayNightEnabled);
+    EXPECT_FLOAT_EQ(config.dayCycleMinutes, 24.0f);
+    EXPECT_FLOAT_EQ(config.dayStartHour, 9.0f);
     EXPECT_FLOAT_EQ(config.sunDirection[0], 0.5f);
     EXPECT_FLOAT_EQ(config.sunDirection[1], 0.8f);
     EXPECT_FLOAT_EQ(config.sunDirection[2], 0.3f);
@@ -911,6 +914,9 @@ TEST_F(ConfigFileTest, SaveAndReload) {
     original.camera.fov = 75.0f;
     original.camera.eyeHeight = 2.25f;
     original.lighting.ambientIntensity = 0.65f;
+    original.lighting.dayNightEnabled = true;
+    original.lighting.dayCycleMinutes = 36.0f;
+    original.lighting.dayStartHour = 17.5f;
     original.debug.logLevel = "trace";
     original.physics.backend = "box3d";
     original.physics.gpuMaxBodies = 200000;
@@ -931,6 +937,9 @@ TEST_F(ConfigFileTest, SaveAndReload) {
     EXPECT_FLOAT_EQ(loaded.camera.fov, original.camera.fov);
     EXPECT_FLOAT_EQ(loaded.camera.eyeHeight, original.camera.eyeHeight);
     EXPECT_FLOAT_EQ(loaded.lighting.ambientIntensity, original.lighting.ambientIntensity);
+    EXPECT_EQ(loaded.lighting.dayNightEnabled, original.lighting.dayNightEnabled);
+    EXPECT_FLOAT_EQ(loaded.lighting.dayCycleMinutes, original.lighting.dayCycleMinutes);
+    EXPECT_FLOAT_EQ(loaded.lighting.dayStartHour, original.lighting.dayStartHour);
     EXPECT_EQ(loaded.debug.logLevel, original.debug.logLevel);
     EXPECT_EQ(loaded.physics, original.physics);
 }

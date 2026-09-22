@@ -183,6 +183,10 @@ struct WaterSpectrumSettings {
 /// separate from startup/asset configuration: every member is safe to edit
 /// while the application is running.
 struct RendererRuntimeSettings {
+    bool dayNightEnabled = false;
+    bool dayNightPaused = false;
+    double dayHour = 9.0;
+    float dayCycleMinutes = 24.0f;
     glm::vec3 sunDirection = {0.6040228f, 0.7660444f, 0.2198463f};
     glm::vec3 sunColor = {1.0f, 0.95f, 0.9f};
     float sunIntensity = 1.0f;
@@ -299,6 +303,10 @@ struct ApplicationConfig {
     float fogDensity = 0.0001f;
     glm::vec3 fogColor = {0.36f, 0.58f, 0.64f};
 
+    bool dayNightEnabled = false;
+    float dayCycleMinutes = 24.0f;
+    float dayStartHour = 9.0f;
+
     // Water settings
     bool waterEnabled = true;
     float waterHeight = -230.0f;
@@ -402,6 +410,9 @@ struct ApplicationStats {
     uint64_t raycastTerrainCacheRefreshes = 0;
     uint64_t raycastStaticCacheFrames = 0;
     uint64_t geometryWaterFrames = 0;
+    // Admission waits must not acquire/present an undrawn canvas texture.
+    uint64_t physicsDeferredFrames = 0;
+    uint64_t surfaceAcquiredFrames = 0;
 
     physics::BackendType physicsBackend = physics::BackendType::JoltLegacy;
     physics::PhysicsStats physics{};
@@ -766,6 +777,7 @@ public:
     }
 
 private:
+    friend class ApplicationDayNightTest;
     // ─────────────────────────────────────────────────────────────────────────
     // Initialization Helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -814,6 +826,7 @@ private:
     [[nodiscard]] bool initLegoLayout();
     void updateLegoLayout();
     void applyRendererSettings();
+    void updateDayNight(float seconds);
     void updateWaterPhysicsBindings();
     [[nodiscard]] bool rebuildWaterCoastField();
     [[nodiscard]] bool rebuildSunShadowMap();
@@ -860,7 +873,12 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     ApplicationConfig config_;
+    double dayNightLightingSeconds_ = 0.0;
+    double dayNightRenderHour_ = 9.0;
+    float dayNightDaylight_ = 1.0f;
     RendererRuntimeSettings rendererSettings_{};
+    RendererRuntimeSettings fixedLightingSettings_{};
+    bool pendingFixedSunShadow_ = false;
     uint64_t rendererSettingsRevision_ = 0;
     uint64_t appliedRendererSettingsRevision_ = 0;
     uint32_t rendererSettingsDirty_ = 0;

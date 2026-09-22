@@ -13,7 +13,7 @@ from check_cove_robot import inspect
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
-def check_grips(path):
+def check_grips(path, builder=False):
     raw=path.read_bytes();length=struct.unpack_from('<I',raw,12)[0]
     doc=json.loads(raw[20:20+length]);blob=raw[28+length:];out={}
     for node in doc['nodes']:
@@ -29,7 +29,7 @@ def check_grips(path):
                 points.append((-x,y+.047,-z+.026))
         inner=min(math.hypot(x,y) for x,y,z in points)
         assert inner>.044, 'toy hand centre must remain genuinely open'
-        assert not any(y<-.032 and abs(x)<.031 for x,y,z in points), 'toy C-hand bottom gap is filled'
+        assert not any(y<-.032 and abs(x)<(.017 if builder else .031) for x,y,z in points), 'toy C-hand bottom gap is filled'
         out[node['name']]=dict(inner_vertex_radius_m=inner,vertices=len(points),
             bottom_gap_open=True,scope='Actual exported hand vertices and closed-component topology; no filled palm/disc.')
     assert len(out)==2
@@ -41,18 +41,20 @@ def main():
     for lod in range(3):
         path=a.package/'source'/f'human-lod-{lod}.glb'
         assert sha(path)==provenance['lods'][lod]['glb_sha256']
-        report=inspect(path)
+        builder=provenance.get('variant')=='classic-builder'
+        # The splayed toy arms are visual geometry outside the unchanged core capsule.
+        report=inspect(path, capsule_radius=.4, visual_margin=.02, maximum_walk_width=1.27) if builder else inspect(path)
         assert report['clips']['idle']['maximum'][1]<=1.700001, 'idle exceeds standing height'
         for clip in ('walk','land','fall'):
             assert report['clips'][clip]['minimum'][1]>=-1e-5, clip+' foot penetrates ground'
         report['source_sha256']=sha(path)
-        report['open_toy_grips']=check_grips(path)
+        report['open_toy_grips']=check_grips(path,builder)
         report['clearance']=dict(doorway_width_m=1.36,doorway_height_m=2.24,
             walk_width_margin_m=1.36-report['clips']['walk']['width'],
             standing_height_margin_m=2.24-report['bind']['maximum'][1],
-            note='Standing core fits the unchanged .3m-radius / 1.7m controller capsule. Walk samples check actual foot vertices. Raised hands, jumps and tool reaches are visual envelopes, never colliders.')
+            note=('Builder core uses a .4-unit capsule plus .02-unit art relief, scaled 2.8 in creative mode. Old doorway dimensions are legacy and are not a creative fit claim. ' if builder else 'Standing core fits the unchanged .3m-radius / 1.7m controller capsule. ')+'Walk samples check actual foot vertices. Raised hands, jumps and tool reaches are visual envelopes, never colliders.')
         reports.append(report)
-    print(json.dumps(dict(schema=1,asset='voxys-adventure-human-r01',authoring_sha256=sha(ROOT/'tools/adventure_assets/author_human_adventurer.py'),
+    print(json.dumps(dict(schema=1,asset='voxys-free-build-builder-r01' if provenance.get('variant')=='classic-builder' else 'voxys-adventure-human-r01',authoring_sha256=sha(ROOT/'tools/adventure_assets/author_human_adventurer.py'),
         checker_sha256=sha(Path(__file__)),shared_sampler_sha256=sha(ROOT/'tools/salvage_assets/check_cove_robot.py'),lods=reports),indent=2))
 
 if __name__=='__main__':main()

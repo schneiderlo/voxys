@@ -22,14 +22,20 @@ set(GAME_SOURCES
     game/adventure/world_definition.cpp
     game/adventure/spatial_queries.cpp
     game/adventure/adventure_player.cpp
+    game/adventure/builder_motorbike.cpp
     game/adventure/layered_navigation.cpp
     game/adventure/adventure_progress.cpp
     game/adventure/adventure_encounters.cpp
     game/adventure/adventure_combat.cpp
     game/adventure/construction_policy.cpp
+    game/adventure/imported_wall_physics.cpp
+    game/adventure/imported_assembly.cpp
+    game/adventure/cannon_physics_scene.cpp
     game/adventure/adventure_runtime.cpp
     game/adventure/quests.cpp
     game/adventure/town_residents.cpp
+    game/adventure/creative_village.cpp
+    game/adventure/creative_scenery.cpp
     game/adventure/village_layout.cpp
     game/adventure/adventure_presentation.cpp
     game/adventure/adventure_trail_content.cpp

@@ -77,6 +77,18 @@ def apply(obj, profile=MANUFACTURED):
         bpy.ops.object.modifier_apply(modifier=modifier.name)
         mesh=obj.data
         method='face area / corner angle weighted; hard edge above 50 degrees'
+    if kind=='sculpted':
+        # Deep sculpted creases can gather an opposing weighted normal across
+        # several shallow neighboring faces. Split those corners to the local
+        # face instead of exporting an inward-facing lighting normal.
+        mesh.update()
+        normals=[n.vector.copy() for n in mesh.corner_normals]
+        for face in mesh.polygons:
+            for index in face.loop_indices:
+                if normals[index].dot(face.normal)<=.05:
+                    normals[index]=face.normal.copy()
+        mesh.normals_split_custom_set(normals)
+        method+='; face-safe sculpted creases'
     mesh.update()
     if before!=[tuple(v.co) for v in mesh.vertices]:raise ValueError('surface shading changed vertex positions')
     if not mesh.has_custom_normals:raise ValueError('surface recipe failed to retain custom normals')
@@ -87,7 +99,7 @@ def apply(obj, profile=MANUFACTURED):
             maximum_length_error=max(maximum_length_error,abs(normal.length-1))
             minimum_dot=min(minimum_dot,normal.dot(face.normal))
     if maximum_length_error>1e-4 or minimum_dot<=0:
-        raise ValueError(f'invalid manufactured shading normals: {minimum_dot}, {maximum_length_error}')
+        raise ValueError(f'{obj.name}: invalid manufactured shading normals: {minimum_dot}, {maximum_length_error}')
     return dict(component=obj.name,method=method,sharp_edges=sum(e.use_edge_sharp for e in mesh.edges),
                 minimum_face_alignment=minimum_dot,maximum_unit_length_error=maximum_length_error,
                 positions_unchanged=True)

@@ -1,6 +1,8 @@
 #include "game/adventure/construction_policy.hpp"
 #include "game/adventure/building_doors.hpp"
+#include "game/adventure/adventure_player.hpp"
 #include "game/adventure/world_definition.hpp"
+#include "game/adventure/creative_scenery.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -117,13 +119,15 @@ bool partMoved(const WorldPart* old,const WorldPart& part) noexcept {
 bool validateDoorClearance(const AdventureState& before,const AdventureState& after,
     const AdventureSpatialQueries& accepted,std::span<const Solid> solids,std::string& error,bool freeBuild) {
     const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
-    const Solid player{{},{},feet+glm::dvec3(-.3,0,-.3),feet+glm::dvec3(.3,1.7,.3)};
+    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+    const double radius=(freeBuild?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,height=AdventurePlayer::height*scale;
+    const Solid player{{},{},feet+glm::dvec3(-radius,0,-radius),feet+glm::dvec3(radius,height,radius)};
     for(const auto& structure:after.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor) {
         const auto* door=doorFor(after,part.id);const auto* oldDoor=doorFor(before,part.id);
         if(!door){error="Door state is unavailable";return false;}
         const bool moved=partMoved(partFor(before,part.id),part);
         const bool toggled=oldDoor&&oldDoor->doorOpen!=door->doorOpen;
-        if(toggled&&!reachableComponent(before,oldDoor->id,accepted,error))return false;
+        if(toggled&&!reachableComponent(before,oldDoor->id,accepted,error,freeBuild))return false;
         for(const auto& local:doorSweepBoxes()) {
             const auto sweep=worldBox(after,structure,part,local);
             const auto [lowest,highest]=terrainRange(accepted.terrain(),sweep);(void)lowest;
@@ -140,6 +144,9 @@ bool validateDoorClearance(const AdventureState& before,const AdventureState& af
                     // Old owned boxes are replaced by the full candidate above.
                     // Installed actors and scenery remain authoritative here.
                     if(partFor(before,solid.part.counter)||partFor(after,solid.part.counter))continue;
+                    // Creative props yield to the candidate's entire reserved
+                    // door swing at the same commit boundary as their draws.
+                    if(freeBuild&&isCreativeScenerySolid(solid))continue;
                     if(overlaps(sweep,solid)){error="The door's swing is blocked by a character or scenery";return false;}
                 }
             }
@@ -197,7 +204,9 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
     std::vector<Solid> solids;std::vector<bool> supports;
     if(!compileGeometry(after,solids,&supports,error)||!validateDoorClearance(before,after,accepted,solids,error,freeBuild))return false;
     const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
-    const Solid player{{},{},feet+glm::dvec3(-.3,0,-.3),feet+glm::dvec3(.3,1.7,.3)};
+    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+    const double radius=(freeBuild?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,height=AdventurePlayer::height*scale;
+    const Solid player{{},{},feet+glm::dvec3(-radius,0,-radius),feet+glm::dvec3(radius,height,radius)};
     std::map<uint64_t,std::vector<size_t>> partSolids;
     std::set<uint64_t> supported;
     for(size_t i=0;i<solids.size();++i)partSolids[solids[i].part.counter].push_back(i);
@@ -215,7 +224,7 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
             } else if(solid.minimum.y<highest-.021) {error="This piece intersects the terrain";return false;}
             if(freeBuild&&supports[index]&&std::abs(solid.minimum.y-highest)<=contactTolerance)terrainAnchor=true;
             if(moved) {
-                if(glm::length(glm::clamp(feet+glm::dvec3(0,.85,0),solid.minimum,solid.maximum)-(feet+glm::dvec3(0,.85,0)))>12) {error="Move closer to build";return false;}
+                if(glm::length(glm::clamp(feet+glm::dvec3(0,height*.5,0),solid.minimum,solid.maximum)-(feet+glm::dvec3(0,height*.5,0)))>12) {error="Move closer to build";return false;}
                 if(!freeBuild&&protectedConstruction(solid.minimum,solid.maximum)) {error="Keep the town and landmark access clear";return false;}
                 if(overlaps(solid,player)) {error="Move out of the building preview";return false;}
             }
@@ -246,7 +255,7 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
     // recovery revalidates shelter/clearance and falls back to town if needed.
     error.clear();return true;
 }
-bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureSpatialQueries& queries,std::string& error) {
+bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureSpatialQueries& queries,std::string& error,bool freeBuild) {
     const auto* component=componentFor(state,id);const auto* part=component?partFor(state,component->part):nullptr;
     if(!part) {error="This furniture is unavailable";return false;}
     const auto* definition=buildingDefinition(part->kind);if(!definition) {error="Unknown furniture";return false;}
@@ -257,9 +266,10 @@ bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureS
         for(uint8_t i=0;i<part->yawQuarterTurns;++i)local={local.z,local.y,-local.x};
     }
     const auto center=metres(part->position)+local;
-    const glm::dvec3 eye(state.player.x,state.player.y+1.55,state.player.z);const auto delta=center-eye;
+    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+    const glm::dvec3 eye(state.player.x,state.player.y+AdventurePlayer::eyeHeight*scale,state.player.z);const auto delta=center-eye;
     const double distance=glm::length(delta);
-    if(distance>3.2) {error="Move closer to use it";return false;}
+    if(distance>3.2*scale) {error="Move closer to use it";return false;}
     if(distance>1e-5) {
         const auto ray=queries.raycast(eye,delta,distance);
         if(!ray.complete||(ray.hit&&ray.distance<distance-.12&&ray.part.counter!=part->id)) {error="The furniture is blocked";return false;}
@@ -309,7 +319,7 @@ bool validateInteractions(const AdventureState& before,const AdventureState& aft
     const AdventureContent& content,const AdventureSpatialQueries& queries,std::string& error) {
     for(const auto& component:after.components) {
         const auto* old=componentFor(before,component.id);
-        if(old&&old->slots!=component.slots&&!reachableComponent(before,component.id,queries,error))return false;
+        if(old&&old->slots!=component.slots&&!reachableComponent(before,component.id,queries,error,content.freeBuilding))return false;
     }
     for(const auto id:after.depletedNodes)if(!std::binary_search(before.depletedNodes.begin(),before.depletedNodes.end(),id)) {
         const auto node=std::find_if(content.resourceNodes.begin(),content.resourceNodes.end(),[&](const auto& n){return n.id==id;});
@@ -336,12 +346,12 @@ bool validateInteractions(const AdventureState& before,const AdventureState& aft
         ||ownedItems(after,ItemKind::TrailStaff)>ownedItems(before,ItemKind::TrailStaff)) {
         bool reachable=false;std::string reason;
         for(const auto& component:before.components)if(component.kind==FurnitureKind::Workbench
-            &&reachableComponent(before,component.id,queries,reason)) {reachable=true;break;}
+            &&reachableComponent(before,component.id,queries,reason,content.freeBuilding)) {reachable=true;break;}
         if(!reachable) {error="Use a nearby accessible workbench";return false;}
     }
     if(after.registeredBed&&(after.registeredBed!=before.registeredBed||after.recovery!=before.recovery||after.health>before.health)) {
         PlayerPose recovery;
-        if(!reachableComponent(before,after.registeredBed,queries,error)
+        if(!reachableComponent(before,after.registeredBed,queries,error,content.freeBuilding)
             ||!usableBed(before,after.registeredBed,queries,recovery,error))return false;
         if(glm::length(glm::dvec3(recovery.x-after.recovery.x,recovery.y-after.recovery.y,recovery.z-after.recovery.z))>.001) {
             error="Use the bed's safe recovery point";return false;

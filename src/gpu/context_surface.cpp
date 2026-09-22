@@ -492,8 +492,8 @@ WGPUTextureView Context::getCurrentTextureView() {
     wgpuSurfaceGetCurrentTexture(surface_, &surfaceTexture);
 
     if (surfaceTexture.status == WGPUSurfaceGetCurrentTextureStatus_Timeout) {
-        // No frame was acquired. The caller returns before reserving GPU or
-        // simulation work and can try again on its next render iteration.
+        // No frame was acquired. The caller discards any reserved GPU work
+        // and can try again on its next render iteration.
         if (!surfaceTimeoutPending_) {
             LOG_WARN("Surface acquisition timed out; skipping this frame");
             surfaceTimeoutPending_ = true;

@@ -72,20 +72,22 @@ std::optional<double> CoveCamera::nearPlaneRadius(Projection p) noexcept {
 }
 bool CoveCamera::settings(Settings value) noexcept {
     if(value.mode!=Mode::Orbit&&value.mode!=Mode::Chase)return false;
-    settings_=value;return true;
+    if(!std::isfinite(value.distanceLimit)||value.distanceLimit<minimumDistance
+        ||value.distanceLimit>extendedMaximumDistance)return false;
+    settings_=value;userDistance_=std::min(userDistance_,value.distanceLimit);return true;
 }
 void CoveCamera::reset() noexcept {
     pose_={};yaw_=0;elevation_=.32;userDistance_=4.8;releaseDistance_=0;
     orbitQuietSeconds_=0;initialized_=false;recentering_=false;
 }
 bool CoveCamera::setUserDistance(double metres) noexcept {
-    if(!std::isfinite(metres)||metres<minimumDistance||metres>maximumDistance)return false;
+    if(!std::isfinite(metres)||metres<minimumDistance||metres>settings_.distanceLimit)return false;
     userDistance_=metres;return true;
 }
 bool CoveCamera::restoreOrbit(double yaw,double elevation,double distance) noexcept {
     if(!std::isfinite(yaw)||!std::isfinite(elevation)||!std::isfinite(distance)
         ||elevation<minimumElevation||elevation>maximumElevation
-        ||distance<minimumDistance||distance>maximumDistance)return false;
+        ||distance<minimumDistance||distance>settings_.distanceLimit)return false;
     yaw_=wrap(yaw);elevation_=elevation;userDistance_=distance;
     initialized_=true;recentering_=false;orbitQuietSeconds_=0;releaseDistance_=0;pose_={};
     pose_.yaw=yaw_;pose_.elevation=elevation_;pose_.requestedDistance=userDistance_;
@@ -104,7 +106,7 @@ CoveCamera::Result CoveCamera::update(const Target& target,const Input& input,Pr
     if(input.active) {
         yaw_=wrap(yaw_+std::clamp(input.orbitRadians.x,-2*std::numbers::pi,2*std::numbers::pi));
         elevation_=std::clamp(elevation_+input.orbitRadians.y,minimumElevation,maximumElevation);
-        userDistance_=std::clamp(userDistance_*std::exp(-.14*std::clamp(input.zoomSteps,-100.,100.)),minimumDistance,maximumDistance);
+        userDistance_=std::clamp(userDistance_*std::exp(-.14*std::clamp(input.zoomSteps,-100.,100.)),minimumDistance,settings_.distanceLimit);
         if(manual){orbitQuietSeconds_=0;recentering_=false;}
         else orbitQuietSeconds_=std::min(orbitQuietSeconds_+dt,10.);
         if(input.recenter)recentering_=true;
@@ -122,7 +124,7 @@ CoveCamera::Result CoveCamera::update(const Target& target,const Input& input,Pr
 
     const auto backwards=back(yaw_,elevation_);const auto forward=-backwards;
     const double fit=settings_.frameLoad&&target.load?loadDistance(*target.load,target.anchor,forward,projection):0;
-    const double requested=std::clamp(std::max(userDistance_,fit),minimumDistance,maximumDistance);
+    const double requested=std::clamp(std::max(userDistance_,fit),minimumDistance,settings_.distanceLimit);
     Pose next;next.eye=target.anchor;next.viewTarget=target.anchor+forward;
     next.forward=forward;next.yaw=yaw_;next.elevation=elevation_;next.requestedDistance=requested;
     next.sphereRadius=*radius;next.geometryTick=target.geometryTick;

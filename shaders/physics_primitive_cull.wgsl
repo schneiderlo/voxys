@@ -116,6 +116,7 @@ fn visible_shape(body : u32) -> u32 {
     let pose = poses[body];
     if (pose.position_invMass.w < 0.0) { return 0u; }
     let shape = shapes[body];
+    if ((bitcast<u32>(shape.invInertia_material.w) & 0xf0000000u) == 0xc0000000u) { return 0u; }
     if (any(shape.authored_shape != vec4<u32>(0u))) { return 0u; }
     let dimensions = abs(shape.dimensions_type.xyz);
     if (max(dimensions.x, max(dimensions.y, dimensions.z)) <= 0.0) {

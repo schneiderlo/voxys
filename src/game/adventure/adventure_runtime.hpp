@@ -3,11 +3,18 @@
 #include "game/adventure/building_blueprints.hpp"
 #include "game/adventure/adventure_preferences.hpp"
 #include "game/adventure/adventure_player.hpp"
+#include "game/adventure/adventure_swim_animation.hpp"
+#include "game/adventure/builder_motorbike.hpp"
+#include "game/adventure/builder_cannon.hpp"
+#include "game/adventure/brick_thrower.hpp"
+#include "game/adventure/player_physics_proxy.hpp"
+#include "game/adventure/imported_wall_physics.hpp"
 #include "game/adventure/adventure_presentation.hpp"
 #include "game/adventure/adventure_pointer.hpp"
 #include "game/adventure/menu_intent.hpp"
 #include "game/adventure/town_residents.hpp"
 #include "game/adventure/village_layout.hpp"
+#include "game/adventure/creative_scenery.hpp"
 #include "game/adventure/adventure_combat.hpp"
 #include "game/adventure/trail_sites.hpp"
 #include "game/adventure/trail_presentation.hpp"
@@ -23,6 +30,7 @@ namespace voxy { class Input; class Camera; namespace platform {class NativeAdve
 namespace voxy::game::adventure {
 // Application owns the terrain and frame. This adapter owns one accepted solo
 // adventure; rendering and input never mutate inventory outside session commands.
+class CannonPhysicsScene;
 class AdventureRuntime {
 public:
     explicit AdventureRuntime(bool freeBuild=false);
@@ -30,6 +38,8 @@ public:
     static bool stageWorld(std::string_view world,std::string_view archiveHex);
     bool initialize(terrain::lego::Surface,WGPUDevice,WGPUQueue,
         const std::filesystem::path& shaderDirectory,WGPUTextureFormat,std::string&);
+    void attachPhysics(physics::PhysicsWorld&);
+    bool physicsWaiting() const noexcept;
     void update(double seconds,Input&,Camera&,uint32_t width,uint32_t height,glm::dvec2 logicalPointerExtent);
     bool render(WGPUCommandEncoder,WGPUTextureView color,WGPUTextureView depth,
         WGPUTextureView linearDepth,WGPUTextureView environment,WGPUTextureView rayDepth,
@@ -43,8 +53,11 @@ public:
     bool restore(std::span<const std::byte>,construction::WorldNamespace,std::string&);
     bool consumeSaveRequest() noexcept {return std::exchange(saveRequested_,false);}
     void saveCompleted(std::string status);
+    bool isPaused() const noexcept { return menu_ != Menu::None; }
     const AdventureState& state() const {return session_->state();}
     const AdventureContent& content() const {return content_;}
+    const AdventureSpatialQueries& spatialQueries() const noexcept {return queries_;}
+    std::span<const uint32_t> thrownBrickBodyIds() const noexcept {return brickThrower_.bodyIds();}
 private:
     enum class Menu {None,Main,Catalog,Chest,Dialogue,Workbench,Journal,Bag,Settings,Controls,CombatBinding,BindingChoice,GuideTopics,Guide};
     enum class MenuOperation {Close,Catalog,Save,Recover,TextScale,Contrast,Motion,Starter,Journal,
@@ -69,6 +82,17 @@ private:
     bool closeCurrentMode();
     std::string_view mode() const;
     void recover();
+    void toggleMotorbike();
+    void toggleCannon();
+    void fireCannon();
+    void throwBricks(uint32_t count);
+    void updateCannonPhysics();
+    void updateImportedWall();
+    void changeImportedWall(bool rebuild, bool removeSupport = false);
+    bool wallLocked() const noexcept;
+    bool cannonVisible() const noexcept;
+    void appendCannon(const AdventureState&,std::vector<AdventureSpatialQueries::Solid>&,
+        std::vector<AdventureSpatialQueries::Solid>&,bool) const;
     void talk(uint8_t npc);
     void equipCompass(uint8_t slot);
     void craftAtBench(bool compass);
@@ -86,7 +110,7 @@ private:
     void refreshHud();
     uint64_t nearbyComponent() const;
     std::string interactionLabel() const;
-    bool prepareGeometry(const AdventureState&,AdventureSpatialQueries&,TownResidents&,VillageLayout&,TrailSites&,std::string&,bool preserveInstalled=true) const;
+    bool prepareGeometry(const AdventureState&,AdventureSpatialQueries&,TownResidents&,VillageLayout&,TrailSites&,CreativeScenery&,std::string&,bool preserveInstalled=true,bool validate=true) const;
     std::unique_ptr<AdventureSession> session_;
     AdventureContent content_;
     AdventureSpatialQueries queries_;
@@ -97,12 +121,44 @@ private:
     bool pendingAttack_=false,pendingDodge_=false,pendingJump_=false;
     TownResidents town_;
     VillageLayout village_;
+    CreativeScenery scenery_;
+    // Installed set geometry is derived scenery, never player-owned save data.
+    // Rendering follows its accepted collision packet, including suppression
+    // when a saved build or actor already occupies the plot.
+    std::optional<glm::dvec3> blacksmithFeet_;
+    bool blacksmithVisible() const noexcept;
+    void appendBlacksmith(const AdventureState&,std::vector<AdventureSpatialQueries::Solid>&,
+        std::vector<AdventureSpatialQueries::Solid>&,bool preserveInstalled) const;
+    physics::PhysicsWorld* physics_=nullptr; // Borrowed from Application, which outlives this runtime.
+    std::unique_ptr<CannonPhysicsScene> cannonPhysics_;
+    BuilderCannon cannon_;
+    BrickThrower brickThrower_;
+    PlayerPhysicsProxy playerPhysics_;
+    std::optional<ImportedAssemblySource> wallSource_;
+    std::unique_ptr<ImportedWallPhysics> wall_;
+    uint64_t wallGeometryRevision_=0;
+    uint64_t cannonEventsThrough_=0,cannonImpacts_=0;
+    uint64_t cannonContacts_=0;
+    uint32_t cannonContactFeature_=0,cannonContactBody_=0;
+    float cannonContactSpeed_=0,cannonContactImpulse_=0;
+    bool cannonEventsReady_=false;
+    void updateCannonImpacts();
+    bool wallQueryFailure_=false;
+    std::optional<glm::dvec3> cannonFeet_;
+    bool usingCannon_=false,inspectWall_=false;
+    glm::dvec3 wallInspectionPoint_{};
+    uint64_t staticGeometryEpoch_=1,cannonObservedEpoch_=0,cannonGeometryEpoch_=1,cannonPreparedEpoch_=0,cannonFailedEpoch_=0;
+    std::vector<AdventureSpatialQueries::Solid> cannonRegion_;
+    std::string cannonPhysicsError_;
     TrailSites trailSites_;
     // Changes only with accepted static geometry, not every combat/HUD tick.
     FirstHomeReadiness fieldHome_;
     AdventurePlayer player_;
+    BuilderMotorbike motorbike_;
+    bool riding_=false;
     expedition::CoveCamera orbit_;
     expedition::CoveCharacter character_;
+    AdventureSwimAnimation swimAnimation_;
     std::array<expedition::CoveCharacter,3> residentCharacters_;
     std::array<expedition::CoveCharacter,kAdventureEncounterCount> enemyCharacters_;
     std::array<double,3> residentFacing_{};
@@ -112,6 +168,17 @@ private:
     std::shared_ptr<const assets::RigidAnimationAsset> raider_;
     std::array<std::shared_ptr<const assets::RigidAnimationAsset>,3> residentAssets_;
     render::MeshPath meshes_;
+    struct ForestDraw { CreativeProp prop; render::MeshDrawInstance instance; };
+    struct ForestTile { glm::dvec3 minimum,maximum; uint32_t first,count; };
+    std::vector<ForestDraw> forestDraws_;
+    std::vector<ForestTile> forestTiles_;
+    std::vector<uint32_t> forestSelection_;
+    uint64_t forestDrawEpoch_=0;
+    std::shared_ptr<const std::vector<CreativeProp>> forestDrawSource_;
+    std::vector<uint64_t> forestAdmissionMask_;
+    glm::dvec3 forestDrawOrigin_{};
+    uint32_t forestVisited_=0,forestVisible_=0;
+    double forestSelectionMs_=0;
     render::AdventureHudPath hud_;
     render::AdventureHudContent hudContent_;
     uint64_t savedRevision_=0;
@@ -138,7 +205,7 @@ private:
     std::vector<MenuCommand> menuCommands_;
     std::string menuTitle_,menuText_,menuStatus_;
     BlueprintKind blueprint_=BlueprintKind::None;
-    uint64_t lastBlueprint_=0,observationSerial_=0;
+    uint64_t lastBlueprint_=0,observationSerial_=0,interactionStatusSerial_=0;
     glm::dvec3 observedEye_{},observedTarget_{},observedOrigin_{};
     glm::dmat4 observedViewProjection_{1};
     uint32_t observedWidth_=0,observedHeight_=0;
@@ -187,7 +254,7 @@ private:
     struct AimRayKey {
         construction::WorldNamespace world{};
         uint64_t epoch=0,geometryRevision=0;
-        std::array<uint64_t,6> rayBits{};
+        std::array<uint64_t,7> rayBits{};
         bool operator==(const AimRayKey&) const = default;
     };
     struct AimRayResult {AimRayKey key;AdventureSpatialQueries::RayHit hit;};

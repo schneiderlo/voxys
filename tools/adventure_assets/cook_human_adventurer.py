@@ -19,6 +19,7 @@ def main():
     if output.exists() or output.is_symlink() or not output.parent.is_dir():p.error('new output directory required')
     provenance=json.loads((source/'provenance.json').read_text())
     if provenance.get('asset')!='original-warm-brick-minifigure' or provenance.get('profile')!='salvage-animated-rigid-v1' or len(provenance.get('lods',[]))!=3:p.error('complete authored human source required')
+    identity='voxys-free-build-builder-r01' if provenance.get('variant')=='classic-builder' else 'voxys-adventure-human-r01'
     records=[]
     with tempfile.TemporaryDirectory(prefix='.human-cook-',dir=output.parent) as tmp:
         pending=Path(tmp)/'package';pending.mkdir();(pending/'source').mkdir()
@@ -36,10 +37,10 @@ def main():
             counts=struct.unpack_from('<12I',payload,16);gpu=counts[0]*72+counts[2]*4+counts[5]*64
             if counts[6]!=22 or counts[7]!=15 or not 15<=counts[4]<=48 or counts[10]!=8 or counts[8] or counts[9]:raise RuntimeError('hierarchy/clip/skin contract mismatch')
             if gpu>1024*1024:raise RuntimeError('human GPU payload exceeds1MiB')
-            records.append(dict(lod=lod,asset_id=f'voxys-adventure-human-r01-lod{lod}',filename=filename,
+            records.append(dict(lod=lod,asset_id=f'{identity}-lod{lod}',filename=filename,
                 sha256=sha(pending/filename),bytes=len(payload),gpu_bytes=gpu,vertex_count=counts[0],index_count=counts[2],mesh_count=counts[7],node_count=counts[6],
                 expanded_draws=counts[4],clips=counts[10],channels=counts[11],source_sha256=authored['glb_sha256'],cook_exit=result.returncode))
-        manifest=dict(schema=1,profile='salvage-animated-rigid-v1',asset_id='voxys-adventure-human-r01',render_to_canonical=12,filename='human.vmesh',sha256=records[0]['sha256'],
+        manifest=dict(schema=1,profile='salvage-animated-rigid-v1',asset_id=identity,render_to_canonical=12,filename='human.vmesh',sha256=records[0]['sha256'],
             maximum_nodes=32,maximum_meshes=24,maximum_draws=48,clips=provenance['clips'],anchors=provenance['anchors'],source_sha256=records[0]['source_sha256'],
             provenance_sha256=sha(pending/'provenance.json'),cooker_sha256=sha(tool),cook_recipe_sha256=sha(Path(__file__)),lods=records)
         (pending/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')

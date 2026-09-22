@@ -29,7 +29,7 @@ namespace voxy::game::adventure {
     const AdventureSpatialQueries&,PlayerPose& recovery,std::string& error);
 // Shared furniture use reach and direct sight to a point above its surface.
 [[nodiscard]] bool reachableComponent(const AdventureState&,uint64_t component,
-    const AdventureSpatialQueries&,std::string& error);
+    const AdventureSpatialQueries&,std::string& error,bool freeBuild=false);
 [[nodiscard]] bool validateInteractions(const AdventureState& before,const AdventureState& after,
     const AdventureContent&,const AdventureSpatialQueries&,std::string& error);
 // Optional layout only; grants no items or accepted geometry. Origin is the

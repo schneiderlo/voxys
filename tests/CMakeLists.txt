@@ -105,6 +105,7 @@ set(TEST_SOURCES
     test_wreckwater_replay_playback.cpp
     test_wreckwater_vessel_damage.cpp
     test_config.cpp
+    test_day_night.cpp
     test_window.cpp
     test_input.cpp
     test_gamepad.cpp
@@ -1164,3 +1165,27 @@ if(NOT EMSCRIPTEN)
     gtest_discover_tests(adventure_preferences_store_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_preferences_store.")
 endif()
+
+add_executable(cannon_physics_scene_tests test_cannon_physics_scene.cpp test_cannon_physics_scene_gpu.cpp test_builder_cannon.cpp)
+target_link_libraries(cannon_physics_scene_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(cannon_physics_scene_tests)
+gtest_discover_tests(cannon_physics_scene_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "cannon_physics_scene.")
+
+add_executable(imported_assembly_tests test_imported_assembly.cpp)
+target_link_libraries(imported_assembly_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(imported_assembly_tests)
+gtest_discover_tests(imported_assembly_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "imported_assembly.")
+
+add_executable(imported_wall_physics_tests test_imported_wall_physics.cpp)
+target_link_libraries(imported_wall_physics_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(imported_wall_physics_tests)
+gtest_discover_tests(imported_wall_physics_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "imported_wall_physics.")
+
+add_executable(imported_stack_tests test_imported_stack.cpp)
+target_link_libraries(imported_stack_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(imported_stack_tests)
+gtest_discover_tests(imported_stack_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "imported_stack.")

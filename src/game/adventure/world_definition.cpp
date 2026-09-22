@@ -24,6 +24,11 @@ glm::dvec3 townSpawn(const terrain::lego::Surface& surface) noexcept {
     if(!surface.valid())return {p.x,std::numeric_limits<double>::infinity(),p.y};
     return {p.x,double(terrain::lego::supportHeight(surface,glm::vec2(p),.3f))+.005,p.y};
 }
+glm::dvec3 creativeSpawn(const terrain::lego::Surface& surface,double bodyRadius) noexcept {
+    if(!surface.valid()||!std::isfinite(bodyRadius)||bodyRadius<=0)
+        return {creativeStart.x,std::numeric_limits<double>::infinity(),creativeStart.y};
+    return {creativeStart.x,double(terrain::lego::supportHeight(surface,glm::vec2(creativeStart),float(bodyRadius)))+.005,creativeStart.y};
+}
 bool protectedConstruction(glm::dvec3 lo,glm::dvec3 hi) noexcept {
     for(int axis=0;axis<3;++axis)if(!std::isfinite(lo[axis])||!std::isfinite(hi[axis])||lo[axis]>=hi[axis])return true;
     const auto& w=installedWorld();

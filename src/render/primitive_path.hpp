@@ -65,10 +65,13 @@ struct PrimitiveLighting {
     glm::vec3 fogColor{0.36f, 0.58f, 0.64f};
     float fogDensity = 0.0001f;
     float exposure = 1.0f;
+    // Zero selects the fixed environment; otherwise session hour + 1.
+    float dayNightHour = 0.0f;
 };
 
 class PrimitivePath {
 public:
+    static constexpr size_t maximumLegoBodies = 1024;
     PrimitivePath() = default;
     ~PrimitivePath();
 
@@ -157,7 +160,7 @@ private:
     WGPUBindGroup legoBindGroup_ = nullptr;
     WGPUBuffer legoIdsBuffer_ = nullptr;
     DrawRange legoRange_{};
-    std::array<uint32_t, 48> legoIds_{};
+    std::array<uint32_t, maximumLegoBodies> legoIds_{};
     uint32_t legoCount_ = 0;
     WGPUBindGroup compactBindGroup_ = nullptr;
     WGPURenderBundle compactRenderBundle_ = nullptr;

@@ -31,10 +31,12 @@ function App({engine,environment}){
     useLayoutEffect(()=>{bar.current?.querySelector('[aria-pressed="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest',behavior:'instant'});},[state?.piece,state?.mode]);
     useEffect(()=>{
         if(!state||state.failed)return;
-        const changed=lastStatus.current!==null&&lastStatus.current!==state.status;lastStatus.current=state.status;
+        const previous=lastStatus.current;
+        const changed=previous!==null&&(previous.status!==state.status||previous.event!==state.statusEvent);
+        lastStatus.current={status:state.status,event:state.statusEvent};
         if(!changed)return;
         setToast(text(state.status));const timer=environment.setTimeout(()=>setToast(''),3000);return ()=>environment.clearTimeout(timer);
-    },[state?.status]);
+    },[state?.status,state?.statusEvent]);
     useEffect(()=>{
         if(!popup)return;
         const dismiss=e=>{if(!root.current?.querySelector('.bb-popup')?.contains(e.target)&&!e.target.closest?.('[data-popup-toggle]'))setPopup(null);};
@@ -60,6 +62,7 @@ function App({engine,environment}){
     };
     const selectedColour=colours.find(c=>c[1]===state?.paint)||colours[0];
     const saved=state?.dirty===false&&state?.saveStatus?.startsWith('Saved'),saveLabel=state?.saveStatus?.startsWith('Saving')?'Saving…':saved?'Saved':'Save';
+    const cannonLabel=state?.cannon?.nearby===false?'Visit cannon':'Cannon';
     const toggle=which=>setPopup(popup===which?null:which);
     const modalRow=(row,index)=>{
         const Icon=/Save/.test(row.label)?Save:/controls|settings|Reset|sensitivity|motion|Text|Contrast|look|Invert|deadzone/i.test(row.label)?Settings2:/play|help/i.test(row.label)?HelpCircle:ChevronRight;
@@ -73,7 +76,9 @@ function App({engine,environment}){
         onPointerDown={event=>event.stopPropagation()} onKeyDown={keyDown} onKeyUp={event=>event.stopPropagation()}
         onFocusIn={()=>bridge.current?.own(true)} onFocusOut={event=>{if(!root.current?.contains(event.relatedTarget))bridge.current?.own(false);}}>
         <nav class="bb-top-actions" aria-label="Game controls">
-            <Button icon={saved?Check:Save} disabled={busy} onClick={()=>act(8)} title={text(state?.saveStatus)}>{saveLabel}</Button>
+            {!modal&&!state?.cannon?.active&&<Button shortcut="M" disabled={busy} onClick={()=>act(32)}>{state?.riding?'Get off':'Motorbike'}</Button>}
+            {!modal&&state?.cannon?.available&&<Button shortcut="C" aria-label={state.cannon.active?'Leave cannon':cannonLabel} disabled={busy||state.cannon?.wallBusy||state.cannon?.awaitingHit} onClick={()=>act(33)}>{state.cannon.active?'Leave cannon':cannonLabel}</Button>}
+            <Button icon={saved?Check:Save} aria-label="Save build" disabled={busy} onClick={()=>act(8)} title={text(state?.saveStatus)}>{saveLabel}</Button>
             <Button icon={Menu} aria-label="Open menu" title="Menu" disabled={busy||modal} onClick={()=>act(31)} className="bb-icon"/>
         </nav>
         {state?.failed?<section class="bb-error" role="alert"><TriangleAlert/><strong>Building controls are unavailable.</strong><p>{text(state.message)}</p><p>Reload to try again. Saved builds are kept.</p></section>:
@@ -89,7 +94,7 @@ function App({engine,environment}){
                     <button type="button" class="bb-colour-toggle bb-round" style={{'--swatch':selectedColour[2]}} data-popup-toggle="colour" aria-label={`Choose colour · ${selectedColour[0]}`} title="Colour" aria-expanded={popup==='colour'} aria-controls="bb-colour-popup" disabled={busy} onClick={()=>toggle('colour')}><span/></button>
                     <Button icon={Ellipsis} className="bb-icon bb-round" data-popup-toggle="tools" aria-label="Building tools" title="Building tools" aria-expanded={popup==='tools'} aria-controls="bb-tools-popup" disabled={busy} onClick={()=>toggle('tools')}/>
                 </div>
-                <div class="bb-hints"><span>Scroll · pieces</span><span>R · rotate</span><span>Ctrl + scroll · zoom</span></div>
+                <div class="bb-hints">{state.swimming?<><span>Space · rise</span><span>X · dive</span><span>Right-drag · steer</span></>:<><span>Scroll · pieces</span><span>R · rotate</span><span>Ctrl + scroll · zoom</span></>}</div>
                 {popup==='colour'&&<section id="bb-colour-popup" class="bb-popup bb-colours" aria-label="Colour palette"><div class="bb-popup-title"><strong>{selectedColour[0]}</strong><small>For new pieces</small></div><div role="group" aria-label="Colour for new pieces" class="bb-swatches">
                     {colours.map(([name,value,colour])=><button type="button" key={value} class="bb-swatch" style={{'--swatch':colour}} aria-label={`${name} colour`} title={name} aria-pressed={(state.paint||0)===value} disabled={busy||!state.colourAvailable}
                         onClick={()=>{if(act(30,value))setPopup(null);}}>{(state.paint||0)===value&&<Check size={16}/>}</button>)}
@@ -105,7 +110,15 @@ function App({engine,environment}){
                 </section>}
                 {!state.valid&&<div class="bb-placement-note">{text(state.previewReason)||'Point at the ground to begin'}</div>}
             </section>}
-            {!modal&&state.mode==='explore'&&<section class="bb-walk-dock"><Button icon={Hand} disabled={busy} onClick={()=>act(7)}>{text(state.interaction)||'Use nearby'}</Button><Button icon={Plus} shortcut="B" disabled={busy} onClick={()=>act(21)}>Build</Button></section>}
+            {!modal&&state.cannon?.active&&<section class="bb-walk-dock" aria-label="Cannon controls">
+                <span>{state.cannon.inspectingWall?'Wall close-up · A/D or W/S to return to aiming':'A/D · turn　 W/S · elevation'}</span>
+                <Button shortcut="Space" disabled={busy||!state.cannon.ready||state.cannon.awaitingHit} onClick={()=>act(34)}>Fire</Button>
+                <Button disabled={busy||(!state.cannon.wallReleased&&!state.cannon.wallFailed)} onClick={()=>act(36)}>Rebuild wall</Button>
+                <span role="status">{state.cannon.wallFailed?(text(state.cannon.wallMessage)||'Wall could not settle · rebuild to retry'):state.cannon.wallBusy?'Let the pieces settle':state.cannon.awaitingHit?'Shot away…':!state.cannon.ready?(text(state.cannon.error)||'Preparing cannon…'):state.cannon.wallReleased&&state.cannon.impacts>0?'Hit · bricks freed':'Aim at the stone wall · C: leave'}</span>
+                {state.cannon.wallReleased&&<span>Damage lasts this session · Rebuild to save</span>}
+            </section>}
+            {!modal&&state.riding&&<section class="bb-walk-dock" aria-label="Motorbike controls"><span>W/S · drive &amp; reverse　 A/D · steer　 Space · brake</span></section>}
+            {!modal&&!state.riding&&!state.cannon?.active&&state.mode==='explore'&&<section class="bb-walk-dock bb-throw-dock"><div class="bb-hints"><span>Left-click · 1 brick</span><span>Right-click · 100 bricks</span><span>Scroll · zoom</span></div>{state.swimming?<span>Space · rise　 X · dive　 Right-drag · steer</span>:<Button icon={Hand} disabled={busy} onClick={()=>act(7)}>{text(state.interaction)||'Use nearby'}</Button>}<Button icon={Plus} shortcut="B" disabled={busy} onClick={()=>act(21)}>Build</Button></section>}
             {modal&&<div class="bb-modal-shade"><section ref={dialog} role="dialog" aria-modal="true" aria-labelledby="bb-dialog-title" class={`bb-dialog ${state.mode==='catalog'?'bb-catalog':''}`}>
                 <div class="bb-dialog-head"><h1 id="bb-dialog-title">{state.mode==='pause'?'Paused':text(state.menuTitle)||'Your brick box'}</h1><Button icon={X} className="bb-icon" aria-label="Close menu" disabled={busy} onClick={()=>act(20)}/></div>
                 <p class="bb-dialog-intro">{text(state.menuText)}</p>

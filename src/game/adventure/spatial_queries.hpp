@@ -24,8 +24,13 @@ public:
         construction::DurableId structure{},part{};
     };
     struct WalkableColumn {bool complete=false;size_t count=0;};
-    static constexpr size_t maximumSolids=8192;
-    static constexpr double sectorSize=256;
+    // The imported village alone can use about 8k boxes. Keep room for the
+    // player's builds and streamed forest trunks in the same physical scene.
+    // Candidate indices remain bounded 16-bit values.
+    static constexpr size_t maximumSolids=16384;
+    // Collision buckets are independent of floating-origin/render sectors.
+    // Dense imported sets need local rejection before individual shape sweeps.
+    static constexpr double sectorSize=16;
     // Retains a span only; the full terrain stays in the Application's one CPU copy.
     [[nodiscard]] bool bindTerrain(terrain::lego::Surface) noexcept;
     // Invalid/overflow/stale packets leave the old accepted geometry intact.

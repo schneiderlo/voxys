@@ -228,6 +228,7 @@ public:
             entries, "island_prepare_union_layout");
 
         entries.clear();
+        storage(entries, 0, true);
         storage(entries, 3, false);
         storage(entries, 4, true);
         storage(entries, 5, true);
@@ -298,11 +299,11 @@ public:
             entries, "island_sleeping_range_layout");
 
         entries.clear();
+        storage(entries, 0, true);
         storage(entries, 3, false);
         storage(entries, 4, true);
         storage(entries, 5, true);
         storage(entries, 6, false);
-        storage(entries, 7, false);
         storage(entries, 8, false);
         storage(entries, 9, false);
         storage(entries, 14, false);
@@ -577,12 +578,12 @@ public:
         };
         if (compactSmallWorld) {
             const std::array<gpu::BindGroupEntry, 9> buildEntries = {
+                gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
                 gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
                 gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
                 gpu::BindGroupEntry(5).buffer(
                     input_.narrowPhaseTelemetryBuffer),
                 gpu::BindGroupEntry(6).buffer(roots_),
-                gpu::BindGroupEntry(7).buffer(bodyRecords_),
                 gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
                 gpu::BindGroupEntry(9).buffer(telemetry_),
                 gpu::BindGroupEntry(14).buffer(bodyPersistent_),
@@ -643,7 +644,8 @@ public:
             gpu::BindGroupEntry(13).buffer(islandPersistent_),
             gpu::BindGroupEntry(14).buffer(bodyPersistent_),
             gpu::BindGroupEntry(18).buffer(events_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 6> unionEntries = {
+        const std::array<gpu::BindGroupEntry, 7> unionEntries = {
+            gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),

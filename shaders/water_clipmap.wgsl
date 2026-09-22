@@ -1,3 +1,75 @@
+// BEGIN GENERATED DAY NIGHT SKY
+// The neutral cloud environment is baked once. This small analytic layer moves
+// the celestial bodies and colours the same sky for both view and reflection.
+// encodedHour == 0 is reserved for the original fixed-lighting paths.
+fn cycleSunDirection(encodedHour : f32) -> vec3<f32> {
+    let angle = (encodedHour - 7.0) * (6.28318530718 / 24.0);
+    return normalize(vec3<f32>(cos(angle), sin(angle) * 0.88, sin(angle) * 0.48));
+}
+
+fn cycleStarHash(cell : vec3<f32>) -> f32 {
+    var p = fract(cell * 0.1031);
+    p += dot(p, p.yzx + 33.33);
+    return fract((p.x + p.y) * p.z);
+}
+
+fn cycleSkyRadiance(direction : vec3<f32>, neutral : vec3<f32>,
+                    encodedHour : f32, roughness : f32) -> vec3<f32> {
+    let sun = cycleSunDirection(encodedHour);
+    let daylight = smoothstep(-0.12, 0.22, sun.y);
+    let dusk = (1.0 - smoothstep(0.08, 0.55, abs(sun.y))) *
+               smoothstep(-0.20, 0.02, sun.y);
+    let elevation = max(direction.y, 0.0);
+    let sunFacing = pow(max(dot(direction, sun), 0.0), 3.0);
+    let horizon = exp(-elevation * 5.0);
+    let dayZenith = vec3<f32>(0.16, 0.34, 0.60);
+    let nightZenith = vec3<f32>(0.008, 0.015, 0.045);
+    let dayHorizon = mix(vec3<f32>(0.64, 0.79, 0.89),
+                         vec3<f32>(1.02, 0.37, 0.19), dusk * (0.45 + 0.55 * sunFacing));
+    let nightHorizon = vec3<f32>(0.045, 0.065, 0.12);
+    var sky = mix(mix(nightZenith, dayZenith, daylight),
+                  mix(nightHorizon, dayHorizon, daylight), horizon);
+    sky += vec3<f32>(0.42, 0.17, 0.20) * dusk * horizon * (1.0 - sunFacing) * 0.3;
+
+    // The source carries seamless spherical cloud structure, without a baked sun.
+    let cloud = smoothstep(0.38, 0.95, dot(neutral, vec3<f32>(0.2126, 0.7152, 0.0722)));
+    let cloudDay = mix(vec3<f32>(0.84, 0.89, 0.96), vec3<f32>(1.06, 0.57, 0.35), dusk);
+    let cloudNight = vec3<f32>(0.045, 0.060, 0.105);
+    let cloudOpacity = cloud * smoothstep(0.0, 0.12, elevation) * 0.78;
+    sky = mix(sky, mix(cloudNight, cloudDay, daylight), cloudOpacity);
+
+    let sunAlignment = max(dot(direction, sun), 0.0);
+    let sunAbove = smoothstep(-0.045, 0.025, sun.y);
+    let sunColour = mix(vec3<f32>(1.0, 0.93, 0.73), vec3<f32>(1.0, 0.40, 0.15), dusk);
+    // Deliberately soft-edged discs. Rough reflections widen the glow and
+    // conserve its approximate energy, avoiding a pixel-sized sparkling point.
+    let sunWidth = 0.00007 + roughness * roughness * 0.003;
+    let sunDisc = smoothstep(1.0 - sunWidth, 1.0 - sunWidth * 0.45, sunAlignment);
+    sky += sunColour * sunAbove * (1.0 - cloudOpacity * 0.85) *
+        (sunDisc * 5.0 * 0.00007 / sunWidth + pow(sunAlignment, 64.0) * 0.30);
+
+    let moonAlignment = max(dot(direction, -sun), 0.0);
+    let night = 1.0 - smoothstep(-0.18, 0.04, sun.y);
+    let moonWidth = 0.00011 + roughness * roughness * 0.002;
+    let moonDisc = smoothstep(1.0 - moonWidth, 1.0 - moonWidth * 0.65, moonAlignment);
+    sky += vec3<f32>(0.68, 0.80, 1.0) * night * (1.0 - cloudOpacity) *
+        (moonDisc * 1.8 * 0.00011 / moonWidth + pow(moonAlignment, 160.0) * 0.055);
+
+    // Fixed world-space stars: no time noise, flicker, pole singularities or seam.
+    let starPosition = direction * 180.0;
+    let cell = floor(starPosition);
+    let seed = cycleStarHash(cell);
+    let spot = length(fract(starPosition) - vec3<f32>(0.5));
+    let star = (1.0 - smoothstep(0.12, 0.32, spot)) * step(0.987, seed);
+    let stars = star * night * smoothstep(0.04, 0.25, elevation) *
+                (1.0 - cloudOpacity) * (1.0 - smoothstep(0.02, 0.18, roughness));
+    sky += mix(vec3<f32>(0.48, 0.65, 1.0), vec3<f32>(1.0, 0.80, 0.56), seed) * stars * 0.75;
+    // The lower hemisphere remains dim, so steep water normals do not reflect
+    // an implausibly luminous underside of the sky.
+    return sky * mix(0.18, 1.0, smoothstep(-0.5, 0.0, direction.y));
+}
+// END GENERATED DAY NIGHT SKY
+
 // Opt-in playable Cove profile; all other scenes preserve their reference appearance.
 override COVE_VISUALS : bool = false;
 
@@ -8,31 +80,55 @@ struct SunShadowUniforms {
     params: vec4<f32>,
     // Absolute origin of the camera-sector frame used by mesh casters.
     worldOrigin: vec4<f32>,
+    footContacts: array<vec4<f32>, 2>,
+    farViewProj: mat4x4<f32>,
+    farParams: vec4<f32>,
 };
 @group(1) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
 @group(1) @binding(1) var sunDepth: texture_depth_2d;
 @group(1) @binding(2) var sunSampler: sampler_comparison;
 
-fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
-    if (sunShadow.params.x < 0.5) { return 1.0; }
+// Bounded approximation to sky occlusion beneath animated soles. The receiver
+// remains real terrain/brick geometry; there is no floating decal or depth write.
+// Height rejection prevents darkening a roof above the figure. Separation makes
+// contact softer/weaker during a step or jump, and zero beyond two radii.
+fn footContactVisibility(position: vec3<f32>, normal: vec3<f32>) -> f32 {
+    var occlusion = 0.0;
+    for (var i = 0u; i < 2u; i += 1u) {
+        let foot = sunShadow.footContacts[i];
+        if (foot.w <= 0.0) { continue; }
+        let height = foot.y - position.y;
+        let reach = foot.w * 2.0;
+        let vertical = (1.0 - smoothstep(0.0, reach, max(height, 0.0)))
+            * smoothstep(-0.06, 0.0, height);
+        let radius = foot.w + max(height, 0.0) * 0.35;
+        let radial = 1.0 - smoothstep(0.0, radius, length(position.xz - foot.xz));
+        occlusion = max(occlusion, 0.68 * vertical * radial * max(normal.y, 0.0));
+    }
+    return 1.0 - occlusion;
+}
+
+fn sunVisibilityRegion(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>,
+    matrix: mat4x4<f32>, params: vec4<f32>, atlas: vec4<f32>, outside: f32) -> f32 {
+    if (params.x < 0.5) { return outside; }
     // Use geometric normals for bias: normal-map grain must not move shadows.
     let slope = 1.0 - abs(dot(geometricNormal, light));
-    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
-    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let biased = position + geometricNormal * params.y * (0.2 + 0.65 * slope);
+    let clip = matrix * vec4<f32>(biased, 1);
     let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
     if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
-        return 1.0;
+        return outside;
     }
-    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
-    let reference = clip.z - 0.003 * sunShadow.params.z;
+    let texel = 1.0 / (vec2<f32>(textureDimensions(sunDepth)) * atlas.xy);
+    let reference = clip.z - 0.003 * params.z;
     // A constant reference at every PCF tap compares a sloped receiver against
     // a different point on itself. Project its geometric plane into light clip
     // coordinates; the orthographic projection has mutually orthogonal rows.
     // Normal/raster bias still covers the bilinear half-texel footprint. Moving
     // the reference with each tap avoids increasing global contact separation.
-    let rowX = vec3<f32>(sunShadow.viewProj[0].x, sunShadow.viewProj[1].x, sunShadow.viewProj[2].x);
-    let rowY = vec3<f32>(sunShadow.viewProj[0].y, sunShadow.viewProj[1].y, sunShadow.viewProj[2].y);
-    let rowZ = vec3<f32>(sunShadow.viewProj[0].z, sunShadow.viewProj[1].z, sunShadow.viewProj[2].z);
+    let rowX = vec3<f32>(matrix[0].x, matrix[1].x, matrix[2].x);
+    let rowY = vec3<f32>(matrix[0].y, matrix[1].y, matrix[2].y);
+    let rowZ = vec3<f32>(matrix[0].z, matrix[1].z, matrix[2].z);
     let plane = vec3<f32>(dot(geometricNormal, rowX) / dot(rowX, rowX),
         dot(geometricNormal, rowY) / dot(rowY, rowY),
         dot(geometricNormal, rowZ) / dot(rowZ, rowZ));
@@ -45,14 +141,34 @@ fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f3
     for (var y = -1; y <= 1; y += 1) {
         for (var x = -1; x <= 1; x += 1) {
             visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel,
+                (uv + vec2<f32>(f32(x), f32(y)) * texel) * atlas.xy + atlas.zw,
                 reference + dot(depthGradient, vec2<f32>(f32(x), f32(y)) * texel));
         }
     }
     // A local map fades at its border instead of following the camera as a hard edge.
     let edge = max(abs(clip.x), abs(clip.y));
     let fade = smoothstep(0.80, 0.98, edge);
-    return mix(visibility / 9.0, 1.0, fade);
+    return mix(visibility / 9.0, outside, fade);
+}
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    // The zero far flag retains the standalone near-map receiver contract.
+    let atlasEnabled = sunShadow.farParams.x > 0.5;
+    let nearAtlas = select(vec4<f32>(1,1,0,0), vec4<f32>(1.0/3.0,0.5,0,0), atlasEnabled);
+    // Most pixels use one 3x3 kernel. Only the narrow transition reads both maps.
+    let nearClip = sunShadow.viewProj * vec4<f32>(position,1);
+    if (!atlasEnabled || (max(abs(nearClip.x),abs(nearClip.y)) < 0.78
+        && nearClip.z > 0.01 && nearClip.z < 0.99)) {
+        return sunVisibilityRegion(position, geometricNormal, light, sunShadow.viewProj,
+            sunShadow.params, nearAtlas, 1.0);
+    }
+    var far = 1.0;
+    if (atlasEnabled) {
+        far = sunVisibilityRegion(position, geometricNormal, light, sunShadow.farViewProj,
+            sunShadow.farParams, vec4<f32>(2.0/3.0,1.0,1.0/3.0,0.0), 1.0);
+    }
+    return sunVisibilityRegion(position, geometricNormal, light, sunShadow.viewProj,
+        sunShadow.params, nearAtlas, far);
 }
 
 fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
@@ -285,6 +401,26 @@ fn bilinearTerrainHeight(sampleCoordinate : vec2<f32>) -> f32 {
 }
 
 fn bakedShadow(worldPosition : vec3<f32>) -> f32 {
+    let worldPos = worldPosition;
+    let cellScale = camera.metrics.y;
+    let terrainOrigin = 0.5 * (camera.terrainSize - vec2<f32>(1.0)) * cellScale;
+    if (camera.lightDirWS.w > 0.5) {
+        let light = normalize(camera.lightDirWS.xyz);
+        if (light.y <= 0.0) { return 1.0; }
+        var distance = cellScale;
+        var visibility = 1.0;
+        for (var stepIndex = 0u; stepIndex < 24u; stepIndex += 1u) {
+            let point = worldPos + light * distance;
+            let cell = (point.xz + terrainOrigin) / cellScale;
+            if (any(cell < vec2<f32>(0.0)) || any(cell >= camera.terrainSize)) { break; }
+            let height = heightmapWorldHeight(textureLoad(heightTexture, vec2<i32>(cell), 0).x);
+            visibility = min(visibility, smoothstep(-0.4, 0.6, point.y - height));
+            if (visibility < 0.01) { break; }
+            distance = distance * 1.35 + cellScale;
+        }
+        return visibility;
+    }
+
     let terrainExtent = max(camera.terrainSize - vec2<f32>(1.0),
                             vec2<f32>(1.0));
     let origin = 0.5 * terrainExtent * camera.metrics.y;
@@ -319,9 +455,11 @@ fn environmentUv(directionInput : vec3<f32>) -> vec2<f32> {
 
 fn sampleEnvironment(direction : vec3<f32>, roughness : f32) -> vec3<f32> {
     let lod = log2(max(roughness * 0.035 * SKY_LUT_WIDTH, 1.0));
-    return textureSampleLevel(skyLut, sceneSampler,
-                              environmentUv(direction), lod).rgb *
-           OCEAN_SKY_BRIGHTNESS;
+    let neutral = textureSampleLevel(skyLut, sceneSampler, environmentUv(direction), lod).rgb;
+    if (camera.fogColor.w > 0.0) {
+        return cycleSkyRadiance(normalize(direction), neutral, camera.fogColor.w, roughness);
+    }
+    return neutral * OCEAN_SKY_BRIGHTNESS;
 }
 
 fn dielectricFresnel(cosine : f32, eta : f32) -> f32 {

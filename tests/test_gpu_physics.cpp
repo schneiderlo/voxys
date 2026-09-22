@@ -2241,6 +2241,17 @@ TEST_F(GpuPhysicsTest, CharacterUsesCpuTerrainMoverWithoutWorldReadback) {
 }
 
 TEST_F(GpuPhysicsTest, ExplicitBulletDoesNotTunnelThroughTerrain) {
+    // This fixture normally caps speed at 5. CCD now sweeps the actual
+    // force-prepared/clamped velocity, so explicitly permit the fast shot.
+    world.shutdown();
+    PhysicsInitContext context;
+    context.requestedBackend=BackendType::WebGpuSoft;
+    context.device=gpuContext.getDevice(); context.queue=gpuContext.getQueue();
+    context.maxBodies=16; context.maxActiveBodies=16;
+    context.maxPairs=64; context.maxContacts=32; context.maxManifolds=64;
+    context.gpu.commandCapacity=64; context.gpu.debugReadbackBodyCapacity=4;
+    context.gpu.maximumLinearSpeed=1000;
+    ASSERT_TRUE(world.initialize(context));
     attachFlatTerrain();
     EXPECT_TRUE(world.capabilities().continuousCollision);
     BodySpawnDesc desc;

@@ -53,6 +53,13 @@ std::shared_ptr<const RigidAnimationAsset> loadRobotAsset(const CookedPartBytePr
 std::shared_ptr<const RigidAnimationAsset> loadHumanAsset(const CookedPartByteProvider& read,std::string& error) {
     return loadCharacterAsset(read,"voxys-adventure-human-r01","human.vmesh",error);
 }
+std::shared_ptr<const RigidAnimationAsset> loadBuilderAsset(const CookedPartByteProvider& read,std::string& error) {
+    return loadCharacterAsset(read,"voxys-free-build-builder-r01","human.vmesh",error);
+}
+std::shared_ptr<const RigidAnimationAsset> loadBuilderAsset(const std::filesystem::path& directory,std::string& error) {
+    const auto read=openCookedPartDirectory(directory,error);
+    return read?loadBuilderAsset(*read,error):nullptr;
+}
 std::shared_ptr<const RigidAnimationAsset> loadRaiderAsset(const CookedPartByteProvider& read,std::string& error) {
     return loadCharacterAsset(read,"voxys-adventure-raider-r01","character.vmesh",error);
 }

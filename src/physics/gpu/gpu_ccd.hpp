@@ -26,6 +26,13 @@ struct GpuCcdInput {
     float terrainCellScale = 0.0f;
     bool legoTerrain = false;
     std::array<int32_t, 3> terrainSector{};
+    // Borrowed immutable shape heap, retained by the owner through submission.
+    // Only primitive spheres versus static, non-kinematic authored bodies.
+    WGPUBuffer authoredShapeBuffer = nullptr;
+    bool terrainEnabled = true;
+    // Compact CPU-authorized static membership (body slot, generation). Poses
+    // and response remain GPU-owned; no dynamic-state readback is involved.
+    std::span<const std::array<uint32_t, 2>> staticAuthoredBodies{};
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer && motionBuffer && shapeBuffer && metadataBuffer

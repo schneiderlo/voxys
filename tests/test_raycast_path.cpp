@@ -10,6 +10,8 @@
 #include "render/triangle_path.hpp"  // For CameraUniforms
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "terrain/heightmap.hpp"
+#include "render/day_night.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -601,6 +603,90 @@ TEST_F(RaycastPathGPUTest, LegoHorizonBenchmark) {
     wgpuTextureRelease(coastTexture);
     wgpuTextureViewRelease(displacementView);
     wgpuTextureRelease(displacementTexture);
+}
+
+// Opt-in: measures retired CPU+GPU terrain work, not whole-game frame time.
+// Use the shipped free-build heightmap to include long near-horizon traversals.
+TEST_F(RaycastPathGPUTest, DayNightTerrainBenchmark) {
+    const char* mapPath = std::getenv("VOXY_DAY_NIGHT_BENCHMARK_HEIGHTMAP");
+    if (!mapPath || !*mapPath) GTEST_SKIP() << "Set VOXY_DAY_NIGHT_BENCHMARK_HEIGHTMAP to run";
+    ASSERT_TRUE(gpuContextInitialized_);
+    terrain::Heightmap map;
+    ASSERT_TRUE(map.loadLdh(mapPath));
+    auto device = gpuContext_.getDevice();
+    auto queue = gpuContext_.getQueue();
+    ASSERT_TRUE(map.uploadToGPUWithMips(device, queue, true, "shaders/mip_generate.wgsl"));
+    auto config = getConfig(); config.heightScale = 600.0f;
+    ASSERT_TRUE(renderer_.init(device, queue, 1280, 720, config));
+    ASSERT_TRUE(renderer_.setHeightmap(map.getTextureView(), map.getWidth(), map.getHeight()));
+    struct WaterBindings {
+        WGPUTexture waves = nullptr, coast = nullptr;
+        WGPUTextureView waveView = nullptr, coastView = nullptr;
+        WGPUSampler sampler = nullptr;
+        ~WaterBindings() {
+            if (sampler) wgpuSamplerRelease(sampler);
+            if (waveView) wgpuTextureViewRelease(waveView);
+            if (coastView) wgpuTextureViewRelease(coastView);
+            if (waves) wgpuTextureRelease(waves);
+            if (coast) wgpuTextureRelease(coast);
+        }
+    } water;
+    auto textureDesc = gpu::TextureDesc::tex2D(1, 1, WGPUTextureFormat_RGBA16Float,
+        WGPUTextureUsage_TextureBinding, "benchmark_neutral_water");
+    textureDesc.depthOrArrayLayers = 4;
+    water.waves = gpu::createTexture(device, textureDesc);
+    gpu::TextureViewDesc viewDesc{};
+    viewDesc.dimension = WGPUTextureViewDimension_2DArray; viewDesc.arrayLayerCount = 4;
+    water.waveView = gpu::createTextureView(water.waves, viewDesc);
+    textureDesc.depthOrArrayLayers = 1;
+    water.coast = gpu::createTexture(device, textureDesc);
+    water.coastView = gpu::createTextureView(water.coast);
+    water.sampler = gpu::createSampler(device, gpu::SamplerDesc::linear("benchmark_water"));
+    ASSERT_NE(water.waveView, nullptr); ASSERT_NE(water.coastView, nullptr); ASSERT_NE(water.sampler, nullptr);
+    renderer_.setWaterSimulation(water.waveView, water.coastView, water.sampler);
+    auto uniforms = renderer_.getUniforms();
+    uniforms.invProjParams.z = 2.0f; // Physical LEGO terrain, cached production path.
+    uniforms.waterParams.y = 0.0f;
+    const auto projection = glm::perspective(glm::radians(78.f), 1280.f / 720.f, .1f, 10000.f);
+    const float ground = (float(map.sample(map.getWidth() / 2, map.getHeight() / 2)) / 65535.f * 2.f - 1.f) * 600.f;
+    const glm::vec3 origin(0, ground + 4.f, 0);
+    for (float hour : {12.0f, 17.5f}) {
+        for (bool moving : {false, true}) {
+            for (bool cycling : {false, true}) {
+                std::vector<double> samples;
+                uint32_t refreshed = 0;
+                for (uint32_t frame = 0; frame < 120; ++frame) {
+                    // A 60 Hz session refreshes clock-driven light every six frames.
+                    const double sampleHour = double(hour) + (cycling ? double(frame / 6) * .1 / 60.0 : 0.0);
+                    uniforms.lightDirWS = glm::vec4(sampleDayNight(sampleHour).lightDirection, cycling ? 1.f : 0.f);
+                    const glm::vec3 eye = origin + glm::vec3(moving ? float(frame) * .01f : 0.f, 0, 0);
+                    ASSERT_TRUE(uniforms.setCamera(glm::lookAt(eye, eye + glm::vec3(.2f, -.15f, 1.f), {0, 1, 0}), projection, eye));
+                    renderer_.setCameraUniforms(uniforms);
+                    const auto start = std::chrono::steady_clock::now();
+                    auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
+                    renderer_.dispatch(encoder, nullptr, WGPU_QUERY_SET_INDEX_UNDEFINED, WGPU_QUERY_SET_INDEX_UNDEFINED, true);
+                    auto command = wgpuCommandEncoderFinish(encoder, nullptr);
+                    const auto index = wgpuQueueSubmitForIndex(queue, 1, &command);
+                    const WGPUWrappedSubmissionIndex submission{queue, index};
+                    static_cast<void>(wgpuDevicePoll(device, true, &submission));
+                    wgpuCommandBufferRelease(command); wgpuCommandEncoderRelease(encoder);
+                    if (frame >= 24) {
+                        samples.push_back(std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count());
+                        refreshed += renderer_.didRefreshStaticCache() ? 1u : 0u;
+                    }
+                }
+                double mean = 0; for (double sample : samples) mean += sample / double(samples.size());
+                std::sort(samples.begin(), samples.end());
+                EXPECT_EQ(refreshed, moving ? 96u : cycling ? 16u : 0u);
+                std::cout << std::fixed << std::setprecision(3)
+                    << "day_night_terrain hour=" << hour << " moving=" << moving << " cycle=" << cycling
+                    << " retired_mean_ms=" << mean << " p50_ms=" << samples[samples.size()/2]
+                    << " p95_ms=" << samples[static_cast<size_t>(std::ceil(.95*double(samples.size())))-1]
+                    << " refreshes=" << refreshed << '/' << samples.size() << '\n';
+            }
+        }
+    }
+    renderer_.shutdown();
 }
 
 } // namespace voxy::render

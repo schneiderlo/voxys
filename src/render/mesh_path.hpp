@@ -18,6 +18,8 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
+#include <span>
 #include <span>
 #include <vector>
 
@@ -54,6 +56,8 @@ struct MeshPathConfig {
     bool linearHdrOutput = false; // Opaque/masked RGBA16F + R32F radial depth for water.
     bool filteredEnvironment = false; // Explicit opt-in; legacy routes keep their lighting.
     bool sunShadows = false; // Live authored meshes cast/receive; no terrain-cache writes.
+    bool farSunShadows = false; // Additional village-scale coverage; preserves near detail.
+    bool toySkyGroundFill = false; // Match LEGO terrain indirect sky/ground directionality.
 };
 
 /// One draw instance: a mesh rendered with a model matrix and a color tint.
@@ -122,6 +126,15 @@ public:
     /// Reset all runtime instances (keep loaded meshes).
     void clearInstances();
     void addInstance(const MeshDrawInstance& instance);
+    // Immutable, opaque, non-casting scenery. Admission validates and expands
+    // materials once and keeps those records on the GPU. The caller supplies
+    // camera-culled input indices; changes upload only 4-byte references.
+    // clearInstances affects only live draws. Empty admission clears the cache.
+    [[nodiscard]] bool setStaticInstances(std::span<const MeshDrawInstance>);
+    [[nodiscard]] bool selectStaticInstances(std::span<const uint32_t>);
+    [[nodiscard]] uint64_t lastInstanceUploadBytes() const noexcept { return lastInstanceUploadBytes_; }
+    [[nodiscard]] uint64_t lastColorTriangles() const noexcept { return lastColorTriangles_; }
+    [[nodiscard]] uint64_t lastShadowTriangles() const noexcept { return lastShadowTriangles_; }
     // Borrowed only for an owned physics submission. Static draws bind inert
     // buffers; dynamic draws resolve COM/principal pose directly on the GPU.
     [[nodiscard]] bool setAuthoredBodyView(const physics::PhysicsRenderView&, physics::WorldPosition camera);
@@ -132,7 +145,7 @@ public:
         return asset<assets_.size() ? assets_[asset].encodedColorDraws : 0u;
     }
     // Color-pass draw count. Sun-shadow mode additionally replays the opaque
-    // caster subset (bounded by the same maxDrawsPerFrame, not included here).
+    // caster subset for two regions (at most 2 * maxDrawsPerFrame, not included here).
     [[nodiscard]] uint32_t lastSubmittedDrawCount() const noexcept {
         return lastSubmittedDrawCount_;
     }
@@ -166,8 +179,11 @@ public:
     }
     static constexpr uint64_t filteredEnvironmentReservationBytes = 1228944u;
     static constexpr uint32_t sunShadowResolution = 1024u;
+    static constexpr uint32_t farSunShadowResolution = 2048u;
     static constexpr uint64_t sunShadowReservationBytes =
-        uint64_t(sunShadowResolution) * sunShadowResolution * 4u + sizeof(SunShadowUniforms);
+        uint64_t(sunShadowResolution) * sunShadowResolution * 4u + 2u * sizeof(SunShadowUniforms);
+    static constexpr uint64_t farSunShadowReservationBytes =
+        uint64_t(sunShadowResolution + farSunShadowResolution) * farSunShadowResolution * 4u + 2u * sizeof(SunShadowUniforms);
     [[nodiscard]] uint32_t environmentBakeCount() const noexcept { return environmentBakeCount_; }
     [[nodiscard]] bool environmentLightingReady() const noexcept { return filteredEnvironmentReady_; }
 
@@ -183,18 +199,22 @@ public:
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
                 const PrimitiveLighting& lighting, uint32_t width,
                 uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput = nullptr,
-                SceneShadowConsumer beforeColor = {}, glm::vec3 shadowFrameWorldOrigin = {});
+                SceneShadowConsumer beforeColor = {}, glm::vec3 shadowFrameWorldOrigin = {},
+                FootContacts footContacts = {});
 
 private:
+    struct StaticCache;
+    std::shared_ptr<StaticCache> staticCache_;
+    uint64_t lastInstanceUploadBytes_=0,lastColorTriangles_=0,lastShadowTriangles_=0;
     WGPUTexture sunShadowTexture_ = nullptr;
     WGPUTextureView sunShadowView_ = nullptr;
-    WGPUBuffer sunShadowUniform_ = nullptr;
+    WGPUBuffer sunShadowUniform_ = nullptr, farSunShadowUniform_ = nullptr;
     WGPUSampler sunShadowSampler_ = nullptr;
     WGPUBindGroupLayout sunShadowLayout_ = nullptr, sunCasterLayout_ = nullptr;
-    WGPUBindGroup sunShadowBinding_ = nullptr, sunCasterBinding_ = nullptr;
+    WGPUBindGroup sunShadowBinding_ = nullptr, sunCasterBinding_ = nullptr, farSunCasterBinding_ = nullptr;
     WGPUPipelineLayout sunCasterPipelineLayout_ = nullptr;
     WGPURenderPipeline sunCasterPipeline_ = nullptr;
-    bool sunShadows_ = false;
+    bool sunShadows_ = false, farSunShadows_ = false;
     WGPUBindGroupLayout bodyLayout_ = nullptr;
     WGPUBindGroup bodyBinding_ = nullptr;
     WGPUBuffer bodyFallback_ = nullptr, bodyCamera_ = nullptr;
@@ -237,6 +257,7 @@ private:
     WGPURenderPipeline opaquePipeline_ = nullptr;
     WGPURenderPipeline blendPipeline_ = nullptr;
     WGPUBuffer instanceBuffer_ = nullptr;
+    WGPUBuffer instanceIndexBuffer_ = nullptr;
     WGPUBuffer uniformBuffer_ = nullptr;
     WGPUTextureView environmentView_ = nullptr;
     WGPUTextureView boundEnvironmentView_ = nullptr;
@@ -262,6 +283,7 @@ private:
     WGPUTextureFormat colorFormat_ = WGPUTextureFormat_BGRA8Unorm;
     WGPUTextureFormat depthFormat_ = WGPUTextureFormat_Depth32Float;
     bool linearHdrOutput_ = false;
+    bool toySkyGroundFill_ = false;
     bool instancesValid_ = false;
     uint32_t lastSubmittedDrawCount_ = 0u;
     uint32_t lastCulledInstanceCount_ = 0u;

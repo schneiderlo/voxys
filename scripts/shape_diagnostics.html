@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Authored shape diagnostics</title>
+<style>
+body{margin:32px;background:#18202b;color:#eaf0f6;font:18px system-ui;max-width:1200px}
+h1{font-size:28px}pre{white-space:pre-wrap;font-size:14px;line-height:1.5}
+</style>
+<h1>Authored shape diagnostics</h1>
+<p>Real GPU geometry, mass-frame and resource-lifetime checks. Playable physics and visual approval remain separate.</p>
+<p id="status">Running…</p><pre id="log"></pre>
+<script src="shape_diagnostics.js"></script>
+<script>
+globalThis.diagnostic={done:false,passed:false,output:[],gpuErrors:[],captures:[]};
+(async()=>{
+    const r=globalThis.diagnostic;
+    const suite=new URLSearchParams(location.search).get('suite')||'all';
+    const suites={all:{filter:'*',tests:55,captures:22},
+        live:{filter:'GpuAuthoredShapes.Live*',tests:9,captures:0},
+        lego:{filter:'GpuAuthoredShapes.Lego*',tests:4,captures:0},
+        queries:{filter:'GpuAuthoredShapes.Query*',tests:6,captures:0},
+        contacts:{filter:'GpuAuthoredShapes.Contact*',tests:6,captures:0},
+        terrain:{filter:'GpuAuthoredShapes.Terrain*',tests:4,captures:6},
+        consumers:{filter:'GpuAuthoredShapes.Query*:GpuAuthoredShapes.Contact*',tests:12,captures:0}};
+    if(!suites[suite])throw Error('Unknown shape test suite');
+    const expected=suites[suite]; r.suite=suite;
+    const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
+    if(!adapter || adapter.info.isFallbackAdapter)throw Error('Hardware WebGPU adapter required');
+    r.adapter={vendor:adapter.info.vendor,architecture:adapter.info.architecture,
+        device:adapter.info.device,description:adapter.info.description,
+        isFallbackAdapter:adapter.info.isFallbackAdapter};
+    const device=await adapter.requestDevice();
+    device.addEventListener('uncapturederror',e=>r.gpuErrors.push(String(e.error)));
+    device.lost.then(info=>{r.lost={reason:info.reason,message:info.message};});
+    let exit,abort;
+    const completion=new Promise((resolve,reject)=>{exit=resolve;abort=reject;});
+    const log=text=>{r.output.push(text);document.querySelector('#log').textContent+=text+'\n';};
+    const module=await ShapeDiagnosticModule({preinitializedWebGPUDevice:device,
+        arguments:['--gtest_filter='+expected.filter],
+        preRun:[m=>{m.FS.mkdir('/captures');m.ENV['VOXY_SHAPE_CAPTURE_DIR']='/captures';}],
+        print:log,printErr:log,onExit:exit,onAbort:reason=>abort(Error(String(reason)))});
+    r.exitCode=await completion;
+    await device.queue.onSubmittedWorkDone();
+    await new Promise(resolve=>setTimeout(resolve,100));
+    for(const name of module.FS.readdir('/captures').filter(n=>n.endsWith('.u32'))
+        .sort((a,b)=>parseInt(a)-parseInt(b))){
+        const bytes=module.FS.readFile('/captures/'+name);
+        if(bytes.length!==256)throw Error('Unexpected readback size');
+        r.captures.push({name,bytes:Array.from(bytes)});
+    }
+    r.passed=expected.tests>0 && r.exitCode===0 && r.gpuErrors.length===0 && !r.lost && r.captures.length===expected.captures
+        && r.output.some(line=>line.includes('[  PASSED  ] '+expected.tests+' tests.'))
+        && !r.output.some(line=>/\[  SKIPPED \]|\[  FAILED  \]|DISABLED TEST/.test(line));
+    r.done=true;
+    document.querySelector('#status').textContent=r.passed?'Passed · '+expected.tests+' tests':'Failed';
+})().catch(error=>{
+    Object.assign(globalThis.diagnostic,{done:true,passed:false,error:String(error),stack:error.stack});
+    document.querySelector('#status').textContent='Failed: '+error;
+});
+</script>

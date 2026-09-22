@@ -51,6 +51,7 @@ struct BlitPathConfig {
     WGPUTextureFormat colorFormat;       ///< Output color format (default: BGRA8Unorm)
     float heightScale;                   ///< World-space height range
     float cellScale;                     ///< World-space size per heightmap cell
+    bool dayNightSky = false;             ///< Bake neutral clouds once for the live sky
     bool coveVisuals = false;             ///< Explicit playable-Cove material/presentation profile
     bool enableOpaqueScene = false;       ///< Authored opaque objects before water
     float fogDensity;                    ///< Exponential fog density

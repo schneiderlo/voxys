@@ -162,6 +162,25 @@ TEST(CoveCamera, LoadFramingFitsActualCornersAndReportsOcclusionOrDistanceLimits
     ASSERT_TRUE(camera.setUserDistance(7));EXPECT_DOUBLE_EQ(camera.userDistance(),7);
 }
 
+TEST(CoveCamera, ExtendedZoomKeepsCollisionSweepAndDefaultCoveLimit) {
+    CoveCamera camera;Scene scene;CoveCamera::Target target{{0,2,0},0,1};
+    EXPECT_FALSE(camera.setUserDistance(64));
+    auto settings=camera.settings();settings.distanceLimit=64;
+    ASSERT_TRUE(camera.settings(settings));
+    ASSERT_EQ(camera.update(target,{{},-100},{},scene.query(),.1),CoveCamera::Result::Ready);
+    EXPECT_DOUBLE_EQ(camera.userDistance(),64);
+    EXPECT_DOUBLE_EQ(camera.pose().distance,64);
+    EXPECT_NEAR(glm::length(scene.to-scene.from),64,1e-10);
+    scene.hit=7;
+    EXPECT_EQ(camera.update(target,{},{},scene.query(),.1),CoveCamera::Result::Obstructed);
+    EXPECT_LT(camera.pose().distance,7);EXPECT_DOUBLE_EQ(camera.userDistance(),64);
+    ASSERT_TRUE(camera.restoreOrbit(.5,.3,64));
+    settings.distanceLimit=65;EXPECT_FALSE(camera.settings(settings));
+    settings.distanceLimit=NAN;EXPECT_FALSE(camera.settings(settings));
+    settings.distanceLimit=12;ASSERT_TRUE(camera.settings(settings));
+    EXPECT_DOUBLE_EQ(camera.userDistance(),12);
+}
+
 TEST(CoveCameraTerrain, CircularStudAndColumnEdgesCannotBeSkippedByALongSweep) {
     Terrain terrain;const double top=terrain.surface.cellTop(1,1);
     const auto stud=sweepCoveTerrainSphere(terrain.surface,{-1.1,top+.10,-.5},{.1,top+.10,-.5},.05);

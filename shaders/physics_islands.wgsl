@@ -246,6 +246,10 @@ fn union_contacts_impl(gid : vec3<u32>) {
     }
     let pair = manifolds[rank].pair;
     if (!body_is_alive(pair.keyHigh) || !body_is_alive(pair.keyLow)) { return; }
+    // Fixed scenery supports contacts without coupling independent dynamic
+    // islands. Keep its singleton sleep/grid record for broad-phase discovery.
+    if (poses[pair.keyHigh].position_invMass.w == 0.0
+        || poses[pair.keyLow].position_invMass.w == 0.0) { return; }
     let rootA = atomicLoad(&bodyRoots[pair.keyHigh]);
     let rootB = atomicLoad(&bodyRoots[pair.keyLow]);
     if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) { return; }
@@ -835,7 +839,6 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var body = lane; body < params.capacities.x; body += 256u) {
         atomicStore(&bodyRoots[body], select(
             SENTINEL, body, body_is_alive(body)));
-        bodyRecords[body] = sentinel_record();
         sortedBodyRecords[body] = sentinel_record();
     }
     small_world_barrier();
@@ -856,6 +859,8 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
             if (!body_is_alive(pair.keyHigh) || !body_is_alive(pair.keyLow)) {
                 continue;
             }
+            if (poses[pair.keyHigh].position_invMass.w == 0.0
+                || poses[pair.keyLow].position_invMass.w == 0.0) { continue; }
             let rootA = small_world_root(pair.keyHigh);
             let rootB = small_world_root(pair.keyLow);
             if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) {
@@ -895,7 +900,6 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
             let root = small_world_root(body);
             atomicStore(&bodyRoots[body], root);
             let record = KeyValue(body, root, body, body);
-            bodyRecords[body] = record;
             var persistent = bodyPersistent[body];
             persistent.reserved0 = root;
             bodyPersistent[body] = persistent;
@@ -930,7 +934,7 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
         for (var offset = 0u; offset < 4u; offset += 1u) {
             let body = firstBody + offset;
             if (body < params.capacities.x && body_is_alive(body)) {
-                sortedBodyRecords[output] = bodyRecords[body];
+                sortedBodyRecords[output] = KeyValue(body, atomicLoad(&bodyRoots[body]), body, body);
                 output += 1u;
             }
         }
@@ -954,7 +958,9 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var index = lane; index < 1024u; index += 256u) {
         var record = sentinel_record();
         if (index < params.capacities.x) {
-            record = bodyRecords[index];
+            if (body_is_alive(index)) {
+                record = KeyValue(index, atomicLoad(&bodyRoots[index]), index, index);
+            }
         }
         smallWorldSortRecords[index] = record;
     }

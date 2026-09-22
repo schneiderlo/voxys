@@ -313,6 +313,7 @@ public:
         storage(integrateEntries, 1, false);
         storage(integrateEntries, 2, true);
         storage(integrateEntries, 3, false);
+        storage(integrateEntries, 5, true);
         storage(integrateEntries, 20, false);
         uniform(integrateEntries);
         integrateLayout_ = makeLayout(integrateEntries, "solver_integrate_layout");
@@ -929,11 +930,12 @@ public:
             gpu::BindGroupEntry(17).buffer(sortedAdjacency_),
             gpu::BindGroupEntry(18).buffer(bodyRanges_),
             gpu::BindGroupEntry(19).buffer(endpointDeltas_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 6> integrateEntries = {
+        const std::array<gpu::BindGroupEntry, 7> integrateEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
             gpu::BindGroupEntry(2).buffer(input_.shapeBuffer),
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
+            gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
             gpu::BindGroupEntry(20).buffer(bodyDegrees_), parameterEntry()};
         const std::array<gpu::BindGroupEntry, 9> smallIslandEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),

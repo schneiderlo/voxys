@@ -470,6 +470,177 @@ INSTANTIATE_TEST_SUITE_P(
     WorkgroupProfiles, GpuDynamicColoringTest,
     ::testing::Values(64u, 128u, 256u));
 
+TEST(GpuDynamicSolverTest, RestingContactsRespectLinearSlopAcrossSolvePaths) {
+    gpu::Context context;
+    if(!context.initHeadless())GTEST_SKIP()<<"Headless WebGPU is unavailable";
+    // A resting contact inside the configured geometric tolerance must not
+    // receive a positional kick. Deeper overlap must still be corrected.
+    for(int path=0;path<3;++path)for(const float depth:{.0025f,.02f}) {
+        SCOPED_TRACE(path);
+        SCOPED_TRACE(depth);
+        constexpr uint32_t bodies=3,contacts=1;
+        std::vector<TestPose> poses(bodies);
+        std::vector<TestMotion> motions(bodies);
+        std::vector<TestShape> shapes(bodies);
+        std::vector<TestMetadata> metadata(bodies);
+        std::vector<GpuContactManifold> manifolds(contacts);
+        poses[1].positionInvMass={0,0,0,0};
+        poses[2].positionInvMass={1-depth,0,0,1};
+        for(uint32_t body:{1u,2u}) {
+            shapes[body].dimensionsType={1,1,1,2};
+            metadata[body]=makeMetadata(true);
+        }
+        shapes[2].inverseInertiaMaterial={6,6,6,0};
+        manifolds[0]=makeContact(1,2,{1,0,0},{.5f,0,0},{-.5f,0,0},-depth);
+        std::array<uint32_t,32> telemetry{};
+        telemetry[10]=telemetry[11]=telemetry[24]=1;
+        auto poseBuffer=makeStorage<TestPose>(context,poses,"slop_poses");
+        auto motionBuffer=makeStorage<TestMotion>(context,motions,"slop_motions");
+        auto shapeBuffer=makeStorage<TestShape>(context,shapes,"slop_shapes");
+        auto metadataBuffer=makeStorage<TestMetadata>(context,metadata,"slop_metadata");
+        auto manifoldBuffer=makeStorage<GpuContactManifold>(context,manifolds,"slop_manifolds");
+        auto telemetryBuffer=makeStorage<uint32_t>(context,telemetry,"slop_telemetry");
+        GpuDynamicSolver solver;GpuDynamicSolver::Config config;
+        config.bodyCapacity=bodies;config.contactCapacity=contacts;
+        config.gravity={0,0,0};config.enableSmallIslandFastPath=path==0;
+        ASSERT_TRUE(solver.initialize(context.getDevice(),context.getQueue(),config));
+        solver.setInput({poseBuffer,motionBuffer,shapeBuffer,metadataBuffer,
+            manifoldBuffer,telemetryBuffer,bodies,contacts});
+        const auto result=runAndRead(context,solver,poseBuffer,motionBuffer,manifoldBuffer,
+            bodies,contacts,1,path==2);
+        EXPECT_EQ(result.telemetry.serialWorld,path==2);
+        if(path==0) { EXPECT_EQ(result.telemetry.smallIslandContacts,1u); }
+        if(path==1) { EXPECT_EQ(result.telemetry.coloredContacts,1u); }
+        if(depth<config.linearSlop) {
+            EXPECT_NEAR(result.poses[2].positionInvMass.x,1-depth,1e-7f);
+            EXPECT_NEAR(glm::length(glm::vec3(result.motions[2].linearVelocitySleep)),0,1e-7f);
+        } else EXPECT_GT(result.poses[2].positionInvMass.x,1-depth+.001f);
+        EXPECT_FLOAT_EQ(result.poses[1].positionInvMass.x,0);
+        solver.shutdown();
+        for(auto* buffer:{&poseBuffer,&motionBuffer,&shapeBuffer,&metadataBuffer,&manifoldBuffer,&telemetryBuffer})releaseBuffer(*buffer);
+    }
+}
+
+TEST(GpuDynamicSolverTest, ContactOverflowStopsIntegrationAcrossSolvePaths) {
+    gpu::Context context;
+    if(!context.initHeadless())GTEST_SKIP()<<"Headless WebGPU is unavailable";
+    // A contact-capacity fault must freeze solver motion even if stale dense
+    // contact counts remain. Test global, small-island and serial dispatch.
+    constexpr float depth=.02f;
+    for(int path=0;path<3;++path) {
+        SCOPED_TRACE(path);
+        constexpr uint32_t bodies=3,contacts=1;
+        std::vector<TestPose> poses(bodies);
+        std::vector<TestMotion> motions(bodies);
+        motions[2].linearVelocitySleep={3,-2,1,0};
+        motions[2].angularVelocityFlags={.5f,1,.2f,0};
+        std::vector<TestShape> shapes(bodies);
+        std::vector<TestMetadata> metadata(bodies);
+        std::vector<GpuContactManifold> manifolds(contacts);
+        poses[1].positionInvMass={0,0,0,0};
+        poses[2].positionInvMass={1-depth,0,0,1};
+        for(uint32_t body:{1u,2u}) {
+            shapes[body].dimensionsType={1,1,1,2};
+            metadata[body]=makeMetadata(true);
+        }
+        shapes[2].inverseInertiaMaterial={6,6,6,0};
+        manifolds[0]=makeContact(1,2,{1,0,0},{.5f,0,0},{-.5f,0,0},-depth);
+        std::array<uint32_t,32> telemetry{};
+        telemetry[10]=telemetry[11]=telemetry[24]=1;
+        telemetry[27]=1; // persistent contact-capacity fault
+        auto poseBuffer=makeStorage<TestPose>(context,poses,"slop_poses");
+        auto motionBuffer=makeStorage<TestMotion>(context,motions,"slop_motions");
+        auto shapeBuffer=makeStorage<TestShape>(context,shapes,"slop_shapes");
+        auto metadataBuffer=makeStorage<TestMetadata>(context,metadata,"slop_metadata");
+        auto manifoldBuffer=makeStorage<GpuContactManifold>(context,manifolds,"slop_manifolds");
+        auto telemetryBuffer=makeStorage<uint32_t>(context,telemetry,"slop_telemetry");
+        GpuDynamicSolver solver;GpuDynamicSolver::Config config;
+        config.bodyCapacity=bodies;config.contactCapacity=contacts;
+        config.enableSmallIslandFastPath=path==0;
+        ASSERT_TRUE(solver.initialize(context.getDevice(),context.getQueue(),config));
+        solver.setInput({poseBuffer,motionBuffer,shapeBuffer,metadataBuffer,
+            manifoldBuffer,telemetryBuffer,bodies,contacts});
+        const auto result=runAndRead(context,solver,poseBuffer,motionBuffer,manifoldBuffer,
+            bodies,contacts,1,path==2);
+        EXPECT_NEAR(glm::length(glm::vec3(result.poses[2].positionInvMass-poses[2].positionInvMass)),0,1e-7f);
+        EXPECT_NEAR(glm::length(result.poses[2].orientation-poses[2].orientation),0,1e-7f);
+        EXPECT_NEAR(glm::length(result.motions[2].linearVelocitySleep-motions[2].linearVelocitySleep),0,1e-7f);
+        EXPECT_NEAR(glm::length(result.motions[2].angularVelocityFlags-motions[2].angularVelocityFlags),0,1e-7f);
+        EXPECT_FLOAT_EQ(result.poses[1].positionInvMass.x,0);
+        solver.shutdown();
+        for(auto* buffer:{&poseBuffer,&motionBuffer,&shapeBuffer,&metadataBuffer,&manifoldBuffer,&telemetryBuffer})releaseBuffer(*buffer);
+    }
+}
+
+TEST(GpuDynamicSolverTest, RepeatedPairPatchesReachLateSerialConstraints) {
+    gpu::Context context;
+    if (!context.initHeadless()) GTEST_SKIP() << "Headless WebGPU is unavailable";
+    // Four sorted contact records per chain edge need four dependency levels.
+    // 156 records exceed the old 2*body-count execution bound; 516 exceed the
+    // fixed level scratch and must take the bounded rank-ordered fallback.
+    for (const uint32_t bodies : {40u, 130u}) {
+        SCOPED_TRACE(bodies);
+        const uint32_t contacts = 4u * (bodies - 1u);
+        std::vector<TestPose> poses(bodies);
+        std::vector<TestMotion> motions(bodies);
+        std::vector<TestShape> shapes(bodies);
+        std::vector<TestMetadata> metadata(bodies);
+        std::vector<GpuContactManifold> manifolds(contacts);
+        for (uint32_t body = 0; body < bodies; ++body) {
+            poses[body].positionInvMass = {float(body) - float(bodies) * .5f, 0, 0, 1};
+            shapes[body].dimensionsType = {1, 1, 1, 2};
+            shapes[body].inverseInertiaMaterial = {6, 6, 6, 0};
+            metadata[body] = makeMetadata(true);
+        }
+        poses.back().positionInvMass.x -= .02f;
+        for (uint32_t edge = 0; edge + 1u < bodies; ++edge) {
+            for (uint32_t patch = 0; patch < 4u; ++patch) {
+                const uint32_t rank = 4u * edge + patch;
+                // Neutral constraints still establish genuine shared-body
+                // dependencies. Only the very last patch requires an impulse.
+                manifolds[rank] = makeContact(edge + 1u, edge, {0, 1, 0}, {}, {}, 0);
+                manifolds[rank].pair.ordinal = rank;
+            }
+        }
+        manifolds.back() = makeContact(bodies - 1u, bodies - 2u,
+            {-1, 0, 0}, {-.5f, 0, 0}, {.5f, 0, 0}, -.02f);
+        manifolds.back().pair.ordinal = contacts - 1u;
+        std::array<uint32_t, 32> telemetry{};
+        telemetry[10] = bodies - 1u;
+        telemetry[11] = telemetry[24] = contacts;
+        auto poseBuffer = makeStorage<TestPose>(context, poses, "patch_chain_poses");
+        auto motionBuffer = makeStorage<TestMotion>(context, motions, "patch_chain_motions");
+        auto shapeBuffer = makeStorage<TestShape>(context, shapes, "patch_chain_shapes");
+        auto metadataBuffer = makeStorage<TestMetadata>(context, metadata, "patch_chain_metadata");
+        auto manifoldBuffer = makeStorage<GpuContactManifold>(context, manifolds, "patch_chain_manifolds");
+        auto telemetryBuffer = makeStorage<uint32_t>(context, telemetry, "patch_chain_telemetry");
+        GpuDynamicSolver solver;
+        GpuDynamicSolver::Config config;
+        config.bodyCapacity = bodies;
+        config.contactCapacity = contacts;
+        config.gravity = {0, 0, 0};
+        ASSERT_TRUE(solver.initialize(context.getDevice(), context.getQueue(), config));
+        solver.setInput({poseBuffer, motionBuffer, shapeBuffer, metadataBuffer,
+            manifoldBuffer, telemetryBuffer, bodies, contacts});
+        const auto result = runAndRead(context, solver, poseBuffer, motionBuffer,
+            manifoldBuffer, bodies, contacts, 1, true);
+        EXPECT_TRUE(result.telemetry.serialWorld);
+        ASSERT_EQ(result.manifolds.size(), contacts);
+        // The relaxation pass can unload the accumulated impulse after moving
+        // the bodies apart; displacement proves that this late patch ran.
+        EXPECT_GT(result.poses.back().positionInvMass.x,
+            poses.back().positionInvMass.x + .001f);
+        for (const auto& motion : result.motions) {
+            EXPECT_TRUE(std::isfinite(motion.linearVelocitySleep.x));
+            EXPECT_TRUE(std::isfinite(motion.linearVelocitySleep.y));
+            EXPECT_TRUE(std::isfinite(motion.linearVelocitySleep.z));
+        }
+        solver.shutdown();
+        for (auto* buffer : {&poseBuffer, &motionBuffer, &shapeBuffer,
+                &metadataBuffer, &manifoldBuffer, &telemetryBuffer}) releaseBuffer(*buffer);
+    }
+}
+
 TEST(GpuDynamicSolverTest, SoftStepSeparatesAndFrictionSlowsContact) {
     constexpr uint32_t bodyCapacity = 4;
     constexpr uint32_t contactCapacity = 4;

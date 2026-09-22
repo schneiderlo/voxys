@@ -30,20 +30,27 @@ constexpr std::streamoff kMaximumVmeshFileBytes =
 constexpr uint32_t kMaximumRenderExtent = 8'192u;
 
 SunShadowUniforms sunShadowFrame(const glm::vec3& camera, const glm::vec3& direction,
-    const glm::vec3& worldOrigin) {
-    constexpr float halfWidth = 24.0f, depthRange = 128.0f;
+    const glm::vec3& worldOrigin, bool farEnabled) {
     const auto light = glm::normalize(direction);
     const auto up = std::abs(light.y) > 0.95f ? glm::vec3(0,0,1) : glm::vec3(0,1,0);
-    auto matrix = glm::orthoLH_ZO(-halfWidth, halfWidth, -halfWidth, halfWidth, 0.0f, depthRange)
-        * glm::lookAtLH(camera + light * (depthRange * 0.5f), camera, up);
-    // Snap the light projection to texels so camera translation does not crawl
-    // across stationary studs. Matrices use the existing camera-sector frame.
-    const auto origin = matrix * glm::vec4(0,0,0,1);
-    const float scale = float(MeshPath::sunShadowResolution) * 0.5f;
-    matrix[3].x += (std::round(origin.x * scale) - origin.x * scale) / scale;
-    matrix[3].y += (std::round(origin.y * scale) - origin.y * scale) / scale;
-    return {matrix, {1.0f, halfWidth * 2 / float(MeshPath::sunShadowResolution), 1 / depthRange, 0},
-        glm::vec4(worldOrigin, 0.0f)};
+    const auto projection = [&](float halfWidth, float depthRange, uint32_t resolution) {
+        auto matrix = glm::orthoLH_ZO(-halfWidth, halfWidth, -halfWidth, halfWidth, 0.0f, depthRange)
+            * glm::lookAtLH(camera + light * (depthRange * 0.5f), camera, up);
+        const auto origin = matrix * glm::vec4(0,0,0,1);
+        const float scale = float(resolution) * 0.5f;
+        matrix[3].x += (std::round(origin.x * scale) - origin.x * scale) / scale;
+        matrix[3].y += (std::round(origin.y * scale) - origin.y * scale) / scale;
+        return matrix;
+    };
+    SunShadowUniforms result;
+    result.viewProj = projection(24.0f,128.0f,MeshPath::sunShadowResolution);
+    result.params = {1,48.0f / MeshPath::sunShadowResolution,1.0f / 128.0f,0};
+    result.worldOrigin = glm::vec4(worldOrigin,0);
+    // Architectural self-shadow and ground contact must survive village views.
+    // Keep the near texel footprint unchanged for studs, hands and wheel contact.
+    result.farViewProj = projection(192.0f,768.0f,MeshPath::farSunShadowResolution);
+    result.farParams = {farEnabled ? 1.0f : 0.0f,384.0f / MeshPath::farSunShadowResolution,1.0f / 768.0f,0};
+    return result;
 }
 
 struct alignas(16) MeshUniforms {
@@ -107,6 +114,8 @@ struct PendingDraw {
     uint8_t alphaMode = moto::VmeshAlphaOpaque;
     float distanceSquared = 0.0f;
     bool castsSunShadow = true;
+    uint32_t instanceCount = 1u;
+    uint8_t visibility = 7u; // Color, near shadow, far shadow.
 };
 
 [[nodiscard]] bool finiteFloat(float value) noexcept {
@@ -156,7 +165,8 @@ struct PendingDraw {
         && finiteFloat(lighting.ambientIntensity)
         && finiteVec3(lighting.fogColor)
         && finiteFloat(lighting.fogDensity)
-        && finiteFloat(lighting.exposure);
+        && finiteFloat(lighting.exposure)
+        && finiteFloat(lighting.dayNightHour);
 }
 
 [[nodiscard]] bool validMaterial(const moto::VmeshMaterial& material) noexcept {
@@ -357,6 +367,18 @@ void releaseAsset(Asset& asset, bool destroyResources = true) noexcept {
 
 }  // namespace
 
+struct MeshPath::StaticCache {
+    struct Record { uint32_t batch; };
+    std::vector<Record> records;
+    std::vector<std::pair<uint32_t,uint32_t>> ranges;
+    std::vector<PendingDraw> templates,draws;
+    std::vector<std::vector<uint32_t>> buckets;
+    std::vector<uint32_t> selected;
+    std::vector<GpuDrawInstance> resident;
+    std::vector<uint32_t> packed;
+    bool upload=true,selectionUpload=true;
+};
+
 glm::vec4 opaqueSrgbPaintOverride(const std::array<uint8_t, 4>& rgba) noexcept {
     return {srgbToLinear(float(rgba[0]) / 255.0f),
         srgbToLinear(float(rgba[1]) / 255.0f),
@@ -381,9 +403,11 @@ bool MeshPath::init(WGPUDevice device, WGPUQueue queue,
     queue_ = queue;
     colorFormat_ = config.colorFormat;
     linearHdrOutput_ = config.linearHdrOutput;
+    toySkyGroundFill_ = config.toySkyGroundFill;
     depthFormat_ = config.depthFormat;
     maxDrawsPerFrame_ = config.maxDrawsPerFrame;
     sunShadows_ = config.sunShadows;
+    farSunShadows_ = config.sunShadows && config.farSunShadows;
     instanceCapacity_ = config.maxInstances;
 
     uniformBuffer_ = gpu::createBuffer(
@@ -393,6 +417,8 @@ bool MeshPath::init(WGPUDevice device, WGPUQueue queue,
         device_, gpu::BufferDesc::storage(
                      instanceCapacity_ * sizeof(GpuDrawInstance), true,
                      "mesh_path_draw_instances"));
+    instanceIndexBuffer_=gpu::createBuffer(device_,gpu::BufferDesc::storage(
+        instanceCapacity_*sizeof(uint32_t),true,"mesh_path_instance_indices"));
     gpu::SamplerDesc samplerDesc =
         gpu::SamplerDesc::linear("mesh_path_environment_sampler");
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
@@ -452,7 +478,7 @@ bool MeshPath::init(WGPUDevice device, WGPUQueue queue,
         fallbackRayDepthView_ = gpu::createTextureView(fallbackRayDepthTexture_);
     }
 
-    if (!uniformBuffer_ || !instanceBuffer_ || !sampler_ || !materialSampler_
+    if (!uniformBuffer_ || !instanceBuffer_ || !instanceIndexBuffer_ || !sampler_ || !materialSampler_
         || !filteredSampler_ || !fallbackCubeTexture_ || !fallbackCubeView_
         || !fallbackEnvironmentTexture_ || !fallbackEnvironmentView_
         || !fallbackRayDepthTexture_ || !fallbackRayDepthView_
@@ -475,6 +501,7 @@ void MeshPath::releaseHandles() {
 }
 
 void MeshPath::teardown(bool destroyResources) {
+    staticCache_.reset();
     for (GpuAsset& asset : assets_) releaseAsset(asset, destroyResources);
     assets_.clear();
     instances_.clear();
@@ -482,6 +509,7 @@ void MeshPath::teardown(bool destroyResources) {
     if (sunCasterPipeline_) { wgpuRenderPipelineRelease(sunCasterPipeline_); sunCasterPipeline_ = nullptr; }
     if (sunCasterPipelineLayout_) { wgpuPipelineLayoutRelease(sunCasterPipelineLayout_); sunCasterPipelineLayout_ = nullptr; }
     if (sunShadowBinding_) { wgpuBindGroupRelease(sunShadowBinding_); sunShadowBinding_ = nullptr; }
+    if (farSunCasterBinding_) { wgpuBindGroupRelease(farSunCasterBinding_); farSunCasterBinding_ = nullptr; }
     if (sunCasterBinding_) { wgpuBindGroupRelease(sunCasterBinding_); sunCasterBinding_ = nullptr; }
     if (sunShadowLayout_) { wgpuBindGroupLayoutRelease(sunShadowLayout_); sunShadowLayout_ = nullptr; }
     if (sunCasterLayout_) { wgpuBindGroupLayoutRelease(sunCasterLayout_); sunCasterLayout_ = nullptr; }
@@ -491,11 +519,15 @@ void MeshPath::teardown(bool destroyResources) {
         if (destroyResources) wgpuTextureDestroy(sunShadowTexture_);
         wgpuTextureRelease(sunShadowTexture_); sunShadowTexture_ = nullptr;
     }
+    if (farSunShadowUniform_) {
+        if (destroyResources) wgpuBufferDestroy(farSunShadowUniform_);
+        wgpuBufferRelease(farSunShadowUniform_); farSunShadowUniform_ = nullptr;
+    }
     if (sunShadowUniform_) {
         if (destroyResources) wgpuBufferDestroy(sunShadowUniform_);
         wgpuBufferRelease(sunShadowUniform_); sunShadowUniform_ = nullptr;
     }
-    sunShadows_ = false;
+    sunShadows_ = false; farSunShadows_ = false; toySkyGroundFill_ = false;
 
     if (blendPipeline_) {
         wgpuRenderPipelineRelease(blendPipeline_);
@@ -555,6 +587,7 @@ void MeshPath::teardown(bool destroyResources) {
         fallbackRayDepthTexture_ = nullptr;
     }
     releaseBuffer(instanceBuffer_);
+    releaseBuffer(instanceIndexBuffer_);
     releaseBuffer(uniformBuffer_);
     if (bodyBinding_) { wgpuBindGroupRelease(bodyBinding_); bodyBinding_=nullptr; }
     if (bodyLayout_) { wgpuBindGroupLayoutRelease(bodyLayout_); bodyLayout_=nullptr; }
@@ -576,7 +609,7 @@ void MeshPath::teardown(bool destroyResources) {
 }
 
 bool MeshPath::createPipeline(const MeshPathConfig& config) {
-    std::array<gpu::BindGroupLayoutEntry, 15> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 16> entries = {
         gpu::BindGroupLayoutEntry(0).vertexVisible().fragmentVisible()
             .uniformBuffer(false, sizeof(MeshUniforms)),
         gpu::BindGroupLayoutEntry(1).vertexVisible()
@@ -609,6 +642,7 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
         gpu::BindGroupLayoutEntry(12).fragmentVisible().texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_Cube),
         gpu::BindGroupLayoutEntry(13).fragmentVisible().texture(),
         gpu::BindGroupLayoutEntry(14).fragmentVisible().sampler(),
+        gpu::BindGroupLayoutEntry(15).vertexVisible().storageBuffer(true,false,sizeof(uint32_t)),
     };
     bindGroupLayout_ = gpu::createBindGroupLayout(
         device_, entries, "mesh_path_bind_group_layout");
@@ -626,17 +660,21 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
     sunShadowLayout_ = gpu::createBindGroupLayout(device_,shadowEntries,"mesh_sun_receiver_layout");
     sunCasterLayout_ = gpu::createBindGroupLayout(device_,std::span(shadowEntries).first(1),"mesh_sun_caster_layout");
     sunShadowUniform_ = gpu::createBuffer(device_,gpu::BufferDesc::uniform(sizeof(SunShadowUniforms),"mesh_sun_uniform"));
-    const uint32_t shadowSize = sunShadows_ ? sunShadowResolution : 1u;
-    sunShadowTexture_ = gpu::createTexture(device_,gpu::TextureDesc::depth(shadowSize,shadowSize,
+    farSunShadowUniform_ = gpu::createBuffer(device_,gpu::BufferDesc::uniform(sizeof(SunShadowUniforms),"mesh_far_sun_uniform"));
+    const uint32_t shadowWidth = sunShadows_ ? sunShadowResolution + (farSunShadows_ ? farSunShadowResolution : 0u) : 1u;
+    const uint32_t shadowHeight = sunShadows_ ? (farSunShadows_ ? farSunShadowResolution : sunShadowResolution) : 1u;
+    sunShadowTexture_ = gpu::createTexture(device_,gpu::TextureDesc::depth(shadowWidth,shadowHeight,
         WGPUTextureFormat_Depth32Float,"mesh_live_sun_depth"));
     if (sunShadowTexture_) sunShadowView_ = gpu::createTextureView(sunShadowTexture_);
     sunShadowSampler_ = gpu::createSampler(device_,gpu::SamplerDesc::comparison(WGPUCompareFunction_LessEqual,"mesh_sun_pcf"));
-    if (!sunShadowLayout_ || !sunCasterLayout_ || !sunShadowUniform_ || !sunShadowView_ || !sunShadowSampler_) return false;
+    if (!sunShadowLayout_ || !sunCasterLayout_ || !sunShadowUniform_ || !farSunShadowUniform_ || !sunShadowView_ || !sunShadowSampler_) return false;
     using BE = gpu::BindGroupEntry;
     const std::array shadowBindings{BE(0).buffer(sunShadowUniform_),BE(1).textureView(sunShadowView_),BE(2).sampler(sunShadowSampler_)};
     sunShadowBinding_ = gpu::createBindGroup(device_,sunShadowLayout_,shadowBindings,"mesh_sun_receiver");
     sunCasterBinding_ = gpu::createBindGroup(device_,sunCasterLayout_,std::span(shadowBindings).first(1),"mesh_sun_caster");
-    if (!sunShadowBinding_ || !sunCasterBinding_) return false;
+    const std::array farCasterBindings{BE(0).buffer(farSunShadowUniform_)};
+    farSunCasterBinding_ = gpu::createBindGroup(device_,sunCasterLayout_,farCasterBindings,"mesh_far_sun_caster");
+    if (!sunShadowBinding_ || !sunCasterBinding_ || !farSunCasterBinding_) return false;
     const std::array<WGPUBindGroupLayout, 3> layouts = {bindGroupLayout_,bodyLayout_,sunShadowLayout_};
     pipelineLayout_ = gpu::createPipelineLayout(
         device_, layouts, "mesh_path_pipeline_layout");
@@ -1027,7 +1065,7 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
                                              : fallbackEnvironmentView_;
             };
             const auto filtered = filteredEnvironment_.views();
-            const std::array<gpu::BindGroupEntry, 15> entries = {
+            const std::array<gpu::BindGroupEntry, 16> entries = {
                 gpu::BindGroupEntry(0).buffer(
                     uniformBuffer_, 0u, sizeof(MeshUniforms)),
                 gpu::BindGroupEntry(1).buffer(
@@ -1048,6 +1086,7 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
                 gpu::BindGroupEntry(12).textureView(filtered.diffuse ? filtered.diffuse : fallbackCubeView_),
                 gpu::BindGroupEntry(13).textureView(filtered.brdf ? filtered.brdf : fallbackEnvironmentView_),
                 gpu::BindGroupEntry(14).sampler(filteredSampler_),
+                gpu::BindGroupEntry(15).buffer(instanceIndexBuffer_,0u,instanceCapacity_*sizeof(uint32_t)),
             };
             resources.bindGroup = gpu::createBindGroup(
                 device_, bindGroupLayout_, entries,
@@ -1079,6 +1118,71 @@ void MeshPath::clearInstances() {
 void MeshPath::addInstance(const MeshDrawInstance& instance) {
     instances_.push_back(instance);
     instancesValid_ = false;
+}
+
+bool MeshPath::setStaticInstances(std::span<const MeshDrawInstance> instances) {
+    if(!isInitialized())return false;
+    auto next=std::make_shared<StaticCache>();
+    for(const auto& instance:instances) {
+        if(instance.assetIndex>=assets_.size() || instance.castsSunShadow || instance.physicsBody.valid()
+            || !validModelMatrix(instance.modelMatrix) || !finiteVec4(instance.tintColor)
+            || instance.tintColor.a!=1 || !finiteFloat(instance.emissiveBoost)
+            || !finiteVec4(instance.baseColorOverride) || !finiteVec4(instance.surface)
+            || glm::any(glm::lessThan(instance.baseColorOverride,glm::vec4(0)))
+            || glm::any(glm::greaterThan(instance.baseColorOverride,glm::vec4(1)))
+            || (instance.baseColorOverride.w!=0 && instance.baseColorOverride.w!=1)
+            || glm::any(glm::lessThan(instance.surface,glm::vec4(0)))
+            || glm::any(glm::greaterThan(instance.surface,glm::vec4(1)))
+            || (instance.surface.z!=0 && instance.surface.z!=1)
+            || (instance.surface.z==0 && instance.surface!=glm::vec4(0))) return false;
+        const auto& asset=assets_[instance.assetIndex];
+        if(instance.meshIndex>=asset.meshBounds.size() || !asset.meshBounds[instance.meshIndex].valid)return false;
+        const uint32_t first=static_cast<uint32_t>(next->records.size());
+        for(uint32_t sub=0;sub<asset.submeshes.size();++sub) {
+            const auto& mesh=asset.submeshes[sub];if(mesh.meshIndex!=instance.meshIndex)continue;
+            if(asset.materialAlphaModes[mesh.materialIndex]!=moto::VmeshAlphaOpaque
+                || next->records.size()>=maxDrawsPerFrame_)return false;
+            auto batch=std::find_if(next->templates.begin(),next->templates.end(),[&](const auto& b){return b.assetIndex==instance.assetIndex&&b.submeshIndex==sub;});
+            const uint32_t index=static_cast<uint32_t>(batch-next->templates.begin());
+            if(batch==next->templates.end())next->templates.push_back({instance.assetIndex,sub,0,mesh.materialIndex,moto::VmeshAlphaOpaque,0,false,0,1});
+            GpuDrawInstance gpu{};gpu.modelMatrix=instance.modelMatrix;gpu.tintColor=instance.tintColor;
+            gpu.emissiveBoost=instance.emissiveBoost;gpu.materialIndex=mesh.materialIndex;
+            gpu.baseColorOverride=instance.baseColorOverride;gpu.surface=instance.surface;
+            next->records.push_back({index});next->resident.push_back(gpu);
+        }
+        const auto count=static_cast<uint32_t>(next->records.size())-first;
+        if(count==0)return false;
+        next->ranges.emplace_back(first,count);
+    }
+    next->buckets.resize(next->templates.size());
+    staticCache_=std::move(next);
+    return true;
+}
+
+bool MeshPath::selectStaticInstances(std::span<const uint32_t> selected) {
+    if(!staticCache_)return selected.empty();
+    auto& cache=*staticCache_;
+    if(std::equal(selected.begin(),selected.end(),cache.selected.begin(),cache.selected.end()))return true;
+    size_t total=0;
+    for(auto index:selected) {
+        if(index>=cache.ranges.size())return false;
+        total+=cache.ranges[index].second;
+        if(total>maxDrawsPerFrame_)return false;
+    }
+    for(auto& bucket:cache.buckets)bucket.clear();
+    for(auto index:selected) {
+        const auto [first,count]=cache.ranges[index];
+        for(uint32_t r=first;r<first+count;++r)cache.buckets[cache.records[r].batch].push_back(r);
+    }
+    cache.packed.clear();cache.packed.reserve(total);cache.draws.clear();
+    for(size_t b=0;b<cache.buckets.size();++b) {
+        const auto& bucket=cache.buckets[b];if(bucket.empty())continue;
+        auto draw=cache.templates[b];draw.firstInstance=static_cast<uint32_t>(cache.packed.size());
+        draw.instanceCount=static_cast<uint32_t>(bucket.size());cache.draws.push_back(draw);
+        cache.packed.insert(cache.packed.end(),bucket.begin(),bucket.end());
+    }
+    cache.selected.assign(selected.begin(),selected.end());cache.selectionUpload=true;
+    return true;
 }
 
 void MeshPath::setEnvironmentTexture(WGPUTextureView view) {
@@ -1166,7 +1270,7 @@ bool MeshPath::rebuildBindGroups() {
                                             : fallbackEnvironmentView_;
             };
             const auto filtered = filteredEnvironment_.views();
-            const std::array<gpu::BindGroupEntry, 15> entries = {
+            const std::array<gpu::BindGroupEntry, 16> entries = {
                 gpu::BindGroupEntry(0).buffer(
                     uniformBuffer_, 0u, sizeof(MeshUniforms)),
                 gpu::BindGroupEntry(1).buffer(
@@ -1185,6 +1289,7 @@ bool MeshPath::rebuildBindGroups() {
                 gpu::BindGroupEntry(12).textureView(filtered.diffuse ? filtered.diffuse : fallbackCubeView_),
                 gpu::BindGroupEntry(13).textureView(filtered.brdf ? filtered.brdf : fallbackEnvironmentView_),
                 gpu::BindGroupEntry(14).sampler(filteredSampler_),
+                gpu::BindGroupEntry(15).buffer(instanceIndexBuffer_,0u,instanceCapacity_*sizeof(uint32_t)),
             };
             replacements[assetIndex][materialIndex] = gpu::createBindGroup(
                 device_, bindGroupLayout_, entries,
@@ -1230,6 +1335,9 @@ bool MeshPath::ensureInstanceCapacity(size_t required) {
                      newCapacity * sizeof(GpuDrawInstance), true,
                      "mesh_path_draw_instances"));
     if (!replacementBuffer) return false;
+    WGPUBuffer replacementIndices=gpu::createBuffer(device_,gpu::BufferDesc::storage(
+        newCapacity*sizeof(uint32_t),true,"mesh_path_instance_indices"));
+    if(!replacementIndices){releaseBuffer(replacementBuffer);return false;}
 
     std::vector<std::vector<WGPUBindGroup>> replacementGroups(assets_.size());
     const WGPUTextureView environment = boundEnvironmentView_
@@ -1247,7 +1355,7 @@ bool MeshPath::ensureInstanceCapacity(size_t required) {
                                             : fallbackEnvironmentView_;
             };
             const auto filtered = filteredEnvironment_.views();
-            const std::array<gpu::BindGroupEntry, 15> entries = {
+            const std::array<gpu::BindGroupEntry, 16> entries = {
                 gpu::BindGroupEntry(0).buffer(
                     uniformBuffer_, 0u, sizeof(MeshUniforms)),
                 gpu::BindGroupEntry(1).buffer(
@@ -1266,6 +1374,7 @@ bool MeshPath::ensureInstanceCapacity(size_t required) {
                 gpu::BindGroupEntry(12).textureView(filtered.diffuse ? filtered.diffuse : fallbackCubeView_),
                 gpu::BindGroupEntry(13).textureView(filtered.brdf ? filtered.brdf : fallbackEnvironmentView_),
                 gpu::BindGroupEntry(14).sampler(filteredSampler_),
+                gpu::BindGroupEntry(15).buffer(replacementIndices,0u,newCapacity*sizeof(uint32_t)),
             };
             replacementGroups[assetIndex][materialIndex] =
                 gpu::createBindGroup(device_, bindGroupLayout_, entries,
@@ -1276,7 +1385,7 @@ bool MeshPath::ensureInstanceCapacity(size_t required) {
                         if (group) wgpuBindGroupRelease(group);
                     }
                 }
-                releaseBuffer(replacementBuffer);
+                releaseBuffer(replacementBuffer);releaseBuffer(replacementIndices);
                 return false;
             }
         }
@@ -1294,6 +1403,7 @@ bool MeshPath::ensureInstanceCapacity(size_t required) {
     }
     releaseBuffer(instanceBuffer_);
     instanceBuffer_ = replacementBuffer;
+    releaseBuffer(instanceIndexBuffer_);instanceIndexBuffer_=replacementIndices;
     instanceCapacity_ = newCapacity;
     instancesValid_ = false;
     return true;
@@ -1317,9 +1427,10 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                       const glm::vec3& cameraPosition,
                       const PrimitiveLighting& lighting, uint32_t width,
                       uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput,
-                      SceneShadowConsumer beforeColor, glm::vec3 shadowFrameWorldOrigin) {
+                      SceneShadowConsumer beforeColor, glm::vec3 shadowFrameWorldOrigin, FootContacts footContacts) {
     lastSubmittedDrawCount_ = 0u;
     lastCulledInstanceCount_ = 0u;
+    lastInstanceUploadBytes_=lastColorTriangles_=lastShadowTriangles_=0;
     for (auto& asset : assets_) asset.encodedColorDraws=0;
     if (!isInitialized() || !encoder || !colorView || !depthView
         || linearHdrOutput_ != (linearDepthOutput != nullptr)) return false;
@@ -1331,7 +1442,14 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         LOG_ERROR("MeshPath::render: invalid frame matrices, lighting, or extent");
         return false;
     }
-    if (instances_.empty()) return beforeColor(encoder, nullptr);
+    const size_t staticCount=staticCache_ ? staticCache_->resident.size() : 0;
+    const size_t staticVisible=staticCache_ ? staticCache_->packed.size() : 0;
+    if (instances_.empty() && staticVisible==0) return beforeColor(encoder, nullptr);
+    for (const auto& foot : footContacts)
+        if (!finiteVec3(glm::vec3(foot)) || !std::isfinite(foot.w) || foot.w < 0 || foot.w > 4) return false;
+
+    auto shadow = sunShadows_ ? sunShadowFrame(cameraPosition,lighting.direction,shadowFrameWorldOrigin,farSunShadows_) : SunShadowUniforms{};
+    shadow.footContacts = footContacts;
 
     std::vector<GpuDrawInstance> gpuInstances;
     std::vector<PendingDraw> draws;
@@ -1387,11 +1505,13 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             instancesValid_ = false;
             return false;
         }
-        if (!sunShadows_ && !instance.physicsBody.valid() && !boundsVisible(viewProj * instance.modelMatrix,
-                           bounds.minimum, bounds.maximum)) {
-            ++lastCulledInstanceCount_;
-            continue;
+        const bool live=instance.physicsBody.valid();
+        uint8_t visibility=(live || boundsVisible(viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)) ? 1u : 0u;
+        if(sunShadows_ && instance.castsSunShadow && instance.tintColor.a>=.99f) {
+            if(live || boundsVisible(shadow.viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum))visibility|=2u;
+            if(farSunShadows_ && (live || boundsVisible(shadow.farViewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)))visibility|=4u;
         }
+        if(!visibility) { ++lastCulledInstanceCount_;continue; }
 
         const glm::vec3 localCenter =
             (bounds.minimum + bounds.maximum) * 0.5f;
@@ -1427,11 +1547,12 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 instance.assetIndex, submeshIndex, firstInstance,
                 submesh.materialIndex,
                 asset.materialAlphaModes[submesh.materialIndex],
-                distanceSquared, instance.castsSunShadow});
+                distanceSquared, instance.castsSunShadow && instance.tintColor.a >= 0.99f
+                    && asset.materialAlphaModes[submesh.materialIndex] != moto::VmeshAlphaBlend,1u,visibility});
         }
     }
 
-    if (gpuInstances.empty()) return true;
+    if (gpuInstances.empty() && staticVisible==0) return beforeColor(encoder,nullptr);
     std::sort(draws.begin(), draws.end(), [](const PendingDraw& left,
                                              const PendingDraw& right) {
         const bool leftBlend = left.alphaMode == moto::VmeshAlphaBlend;
@@ -1446,18 +1567,68 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (left.materialIndex != right.materialIndex) {
             return left.materialIndex < right.materialIndex;
         }
-        return left.submeshIndex < right.submeshIndex;
+        if(left.submeshIndex != right.submeshIndex)return left.submeshIndex < right.submeshIndex;
+        if(!leftBlend && left.castsSunShadow!=right.castsSunShadow)return left.castsSunShadow<right.castsSunShadow;
+        if(!leftBlend)return left.visibility<right.visibility;
+        return false;
     });
 
-    if (!ensureInstanceCapacity(gpuInstances.size())) {
+    // Shader instance_index includes firstInstance. Pack records in the existing
+    // material/depth order, then coalesce compatible consecutive draws. Each
+    // instance keeps its transform, paint, live-body handle and surface state.
+    // Blended records retain back-to-front order; no new transparency sorting.
+    std::vector<GpuDrawInstance> sortedInstances;
+    sortedInstances.reserve(gpuInstances.size());
+    std::vector<PendingDraw> batches;
+    batches.reserve(draws.size());
+    for (auto draw : draws) {
+        sortedInstances.push_back(gpuInstances[draw.firstInstance]);
+        draw.firstInstance = static_cast<uint32_t>(sortedInstances.size()-1u);
+        if (!batches.empty()) {
+            auto& previous = batches.back();
+            if (previous.assetIndex == draw.assetIndex && previous.submeshIndex == draw.submeshIndex
+                && previous.materialIndex == draw.materialIndex && previous.alphaMode == draw.alphaMode
+                && previous.castsSunShadow == draw.castsSunShadow && previous.visibility == draw.visibility) {
+                ++previous.instanceCount;
+                continue;
+            }
+        }
+        batches.push_back(draw);
+    }
+    gpuInstances.swap(sortedInstances);
+    draws.swap(batches);
+
+    const auto oldBuffer=instanceBuffer_;
+    const size_t required=std::max(staticCount,staticVisible)+gpuInstances.size();
+    if (required>maxDrawsPerFrame_ || !ensureInstanceCapacity(required)) {
         instancesValid_ = false;
         return false;
     }
-    if (!gpu::writeBuffer(queue_, instanceBuffer_, 0u,
+    if(staticCount && (staticCache_->upload || oldBuffer!=instanceBuffer_)) {
+        if(!gpu::writeBuffer(queue_,instanceBuffer_,0u,std::span<const GpuDrawInstance>(staticCache_->resident)))return false;
+        lastInstanceUploadBytes_+=staticCount*sizeof(GpuDrawInstance);staticCache_->upload=false;
+    }
+    if (!gpuInstances.empty() && !gpu::writeBuffer(queue_, instanceBuffer_, staticCount*sizeof(GpuDrawInstance),
                           std::span<const GpuDrawInstance>(gpuInstances))) {
         instancesValid_ = false;
         return false;
     }
+    lastInstanceUploadBytes_+=gpuInstances.size()*sizeof(GpuDrawInstance);
+    if(staticCount) {
+        if(staticVisible && (staticCache_->selectionUpload || oldBuffer!=instanceBuffer_)) {
+            if(!gpu::writeBuffer(queue_,instanceIndexBuffer_,0u,std::span<const uint32_t>(staticCache_->packed)))return false;
+            lastInstanceUploadBytes_+=staticVisible*sizeof(uint32_t);
+        }
+        staticCache_->selectionUpload=false;
+        std::vector<uint32_t> liveIndices;liveIndices.reserve(gpuInstances.size());
+        for(uint32_t i=0;i<gpuInstances.size();++i)liveIndices.push_back(static_cast<uint32_t>(staticCount)+i);
+        if(!liveIndices.empty() && !gpu::writeBuffer(queue_,instanceIndexBuffer_,staticVisible*sizeof(uint32_t),std::span<const uint32_t>(liveIndices)))return false;
+        lastInstanceUploadBytes_+=liveIndices.size()*sizeof(uint32_t);
+        for(auto& draw:draws)draw.firstInstance+=static_cast<uint32_t>(staticVisible);
+    }
+    // Static records are opaque. Draw before live opaque/transparent records,
+    // preserving the latter's back-to-front blending order.
+    if(staticCount)draws.insert(draws.begin(),staticCache_->draws.begin(),staticCache_->draws.end());
 
     MeshUniforms uniforms;
     uniforms.viewProj = viewProj;
@@ -1479,14 +1650,19 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (!filteredEnvironmentReady_ && !filteredEnvironmentEncoded_) return false;
         uniforms.environmentParams.x = 1.0f;
     }
+    uniforms.environmentParams.y = toySkyGroundFill_ ? 1.0f : 0.0f;
+    uniforms.environmentParams.z = lighting.dayNightHour;
+    uniforms.environmentParams.w = staticCount ? 1.f : 0.f;
     if (!gpu::writeBuffer(queue_, uniformBuffer_, 0u, uniforms)) {
         instancesValid_ = false;
         return false;
     }
     instancesValid_ = true;
 
-    const auto shadow = sunShadows_ ? sunShadowFrame(cameraPosition,lighting.direction,shadowFrameWorldOrigin) : SunShadowUniforms{};
-    if (!gpu::writeBuffer(queue_,sunShadowUniform_,0u,shadow)) return false;
+    auto farShadow = shadow;
+    farShadow.viewProj = shadow.farViewProj;
+    if (!gpu::writeBuffer(queue_,sunShadowUniform_,0u,shadow)
+        || !gpu::writeBuffer(queue_,farSunShadowUniform_,0u,farShadow)) return false;
     if (sunShadows_) {
         WGPURenderPassDepthStencilAttachment target{};
         target.view = sunShadowView_; target.depthClearValue = 1.0f;
@@ -1499,17 +1675,23 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (!pass) return false;
         wgpuRenderPassEncoderSetPipeline(pass,sunCasterPipeline_);
         wgpuRenderPassEncoderSetBindGroup(pass,1u,bodyBinding_,0u,nullptr);
-        wgpuRenderPassEncoderSetBindGroup(pass,2u,sunCasterBinding_,0u,nullptr);
-        for (const auto& draw : draws) {
-            // Translucent material/ghosts cannot cast an opaque silhouette.
-            if (!draw.castsSunShadow || draw.alphaMode == moto::VmeshAlphaBlend
-                || gpuInstances[draw.firstInstance].tintColor.a < 0.99f) continue;
-            const auto& asset = assets_[draw.assetIndex];
-            const auto& submesh = asset.submeshes[draw.submeshIndex];
-            wgpuRenderPassEncoderSetBindGroup(pass,0u,asset.materials[draw.materialIndex].bindGroup,0u,nullptr);
-            wgpuRenderPassEncoderSetVertexBuffer(pass,0u,asset.vertexBuffer,0u,WGPU_WHOLE_SIZE);
-            wgpuRenderPassEncoderSetIndexBuffer(pass,asset.indexBuffer,WGPUIndexFormat_Uint32,0u,WGPU_WHOLE_SIZE);
-            wgpuRenderPassEncoderDrawIndexed(pass,submesh.indexCount,1u,submesh.indexOffset/4u,0,draw.firstInstance);
+        for (uint32_t region=0;region<(farSunShadows_ ? 2u : 1u);++region) {
+            const uint32_t size = region ? farSunShadowResolution : sunShadowResolution;
+            const uint32_t x = region ? sunShadowResolution : 0;
+            wgpuRenderPassEncoderSetViewport(pass,float(x),0,float(size),float(size),0,1);
+            wgpuRenderPassEncoderSetScissorRect(pass,x,0,size,size);
+            wgpuRenderPassEncoderSetBindGroup(pass,2u,region ? farSunCasterBinding_ : sunCasterBinding_,0u,nullptr);
+            for (const auto& draw : draws) {
+                // Translucent material/ghosts cannot cast an opaque silhouette.
+                if (!draw.castsSunShadow || !(draw.visibility & (2u<<region))) continue;
+                const auto& asset = assets_[draw.assetIndex];
+                const auto& submesh = asset.submeshes[draw.submeshIndex];
+                wgpuRenderPassEncoderSetBindGroup(pass,0u,asset.materials[draw.materialIndex].bindGroup,0u,nullptr);
+                wgpuRenderPassEncoderSetVertexBuffer(pass,0u,asset.vertexBuffer,0u,WGPU_WHOLE_SIZE);
+                wgpuRenderPassEncoderSetIndexBuffer(pass,asset.indexBuffer,WGPUIndexFormat_Uint32,0u,WGPU_WHOLE_SIZE);
+                wgpuRenderPassEncoderDrawIndexed(pass,submesh.indexCount,draw.instanceCount,submesh.indexOffset/4u,0,draw.firstInstance);
+                lastShadowTriangles_+=uint64_t(submesh.indexCount/3)*draw.instanceCount;
+            }
         }
         wgpuRenderPassEncoderEnd(pass); wgpuRenderPassEncoderRelease(pass);
     }
@@ -1551,6 +1733,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     uint32_t boundAsset = std::numeric_limits<uint32_t>::max();
     uint32_t boundMaterial = std::numeric_limits<uint32_t>::max();
     for (const PendingDraw& draw : draws) {
+        if(!(draw.visibility&1u))continue;
         const GpuAsset& asset = assets_[draw.assetIndex];
         const moto::VmeshSubmesh& submesh =
             asset.submeshes[draw.submeshIndex];
@@ -1579,13 +1762,14 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 0u, nullptr);
         }
         wgpuRenderPassEncoderDrawIndexed(
-            pass, submesh.indexCount, 1u, submesh.indexOffset / 4u,
+            pass, submesh.indexCount, draw.instanceCount, submesh.indexOffset / 4u,
             0, draw.firstInstance);
         ++assets_[draw.assetIndex].encodedColorDraws;
+        ++lastSubmittedDrawCount_;
+        lastColorTriangles_+=uint64_t(submesh.indexCount/3)*draw.instanceCount;
     }
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);
-    lastSubmittedDrawCount_ = static_cast<uint32_t>(draws.size());
     return true;
 }
 

@@ -10,15 +10,23 @@
 
 #include <gtest/gtest.h>
 #include <array>
+#include <chrono>
 #include <filesystem>
 #include <limits>
 #include <string_view>
 #include <utility>
+#include <thread>
 
 #include <glm/glm.hpp>
 
 #include "app/application.hpp"
 #include "app/debug_overlay.hpp"
+#include "gpu/context.hpp"
+#if defined(None)
+#undef None
+#endif
+#include "physics/physics_world.hpp"
+#include "physics/authored_shape_resources.hpp"
 
 namespace voxy {
 
@@ -674,6 +682,61 @@ TEST_F(ApplicationGPUTest, DISABLED_ProcessSingleFrame) {
     }
 }
 
+TEST_F(ApplicationGPUTest, DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface) {
+    Application app;
+    auto config = getTestConfig();
+    config.gpuPhysicsMaxBodies = 32;
+    config.gpuPhysicsMaxPairs = 64;
+    config.gpuPhysicsMaxCandidatePairs = 128;
+    config.physicsCpuFallback = false;
+    ASSERT_TRUE(app.init(config));
+    auto& world = *app.getPhysicsWorld();
+    auto& context = *app.getGPUContext();
+    ASSERT_EQ(world.enableAuthoredShapeResources({}), physics::ShapeResourceError::None);
+    auto* resources = world.authoredShapeResources();
+    ASSERT_NE(resources, nullptr);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(20);
+    while (resources->stats().phase == physics::ShapeResourcePhase::Initializing
+        && std::chrono::steady_clock::now() < deadline) {
+        context.tick(); resources->poll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_EQ(resources->stats().phase, physics::ShapeResourcePhase::Ready);
+
+    app.render();
+    ASSERT_NE(context.getCurrentTexture(), nullptr);
+    app.endFrame();
+    ASSERT_EQ(context.getCurrentTexture(), nullptr);
+    const auto acquired = app.getStats().surfaceAcquiredFrames;
+    const auto deferred = app.getStats().physicsDeferredFrames;
+    physics::ShapeResourceError error;
+    // Hold a real GPU reservation to force Busy without a timing-dependent
+    // overloaded GPU. A browser presents even an acquired-but-undrawn texture.
+    const auto held = world.prepareGpuSubmission(error);
+    ASSERT_TRUE(held.valid());
+    for (int frame = 0; frame < 3; ++frame) {
+        app.render();
+        EXPECT_EQ(context.getCurrentTexture(), nullptr);
+        EXPECT_EQ(app.getStats().surfaceAcquiredFrames, acquired);
+        app.endFrame();
+    }
+    EXPECT_EQ(app.getStats().physicsDeferredFrames, deferred + 3);
+    ASSERT_EQ(world.discardGpuSubmission(held), physics::ShapeResourceError::None);
+    app.render();
+    EXPECT_NE(context.getCurrentTexture(), nullptr);
+    EXPECT_EQ(app.getStats().surfaceAcquiredFrames, acquired + 1);
+    app.endFrame();
+    resources->close();
+    const auto closeDeadline = std::chrono::steady_clock::now() + std::chrono::seconds(20);
+    while (resources->stats().phase == physics::ShapeResourcePhase::Closing
+        && std::chrono::steady_clock::now() < closeDeadline) {
+        context.tick(); resources->poll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    EXPECT_EQ(resources->stats().phase, physics::ShapeResourcePhase::Closed);
+    app.shutdown();
+}
+
 TEST_F(ApplicationGPUTest, DISABLED_UpdateCallback) {
     Application app;
     
@@ -705,3 +768,83 @@ TEST_F(ApplicationGPUTest, DISABLED_UpdateCallback) {
 #endif // VOXY_NATIVE
 
 } // namespace voxy
+
+namespace voxy {
+// Exercise the real settings transactions and clock without creating a window.
+class ApplicationDayNightTest : public ::testing::Test {
+protected:
+    Application app;
+    void SetUp() override {
+        app.config_.freeBuildEnabled = true;
+        app.fixedLightingSettings_ = app.rendererSettings_;
+        ASSERT_TRUE(app.setRendererSetting("lighting.dayNightEnabled", 1.0, true));
+        app.rendererSettingsDirty_ = 0;
+    }
+    void step(float seconds) { app.updateDayNight(seconds); }
+    bool pendingShadow() const { return app.pendingFixedSunShadow_; }
+    bool shadowRebuildRequested() const {
+        return (app.rendererSettingsDirty_ & (1u << 5u)) != 0u;
+    }
+};
+
+TEST_F(ApplicationDayNightTest, PartialDisableImportRebuildsShadowsOnCommit) {
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightEnabled", 0.0, false));
+    EXPECT_TRUE(pendingShadow());
+    EXPECT_FALSE(shadowRebuildRequested());
+    // The inspector commits the same value after its preview has taken effect.
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightEnabled", 0.0, true));
+    EXPECT_FALSE(pendingShadow());
+    EXPECT_TRUE(shadowRebuildRequested());
+}
+
+TEST_F(ApplicationDayNightTest, ManualLightingPersistsEvenWhenTimeWasHeld) {
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightPaused", 1.0, true));
+    const auto direction = app.getRendererSetting("lighting.sunAzimuth");
+    ASSERT_TRUE(app.setRendererSetting("lighting.exposure", 1.7, false));
+    EXPECT_EQ(app.getRendererSetting("lighting.dayNightEnabled"), 0.0);
+    EXPECT_EQ(app.getRendererSetting("lighting.sunAzimuth"), direction);
+    step(0.2f);
+    EXPECT_NEAR(*app.getRendererSetting("lighting.exposure"), 1.7, 1e-6);
+    ASSERT_TRUE(app.setRendererSetting("lighting.exposure", 1.7, true));
+    EXPECT_TRUE(shadowRebuildRequested());
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightEnabled", 1.0, true));
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightEnabled", 0.0, true));
+    EXPECT_NEAR(*app.getRendererSetting("lighting.exposure"), 1.7, 1e-6);
+}
+
+TEST_F(ApplicationDayNightTest, PauseResumeAndMidnightKeepClockAndLightingTogether) {
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayHour", 23.999, true));
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayCycleMinutes", 1.0, true));
+    step(0.0f); // The game menu passes zero elapsed time.
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("lighting.dayHour"), 23.999);
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightPaused", 1.0, true));
+    step(0.2f);
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("lighting.dayHour"), 23.999);
+    ASSERT_TRUE(app.setRendererSetting("lighting.dayNightPaused", 0.0, true));
+    step(0.2f);
+    EXPECT_NEAR(*app.getRendererSetting("lighting.dayHour"), 0.079, 1e-7);
+    EXPECT_GT(*app.getRendererSetting("lighting.sunColor.b"),
+              *app.getRendererSetting("lighting.sunColor.r"));
+}
+
+TEST_F(ApplicationDayNightTest, WaterAndFogDensityEditsKeepTheCycleRunning) {
+    EXPECT_TRUE(app.setRendererSetting("water.roughness", 0.3, true));
+    EXPECT_TRUE(app.setRendererSetting("lighting.fogDensity", 0.0002, true));
+    EXPECT_EQ(app.getRendererSetting("lighting.dayNightEnabled"), 1.0);
+    EXPECT_FALSE(app.setRendererSetting("lighting.exposure",
+        std::numeric_limits<double>::quiet_NaN(), true));
+    EXPECT_EQ(app.getRendererSetting("lighting.dayNightEnabled"), 1.0);
+}
+} // namespace voxy
+
+TEST(ApplicationTest, DayNightControlsWrapClampAndRejectInvalidInput) {
+    voxy::Application app;
+    EXPECT_TRUE(app.setRendererSetting("lighting.dayHour", 25.5, true));
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("lighting.dayHour"), 1.5);
+    EXPECT_TRUE(app.setRendererSetting("lighting.dayCycleMinutes", 0.0, true));
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("lighting.dayCycleMinutes"), 1.0);
+    EXPECT_TRUE(app.setRendererSetting("lighting.dayNightPaused", 1.0, true));
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("lighting.dayNightPaused"), 1.0);
+    EXPECT_FALSE(app.setRendererSetting("lighting.dayNightPaused", 0.5, true));
+    EXPECT_FALSE(app.setRendererSetting("lighting.dayHour", std::numeric_limits<double>::quiet_NaN(), true));
+}

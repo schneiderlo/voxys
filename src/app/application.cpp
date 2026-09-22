@@ -7,6 +7,7 @@
 #include "terrain/heightmap.hpp"
 
 #include "app/application.hpp"
+#include "render/day_night.hpp"
 #include "app/salvage_preview_readback.hpp"
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
@@ -933,6 +934,10 @@ wreckwaterApplicationConnectionState(
         && config.heightScale <= 1.0e6f
         && std::isfinite(config.cellScale) && config.cellScale > 0.0f
         && config.cellScale <= 1.0e6f
+        && std::isfinite(config.dayCycleMinutes) && config.dayCycleMinutes >= 1.0f
+        && config.dayCycleMinutes <= 240.0f
+        && std::isfinite(config.dayStartHour) && config.dayStartHour >= 0.0f
+        && config.dayStartHour <= 24.0f
         && finiteVector(config.sunDirection)
         && finiteVector(config.sunColor)
         && finiteVector(config.ambientColor)
@@ -1490,7 +1495,20 @@ bool Application::init(const ApplicationConfig& config) {
         rendererSettings_.ambientIntensity = 0.34f;
         rendererSettings_.fogColor = {0.48f, 0.25f, 0.20f};
         rendererSettings_.exposure = 1.15f;
+        if (config_.freeBuildEnabled) {
+            // Lift only indirect illumination: retain the warm low sun,
+            // its long shadows, sunset fog and the original exposure.
+            rendererSettings_.ambientColor = config_.ambientColor;
+            rendererSettings_.ambientIntensity = config_.ambientIntensity;
+        }
     }
+    fixedLightingSettings_ = rendererSettings_;
+    rendererSettings_.dayNightEnabled = config_.freeBuildEnabled && config_.dayNightEnabled;
+    rendererSettings_.dayNightPaused = false;
+    rendererSettings_.dayHour = render::wrapDayHour(config_.dayStartHour);
+    rendererSettings_.dayCycleMinutes = config_.dayCycleMinutes;
+    dayNightLightingSeconds_ = 0.0;
+    updateDayNight(0.0f);
     rendererSettings_.waterEnabled = config_.waterEnabled;
     rendererSettings_.waterHeight = config_.waterHeight;
     rendererSettings_.waterShallowColor = config_.waterShallowColor;
@@ -1511,6 +1529,7 @@ bool Application::init(const ApplicationConfig& config) {
     rendererSettingsRevision_ = 1u;
     appliedRendererSettingsRevision_ = 1u;
     rendererSettingsDirty_ = 0u;
+    pendingFixedSunShadow_ = false;
     uncappedFPS_ = !config_.vsync;
     primitiveCullController_.reset();
 #if defined(VOXY_NATIVE)
@@ -1604,6 +1623,7 @@ bool Application::init(const ApplicationConfig& config) {
                 gpuContext_->getDevice(),gpuContext_->getQueue(),config_.shaderDir,config_.colorFormat,error)) {
                 LOG_ERROR("Adventure could not start: {}",error);return failInitialization();
             }
+            if(physicsWorld_)adventure_->attachPhysics(*physicsWorld_);
         }
 
         setupCallbacks();
@@ -2474,6 +2494,9 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
         }
     }
 
+    updateDayNight(!landingMenuConsumed_ && (!adventure_ || !adventure_->isPaused())
+        ? simulationDeltaTime : 0.0f);
+
     if (config_.salvagePreviewEnabled && salvagePreview_ && salvagePreview_->busy())
         handleKeyboardShortcuts();
     if (legoPlayground_) legoPlayground_->step(simulationDeltaTime);
@@ -2485,7 +2508,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
             || (salvageLocalSession_ && salvageLocalSession_->storageRevoked && !salvageLocalSession_->pendingControl);
         const bool awaitingCoveExecution=salvageLocalSession_ && salvageLocalSession_->session
             && salvageLocalSession_->session->hasPending() && !salvageLocalSession_->session->executionInFlight();
-        physicsWorld_->update(awaitingCoveExecution || covePaused?0:simulationDeltaTime);
+        physicsWorld_->update(awaitingCoveExecution || covePaused || (adventure_ && (adventure_->isPaused() || adventure_->physicsWaiting()))?0:simulationDeltaTime);
         const physics::PhysicsStepStats stepStats =
             physicsWorld_->lastStepStats();
         stats_.physicsSimulationMs = stepStats.simulationMs;
@@ -2537,14 +2560,6 @@ void Application::render() {
         return;  // Invalid swapchain dimensions
     }
 
-    // Scripted performance runs render the same frame offscreen so window
-    // server presentation and occlusion cannot contaminate GPU throughput.
-    WGPUTextureView targetView = config_.benchmarkOnStartup
-        ? benchmarkTargetView_ : gpuContext_->getCurrentTextureView();
-    if (!targetView) {
-        return;
-    }
-
     RenderFrameGuard frameGuard;
     frameGuard.blit=blitPath_.get(); frameGuard.raycast=raycastPath_.get();
     const bool retiredBoat=salvageLocalSession_ && salvageLocalSession_->asset
@@ -2558,13 +2573,25 @@ void Application::render() {
         physics::ShapeResourceError error;
         frameGuard.physicsTicket=physicsWorld_->prepareGpuSubmission(error);
         if (!frameGuard.physicsTicket.valid()) {
-            if (error!=physics::ShapeResourceError::NotReady && error!=physics::ShapeResourceError::Busy) {
+            if (error==physics::ShapeResourceError::NotReady || error==physics::ShapeResourceError::Busy) {
+                ++stats_.physicsDeferredFrames;
+            } else {
                 LOG_ERROR("Boat physics submission failed: {}",static_cast<int>(error)); requestExit();
             }
             return;
         }
         frameGuard.physicsWorld=physicsWorld_.get();
     }
+    // Acquiring a browser canvas texture schedules its presentation, even if
+    // we return without drawing. Wait for physics admission first, so Busy or
+    // NotReady keeps the previous image instead of presenting a blank frame.
+    // The guard releases the reservation if surface acquisition itself fails.
+    // Benchmarks use the same rendering with an offscreen presentation target.
+    WGPUTextureView targetView = config_.benchmarkOnStartup
+        ? benchmarkTargetView_ : gpuContext_->getCurrentTextureView();
+    if (!targetView) return;
+    if (!config_.benchmarkOnStartup) ++stats_.surfaceAcquiredFrames;
+
     // Create command encoder after reserving the complete shape use.
     WGPUCommandEncoderDescriptor encoderDesc = {};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
@@ -2771,6 +2798,9 @@ void Application::render() {
             avatarProxies.begin(), avatarProxies.end());
         if (salvagePreview_) {
             primitivePath_->setLegoBodyIds(salvagePreview_->legoBodyIds());
+        } else if (adventure_) {
+            static_assert(game::adventure::BrickThrower::maximumLive <= render::PrimitivePath::maximumLegoBodies);
+            primitivePath_->setLegoBodyIds(adventure_->thrownBrickBodyIds());
         } else if (!legoPlayground_) {
             primitivePath_->setLegoBodyIds({});
         }
@@ -3263,6 +3293,13 @@ bool Application::setRendererSetting(std::string_view name, double value,
                                      bool commit) {
     if (!std::isfinite(value)) return false;
     uint32_t dirty = RendererUniformsDirty;
+    // An explicit edit keeps the current light settings in fixed lighting.
+    // Keep its shadow rebuild pending across preview calls until commit.
+    if (rendererSettings_.dayNightEnabled && render::isDayNightDrivenSetting(name)) {
+        rendererSettings_.dayNightEnabled = false;
+        fixedLightingSettings_ = rendererSettings_;
+        pendingFixedSunShadow_ = true;
+    }
     auto setScalar = [&](float& destination, float minimum, float maximum) {
         destination = finiteClamp(value, minimum, maximum);
     };
@@ -3274,6 +3311,34 @@ bool Application::setRendererSetting(std::string_view name, double value,
         if (value != 0.0 && value != 1.0) return false;
         setRenderPath(value == 0.0 ? RenderPath::Triangle
                                    : RenderPath::Raycast);
+    } else if (name == "lighting.dayNightEnabled") {
+        if (value != 0.0 && value != 1.0) return false;
+        if (value == 1.0 && !config_.freeBuildEnabled) return false;
+        if (value == 1.0 && !rendererSettings_.dayNightEnabled) {
+            fixedLightingSettings_ = rendererSettings_;
+            pendingFixedSunShadow_ = false;
+        } else if (value == 0.0 && rendererSettings_.dayNightEnabled) {
+            rendererSettings_.sunDirection = fixedLightingSettings_.sunDirection;
+            rendererSettings_.sunColor = fixedLightingSettings_.sunColor;
+            rendererSettings_.sunIntensity = fixedLightingSettings_.sunIntensity;
+            rendererSettings_.ambientColor = fixedLightingSettings_.ambientColor;
+            rendererSettings_.ambientIntensity = fixedLightingSettings_.ambientIntensity;
+            rendererSettings_.fogColor = fixedLightingSettings_.fogColor;
+            rendererSettings_.exposure = fixedLightingSettings_.exposure;
+            pendingFixedSunShadow_ = true;
+        }
+        rendererSettings_.dayNightEnabled = value == 1.0;
+        dayNightLightingSeconds_ = 0.0;
+        updateDayNight(0.0f);
+    } else if (name == "lighting.dayNightPaused") {
+        if (value != 0.0 && value != 1.0) return false;
+        rendererSettings_.dayNightPaused = value == 1.0;
+    } else if (name == "lighting.dayHour") {
+        rendererSettings_.dayHour = render::wrapDayHour(value);
+        dayNightLightingSeconds_ = 0.0;
+        updateDayNight(0.0f);
+    } else if (name == "lighting.dayCycleMinutes") {
+        setScalar(rendererSettings_.dayCycleMinutes, 1.0f, 240.0f);
     } else if (name == "lighting.sunAzimuth") {
         const float azimuth = finiteClamp(value, -180.0f, 180.0f);
         rendererSettings_.sunDirection = sunDirectionFromDegrees(
@@ -3411,6 +3476,10 @@ bool Application::setRendererSetting(std::string_view name, double value,
         return false;
     }
 
+    if (commit && pendingFixedSunShadow_ && !rendererSettings_.dayNightEnabled) {
+        dirty |= RendererSunShadowDirty;
+        pendingFixedSunShadow_ = false;
+    }
     rendererSettingsDirty_ |= dirty;
     ++rendererSettingsRevision_;
     return true;
@@ -3422,6 +3491,10 @@ std::optional<double> Application::getRendererSetting(
     if (name == "render.path") {
         return static_cast<double>(config_.renderPath);
     }
+    if (name == "lighting.dayNightEnabled") return s.dayNightEnabled ? 1.0 : 0.0;
+    if (name == "lighting.dayNightPaused") return s.dayNightPaused ? 1.0 : 0.0;
+    if (name == "lighting.dayHour") return s.dayHour;
+    if (name == "lighting.dayCycleMinutes") return s.dayCycleMinutes;
     if (name == "lighting.sunAzimuth") return sunAzimuthDegrees(s.sunDirection);
     if (name == "lighting.sunElevation") return sunElevationDegrees(s.sunDirection);
     if (name == "lighting.sunColor.r") return s.sunColor.r;
@@ -3477,6 +3550,29 @@ std::optional<double> Application::getRendererSetting(
     return std::nullopt;
 }
 
+void Application::updateDayNight(float seconds) {
+    if (!rendererSettings_.dayNightEnabled) return;
+    if (!rendererSettings_.dayNightPaused) {
+        rendererSettings_.dayHour = render::advanceDayHour(rendererSettings_.dayHour,
+            seconds, rendererSettings_.dayCycleMinutes);
+    }
+    // Ten tiny lighting steps per second preserve the stationary terrain cache
+    // between updates. At normal speed each step is just 0.025 degrees.
+    dayNightLightingSeconds_ += std::clamp(double(seconds), 0.0, 0.25);
+    if (seconds > 0.0f && dayNightLightingSeconds_ < 0.1) return;
+    dayNightLightingSeconds_ = 0.0;
+    dayNightRenderHour_ = rendererSettings_.dayHour;
+    const auto light = render::sampleDayNight(dayNightRenderHour_);
+    dayNightDaylight_ = light.daylight;
+    rendererSettings_.sunDirection = light.lightDirection;
+    rendererSettings_.sunColor = light.lightColor;
+    rendererSettings_.sunIntensity = light.intensity;
+    rendererSettings_.ambientColor = light.ambientColor;
+    rendererSettings_.ambientIntensity = light.ambientIntensity;
+    rendererSettings_.fogColor = light.fogColor;
+    rendererSettings_.exposure = light.exposure;
+}
+
 void Application::applyRendererSettings() {
     if (rendererSettingsDirty_ == 0u) return;
     const uint32_t dirty = rendererSettingsDirty_;
@@ -3525,7 +3621,7 @@ void Application::applyRendererSettings() {
         rendererSettings_.waterHeight = appliedWaterCoastHeight_;
         updateWaterPhysicsBindings();
     }
-    if ((dirty & RendererSunShadowDirty) != 0u &&
+    if (!rendererSettings_.dayNightEnabled && (dirty & RendererSunShadowDirty) != 0u &&
         !rebuildSunShadowMap()) {
         LOG_ERROR("Runtime sun-shadow update failed");
         rendererSettings_.sunDirection = appliedShadowSunDirection_;
@@ -4501,6 +4597,19 @@ bool Application::initCamera() {
         physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;
         physicsContext.maxContacts = config_.gpuPhysicsMaxPairs;
         physicsContext.maxManifolds = config_.gpuPhysicsMaxPairs;
+        // Studs can touch an underside and a side at once. Keep independent
+        // contact patches in the Free Build world without expanding demos.
+        if (config_.freeBuildEnabled) {
+            physicsContext.gpu.authoredContactPatches = 8;
+            // Interlocking hollow parts need this convergence budget. The
+            // real wall sleeps naturally; gravity and sleep limits stay fixed.
+            physicsContext.gpu.substeps = 16;
+            // Bound the multi-patch history to the small imported-house scene.
+            // Large physics demos retain their separately configured budgets.
+            physicsContext.maxPairs = std::min(physicsContext.maxPairs, 8192u);
+            physicsContext.maxManifolds = std::min(physicsContext.maxManifolds, 8192u);
+            physicsContext.maxContacts = std::min(physicsContext.maxContacts, 4096u);
+        }
         physicsContext.maxCandidatePairs =
             config_.gpuPhysicsMaxCandidatePairs;
         if (config_.cubePyramidBodyCount != 0u) {
@@ -5022,6 +5131,7 @@ bool Application::initRenderers() {
         render::BlitPathConfig blitConfig = render::BlitPathConfig::defaults();
         blitConfig.shaderPath = config_.shaderDir / "ray_blit.wgsl";
         blitConfig.colorFormat = config_.colorFormat;
+        blitConfig.dayNightSky = config_.freeBuildEnabled;
         blitConfig.heightScale = config_.heightScale;
         blitConfig.cellScale = config_.cellScale;
     blitConfig.enableOpaqueScene = config_.salvageAssetFixtureWaterAnchor || config_.adventureEnabled;
@@ -5804,7 +5914,9 @@ bool Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
                     .direction=app.rendererSettings_.sunDirection,.sunColor=app.rendererSettings_.sunColor,
                     .sunIntensity=app.rendererSettings_.sunIntensity,.ambientColor=app.rendererSettings_.ambientColor,
                     .ambientIntensity=app.rendererSettings_.ambientIntensity,.fogColor=app.rendererSettings_.fogColor,
-                    .fogDensity=app.rendererSettings_.fogDensity,.exposure=app.rendererSettings_.exposure};
+                    .fogDensity=app.rendererSettings_.fogDensity,.exposure=app.rendererSettings_.exposure,
+                    .dayNightHour=app.rendererSettings_.dayNightEnabled
+                        ? static_cast<float>(app.dayNightRenderHour_ + 1.0) : 0.0f};
                 return app.adventure_->render(commands,color,app.getOrCreateDepthView(),depth,
                     app.blitPath_->getEnvironmentTextureView(),app.raycastPath_->getTerrainDepthCacheView(),*app.camera_,lighting,
                     app.gpuContext_->getSwapchainWidth(),app.gpuContext_->getSwapchainHeight(),background);
@@ -5921,6 +6033,17 @@ void Application::updateCameraUniforms() {
             rendererSettings_.waterSpectrum.patchLengths)) {
         LOG_ERROR("Application: refused invalid camera uniform state");
         return;
+    }
+    // Reserved fog lane carries the bounded clock; zero keeps legacy skies.
+    uniforms.lightDirWS.w = rendererSettings_.dayNightEnabled ? 1.0f : 0.0f;
+    uniforms.fogColor.w = rendererSettings_.dayNightEnabled
+        ? static_cast<float>(dayNightRenderHour_ + 1.0) : 0.0f;
+    if (rendererSettings_.dayNightEnabled) {
+        // Scattered water light follows the sky too; otherwise the night ocean
+        // keeps its daylight turquoise glow even with correct reflections.
+        const float waterFill = glm::mix(0.20f, 1.0f, dayNightDaylight_);
+        uniforms.waterColorA *= glm::vec4(waterFill, waterFill, waterFill, 1.0f);
+        uniforms.waterColorB *= glm::vec4(waterFill, waterFill, waterFill, 1.0f);
     }
     uniforms.setLegoMode(legoMode_);
     // K compares grouping only in this physical LEGO scene. It never changes

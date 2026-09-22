@@ -49,6 +49,9 @@ struct GpuEventSources {
     WGPUBuffer manifolds = nullptr;
     WGPUBuffer narrowPhaseTelemetry = nullptr;
     uint32_t manifoldCapacity = 0;
+    // True when manifolds is the solver's dense active buffer (telemetry24).
+    // False preserves callers supplying a compact test stream (telemetry11).
+    bool useActiveManifoldCount = false;
     WGPUBuffer metadata = nullptr;
     uint32_t bodyCapacity = 0;
     WGPUBuffer attachments = nullptr;

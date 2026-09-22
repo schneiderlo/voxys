@@ -55,7 +55,7 @@ public:
         std::array<float, 4> terrainOriginCellHeight{};
         // dt, fast-distance ratio, linear slop, reserved.
         std::array<float, 4> tuning{};
-        // Signed sector containing the terrain heightfield.
+        // Signed terrain sector XYZ; W is compact authored-static membership count.
         std::array<int32_t, 4> worldSector{};
     };
 
@@ -111,12 +111,14 @@ public:
             "ccd_bullet_ids");
         telemetry_ = makeStorage(kTelemetryWords * sizeof(uint32_t),
                                  "ccd_telemetry");
+        staticAuthored_ = makeStorage(uint64_t{config_.bodyCapacity} * 8u, "ccd_static_authored_ids");
+        emptyAuthored_ = makeStorage(32, "ccd_empty_authored_heap");
         parameterBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "ccd_params",
             .size = gpu::alignUniformBufferSize(sizeof(Params)),
             .usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst,
         });
-        if (!bodyValues_ || !bulletPredicates_ || !bulletIds_
+        if (!staticAuthored_ || !emptyAuthored_ || !bodyValues_ || !bulletPredicates_ || !bulletIds_
             || !telemetry_ || !parameterBuffer_) {
             shutdown();
             return false;
@@ -135,8 +137,8 @@ public:
             return false;
         }
         allocatedBytes_ = primitives_.scratchBytes()
-            + size_t{config_.bodyCapacity} * 3u * sizeof(uint32_t)
-            + kTelemetryWords * sizeof(uint32_t)
+            + size_t{config_.bodyCapacity} * 5u * sizeof(uint32_t)
+            + kTelemetryWords * sizeof(uint32_t) + 32u
             + gpu::alignUniformBufferSize(sizeof(Params));
         return true;
     }
@@ -166,12 +168,13 @@ public:
         entries.emplace_back(2).computeVisible().storageBuffer(true);
         entries.emplace_back(3).computeVisible().storageBuffer(false);
         entries.emplace_back(6).computeVisible().storageBuffer(true);
-        entries.emplace_back(7).computeVisible().storageBuffer(true);
         entries.emplace_back(8).computeVisible().storageBuffer(false);
         entries.emplace_back(9).computeVisible().uniformBuffer(
             false, sizeof(Params));
         entries.emplace_back(10).computeVisible().texture(
             WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false);
+        entries.emplace_back(11).computeVisible().storageBuffer(true);
+        entries.emplace_back(12).computeVisible().storageBuffer(true);
         executeLayout_ = gpu::createBindGroupLayout(
             device_, entries, "ccd_execute_layout");
         if (!markLayout_ || !telemetryLayout_ || !executeLayout_) return false;
@@ -206,12 +209,24 @@ public:
 
     void setInput(const GpuCcdInput& input) {
         input_ = input.valid() && input.bodyCapacity <= config_.bodyCapacity
+            && input.staticAuthoredBodies.size() <= config_.bodyCapacity
             ? input : GpuCcdInput{};
+        const auto identifiers = input_.staticAuthoredBodies;
+        if (!std::equal(identifiers.begin(), identifiers.end(), staticIds_.begin(), staticIds_.end())) {
+            staticIds_.assign(identifiers.begin(), identifiers.end());
+            staticIdsDirty_ = true;
+        }
+        // The caller may reuse the CPU list immediately after this method.
+        input_.staticAuthoredBodies = {};
     }
 
     bool encode(WGPUCommandEncoder encoder, float deltaTime) {
         if (!encoder || !input_.valid() || !std::isfinite(deltaTime)
             || deltaTime <= 0.0f) return false;
+        if (staticIdsDirty_ && !staticIds_.empty()
+            && !gpu::writeBuffer(queue_, staticAuthored_, 0,
+                std::span<const std::array<uint32_t, 2>>(staticIds_))) return false;
+        staticIdsDirty_ = false;
         const auto origin = terrain_topology::centeredOrigin(
             input_.terrainWidth, input_.terrainHeight,
             input_.terrainCellScale);
@@ -219,14 +234,14 @@ public:
             .counts = {input_.bodyCapacity, config_.bulletCapacity,
                        config_.coarseSteps, config_.workgroupSize},
             .terrain = {input_.terrainWidth, input_.terrainHeight,
-                        config_.bisectionIterations, input_.legoTerrain ? 2u : 1u},
+                        config_.bisectionIterations, input_.terrainEnabled ? (input_.legoTerrain ? 2u : 1u) : 0u},
             .terrainOriginCellHeight = {
                 origin.x, origin.y, input_.terrainCellScale,
                 input_.terrainHeightScale},
             .tuning = {deltaTime, config_.fastDistanceRatio,
                        config_.linearSlop, 0.0f},
             .worldSector = {input_.terrainSector[0], input_.terrainSector[1],
-                            input_.terrainSector[2], 0},
+                            input_.terrainSector[2], static_cast<int32_t>(staticIds_.size())},
         };
         if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
             return false;
@@ -268,16 +283,17 @@ public:
         WGPUBindGroup telemetryGroup = gpu::createBindGroup(
             device_, telemetryLayout_, telemetryEntries,
             "ccd_telemetry_bind_group");
-        const std::array<gpu::BindGroupEntry, 9> executeEntries = {
+        const std::array<gpu::BindGroupEntry, 10> executeEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
             gpu::BindGroupEntry(2).buffer(input_.shapeBuffer),
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(6).buffer(bulletIds_),
-            gpu::BindGroupEntry(7).buffer(primitives_.resultBuffer()),
             gpu::BindGroupEntry(8).buffer(telemetry_),
             gpu::BindGroupEntry(9).buffer(parameterBuffer_),
             gpu::BindGroupEntry(10).textureView(input_.terrainTexture),
+            gpu::BindGroupEntry(11).buffer(input_.authoredShapeBuffer ? input_.authoredShapeBuffer : emptyAuthored_),
+            gpu::BindGroupEntry(12).buffer(staticAuthored_),
         };
         WGPUBindGroup executeGroup = gpu::createBindGroup(
             device_, executeLayout_, executeEntries, "ccd_execute_bind_group");
@@ -330,6 +346,9 @@ public:
         releaseBuffer(bulletPredicates_);
         releaseBuffer(bulletIds_);
         releaseBuffer(telemetry_);
+        releaseBuffer(emptyAuthored_);
+        releaseBuffer(staticAuthored_);
+        staticIds_.clear(); staticIdsDirty_ = false;
         device_ = nullptr;
         queue_ = nullptr;
         config_ = {};
@@ -347,6 +366,10 @@ public:
     WGPUBuffer bulletPredicates_ = nullptr;
     WGPUBuffer bulletIds_ = nullptr;
     WGPUBuffer telemetry_ = nullptr;
+    WGPUBuffer emptyAuthored_ = nullptr;
+    WGPUBuffer staticAuthored_ = nullptr;
+    std::vector<std::array<uint32_t, 2>> staticIds_;
+    bool staticIdsDirty_ = false;
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUShaderModule shader_ = nullptr;
     WGPUBindGroupLayout markLayout_ = nullptr;

@@ -78,6 +78,7 @@ constexpr uint32_t kStageQueryWordsPerBoundary = 1u;
 constexpr uint32_t kStagePacketWordCount =
     kStageBoundaryCount * kStageQueryWordsPerBoundary;
 constexpr uint32_t kCoreTelemetryWordCount = 32u;
+constexpr uint32_t kOwnedProofWordCount = kCoreTelemetryWordCount + 1u;
 constexpr uint32_t kCoreTelemetryOffset = 0u;
 constexpr uint32_t kCcdTelemetryOffset =
     kCoreTelemetryOffset + kCoreTelemetryWordCount;
@@ -691,6 +692,7 @@ public:
 
         GpuNarrowPhase::Config narrowConfig;
         narrowConfig.pairCapacity = pairCapacity_;
+        narrowConfig.normalPatchesPerPair = config_.authoredContactPatches;
         narrowConfig.manifoldCapacity = manifoldCapacity_;
         narrowConfig.dispatchContactCapacity = contactCapacity_;
         narrowConfig.linearSlop = config_.linearSlop;
@@ -995,7 +997,13 @@ public:
         if (authoredSubmission_.valid() || preparedMutationActive()) { error = ShapeResourceError::Busy; return {}; }
         if(!ownedFrontierActive_) {
             try {
-                if(!ownedProgressReadback_.initialize(device_,kOwnedProgressBatches,kCoreTelemetryWordCount*sizeof(uint32_t))) {
+                if (!ownedProofBuffer_) {
+                    WGPUBufferDescriptor descriptor{};
+                    descriptor.size = kOwnedProofWordCount * sizeof(uint32_t);
+                    descriptor.usage = WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst;
+                    ownedProofBuffer_ = wgpuDeviceCreateBuffer(device_, &descriptor);
+                }
+                if(!ownedProofBuffer_ || !ownedProgressReadback_.initialize(device_,kOwnedProgressBatches,kOwnedProofWordCount*sizeof(uint32_t))) {
                     error=ShapeResourceError::Allocation;return {};
                 }
             } catch(const std::bad_alloc&) { error=ShapeResourceError::Allocation;return {}; }
@@ -1050,10 +1058,11 @@ public:
         bool progress=false;
         try {
             while(auto packet=ownedProgressReadback_.poll()) {
-                std::array<uint32_t,kCoreTelemetryWordCount> words{};
+                std::array<uint32_t,kOwnedProofWordCount> words{};
                 if(packet->bytes.size()!=sizeof(words)) { initialized_=false;break; }
                 std::memcpy(words.data(),packet->bytes.data(),sizeof(words));
-                if(words[1]!=static_cast<uint32_t>(packet->tick) || words[16] || words[20]) {
+                if(words[1]!=static_cast<uint32_t>(packet->tick) || words[16] || words[20]
+                    || words[kCoreTelemetryWordCount]) {
                     LOG_ERROR("GPU tick proof rejected at tick {}",packet->tick);initialized_=false;break;
                 }
                 bool found=false;
@@ -1132,6 +1141,7 @@ public:
         }
         authoredBodyShapes_.clear(); authoredStaticBodies_.clear(); authoredSubmissionUses_.clear();
         ownedProgressReadback_.shutdown();ownedProgress_={};ownedProgressHead_=ownedProgressCount_=0;
+        releaseHandle(ownedProofBuffer_, wgpuBufferRelease);
         ownedBaseTick_=ownedSubmittedTick_=ownedCompletedTick_=0;ownedStallSeconds_=0;ownedFrontierActive_=false;
         authoredBodyCount_ = 0; authoredSubmission_ = {}; authoredSubmissionEncoded_ = false;
         authoredShapePoolIdentity_ = 0;
@@ -1792,9 +1802,15 @@ public:
 
     void refreshCcdInput(uint32_t executionBodies = 0u) {
         if (executionBodies == 0u) executionBodies = executionBodyCount();
-        if (!terrainAttached_) {
+        if (!terrainAttached_ && authoredBodyCount_ == 0) {
             ccd_.setInput({});
             return;
+        }
+        ccdStaticBodies_.clear();
+        if (config_.enableBodyBodyContacts) {
+            for (uint32_t body=0; body<executionBodies && body<authoredStaticBodies_.size(); ++body) {
+                if (authoredStaticBodies_[body]) ccdStaticBodies_.push_back({body, generations_[body] & kGpuBodyGenerationMask});
+            }
         }
         ccd_.setInput({
             .poseBuffer = poseBuffer_,
@@ -1803,12 +1819,15 @@ public:
             .metadataBuffer = metadataBuffer_,
             .terrainTexture = terrainBindingView(),
             .bodyCapacity = executionBodies,
-            .terrainWidth = terrainWidth_,
-            .terrainHeight = terrainHeight_,
-            .terrainHeightScale = terrainHeightScale_,
-            .terrainCellScale = terrainCellScale_,
+            .terrainWidth = std::max(terrainWidth_, 2u),
+            .terrainHeight = std::max(terrainHeight_, 2u),
+            .terrainHeightScale = terrainAttached_ ? terrainHeightScale_ : 1.0f,
+            .terrainCellScale = terrainAttached_ ? terrainCellScale_ : 1.0f,
             .legoTerrain = legoTerrain_,
             .terrainSector = {0, 0, 0},
+            .authoredShapeBuffer = authoredShapes_ && config_.enableBodyBodyContacts ? authoredShapes_->buffer() : nullptr,
+            .terrainEnabled = terrainAttached_,
+            .staticAuthoredBodies = ccdStaticBodies_,
         });
     }
 
@@ -1848,9 +1867,13 @@ public:
             .islandEvents = islandManager_.events(),
             .islandTelemetry = islandManager_.telemetryBuffer(),
             .islandEventCapacity = executionBodies,
-            .manifolds = narrowPhase_.manifolds(),
+            // Raw history is sparse (up to eight slots per pair). A count of
+            // nonempty records cannot bound a prefix scan of that buffer.
+            // Events consume the same dense, solved records as the solver.
+            .manifolds = narrowPhase_.activeManifolds(),
             .narrowPhaseTelemetry = narrowPhase_.telemetryBuffer(),
-            .manifoldCapacity = manifoldCapacity_,
+            .manifoldCapacity = contactCapacity_,
+            .useActiveManifoldCount = true,
             .metadata = metadataBuffer_,
             .bodyCapacity = executionBodies,
             .attachments = attachmentSolver_.attachmentBuffer(),
@@ -3167,6 +3190,11 @@ public:
                          GpuNarrowPhase::kTelemetryWordCount),
             view.subspan(kNarrowCollisionPairClassOffset,
                          kGpuNarrowPhasePairClassCount));
+        if (cachedTelemetry_.narrow.patchOverflow || cachedTelemetry_.narrow.activeContactOverflow) {
+            initialized_ = false;
+            LOG_ERROR("GPU contact capacity exceeded (normal patches: {}, active contacts: {}); physics stopped at encoded tick {}",
+                cachedTelemetry_.narrow.patchOverflow, cachedTelemetry_.narrow.activeContactOverflow, encodedTick_);
+        }
         cachedTelemetry_.solver = GpuDynamicSolver::decodeTelemetry(view.subspan(
             kSolverTelemetryOffset, GpuDynamicSolver::kTelemetryWordCount));
         dynamicSolver_.updateColorRoundLimit(
@@ -3567,8 +3595,14 @@ public:
                 const uint64_t end = boundaries[
                     (stage + 1u) * kStageQueryWordsPerBoundary];
                 const uint64_t ticks = end >= start ? end - start : 0u;
-                timing.timestampTicks[stage] = ticks;
-                timing.milliseconds[stage] =
+                // Encoding runs forces before CCD; keep the public telemetry
+                // stage indices stable for existing readers and saved reports.
+                constexpr auto ccdStage = static_cast<size_t>(PhysicsGpuStage::ContinuousCollision);
+                constexpr auto forcesStage = static_cast<size_t>(PhysicsGpuStage::ForcesAndWater);
+                const size_t destination = stage == ccdStage ? forcesStage
+                    : (stage == forcesStage ? ccdStage : stage);
+                timing.timestampTicks[destination] = ticks;
+                timing.milliseconds[destination] =
                     static_cast<double>(ticks) * tickToMilliseconds;
             }
             stageTimingResults_.push_back(timing);
@@ -3945,14 +3979,6 @@ public:
             wgpuComputePassEncoderRelease(pass);
             writeStageTimestamp();
 
-            if (executeBodyPipeline && terrainAttached_ && !ccd_.encode(
-                    encoder, config_.fixedTickSeconds)) {
-                LOG_ERROR("Failed to encode GPU CCD pass");
-                batchSucceeded = false;
-                break;
-            }
-            writeStageTimestamp();
-
             if (executeBodyPipeline) {
                 pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
                 if (!pass) {
@@ -3970,6 +3996,17 @@ public:
             if (executeAttachmentPipeline
                 && !attachmentSolver_.encode(encoder)) {
                 LOG_ERROR("Failed to encode GPU distance attachments");
+                batchSucceeded = false;
+                break;
+            }
+            writeStageTimestamp();
+
+            // Sweep the velocity after this tick's forces, damping and
+            // attachments. Sweeping the previous velocity misses acceleration
+            // through thin authored walls, including a newly falling body.
+            if (executeBodyPipeline && (terrainAttached_ || authoredBodyCount_ != 0) && !ccd_.encode(
+                    encoder, config_.fixedTickSeconds)) {
+                LOG_ERROR("Failed to encode GPU CCD pass");
                 batchSucceeded = false;
                 break;
             }
@@ -4279,10 +4316,18 @@ public:
             }
         }
 
-        if(authoredSubmission_.valid() && pendingTicks_ && !ownedProgressReadback_.encodeCopy(
-            encoder,countersBuffer_,0,kCoreTelemetryWordCount*sizeof(uint32_t),finalTick,0,kCoreTelemetryWordCount))
-            return failStop(PhysicsEncodeStatus::DebugReadbackUnavailable);
-        if(authoredSubmission_.valid() && pendingTicks_) lastGpuReadbackBytes_+=kCoreTelemetryWordCount*sizeof(uint32_t);
+        if(authoredSubmission_.valid() && pendingTicks_) {
+            // Required completion evidence, even when optional telemetry is off.
+            // Narrow word 27 latches any contact overflow across a queued batch.
+            wgpuCommandEncoderCopyBufferToBuffer(encoder,countersBuffer_,0,ownedProofBuffer_,0,
+                kCoreTelemetryWordCount*sizeof(uint32_t));
+            wgpuCommandEncoderCopyBufferToBuffer(encoder,narrowPhase_.telemetryBuffer(),27*sizeof(uint32_t),
+                ownedProofBuffer_,kCoreTelemetryWordCount*sizeof(uint32_t),sizeof(uint32_t));
+            if(!ownedProgressReadback_.encodeCopy(encoder,ownedProofBuffer_,0,
+                kOwnedProofWordCount*sizeof(uint32_t),finalTick,0,kOwnedProofWordCount))
+                return failStop(PhysicsEncodeStatus::DebugReadbackUnavailable);
+            lastGpuReadbackBytes_+=kOwnedProofWordCount*sizeof(uint32_t);
+        }
         encodedTick_ = finalTick;
         pendingTicks_ = 0;
         for (const PhysicsCommand& command : commands_) {
@@ -4512,6 +4557,7 @@ public:
         result.scratchBytes = arena_.scratchBytes()
                             + readbackRing_.allocatedBytes()
                             + ownedProgressReadback_.allocatedBytes()
+                            + (ownedProofBuffer_ ? kOwnedProofWordCount * sizeof(uint32_t) : 0u)
                             + telemetryReadback_.allocatedBytes()
                             + ccd_.allocatedBytes()
                             + broadPhase_.scratchBytes()
@@ -4621,10 +4667,10 @@ public:
         result.contactUsage = {
             solver.contactCount, contactCapacity_,
             std::max(broad.highContacts, solver.highContacts),
-            broad.contactOverflow || solver.contactOverflow};
+            broad.contactOverflow || solver.contactOverflow || narrow.activeContactOverflow};
         result.manifoldUsage = {
-            narrow.manifolds, manifoldCapacity_, narrow.highManifolds,
-            narrow.pairOverflow};
+            narrow.manifolds, manifoldCapacity_ * config_.authoredContactPatches, narrow.highManifolds,
+            narrow.pairOverflow || narrow.patchOverflow};
         result.terrainContactUsage = {
             core.terrainContactPoints, terrainContactCapacity,
             core.highTerrainContactPoints, false};
@@ -4714,12 +4760,12 @@ public:
         result.pairCapacityOverflow = broad.candidateOverflow
             || broad.pairOverflow || narrow.pairOverflow;
         result.contactCapacityOverflow = broad.contactOverflow
-            || solver.contactOverflow;
+            || solver.contactOverflow || narrow.activeContactOverflow;
         result.eventCapacityOverflow = broad.eventOverflow
             || islands.eventOverflow;
         result.sleepingGridOverflow = islands.gridOverflow;
         result.activeCapacityOverflow = core.activeOverflow;
-        result.manifoldCapacityOverflow = narrow.pairOverflow;
+        result.manifoldCapacityOverflow = narrow.pairOverflow || narrow.patchOverflow;
         result.bulletCapacityOverflow = result.bulletUsage.overflow;
         return result;
     }
@@ -4811,6 +4857,7 @@ public:
     std::unique_ptr<GpuAuthoredShapeStore> authoredShapes_;
     std::vector<ShapeHandle> authoredBodyShapes_, authoredSubmissionUses_;
     std::vector<uint8_t> authoredStaticBodies_;
+    std::vector<std::array<uint32_t, 2>> ccdStaticBodies_;
     ShapeResourceSubmission authoredSubmission_{};
     uint32_t authoredBodyCount_ = 0;
     uint64_t authoredShapePoolIdentity_ = 0;
@@ -4860,6 +4907,7 @@ public:
     static constexpr uint32_t kOwnedProgressBatches=8;
     struct OwnedProgress { uint64_t serial=0,tick=0;bool observed=false,fenced=false; };
     DebugReadbackRing ownedProgressReadback_;
+    WGPUBuffer ownedProofBuffer_ = nullptr;
     std::array<OwnedProgress,kOwnedProgressBatches> ownedProgress_{};
     uint32_t ownedProgressHead_=0,ownedProgressCount_=0;
     uint64_t ownedBaseTick_=0,ownedSubmittedTick_=0,ownedCompletedTick_=0;

@@ -4,31 +4,55 @@ struct SunShadowUniforms {
     params: vec4<f32>,
     // Absolute origin of the camera-sector frame used by mesh casters.
     worldOrigin: vec4<f32>,
+    footContacts: array<vec4<f32>, 2>,
+    farViewProj: mat4x4<f32>,
+    farParams: vec4<f32>,
 };
 @group(SHADOW_GROUP) @binding(0) var<uniform> sunShadow: SunShadowUniforms;
 @group(SHADOW_GROUP) @binding(1) var sunDepth: texture_depth_2d;
 @group(SHADOW_GROUP) @binding(2) var sunSampler: sampler_comparison;
 
-fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
-    if (sunShadow.params.x < 0.5) { return 1.0; }
+// Bounded approximation to sky occlusion beneath animated soles. The receiver
+// remains real terrain/brick geometry; there is no floating decal or depth write.
+// Height rejection prevents darkening a roof above the figure. Separation makes
+// contact softer/weaker during a step or jump, and zero beyond two radii.
+fn footContactVisibility(position: vec3<f32>, normal: vec3<f32>) -> f32 {
+    var occlusion = 0.0;
+    for (var i = 0u; i < 2u; i += 1u) {
+        let foot = sunShadow.footContacts[i];
+        if (foot.w <= 0.0) { continue; }
+        let height = foot.y - position.y;
+        let reach = foot.w * 2.0;
+        let vertical = (1.0 - smoothstep(0.0, reach, max(height, 0.0)))
+            * smoothstep(-0.06, 0.0, height);
+        let radius = foot.w + max(height, 0.0) * 0.35;
+        let radial = 1.0 - smoothstep(0.0, radius, length(position.xz - foot.xz));
+        occlusion = max(occlusion, 0.68 * vertical * radial * max(normal.y, 0.0));
+    }
+    return 1.0 - occlusion;
+}
+
+fn sunVisibilityRegion(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>,
+    matrix: mat4x4<f32>, params: vec4<f32>, atlas: vec4<f32>, outside: f32) -> f32 {
+    if (params.x < 0.5) { return outside; }
     // Use geometric normals for bias: normal-map grain must not move shadows.
     let slope = 1.0 - abs(dot(geometricNormal, light));
-    let biased = position + geometricNormal * sunShadow.params.y * (0.2 + 0.65 * slope);
-    let clip = sunShadow.viewProj * vec4<f32>(biased, 1);
+    let biased = position + geometricNormal * params.y * (0.2 + 0.65 * slope);
+    let clip = matrix * vec4<f32>(biased, 1);
     let uv = clip.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
     if (any(uv <= vec2<f32>(0)) || any(uv >= vec2<f32>(1)) || clip.z <= 0.0 || clip.z >= 1.0) {
-        return 1.0;
+        return outside;
     }
-    let texel = 1.0 / vec2<f32>(textureDimensions(sunDepth));
-    let reference = clip.z - 0.003 * sunShadow.params.z;
+    let texel = 1.0 / (vec2<f32>(textureDimensions(sunDepth)) * atlas.xy);
+    let reference = clip.z - 0.003 * params.z;
     // A constant reference at every PCF tap compares a sloped receiver against
     // a different point on itself. Project its geometric plane into light clip
     // coordinates; the orthographic projection has mutually orthogonal rows.
     // Normal/raster bias still covers the bilinear half-texel footprint. Moving
     // the reference with each tap avoids increasing global contact separation.
-    let rowX = vec3<f32>(sunShadow.viewProj[0].x, sunShadow.viewProj[1].x, sunShadow.viewProj[2].x);
-    let rowY = vec3<f32>(sunShadow.viewProj[0].y, sunShadow.viewProj[1].y, sunShadow.viewProj[2].y);
-    let rowZ = vec3<f32>(sunShadow.viewProj[0].z, sunShadow.viewProj[1].z, sunShadow.viewProj[2].z);
+    let rowX = vec3<f32>(matrix[0].x, matrix[1].x, matrix[2].x);
+    let rowY = vec3<f32>(matrix[0].y, matrix[1].y, matrix[2].y);
+    let rowZ = vec3<f32>(matrix[0].z, matrix[1].z, matrix[2].z);
     let plane = vec3<f32>(dot(geometricNormal, rowX) / dot(rowX, rowX),
         dot(geometricNormal, rowY) / dot(rowY, rowY),
         dot(geometricNormal, rowZ) / dot(rowZ, rowZ));
@@ -41,14 +65,34 @@ fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f3
     for (var y = -1; y <= 1; y += 1) {
         for (var x = -1; x <= 1; x += 1) {
             visibility += textureSampleCompareLevel(sunDepth, sunSampler,
-                uv + vec2<f32>(f32(x), f32(y)) * texel,
+                (uv + vec2<f32>(f32(x), f32(y)) * texel) * atlas.xy + atlas.zw,
                 reference + dot(depthGradient, vec2<f32>(f32(x), f32(y)) * texel));
         }
     }
     // A local map fades at its border instead of following the camera as a hard edge.
     let edge = max(abs(clip.x), abs(clip.y));
     let fade = smoothstep(0.80, 0.98, edge);
-    return mix(visibility / 9.0, 1.0, fade);
+    return mix(visibility / 9.0, outside, fade);
+}
+
+fn sunVisibility(position: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {
+    // The zero far flag retains the standalone near-map receiver contract.
+    let atlasEnabled = sunShadow.farParams.x > 0.5;
+    let nearAtlas = select(vec4<f32>(1,1,0,0), vec4<f32>(1.0/3.0,0.5,0,0), atlasEnabled);
+    // Most pixels use one 3x3 kernel. Only the narrow transition reads both maps.
+    let nearClip = sunShadow.viewProj * vec4<f32>(position,1);
+    if (!atlasEnabled || (max(abs(nearClip.x),abs(nearClip.y)) < 0.78
+        && nearClip.z > 0.01 && nearClip.z < 0.99)) {
+        return sunVisibilityRegion(position, geometricNormal, light, sunShadow.viewProj,
+            sunShadow.params, nearAtlas, 1.0);
+    }
+    var far = 1.0;
+    if (atlasEnabled) {
+        far = sunVisibilityRegion(position, geometricNormal, light, sunShadow.farViewProj,
+            sunShadow.farParams, vec4<f32>(2.0/3.0,1.0,1.0/3.0,0.0), 1.0);
+    }
+    return sunVisibilityRegion(position, geometricNormal, light, sunShadow.viewProj,
+        sunShadow.params, nearAtlas, far);
 }
 
 fn sceneSunVisibility(worldPosition: vec3<f32>, geometricNormal: vec3<f32>, light: vec3<f32>) -> f32 {

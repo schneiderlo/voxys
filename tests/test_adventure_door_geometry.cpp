@@ -2,6 +2,7 @@
 #include "game/adventure/adventure_player.hpp"
 #include "game/adventure/construction_policy.hpp"
 #include "game/adventure/village_layout.hpp"
+#include "game/adventure/creative_scenery.hpp"
 #include "game/adventure/trail_sites.hpp"
 #include "game/adventure/world_definition.hpp"
 #include <gtest/gtest.h>
@@ -285,3 +286,21 @@ TEST(FreeBuildGeometry, BricksCanStartOnTerrainButFloatingAndOverlappingPiecesAr
     EXPECT_TRUE(validateInstalledGeometry(scene.session->state(),scene.queries,scene.error,true))<<scene.error;
 }
 } // namespace voxy::game::adventure
+
+namespace voxy::game::adventure {
+TEST(AdventureDoorGeometry, CreativeDoorYieldsSceneryButStillRejectsOtherStaticObstacles) {
+    Scene scene;ASSERT_TRUE(scene.create());ASSERT_TRUE(scene.build());
+    const auto after=scene.session->state();auto before=after;
+    const auto part=after.components.front().part;
+    auto& parts=before.structures.front().parts;
+    parts.erase(std::remove_if(parts.begin(),parts.end(),[&](const auto& p){return p.id==part;}),parts.end());
+    before.components.clear();before.player={8,.2,8,0};
+    Solid obstacle{{after.world,creativeSceneryStructureId},{after.world,creativeSceneryPartBase-1},{-.15,.4,.1},{.15,1.8,.5}};
+    ASSERT_TRUE(scene.publish(std::span(&obstacle,1)));
+    EXPECT_TRUE(validateConstruction(before,after,scene.queries,scene.error,true))<<scene.error;
+    obstacle.structure.counter=12345;obstacle.part.counter=12346;
+    ASSERT_TRUE(scene.publish(std::span(&obstacle,1)));
+    EXPECT_FALSE(validateConstruction(before,after,scene.queries,scene.error,true));
+    EXPECT_NE(scene.error.find("scenery"),std::string::npos)<<scene.error;
+}
+}

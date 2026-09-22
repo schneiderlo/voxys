@@ -7,14 +7,21 @@
 
 namespace voxy::render {
 
+// Two animated sole centres in the mesh frame; w is the soft contact radius.
+// A zero radius disables the contact. These affect indirect light only.
+using FootContacts = std::array<glm::vec4, 2>;
+
 struct alignas(16) SunShadowUniforms {
     glm::mat4 viewProj{1.0f};
     glm::vec4 params{0.0f};
     // Absolute world position of the caster coordinate frame's origin.
     // Mesh positions are already local to this frame; terrain/water are not.
     glm::vec4 worldOrigin{0.0f};
+    FootContacts footContacts{};
+    glm::mat4 farViewProj{1.0f};
+    glm::vec4 farParams{0.0f};
 };
-static_assert(sizeof(SunShadowUniforms) == 96u);
+static_assert(sizeof(SunShadowUniforms) == 208u);
 
 inline auto sceneShadowLayoutEntries() {
     using Entry = gpu::BindGroupLayoutEntry;

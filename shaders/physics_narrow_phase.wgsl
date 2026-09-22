@@ -480,6 +480,8 @@ struct CandidateSet {
     count : u32,
 };
 
+
+
 struct ReducedCandidateSet {
     items : array<ContactCandidate, 4>,
     normal : vec3<f32>,
@@ -562,6 +564,8 @@ var<private> currentSpeculativeDistance : f32 = 0.0;
 // Per-invocation subshape views. Parent poses are restored before anchors
 // are built, so solver impulses always act on the complete rigid brick.
 var<private> compoundEnabled: bool = false;
+var<private> authoredPatches: array<CandidateSet, 8>;
+var<private> authoredPatchCount: u32;
 var<private> compoundA: u32;
 var<private> compoundB: u32;
 var<private> compoundPoseA: BodyPose;
@@ -625,6 +629,8 @@ fn reset_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var word = 0u; word < 18u; word += 1u) {
         atomicStore(&narrowTelemetry[word], 0u);
     }
+    atomicStore(&narrowTelemetry[25], 0u);
+    atomicStore(&narrowTelemetry[26], 0u);
     for (var word = 0u; word < 30u; word += 1u) {
         atomicStore(&classTable[word], 0u);
     }
@@ -633,11 +639,11 @@ fn reset_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
 fn reported_pair_count() -> u32 {
     let reportedCount = broadTelemetry[3];
     return min(reportedCount,
-        min(narrow.capacities.y, narrow.capacities.z));
+        min(narrow.capacities.y, narrow.capacities.z / narrow.dispatch.y));
 }
 
 fn solver_pair_count() -> u32 {
-    return min(atomicLoad(&narrowTelemetry[10]),
+    return min(min(atomicLoad(&narrowTelemetry[10]), narrow.capacities.y) * narrow.dispatch.y,
         min(narrow.dispatch.x, narrow.capacities.z));
 }
 
@@ -653,7 +659,9 @@ fn scatter_active_manifolds_impl(gid : vec3<u32>) {
     let pairIndex = gid.x;
     if (pairIndex >= narrow.dispatch.x
         || activePredicates[pairIndex] == 0u) { return; }
-    activeManifolds[activeOffsets[pairIndex]] = currentManifolds[pairIndex];
+    if (activeOffsets[pairIndex] < narrow.dispatch.z) {
+        activeManifolds[activeOffsets[pairIndex]] = currentManifolds[pairIndex];
+    }
 }
 
 fn commit_active_manifolds_impl(gid : vec3<u32>) {
@@ -674,6 +682,8 @@ fn finalize_active_manifolds(@builtin(global_invocation_id) gid : vec3<u32>) {
         let last = inputCount - 1u;
         count = activeOffsets[last] + activePredicates[last];
     }
+    if (count > narrow.dispatch.z) { atomicStore(&narrowTelemetry[26], 1u); atomicOr(&narrowTelemetry[27], 1u); }
+    if (atomicLoad(&narrowTelemetry[27]) != 0u) { count = 0u; }
     atomicStore(&narrowTelemetry[24], count);
     let activeDispatch = PAIR_CLASS_COUNT * 4u;
     classDispatchArgs[activeDispatch] =
@@ -738,10 +748,13 @@ fn count_pair_classes_impl(gid : vec3<u32>) {
         || pair.keyLow >= narrow.capacities.x) { return; }
     let pairClass = pair_class_for_record(pair);
     atomicAdd(&narrowTelemetry[pairClass], 1u);
+    for (var patchIndex = 0u; patchIndex < narrow.dispatch.y; patchIndex += 1u) {
+        let slot = pairIndex * narrow.dispatch.y + patchIndex;
+        let record = KeyValue(pair.keyLow, pair.keyHigh,
+            pairClass | ((pair.value & 1u) << 8u), slot);
+        currentManifolds[slot] = base_manifold(record, 0u);
+    }
     if (!bounding_spheres_may_touch(pair.keyHigh, pair.keyLow)) {
-        let pairRecord = KeyValue(pair.keyLow, pair.keyHigh,
-            pairClass | ((pair.value & 1u) << 8u), pairIndex);
-        currentManifolds[pairIndex] = base_manifold(pairRecord, 0u);
         return;
     }
     atomicAdd(&classTable[pairClass], 1u);
@@ -775,7 +788,7 @@ fn finalize_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicStore(&narrowTelemetry[10], reportedCount);
     atomicStore(&narrowTelemetry[17], select(0u, 1u,
         reportedCount > narrow.capacities.y
-        || reportedCount > narrow.capacities.z));
+        || reportedCount > narrow.capacities.z / narrow.dispatch.y));
     atomicMax(&narrowTelemetry[18], reportedCount);
 }
 
@@ -2042,7 +2055,7 @@ fn base_manifold(pairRecord : KeyValue,
 }
 
 fn build_manifold(pairRecord : KeyValue,
-                  sourceCandidates : CandidateSet) -> ContactManifold {
+                  sourceCandidates : CandidateSet, previousIndex : u32) -> ContactManifold {
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
     let sleepingFlag = (pairRecord.value >> 8u) & 1u;
@@ -2057,7 +2070,6 @@ fn build_manifold(pairRecord : KeyValue,
     var maximumSeparation = -3.402823466e+38;
     var weightedCenter = vec3<f32>(0.0);
     var totalWeight = 0.0;
-    let previousIndex = find_previous_manifold(bodyA, bodyB);
     var previous = empty_manifold();
     var normalCoherent = false;
     if (previousIndex != SENTINEL) {
@@ -2067,6 +2079,7 @@ fn build_manifold(pairRecord : KeyValue,
         result.state.z = sleepingFlag | (previous.state.z & 0xff00u);
     }
     var usedPrevious = array<u32, 4>(0u, 0u, 0u, 0u);
+    var matchedAnchorCount = 0u;
 
     for (var pointIndex = 0u; pointIndex < candidates.count;
          pointIndex += 1u) {
@@ -2094,6 +2107,15 @@ fn build_manifold(pairRecord : KeyValue,
 
         var matchedPoint = SENTINEL;
         if (previousIndex != SENTINEL) {
+            // Authored exterior patches give all clipped corners the same
+            // face pair. Depth reduction may reorder those corners between
+            // ticks: matching the first equal feature transfers an old corner's
+            // impulse to a different lever arm. Resolve equal features by the
+            // closest pair of local anchors before warm starting.
+            let authoredPatch = ((candidate.features.x | candidate.features.y)
+                & 0x80000000u) != 0u;
+            var bestFeatureDistance = select(3.402823466e+38,
+                narrow.tolerances.z * narrow.tolerances.z, authoredPatch);
             for (var oldPoint = 0u; oldPoint < previous.state.x;
                  oldPoint += 1u) {
                 if (usedPrevious[oldPoint] == 0u
@@ -2101,8 +2123,15 @@ fn build_manifold(pairRecord : KeyValue,
                        == candidate.features.x
                     && previous.points[oldPoint].features.y
                        == candidate.features.y) {
-                    matchedPoint = oldPoint;
-                    break;
+                    let deltaA = localA
+                        - previous.points[oldPoint].localAnchorA_separation.xyz;
+                    let deltaB = localB
+                        - previous.points[oldPoint].localAnchorB_normalImpulse.xyz;
+                    let distance = dot(deltaA, deltaA) + dot(deltaB, deltaB);
+                    if (distance < bestFeatureDistance) {
+                        bestFeatureDistance = distance;
+                        matchedPoint = oldPoint;
+                    }
                 }
             }
         }
@@ -2127,6 +2156,7 @@ fn build_manifold(pairRecord : KeyValue,
         }
         if (matchedPoint != SENTINEL) {
             usedPrevious[matchedPoint] = 1u;
+            matchedAnchorCount += 1u;
             result.points[pointIndex].features.z =
                 previous.points[matchedPoint].features.z + 1u;
             if (normalCoherent) {
@@ -2153,7 +2183,10 @@ fn build_manifold(pairRecord : KeyValue,
     result.frictionAnchorB = vec4<f32>(quaternion_inverse_rotate(
         compound_pose(bodyB).orientation,
         center - body_position_in_frame(bodyB, bodyA)), 0.0);
-    if (previousIndex != SENTINEL && normalCoherent) {
+    // A coherent normal alone does not identify the same contact. Reusing
+    // friction/torque after all anchors changed applies an old impulse at a
+    // new lever arm, even though every normal impulse was correctly discarded.
+    if (previousIndex != SENTINEL && normalCoherent && matchedAnchorCount != 0u) {
         let oldFriction = previous.tangent1.xyz * previous.tangent1.w
                         + previous.tangent2.xyz * previous.tangent2.w;
         result.tangent1.w = dot(oldFriction, tangent1);
@@ -2196,7 +2229,6 @@ fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
 fn collide_lego_polyhedron_parts(a:u32,ca:u32,b:u32,cb:u32)->CandidateSet {
     var hit=collide_polyhedra(a,ca,b,cb,a);
     var result=empty_candidates();result.normal=hit.normal;
-    var pointA=vec3<f32>(0);var pointB=vec3<f32>(0);var separation=0.0;var count=0u;var features=vec2<u32>(0);
     let boxA=make_box(a,a);let boxB=make_box(b,a);
     for(var k=0u;k<hit.count;k++) {
         let c=hit.items[k];
@@ -2205,10 +2237,13 @@ fn collide_lego_polyhedron_parts(a:u32,ca:u32,b:u32,cb:u32)->CandidateSet {
         if(ca==3u){da=cylinder_surface(a,c.pointA_separation.xyz,a).signedDistance;}
         if(cb==3u){db=cylinder_surface(b,c.pointB.xyz,a).signedDistance;}
         if(da>narrow.tolerances.x*2.0||db>narrow.tolerances.x*2.0){continue;}
-        pointA+=c.pointA_separation.xyz;pointB+=c.pointB.xyz;separation+=c.pointA_separation.w;
-        if(count==0u){features=c.features.xy;}count++;
+        // Preserve the cap's support polygon. Averaging a stud cap to one
+        // point leaves a 2x1 brick balancing on a line through its two studs,
+        // so even a centered stack tips over. The shared reducer retains four
+        // spatially spread points across all contacting child shapes.
+        append_candidate(&result,c.pointA_separation.xyz,c.pointB.xyz,
+            c.pointA_separation.w,c.features.x,c.features.y);
     }
-    if(count>0u){let n=f32(count);append_candidate(&result,pointA/n,pointB/n,separation/n,features.x,features.y);}
     return result;
 }
 
@@ -2251,7 +2286,8 @@ fn prepare_lego_parts(a : u32, b : u32, i : u32, j : u32) -> bool {
 
 fn append_lego_contacts(result : ptr<function, CandidateSet>,
                         deepest : ptr<function, f32>,
-                        candidates : CandidateSet, i : u32, j : u32) {
+                        candidates : CandidateSet, i : u32, j : u32,
+                        preferredNormal : vec3<f32>) {
     var hit = candidates;
     if (hit.count == 0u) { return; }
     var separation = 1e30;
@@ -2259,12 +2295,33 @@ fn append_lego_contacts(result : ptr<function, CandidateSet>,
         separation = min(separation, hit.items[k].pointA_separation.w);
     }
     if ((*result).count > 0u && dot((*result).normal, hit.normal) < .9) {
-        if (separation >= *deepest) { return; }
+        var replace = separation < *deepest;
+        // Near-equal competing patches are not a reason to discard coherent
+        // support. Prefer the prior manifold's normal only within the existing
+        // contact slop, using actual current geometric contacts on either side.
+        let currentPreferred = dot((*result).normal, preferredNormal) >= .9;
+        let incomingPreferred = dot(hit.normal, preferredNormal) >= .9;
+        if (currentPreferred != incomingPreferred
+            && abs(separation - *deepest) <= narrow.tolerances.x) {
+            replace = incomingPreferred;
+        }
+        if (!replace) { return; }
         *result = empty_candidates();
+        *deepest = separation;
     }
     (*result).normal = hit.normal;
     *deepest = min(*deepest, separation);
     for (var k = 0u; k < hit.count; k++) {
+        // Later compound patches can lie across the support polygon. Retain
+        // bounded deepest/spread representatives instead of losing that side.
+        // Primitive clipping stays independent of this inter-patch reduction.
+        if ((*result).count >= MAX_CANDIDATES) {
+            var retained = reduce_candidates(*result);
+            for (var index = 0u; index < retained.count; index += 1u) {
+                (*result).items[index] = retained.items[index];
+            }
+            (*result).count = retained.count;
+        }
         let c = hit.items[k];
         append_candidate(result, c.pointA_separation.xyz, c.pointB.xyz,
             c.pointA_separation.w, c.features.x | (i << 12u),
@@ -2293,7 +2350,7 @@ fn collide_lego_sphere(a : u32, b : u32) -> CandidateSet {
                 if (ca == 2u) { hit = swap_candidates(collide_sphere_box(b, a, a)); }
                 else { hit = swap_candidates(collide_sphere_cylinder(b, a, a)); }
             }
-            append_lego_contacts(&result, &deepest, hit, i, j);
+            append_lego_contacts(&result, &deepest, hit, i, j, vec3<f32>(0.0));
         }
     }
     compoundEnabled = false;
@@ -2321,7 +2378,7 @@ fn collide_lego_capsule(a : u32, b : u32) -> CandidateSet {
                 if (ca == 2u) { hit = swap_candidates(collide_capsule_box(b, a, a)); }
                 else { hit = swap_candidates(collide_capsule_cylinder(b, a, a)); }
             }
-            append_lego_contacts(&result, &deepest, hit, i, j);
+            append_lego_contacts(&result, &deepest, hit, i, j, vec3<f32>(0.0));
         }
     }
     compoundEnabled = false;
@@ -2347,7 +2404,7 @@ fn collide_lego_polyhedra(a : u32, b : u32) -> CandidateSet {
             } else {
                 hit = collide_lego_polyhedron_parts(a, ca, b, cb);
             }
-            append_lego_contacts(&result, &deepest, hit, i, j);
+            append_lego_contacts(&result, &deepest, hit, i, j, vec3<f32>(0.0));
         }
     }
     compoundEnabled = false;
@@ -2395,6 +2452,13 @@ fn collide_authored_round(roundBody: u32, authoredBody: u32,
     let b = contact_root_point(authoredBody, shape, segment.second, frameBody);
     let surface = authored_segment_surface(shape, a, b);
     if (!surface.valid) { atomicAdd(&narrowTelemetry[16], 1u); return result; }
+    // Static authored sphere trajectories are already swept to their first
+    // exterior contact by CCD. A speed-expanded nearest-point speculative
+    // contact here would invent collisions beside an opening the sweep missed.
+    // Keep true/resting contacts, including the small CCD contact margin.
+    if (!capsule && poses[authoredBody].position_invMass.w == 0.0
+        && (u32(metadata[authoredBody].w) & 0x80000000u) == 0u
+        && surface.distance-radius > narrow.tolerances.y) { return result; }
     let point = contact_world_point(authoredBody, shape, surface.point, frameBody);
     let closest = closest_point_segment(point, segment);
     result.normal = -contact_world_vector(authoredBody, shape, surface.normal);
@@ -2420,14 +2484,23 @@ fn authored_contact_feature(body: u32, shape: AuthoredShapeView, cell: AuthoredS
     let rootNormal = authored_root_vector(shape,
         quaternion_inverse_rotate(poses[body].orientation, outward));
     let tolerance = max(1e-4, narrow.tolerances.x * .05);
+    var feature = SENTINEL;
+    var bestAlignment = 1e-5;
     for (var f = cell.first_face; f < cell.first_face + cell.face_count; f++) {
         let face = authored_face(shape, f);
         if (!face.valid) { return SENTINEL; }
-        if (rootNormal[face.axis] * f32(face.sign) <= 1e-5) { continue; }
+        let alignment = rootNormal[face.axis] * f32(face.sign);
+        if (alignment <= bestAlignment) { continue; }
         if (all(rootPoint >= face.minimum - vec3<f32>(tolerance))
-            && all(rootPoint <= face.maximum + vec3<f32>(tolerance))) { return 0x80000000u | f; }
+            && all(rootPoint <= face.maximum + vec3<f32>(tolerance))) {
+            // At an edge, a tiny tilt also gives the side face a positive dot.
+            // Keep the dominant supporting face, not whichever face was stored
+            // first. Equal alignments retain the stable lower face index.
+            bestAlignment = alignment;
+            feature = 0x80000000u | f;
+        }
     }
-    return SENTINEL;
+    return feature;
 }
 
 // Restrict a cell's full face to one clipped exterior rectangle. Keep its
@@ -2498,12 +2571,21 @@ fn collide_authored_box_cells(a: u32, b: u32, sa: AuthoredShapeView, sb: Authore
 
 // B is always an authored shape. Visit its preorder BVH against each A child;
 // clipped patches eliminate internal cell seams before parent reduction.
-fn collide_authored_polyhedra_ordered(a: u32, b: u32) -> CandidateSet {
-    var result = empty_candidates();
+fn collide_authored_polyhedra_ordered(a: u32, b: u32) {
+    authoredPatchCount = 0u;
+    for (var p = 0u; p < 8u; p += 1u) { authoredPatches[p] = empty_candidates(); }
+    var preferredNormal = vec3<f32>(0.0);
+    let previousIndex = find_previous_manifold(max(a, b), min(a, b));
+    if (previousIndex != SENTINEL) {
+        let previous = previousManifolds[previousIndex];
+        if (previous.state.x != 0u) {
+            preferredNormal = previous.normal.xyz * select(-1.0, 1.0, a > b);
+        }
+    }
     let sa = authored_shape_ref(shapes[a].authored_shape);
     let sb = authored_shape_ref(shapes[b].authored_shape);
     if (!sb.valid || (body_has_authored(a) && !sa.valid)) {
-        atomicAdd(&narrowTelemetry[16], 1u); return result;
+        atomicAdd(&narrowTelemetry[16], 1u); return;
     }
     let countA = select(legoBrickParts(shapes[a].dimensions_type.xyz,
         bitcast<u32>(shapes[a].invInertia_material.w)), sa.cell_count, sa.valid);
@@ -2553,24 +2635,96 @@ fn collide_authored_polyhedra_ordered(a: u32, b: u32) -> CandidateSet {
                 append_candidate(&exterior, c.pointA_separation.xyz, c.pointB.xyz,
                     c.pointA_separation.w, featureA, featureB);
             }
-            append_lego_contacts(&result, &deepest, exterior, 0u, 0u);
+            if (narrow.dispatch.y == 1u) {
+                var sole = authoredPatches[0];
+                append_lego_contacts(&sole, &deepest, exterior, 0u, 0u, preferredNormal);
+                authoredPatches[0] = sole;
+                authoredPatchCount = select(0u, 1u, sole.count != 0u);
+            } else if (exterior.count != 0u) {
+                var patchIndex = 0u;
+                loop {
+                    if (patchIndex >= authoredPatchCount) { break; }
+                    if (dot(authoredPatches[patchIndex].normal, exterior.normal) >= .9) { break; }
+                    patchIndex += 1u;
+                }
+                if (patchIndex == authoredPatchCount) {
+                    atomicMax(&narrowTelemetry[28], patchIndex + 1u);
+                    if (patchIndex >= narrow.dispatch.y) {
+                        atomicStore(&narrowTelemetry[25], 1u);
+                        atomicOr(&narrowTelemetry[27], 1u);
+                        compoundEnabled = false;
+                        authoredPatchCount = 0u;
+                        return;
+                    }
+                    authoredPatchCount += 1u;
+                }
+                var patchDepth = 1e30;
+                var cluster = authoredPatches[patchIndex];
+                let hadPatch = cluster.count != 0u;
+                let patchNormal = cluster.normal;
+                append_lego_contacts(&cluster, &patchDepth, exterior, 0u, 0u, vec3<f32>(0.0));
+                if (hadPatch) { cluster.normal = patchNormal; }
+                authoredPatches[patchIndex] = cluster;
+
+            }
         }
     }
     compoundEnabled = false;
-    return result;
+    return;
 }
 
-fn collide_authored_polyhedra(a: u32, b: u32) -> CandidateSet {
-    if (body_has_authored(b)) { return collide_authored_polyhedra_ordered(a, b); }
-    // Ordered results use B's sector, so shift their points back to A's sector.
-    var result = swap_candidates(collide_authored_polyhedra_ordered(b, a));
+fn collide_authored_polyhedra(a: u32, b: u32) {
+    if (body_has_authored(b)) { collide_authored_polyhedra_ordered(a, b); return; }
+    collide_authored_polyhedra_ordered(b, a);
     let delta = body_position_in_frame(b, a) - poses[b].position_invMass.xyz;
-    for (var k = 0u; k < result.count; k++) {
-        result.items[k].pointA_separation = vec4<f32>(result.items[k].pointA_separation.xyz + delta,
-            result.items[k].pointA_separation.w);
-        result.items[k].pointB = vec4<f32>(result.items[k].pointB.xyz + delta, 0.0);
+    for (var p = 0u; p < authoredPatchCount; p += 1u) {
+        var cluster = swap_candidates(authoredPatches[p]);
+        for (var k = 0u; k < cluster.count; k++) {
+            cluster.items[k].pointA_separation = vec4<f32>(cluster.items[k].pointA_separation.xyz + delta,
+                cluster.items[k].pointA_separation.w);
+            cluster.items[k].pointB = vec4<f32>(cluster.items[k].pointB.xyz + delta, 0.0);
+        }
+        authoredPatches[p] = cluster;
     }
-    return result;
+    return;
+}
+
+// Each current patch receives at most one previous cache, and each previous
+// cache is consumed at most once. Slot ordering is not physical identity.
+fn write_authored_manifolds(pairRecord : KeyValue) {
+
+    let firstPrevious = find_previous_manifold(pairRecord.keyHigh, pairRecord.keyLow);
+    var used : array<u32, 8>;
+    for (var patchIndex = 0u; patchIndex < authoredPatchCount; patchIndex += 1u) {
+        var previous = SENTINEL;
+        var bestAlignment = .9;
+        var previousSlot = 0u;
+        if (firstPrevious != SENTINEL) {
+            for (var old = 0u; old < narrow.dispatch.y; old += 1u) {
+                let slot = firstPrevious + old;
+                if (slot >= atomicLoad(&narrowTelemetry[22])) { break; }
+                let history = previousManifolds[slot];
+                if (history.pair.keyHigh != pairRecord.keyHigh || history.pair.keyLow != pairRecord.keyLow) { break; }
+                if (used[old] != 0u || history.state.x == 0u) { continue; }
+                let alignment = dot(history.normal.xyz, authoredPatches[patchIndex].normal);
+                if (alignment > bestAlignment) { previous = slot; previousSlot = old; bestAlignment = alignment; }
+            }
+        }
+        if (previous != SENTINEL) { used[previousSlot] = 1u; }
+        var record = pairRecord;
+        record.ordinal = pairRecord.ordinal * narrow.dispatch.y + patchIndex;
+        var cluster = authoredPatches[patchIndex];
+        if (narrow.dispatch.y > 1u) {
+            // Compatible child faces share this patch normal; every anchor's
+            // separation must use that same normal before reduction/solving.
+            for (var point = 0u; point < cluster.count; point += 1u) {
+                cluster.items[point].pointA_separation.w = dot(
+                    cluster.items[point].pointB.xyz - cluster.items[point].pointA_separation.xyz,
+                    cluster.normal);
+            }
+        }
+        currentManifolds[record.ordinal] = build_manifold(record, cluster, previous);
+    }
 }
 
 fn pair_has_lego(pair : KeyValue) -> bool {
@@ -2580,7 +2734,10 @@ fn pair_has_lego(pair : KeyValue) -> bool {
 
 fn write_class_manifold(pairRecord : KeyValue, candidates : CandidateSet) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    currentManifolds[pairRecord.ordinal] = build_manifold(pairRecord, candidates);
+    var record = pairRecord;
+    record.ordinal *= narrow.dispatch.y;
+    currentManifolds[record.ordinal] = build_manifold(record, candidates,
+        find_previous_manifold(record.keyHigh, record.keyLow));
 }
 
 fn narrow_sphere_sphere_impl(gid : vec3<u32>) {
@@ -2668,7 +2825,8 @@ fn narrow_box_box_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
     if (AUTHORED_PAIR_PASS) {
-        write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow);
+        write_authored_manifolds(pairRecord);
         return;
     }
     if (pair_has_lego(pairRecord)) {
@@ -2713,7 +2871,8 @@ fn narrow_box_cylinder_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
     if (AUTHORED_PAIR_PASS) {
-        write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow);
+        write_authored_manifolds(pairRecord);
         return;
     }
     if (pair_has_lego(pairRecord)) {
@@ -2747,8 +2906,7 @@ fn narrow_cylinder_cylinder_impl(gid : vec3<u32>) {
 @compute @workgroup_size(1)
 fn finalize_narrow(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x != 0u) { return; }
-    atomicStore(&narrowTelemetry[22], min(broadTelemetry[3],
-        min(narrow.capacities.y, narrow.capacities.z)));
+    atomicStore(&narrowTelemetry[22], reported_pair_count() * narrow.dispatch.y);
     let tick = atomicLoad(&narrowTelemetry[23]) + 1u;
     atomicStore(&narrowTelemetry[23], tick);
     atomicStore(&narrowTelemetry[21], tick);

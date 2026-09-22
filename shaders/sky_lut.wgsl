@@ -37,6 +37,8 @@ struct CameraUniforms {
     waterSpectrum : vec4<f32>,
 };
 
+override NEUTRAL_CLOUDS : bool = false;
+
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var outSky : texture_storage_2d<rgba16float, write>;
 
@@ -147,7 +149,10 @@ fn equirectangularDirection(uv : vec2<f32>) -> vec3<f32> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn skyRadiance(worldDir : vec3<f32>) -> vec3<f32> {
-    let sunDir = normalize(camera.lightDirWS.xyz);
+    // A supported session can switch back to a complete fixed environment.
+    // The texture is rebaked only on mode changes or fixed-sun edits.
+    let cycling = NEUTRAL_CLOUDS && camera.fogColor.w > 0.0;
+    let sunDir = select(normalize(camera.lightDirWS.xyz), normalize(vec3<f32>(0.4, 0.8, -0.4)), cycling);
     let sunDot = clamp(dot(worldDir, sunDir), -1.0, 1.0);
     if (worldDir.y <= 0.0) {
         let horizon = smoothstep(-0.55, 0.02, worldDir.y);
@@ -232,6 +237,7 @@ fn skyRadiance(worldDir : vec3<f32>) -> vec3<f32> {
     // The environment's emitter is deliberately broad: its lowest-frequency
     // halo survives roughness mip selection, while the compact HDR core draws
     // sharp moving highlights on nearby crests.
+    if (cycling) { return skyColor; }
     let positiveSun = max(sunDot, 0.0);
     let halo = pow(positiveSun, 7.0) * 1.55;
     let corona = pow(positiveSun, 42.0) * 6.0;

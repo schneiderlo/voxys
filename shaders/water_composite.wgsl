@@ -306,6 +306,22 @@ fn rayDirFromPixel(pixel : vec2<u32>, dims : vec2<u32>) -> vec3<f32> {
 
 fn sampleBakedShadow(worldPos : vec3<f32>, terrainOrigin : vec2<f32>,
                      cellScale : f32) -> f32 {
+    if (camera.lightDirWS.w > 0.5) {
+        let light = normalize(camera.lightDirWS.xyz);
+        if (light.y <= 0.0) { return 1.0; }
+        var distance = cellScale;
+        var visibility = 1.0;
+        for (var stepIndex = 0u; stepIndex < 24u; stepIndex += 1u) {
+            let point = worldPos + light * distance;
+            let cell = (point.xz + terrainOrigin) / cellScale;
+            if (any(cell < vec2<f32>(0.0)) || any(cell >= camera.terrainSize)) { break; }
+            let height = heightmapToWorldHeight(f32(textureLoad(heightTex, vec2<i32>(cell), 0).x));
+            visibility = min(visibility, smoothstep(-0.4, 0.6, point.y - height));
+            if (visibility < 0.01) { break; }
+            distance = distance * 1.35 + cellScale;
+        }
+        return visibility;
+    }
     let dims = vec2<i32>(textureDimensions(shadowHeightTex));
     let cellF = (worldPos.xz + terrainOrigin) / cellScale;
     let scale = vec2<f32>(dims) / camera.terrainSize;

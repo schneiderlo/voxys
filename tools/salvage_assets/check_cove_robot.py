@@ -30,7 +30,7 @@ def slerp(a,b,t):
     return [(x*math.sin((1-t)*angle)+y*math.sin(t*angle))/denom for x,y in zip(a,b)]
 
 
-def inspect(path):
+def inspect(path, capsule_radius=.3, visual_margin=0., maximum_walk_width=.60):
     raw=path.read_bytes();length=struct.unpack_from('<I',raw,12)[0]
     doc=json.loads(raw[20:20+length]);binary=raw[28+length:]
     def values(index):
@@ -94,12 +94,12 @@ def inspect(path):
     # Exact point-to-segment distance for the real upright capsule, including
     # its upper/lower hemispheres. Hands and animated stride have an explicit
     # wider visual envelope; the stationary torso/helmet never use that waiver.
-    core_capsule={name:max(math.sqrt(p[0]**2+p[2]**2+(p[1]-max(.3,min(1.4,p[1])))**2)
+    core_capsule={name:max(math.sqrt(p[0]**2+p[2]**2+(p[1]-max(capsule_radius,min(1.7-capsule_radius,p[1])))**2)
         for p in neutral[name]) for name in ('robot_pelvis','robot_torso','robot_head')}
     assert abs(bind['maximum'][1]-1.7)<.001 and bind['minimum'][1]>=-1e-6
-    assert max(radii['robot_torso'],radii['robot_head'],radii['robot_pelvis'])<.30
-    assert max(core_capsule.values())<=.300001, core_capsule
-    assert reports['walk']['width']<=.60 and reports['walk']['minimum'][1]>=-1e-5
+    assert max(radii['robot_torso'],radii['robot_head'],radii['robot_pelvis'])<capsule_radius+visual_margin
+    assert max(core_capsule.values())<=capsule_radius+visual_margin+.000001, core_capsule
+    assert reports['walk']['width']<=maximum_walk_width and reports['walk']['minimum'][1]>=-1e-5
     return dict(file=str(path),maximum_normal_length_error=normal_error,
         bind=bind,bind_node_horizontal_radius=radii,core_capsule_distance=core_capsule,clips=reports,
         limitation='Sampled actual vertices; not a continuous sweep or visual/runtime acceptance.')

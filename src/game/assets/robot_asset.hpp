@@ -2,6 +2,10 @@
 #include "game/assets/rigid_animation.hpp"
 #include "game/assets/cooked_part_directory.hpp"
 namespace voxy::game::assets {
+[[nodiscard]] std::shared_ptr<const RigidAnimationAsset> loadBuilderAsset(
+    const CookedPartByteProvider&,std::string& error);
+[[nodiscard]] std::shared_ptr<const RigidAnimationAsset> loadBuilderAsset(
+    const std::filesystem::path& directory,std::string& error);
 // Installed presentation package only. Capped immutable snapshots, SHA binding,
 // strict profile, then independent VMESH/hierarchy/animation validation.
 [[nodiscard]] std::shared_ptr<const RigidAnimationAsset> loadRobotAsset(

@@ -169,6 +169,7 @@ struct PhysicsInitContext {
         float waterLinearDrag = 0.55f;
         float waterAngularDrag = 0.08f;
         uint32_t substeps = 4;
+        uint32_t authoredContactPatches = 1; // Explicit bounded compound-patch opt-in (1..8).
         uint32_t solverWorkgroupSize = 128;
         uint32_t solverColorCount = 32;
         // The first colors use separate indirect dispatches. The remainder
@@ -457,6 +458,8 @@ struct DistanceAttachmentDesc {
 // Reserved material tag for a bounded box + up to eight studs, WebGpuSoft only.
 // The low 28 bits retain the primitive plastic material encoding.
 inline constexpr uint32_t kLegoBrickMaterial = 0xb0000000u;
+// Collision-only GPU bodies, such as the player capsule. No visible primitive.
+inline constexpr uint32_t kInvisiblePhysicsMaterial = 0xc0000000u;
 
 struct PhysicsMaterial {
     float friction = 0.65f;
@@ -465,8 +468,8 @@ struct PhysicsMaterial {
     // Resident gameplay metadata. BodySpawnDesc::inverseMass remains the
     // authoritative mass input; changing density does not silently resize it.
     float density = 1.0f;
-    // Application bits, except the reserved kLegoBrickMaterial high nibble
-    // used by the GPU compound collision and rendering paths.
+    // Application bits, except the reserved LEGO/invisible material tags
+    // used by the GPU collision and rendering paths.
     uint32_t flags = 0u;
 };
 

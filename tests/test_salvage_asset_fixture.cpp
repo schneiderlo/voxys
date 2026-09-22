@@ -317,9 +317,11 @@ TEST(SalvageFixtureAccounting, SurfaceAndRopeChargeBothFullDrawPathsWithinUnchan
     // each, rather than charging only visible or currently painted instances.
     EXPECT_EQ(2u * SalvageAssetFixture::maximumExpandedDraws * (MeshPath::gpuInstanceBytes-112u),16384u);
     // Each path loads its own helper mesh (vertices, indices and material),
-    // even though both uploads originate from the same CPU data.
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u+16384u+2896u);
+    // even though both uploads originate from the same CPU data. The shared
+    // shadow ABI grew from 96 to 208 bytes per path (contact/far-shadow data).
+    EXPECT_EQ(sizeof(SunShadowUniforms),208u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138840u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u+16384u+2896u+2u*(208u-96u));
     EXPECT_LE(SalvageAssetFixture::fixedGpuRequestedBytes,SalvageAssetFixture::fixedGpuReservationBytes);
     EXPECT_EQ(SalvageFixtureConfig{}.maximumOwnerGpuBytes,16u*1024u*1024u);
     EXPECT_EQ(SalvageFixtureConfig{}.maximumResidentGpuBytes,48u*1024u*1024u);
@@ -441,7 +443,7 @@ TEST(CoveDockMarkings, AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentity
     ASSERT_EQ(placed.size(),1u);
     EXPECT_EQ(glm::vec3(placed[0].modelMatrix[3]),glm::vec3(3,0,2));
     EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138840u);
 }
 
 #if !defined(VOXY_WASM)
@@ -789,7 +791,7 @@ TEST_F(FixtureGPU, FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWi
     config.filteredEnvironment=true;
     config.sunShadows=true;
     EXPECT_EQ(MeshPath::sunShadowReservationBytes,
-        uint64_t(MeshPath::sunShadowResolution)*MeshPath::sunShadowResolution*4u+96u);
+        uint64_t(MeshPath::sunShadowResolution)*MeshPath::sunShadowResolution*4u+2u*sizeof(SunShadowUniforms));
     const uint64_t charge=SalvageAssetFixture::fixedGpuReservationBytes
         +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes+bundle->requestedGpuBytes();
     config.maximumOwnerGpuBytes=charge-1;
@@ -963,7 +965,8 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
         requested+=bytes;
         RecordProperty("bundleGpuBytes"+std::to_string(i),std::to_string(bytes));
     }
-    EXPECT_EQ(requested,9740584u); // Existing nine-presentation owner + exact 16 KiB fixed reservation growth.
+    // Live shadows reserve two 208-byte uniforms; the old reservation used 48 each.
+    EXPECT_EQ(requested,9740584u+2u*(208u-48u));
     requested+=robot->prefab.counts.gpuBytes+marks.prefab.counts.gpuBytes
         +environment->gpuBytes+config.reservedExternalGpuBytes;
     RecordProperty("requestedOwnerGpuBytes",std::to_string(requested));
@@ -984,7 +987,7 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     const auto reserved=fixture.stats().active.reservedGpuBytes;
     EXPECT_LE(reserved,16ull*1024ull*1024ull);
     EXPECT_EQ(reserved,requested);
-    EXPECT_EQ(reserved,9748344u+robot->prefab.counts.gpuBytes+environment->gpuBytes+33328u);
+    EXPECT_EQ(reserved,9748344u+2u*(208u-48u)+robot->prefab.counts.gpuBytes+environment->gpuBytes+33328u);
     EXPECT_EQ(fixture.stats().active.sceneryGpuBytes,1241888u);
     EXPECT_EQ(fixture.stats().active.reservedExternalGpuBytes,33328u);
     EXPECT_EQ(fixture.stats().active.robotGpuBytes,robot->prefab.counts.gpuBytes);
@@ -1009,7 +1012,21 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     EXPECT_EQ(fixture.stats().lastSubmittedRobotDraws,robot->prefab.counts.expandedDraws);
     EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,24u);
     EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,24u);
-    EXPECT_EQ(fixture.stats().lastSubmittedDraws,153u); //129 existing +24 scenery, no ten duplicate boxes.
+    // Admission still charges every authored instance. Submission telemetry now
+    // reports instanced GPU batches; repeated compatible parts share a draw.
+    const auto expandedSceneDraws=[&](uint32_t environmentLod) {
+        uint32_t count=robot->prefab.counts.expandedDraws+marks.prefab.counts.expandedDraws
+            +environment->scenery[environmentLod].prefab.counts.expandedDraws
+            +environment->gantry[environmentLod].prefab.counts.expandedDraws;
+        for(const auto& placement:placements) {
+            const auto lods=scene->renderBundles()[placement.bundleIndex]->lods();
+            const auto lod=std::find_if(lods.begin(),lods.end(),[&](const auto& item){return item.id==placement.lodId;});
+            if(lod!=lods.end())count+=lod->prefab.counts.expandedDraws;
+        }
+        return count;
+    };
+    EXPECT_EQ(expandedSceneDraws(0),153u); // 129 authored draws + 24 scenery; no duplicate gantry boxes.
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,103u);
     RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
 
     releaseCommands();
@@ -1034,7 +1051,8 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     RecordProperty("with64BricksPlacements",std::to_string(placements.size()));
     EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
     EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u);
-    EXPECT_EQ(fixture.stats().lastSubmittedDraws,219u); //196 existing +23 coarsest environment.
+    EXPECT_EQ(expandedSceneDraws(2),219u); // 196 authored draws + 23 coarsest environment.
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,105u); // Extra brick types batch; 64 copies retain separate instance records.
     const auto generation=fixture.stats().active.generation;
     EXPECT_FALSE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot,forged));
     EXPECT_EQ(fixture.stats().active.generation,generation);EXPECT_EQ(fixture.stats().candidate.generation,0u);
@@ -1137,7 +1155,10 @@ TEST_F(FixtureGPU, FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget) {
     for(auto& placement:placements)placement.lodId=probeLod;
     SalvageFixtureTicket ticket;
     ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error))<<error;
-    EXPECT_EQ(fixture.stats().lastEncodedDraws,SalvageAssetFixture::maximumPlacements);
+    EXPECT_EQ(placements.size(),99u);
+    ASSERT_EQ(bundles[0]->lods()[0].prefab.counts.meshInstances,1u);
+    ASSERT_EQ(bundles[0]->lods()[0].prefab.counts.expandedDraws,1u);
+    EXPECT_EQ(fixture.stats().lastEncodedDraws,1u); // 99 instances of the same opaque submesh.
     submit(ticket);
 }
 
@@ -1185,7 +1206,8 @@ TEST_F(FixtureGPU, SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomica
     startFrame();SalvageFixtureTicket ticket;
     ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error)) << error;
     EXPECT_EQ(fixture.stats().lastEncodedGuideBoxes,510u);
-    EXPECT_EQ(fixture.stats().lastEncodedDraws,527u);
+    EXPECT_EQ(placements.size(),17u);
+    EXPECT_EQ(fixture.stats().lastEncodedDraws,2u); // 17 beam instances + 510 guide instances, one batch per path.
     submit(ticket);
     EXPECT_EQ(fixture.stats().active.reservedGpuBytes,resident.reservedGpuBytes);
     EXPECT_EQ(fixture.stats().active.generation,resident.generation);
@@ -1360,14 +1382,18 @@ TEST_F(FixtureGPU, NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReserva
     Package package;makeMechanismProbe(package);bundle=package.admit();begin();
     const auto reserved=fixture.stats().active.reservedGpuBytes;
     std::array placements{SalvageFixturePlacement{.lodId=probeLod}};
-    uint32_t drawCount=0;
+    ASSERT_EQ(bundle->lods()[0].prefab.counts.meshInstances,2u);
+    ASSERT_EQ(bundle->lods()[0].prefab.counts.expandedDraws,2u);
     for(double angle:{0.,.7,-.7}) {
         placements[0].mechanism=game::assets::RigidMechanismPose{game::assets::RigidMechanismKind::PropellerRotor,angle};
         SalvageFixtureTicket ticket;startFrame();
         ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error))<<error;
-        if(drawCount==0)drawCount=fixture.stats().lastEncodedDraws;
-        EXPECT_EQ(fixture.stats().lastEncodedDraws,drawCount);
-        EXPECT_GT(drawCount,1u);submit(ticket);
+        // The fixed and moving node keep separate transforms but share one mesh batch.
+        std::vector<game::assets::RigidPrefabDraw> pose;
+        ASSERT_TRUE(game::assets::placeRigidPrefab(bundle->lods()[0].prefab,glm::dmat4(1),{},2,pose,error,placements[0].mechanism))<<error;
+        ASSERT_EQ(pose.size(),2u);
+        EXPECT_NE(pose[0].modelMatrix,pose[1].modelMatrix);
+        EXPECT_EQ(fixture.stats().lastEncodedDraws,1u);submit(ticket);
         EXPECT_EQ(fixture.stats().active.reservedGpuBytes,reserved);
     }
     SalvageFixtureTicket unchanged{71,93};startFrame();
@@ -1382,7 +1408,7 @@ TEST_F(FixtureGPU, NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReserva
     }
     releaseCommands();
     EXPECT_EQ(MeshPath::gpuInstanceBytes,128u);
-    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138616u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,138840u);
     EXPECT_EQ(SalvageAssetFixture::maximumExpandedDraws,512u);
     EXPECT_EQ(SalvageAssetFixture::maximumMeshInstances,256u);
 }

@@ -1117,7 +1117,7 @@ void RaycastPath::updateStaticUniforms() {
     next.lightingColor = glm::vec4(0.0f);
     next.ambientExposure = glm::vec4(0.0f);
     next.fogColor = glm::vec4(0.0f);
-    if (next.invProjParams.z <= 0.5f) {
+    if (next.invProjParams.z <= 0.5f && next.lightDirWS.w == 0.0f) {
         // Normal mode samples the baked shadow texture. Sun direction only
         // affects this pass in Lego mode, where shadows are traced directly.
         next.lightDirWS = glm::vec4(0.0f);

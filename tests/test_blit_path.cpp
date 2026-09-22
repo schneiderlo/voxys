@@ -377,6 +377,20 @@ TEST_F(BlitPathTest, ProductionShaderHasNoGpuValidationErrors) {
     gpuContext_.setErrorCallback({});
 }
 
+TEST_F(BlitPathTest, DayNightSkyAndWaterPipelinesValidate) {
+    ASSERT_TRUE(gpuContextInitialized_) << "Day/night shader gate requires WebGPU";
+    gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) {
+        ADD_FAILURE() << "Day/night validation: " << message;
+    });
+    auto config = getConfig();
+    config.dayNightSky = true;
+    config.enableOpaqueScene = true;
+    ASSERT_TRUE(blitPath_.init(gpuContext_.getDevice(), gpuContext_.getQueue(), config));
+    gpuContext_.tick();
+    blitPath_.shutdown();
+    gpuContext_.setErrorCallback({});
+}
+
 TEST_F(BlitPathTest, SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMoveSafely) {
     ASSERT_TRUE(gpuContextInitialized_);
     gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) {
@@ -390,6 +404,91 @@ TEST_F(BlitPathTest, SceneTerrainAndWaterShadowPipelinesFitBaselineBindingsAndMo
     EXPECT_EQ(blitPath_.opaqueSceneBytes(), 64u * 64u * 12u);
     blitPath_.shutdown();
     gpuContext_.tick();
+    gpuContext_.setErrorCallback({});
+}
+
+TEST_F(BlitPathTest, CycleToggleRestoresTheFixedSkyAndCanResume) {
+    ASSERT_TRUE(gpuContextInitialized_);
+    gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) { ADD_FAILURE() << message; });
+    auto device = gpuContext_.getDevice();
+    auto queue = gpuContext_.getQueue();
+    auto config = getConfig();
+    config.environmentPath.clear(); // Compare the same procedural fixed sky.
+    ASSERT_TRUE(createTestTextures());
+    std::vector<float> emptyDepth(320u * 240u, -1.0f);
+    ASSERT_TRUE(gpu::writeTexture(queue, depthTexture_,
+        std::as_bytes(std::span(emptyDepth)), 320, 240, 320 * sizeof(float)));
+    const auto initialize = [&](render::BlitPath& path) {
+        if (!path.init(device, queue, config)) return false;
+        path.setDepthTexture(depthView_);
+        path.setShadowTexture(shadowView_);
+        path.setMaterialTexture(materialView_);
+        path.setTerrainTexture(terrainView_);
+        path.setTerrainMaterialTextures(terrainMaterialAlbedoView_, terrainMaterialNormalRoughnessView_);
+        path.setLightmapTexture(lightmapView_);
+        return true;
+    };
+    render::BlitPath baseline;
+    ASSERT_TRUE(initialize(baseline));
+    config.dayNightSky = true;
+    ASSERT_TRUE(initialize(blitPath_));
+    struct Readback {
+        WGPUBuffer buffer = nullptr;
+        ~Readback() { if (buffer) wgpuBufferRelease(buffer); }
+    } readback;
+    readback.buffer = gpu::createBuffer(device, gpu::BufferDesc{
+        .label = "day_night_sky_pixel", .size = 256,
+        .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead});
+    ASSERT_NE(readback.buffer, nullptr);
+    auto uniforms = baseline.getUniforms();
+    const auto sun = glm::normalize(glm::vec3(.4f, .8f, -.4f));
+    ASSERT_TRUE(uniforms.setCamera(glm::lookAt(glm::vec3(0), sun, glm::vec3(0, 1, 0)),
+        glm::perspective(glm::radians(70.f), 320.f / 240.f, .1f, 2000.f), glm::vec3(0)));
+    uniforms.lightDirWS = glm::vec4(sun, 0);
+    uniforms.waterParams.y = 0;
+    uniforms.ambientExposure.w = .2f;
+    const auto pixel = [&](render::BlitPath& path, float hour) {
+        uniforms.fogColor.w = hour;
+        path.setCameraUniforms(uniforms);
+        auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
+        EXPECT_TRUE(path.render(encoder, colorView_));
+        gpu::CompatImageCopyTexture source{};
+        source.texture = colorTexture_; source.origin = {160, 120, 0};
+        source.aspect = WGPUTextureAspect_All;
+        WGPUImageCopyBuffer destination{};
+        destination.buffer = readback.buffer;
+        destination.layout.bytesPerRow = 256; destination.layout.rowsPerImage = 1;
+        const WGPUExtent3D extent{1, 1, 1};
+        wgpuCommandEncoderCopyTextureToBuffer(encoder, &source, &destination, &extent);
+        auto commands = wgpuCommandEncoderFinish(encoder, nullptr);
+        wgpuQueueSubmit(queue, 1, &commands);
+        wgpuCommandBufferRelease(commands); wgpuCommandEncoderRelease(encoder);
+        auto done = std::make_shared<std::atomic<int>>(0);
+        using Completion = std::shared_ptr<std::atomic<int>>;
+        wgpuBufferMapAsync(readback.buffer, WGPUMapMode_Read, 0, 256,
+            [](WGPUBufferMapAsyncStatus status, void* context) {
+                std::unique_ptr<Completion> completion(static_cast<Completion*>(context));
+                (*completion)->store(status == WGPUBufferMapAsyncStatus_Success ? 1 : 2);
+            }, new Completion(done));
+        const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (!done->load() && std::chrono::steady_clock::now() < until) {
+            gpuContext_.tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        std::array<uint8_t, 4> result{};
+        EXPECT_EQ(done->load(), 1);
+        if (done->load() == 1) {
+            std::memcpy(result.data(), wgpuBufferGetConstMappedRange(readback.buffer, 0, 256), 4);
+            wgpuBufferUnmap(readback.buffer);
+        }
+        return result;
+    };
+    const auto fixed = pixel(baseline, 0);
+    EXPECT_EQ(pixel(blitPath_, 0), fixed);
+    const auto night = pixel(blitPath_, 1);
+    EXPECT_NE(night, fixed);
+    EXPECT_EQ(pixel(blitPath_, 0), fixed);
+    EXPECT_EQ(pixel(blitPath_, 1), night);
+    baseline.shutdown();
     gpuContext_.setErrorCallback({});
 }
 
@@ -757,12 +856,12 @@ void BlitPathTest::movingCasterScene(bool coveVisuals) {
     ASSERT_TRUE(mesh.setSceneTextures(nullptr,staticDepthView));
     render::PrimitiveLighting lighting;lighting.direction=direction;lighting.fogDensity=0;
     struct Draw {render::MeshPath* mesh;WGPUTextureView depth;glm::mat4 view,projection;glm::vec3 eye;
-        render::PrimitiveLighting light;glm::vec3 worldOrigin{0};};
+        render::PrimitiveLighting light;glm::vec3 worldOrigin{0};render::FootContacts footContacts{};};
     Draw draw{&mesh,objectDepthView,view,projection,eye,lighting};
     render::OpaqueSceneDraw objects{&draw,[](void* value,WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,render::SceneShadowConsumer background){
         auto& d=*static_cast<Draw*>(value);
         if(!d.mesh->encodeEnvironmentLighting(encoder)||!background.environment(d.mesh->filteredEnvironmentViews()))return false;
-        return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin);}};
+        return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin,d.footContacts);}};
     float expectedDepth=0, finalDepth=0;
     glm::vec3 opaqueRadiance{0};
     const auto sample=[&](bool caster,bool discard=false,float overrideX=0){
@@ -843,6 +942,52 @@ void BlitPathTest::movingCasterScene(bool coveVisuals) {
         const int ambient=sample(false);const auto ambientRadiance=opaqueRadiance;
         blitPath_.setStaticCacheState(true,false);
         EXPECT_NEAR(sample(true),ambient,2);
+        if (!coveVisuals && !water) {
+            // With zero direct sun, LEGO faces must retain volume. Exercise
+            // the actual HDR background cache and the object-shadow receiver:
+            // changing a world-space normal must change indirect illumination,
+            // while a sun caster must not remove that remaining sky light.
+            const auto capRadiance = opaqueRadiance;
+            std::fill(normals.begin(), normals.end(),
+                // Sample the face below its rounded top bevel.
+                glm::u16vec4(glm::packHalf1x16(1.f), 0, 0, glm::packHalf1x16(1.f)));
+            ASSERT_TRUE(upload(materialTexture_, normals, 320, 240));
+            blitPath_.setStaticCacheState(true,true);
+            ASSERT_GE(sample(false), 0);
+            const auto wallRadiance = opaqueRadiance;
+            for (int c=0; c<3; ++c) {
+                EXPECT_GT(wallRadiance[c], capRadiance[c] * .25f);
+                EXPECT_LT(wallRadiance[c], capRadiance[c] * .75f);
+            }
+            blitPath_.setStaticCacheState(true,false);
+            ASSERT_GE(sample(true), 0);
+            for (int c=0; c<3; ++c)
+                EXPECT_NEAR(opaqueRadiance[c], wallRadiance[c], .001f);
+            std::fill(normals.begin(), normals.end(),
+                glm::u16vec4(0, glm::packHalf1x16(1.f), 0, 0));
+            ASSERT_TRUE(upload(materialTexture_, normals, 320, 240));
+            blitPath_.setStaticCacheState(true,true);
+            EXPECT_NEAR(sample(false), ambient, 2);
+            // Contact removes local sky light even without sunlight. A moving
+            // sole must update over the retained terrain cache, then disappear
+            // on lifting away or when the receiver is above the character.
+            const auto clearContact=opaqueRadiance;
+            blitPath_.setStaticCacheState(true,false);
+            draw.footContacts[0]={0,.01f,0,.55f};
+            ASSERT_GE(sample(false),0);const auto planted=opaqueRadiance;
+            for(int c=0;c<3;++c) {
+                EXPECT_LT(planted[c],clearContact[c]*.75f);
+                EXPECT_GT(planted[c],clearContact[c]*.30f);
+            }
+            blitPath_.setStaticCacheState(true,true);
+            ASSERT_GE(sample(false),0);
+            for(int c=0;c<3;++c)EXPECT_NEAR(opaqueRadiance[c],planted[c],.001f);
+            blitPath_.setStaticCacheState(true,false);
+            for(const auto away:std::array{glm::vec4(3,.01f,0,.55f),glm::vec4(0,3,0,.55f),glm::vec4(0,-.5f,0,.55f),glm::vec4(0)}) {
+                draw.footContacts[0]=away;ASSERT_GE(sample(false),0);
+                for(int c=0;c<3;++c)EXPECT_NEAR(opaqueRadiance[c],clearContact[c],.001f);
+            }
+        }
         if(coveVisuals&&water) {
             for(int c=0;c<3;++c) {
                 EXPECT_TRUE(std::isfinite(clearRadiance[c]));EXPECT_GE(shadedBedRadiance[c],0);

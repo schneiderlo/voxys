@@ -8,6 +8,7 @@ SOURCES = ('physics_authored_shapes.wgsl', 'physics_authored_queries.wgsl')
 TARGETS = {
     'mesh_path.wgsl': ('physics_authored_shapes.wgsl',),
     'physics_queries.wgsl': SOURCES,
+    'physics_ccd.wgsl': SOURCES,
     'physics_narrow_phase.wgsl': SOURCES,
     'physics_ballistic.wgsl': ('physics_authored_shapes.wgsl', 'physics_authored_terrain.wgsl'),
 }
