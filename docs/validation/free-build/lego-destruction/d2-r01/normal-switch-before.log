@@ -1,0 +1,28 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:27:23.561] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:27:23.561] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:27:23.561] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:27:23.561] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:27:23.563] [GPU] Headless GPU context initialized successfully[0m
+tests/test_gpu_authored_shapes.cpp:1118: Failure
+Expected: (hit.manifold.normal[1]) < (-.9f), actual: -0.000797185814 vs -0.9
+
+[  FAILED  ] GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide (6320 ms)
+[----------] 1 test from GpuAuthoredShapes (6325 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6325 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide
+
+ 1 FAILED TEST

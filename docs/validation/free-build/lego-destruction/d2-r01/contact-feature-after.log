@@ -1,0 +1,21 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:gpu_authored_shapes (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:gpu_authored_shapes (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:gpu_authored_shapes (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:gpu_authored_shapes (2 packages loaded, 51 targets configured).
+[307 / 308] Testing //tests:gpu_authored_shapes; 1s linux-sandbox
+[307 / 308] 1 / 1 tests; Testing //tests:gpu_authored_shapes; 7s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:gpu_authored_shapes up-to-date:
+  bazel-bin/tests/gpu_authored_shapes
+INFO: Elapsed time: 8.783s, Critical Path: 7.04s
+INFO: 2 processes: 306 action cache hit, 1 internal, 1 linux-sandbox.
+INFO: Build completed successfully, 2 total actions
+//tests:gpu_authored_shapes                                              PASSED in 7.0s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

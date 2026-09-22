@@ -1,0 +1,97 @@
+[  0%] Built target miniz
+[  4%] Built target tinygltf
+[ 13%] Built target box3d
+[ 21%] Built target libzstd_static
+[ 53%] Built target Jolt
+[ 54%] Building CXX object src/CMakeFiles/voxy_core.dir/game/adventure/adventure_runtime.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.hpp:8:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/builder_cannon.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.hpp:8:
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/builder_cannon.hpp:59:16: warning: implicit conversion changes signedness: 'typename iterator_traits<std::__wrap_iter<const voxy::game::adventure::BuilderCannon::Shot *>>::difference_type' (aka 'long') to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+   59 |         return std::count_if(shots.begin(),shots.end(),[](const Shot& s){return s.body.valid();});
+      |         ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:421:52: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  421 |         content_.resourceNodes.push_back({i+1,{p.x,y,p.y,0},{ItemKind(1+i%3),uint16_t(i%3==0?12:8)}});
+      |                                               ~    ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:460:63: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  460 |         ||!player_.initialize(queries_,spawn,installedWorld().waterHeight,freeBuild_?creativeStartYaw:0,
+      |                    ~~~~~~~~~~                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:508:20: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  508 |         double low=INFINITY,high=-INFINITY;
+      |                ~~~ ^~~~~~~~
+/home/modkin/emsdk/upstream/emscripten/cache/sysroot/include/math.h:16:19: note: expanded from macro 'INFINITY'
+   16 | #define INFINITY  __builtin_inff()
+      |                   ^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:508:34: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  508 |         double low=INFINITY,high=-INFINITY;
+      |                             ~~~~ ^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:510:36: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  510 |             const double y=surface.heightAt(float(blacksmithPlot.x+x),float(blacksmithPlot.y+z));
+      |                          ~ ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:521:26: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  521 |         double cannonLow=INFINITY,cannonHigh=-INFINITY;
+      |                ~~~~~~~~~ ^~~~~~~~
+/home/modkin/emsdk/upstream/emscripten/cache/sysroot/include/math.h:16:19: note: expanded from macro 'INFINITY'
+   16 | #define INFINITY  __builtin_inff()
+      |                   ^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:521:46: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  521 |         double cannonLow=INFINITY,cannonHigh=-INFINITY;
+      |                                   ~~~~~~~~~~ ^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:523:36: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  523 |             const double y=surface.heightAt(float(cannonPlot.x+x),float(cannonPlot.y+z));
+      |                          ~ ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:543:80: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  543 |     if(!freeBuild_&&!combat_.initialize(content_,walkQueries_,installedWorld().waterHeight)) {error="The trail navigation is unavailable.";return false;}
+      |                              ~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:547:80: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  547 |         (void)motorbike_.place(queries_,p,player_.facingYaw(),installedWorld().waterHeight);
+      |                          ~~~~~                                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1154:74: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1154 |         const auto landing=motorbike_.dismount(queries_,installedWorld().waterHeight);
+      |                                       ~~~~~~~~          ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1163:85: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1163 |         if(!next.place(queries_,player_.feet(),player_.facingYaw(),installedWorld().waterHeight)) {
+      |                  ~~~~~                                             ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1190:64: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1190 |     if(!checked.initialize(queries_,pose.feet,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())) {
+      |                 ~~~~~~~~~~                    ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1436:150: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1436 |             motorbike_.advance(queries_,seconds,{movement[1],movement[0],input.isKeyDown(Key::Space)||pad.down(PadButton::Confirm)},installedWorld().waterHeight);
+      |                        ~~~~~~~                                                                                                      ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1478:49: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1478 |         orbitInput.zoomSteps=brickWheel?0:input.scrollDelta();orbitInput.active=input.focused();
+      |                             ~             ~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1482:90: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1482 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~                                   ~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1482:69: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1482 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~              ~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1482:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1482 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~~~~~~~~^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:2372:73: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 2372 |     if(!start||!checkedPlayer.initialize(actors,*start,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())
+      |                               ~~~~~~~~~~               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.cpp:1:
+/home/modkin/workspace/schneiderlo/voxys/src/game/adventure/adventure_runtime.hpp:180:12: warning: private field 'observationSeconds_' is not used [-Wunused-private-field]
+  180 |     double observationSeconds_=0;
+      |            ^
+22 warnings generated.
+[ 54%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm

@@ -1,0 +1,50 @@
+
+> test
+> node test-ui.mjs
+
+TAP version 13
+# Subtest: bridge rejects stale menu events and guards pending actions without blocking focus metadata
+ok 1 - bridge rejects stale menu events and guards pending actions without blocking focus metadata
+  ---
+  duration_ms: 81.509938
+  type: 'test'
+  ...
+# Subtest: invalid runtime state fails closed; unsaved builds keep unload protection
+ok 2 - invalid runtime state fails closed; unsaved builds keep unload protection
+  ---
+  duration_ms: 11.6625
+  type: 'test'
+  ...
+# Subtest: minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+ok 3 - minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+  ---
+  duration_ms: 589.218112
+  type: 'test'
+  ...
+# Subtest: modal uses authoritative intents, traps focus, and does not block click after row focus
+ok 4 - modal uses authoritative intents, traps focus, and does not block click after row focus
+  ---
+  duration_ms: 295.161638
+  type: 'test'
+  ...
+# Subtest: motorbike button routes mount and mounted HUD replaces building controls
+ok 5 - motorbike button routes mount and mounted HUD replaces building controls
+  ---
+  duration_ms: 290.823007
+  type: 'test'
+  ...
+# Subtest: cannon mode owns firing controls and disables fire until physical collision is ready
+ok 6 - cannon mode owns firing controls and disables fire until physical collision is ready
+  ---
+  duration_ms: 503.40561
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1776.380239

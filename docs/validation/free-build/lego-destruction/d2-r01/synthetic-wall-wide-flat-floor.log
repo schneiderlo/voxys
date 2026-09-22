@@ -1,0 +1,87 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:imported_stack (1 packages loaded, 70 targets configured).
+[394 / 396] Compiling tests/test_imported_stack.cpp; 1s linux-sandbox
+[396 / 397] [Prepa] Testing //tests:imported_stack
+[396 / 397] Testing //tests:imported_stack; 1s linux-sandbox
+[396 / 397] Testing //tests:imported_stack; 10s linux-sandbox
+FAIL: //tests:imported_stack (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/imported_stack/test.log)
+[396 / 397] 1 / 1 tests, 1 failed; Testing //tests:imported_stack; 22s linux-sandbox
+INFO: From Testing //tests:imported_stack:
+==================== Test output for //tests:imported_stack:
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [60:38:17.554] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [60:38:17.554] [GPU]   Vendor: radv
+[INFO ] [60:38:17.554] [GPU]   Backend: Vulkan
+[INFO ] [60:38:17.554] [GPU]   Type: Integrated GPU
+[INFO ] [60:38:17.556] [GPU] Headless GPU context initialized successfully
+[INFO ] [60:38:25.141] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+tests/test_imported_stack.cpp:192: Failure
+Value of: stack.ready()
+  Actual: false
+Expected: true
+Synthetic floor only; phase=4  dynamic=29 awake=27 maxLinear=9.00602 maxAngular=1.473
+ body=11 awake=1 position=13.119,13.4898,2.47069 speed=0.0690949 angular=0.0246349
+ body=12 awake=1 position=12.0975,11.8993,2.4651 speed=0.0214678 angular=0.0127905
+ body=13 awake=1 position=14.6392,15.4418,2.47451 speed=0.105167 angular=0.0265062
+ body=14 awake=1 position=14.6423,13.4638,2.46624 speed=0.0881188 angular=0.0283841
+ body=15 awake=1 position=12.6079,14.6586,2.47746 speed=0.0864924 angular=0.0317232
+ body=16 awake=1 position=14.6154,10.6743,2.45759 speed=0.0194842 angular=0.0107619
+ body=17 awake=1 position=1.69559,15.0619,2.49196 speed=0.0768899 angular=0.0668478
+ body=18 awake=1 position=5.32016,13.5074,2.51992 speed=0.0848877 angular=0.0843733
+ body=19 awake=1 position=14.0975,11.9018,2.45449 speed=0.0214378 angular=0.0145397
+ body=20 awake=1 position=6.5409,13.1604,2.24439 speed=0.153084 angular=0.0863685
+ body=21 awake=1 position=6.45395,11.8854,2.61314 speed=0.119513 angular=0.0492784
+ body=22 awake=1 position=6.50754,10.5,-1.2786 speed=4.25959e-10 angular=2.12884e-10
+ body=23 awake=1 position=12.5872,17.0476,2.53151 speed=0.125402 angular=0.0367631
+ body=24 awake=1 position=3.32559,10.6824,-0.737617 speed=2.37875e-09 angular=6.72565e-10
+ body=25 awake=1 position=13.6202,12.6609,2.46314 speed=0.0291016 angular=0.0150664
+ body=26 awake=1 position=13.0895,10.7007,2.46502 speed=0.0132665 angular=0.0118893
+ body=27 awake=1 position=6.9135,10.702,2.5904 speed=0.0195682 angular=0.0331371
+ body=29 awake=1 position=15.9847,12.5867,2.48115 speed=7.77209 angular=1.26829
+ body=30 awake=1 position=1.57697,14.2682,2.47175 speed=0.0204227 angular=0.0406632
+ body=31 awake=1 position=6.89106,10.4996,0.156304 speed=4.81151e-10 angular=2.37413e-10
+ body=32 awake=1 position=4.97694,10.4362,-0.0666831 speed=0.293674 angular=0.666623
+ body=33 awake=0 position=7.24174,10.4997,1.24871 speed=0 angular=0
+ body=34 awake=1 position=10.0409,11.0511,2.39253 speed=0.0112961 angular=0.0118296
+ body=35 awake=1 position=13.121,15.8861,2.50748 speed=0.101942 angular=0.0330378
+ body=36 awake=1 position=1.33607,15.9644,2.49999 speed=0.1102 angular=0.0479835
+ body=37 awake=1 position=14.1283,14.6906,2.48258 speed=0.0959907 angular=0.00321813
+ body=38 awake=1 position=2.06101,14.6629,2.47498 speed=0.0327036 angular=0.0392568
+ body=39 awake=0 position=0.406046,10.6794,2.53814 speed=0 angular=0
+ body=40 awake=1 position=17.1141,12.227,2.5 speed=9.00602 angular=1.473
+
+[WARN ] [60:38:39.398] Abandoning undrained authored shape resources during world shutdown
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (21902 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (21907 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (21907 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:imported_stack up-to-date:
+  bazel-bin/tests/imported_stack
+INFO: Elapsed time: 26.178s, Critical Path: 24.41s
+INFO: 4 processes: 393 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 4 total actions
+//tests:imported_stack                                                   FAILED in 22.0s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/imported_stack/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

@@ -1,0 +1,23 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_stack
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallFlatFloorGpu.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:09:45.829] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:09:45.829] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:09:45.829] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:09:45.829] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:09:45.830] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:09:54.218] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:10:02.807] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (17036 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (17036 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (17036 ms total)
+[  PASSED  ] 1 test.

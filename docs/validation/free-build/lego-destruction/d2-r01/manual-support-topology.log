@@ -1,0 +1,40 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_assembly
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 14 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 14 tests from ImportedAssembly
+[ RUN      ] ImportedAssembly.ExplicitCatalogConnectionsAndEveryAnchorDriveSupport
+[       OK ] ImportedAssembly.ExplicitCatalogConnectionsAndEveryAnchorDriveSupport (100 ms)
+[ RUN      ] ImportedAssembly.CutsAndPhysicalPreparationAreAtomicAndDeterministic
+[       OK ] ImportedAssembly.CutsAndPhysicalPreparationAreAtomicAndDeterministic (104 ms)
+[ RUN      ] ImportedAssembly.ManualPartRemovalDeletesOwnedTopologyAndPreservesOtherIdentitiesAtomically
+[       OK ] ImportedAssembly.ManualPartRemovalDeletesOwnedTopologyAndPreservesOtherIdentitiesAtomically (66 ms)
+[ RUN      ] ImportedAssembly.ActualSupportRemovalDropsOnlyNamedSourceAndBothIncidentConnections
+[       OK ] ImportedAssembly.ActualSupportRemovalDropsOnlyNamedSourceAndBothIncidentConnections (64 ms)
+[ RUN      ] ImportedAssembly.MetadataPreservesArbitraryRotationsButCollisionRefusesUnsupportedOnes
+[       OK ] ImportedAssembly.MetadataPreservesArbitraryRotationsButCollisionRefusesUnsupportedOnes (0 ms)
+[ RUN      ] ImportedAssembly.SourceSchemaDoesNotSilentlyTruncateToTheSectionBudget
+[       OK ] ImportedAssembly.SourceSchemaDoesNotSilentlyTruncateToTheSectionBudget (0 ms)
+[ RUN      ] ImportedAssembly.InvalidStudMatesAndImplicitProximityNeverCreateConnections
+[       OK ] ImportedAssembly.InvalidStudMatesAndImplicitProximityNeverCreateConnections (12 ms)
+[ RUN      ] ImportedAssembly.ExcessiveFragmentationRefusesTheWholeCut
+[       OK ] ImportedAssembly.ExcessiveFragmentationRefusesTheWholeCut (55 ms)
+[ RUN      ] ImportedAssembly.HollowBodyAndStudProxyPreserveOpenUnderside
+[       OK ] ImportedAssembly.HollowBodyAndStudProxyPreserveOpenUnderside (0 ms)
+[ RUN      ] ImportedAssembly.ChildMotionPreservesRigidVelocityWithoutInventedImpactImpulse
+[       OK ] ImportedAssembly.ChildMotionPreservesRigidVelocityWithoutInventedImpactImpulse (99 ms)
+[ RUN      ] ImportedAssembly.ActualBlacksmithWallPreservesAllSourcePartsAndSupportEvidence
+[       OK ] ImportedAssembly.ActualBlacksmithWallPreservesAllSourcePartsAndSupportEvidence (56 ms)
+[ RUN      ] ImportedAssembly.ActualSelectedPartCellsDoNotInitiallyInterpenetrateThroughBodyFrames
+[       OK ] ImportedAssembly.ActualSelectedPartCellsDoNotInitiallyInterpenetrateThroughBodyFrames (71 ms)
+[ RUN      ] ImportedAssembly.LoaderRejectsForgedCatalogAndUnwitnessedAnchors
+[       OK ] ImportedAssembly.LoaderRejectsForgedCatalogAndUnwitnessedAnchors (77 ms)
+[ RUN      ] ImportedAssembly.ActualRemainderDoesNotPenetrateAnySelectedPartProxy
+[       OK ] ImportedAssembly.ActualRemainderDoesNotPenetrateAnySelectedPartProxy (842 ms)
+[----------] 14 tests from ImportedAssembly (1553 ms total)
+
+[----------] Global test environment tear-down
+[==========] 14 tests from 1 test suite ran. (1553 ms total)
+[  PASSED  ] 14 tests.

@@ -1,0 +1,22 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:imported_assembly (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:imported_assembly (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:imported_assembly (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:imported_assembly (1 packages loaded, 74 targets configured).
+[380 / 393] Compiling src/physics/gpu/gpu_dynamic_solver.cpp; 1s linux-sandbox ... (8 actions running)
+[384 / 393] Compiling src/physics/jolt/jolt_backend.cpp; 3s linux-sandbox ... (4 actions running)
+[389 / 393] Compiling tests/test_imported_assembly.cpp; 4s linux-sandbox ... (2 actions, 1 running)
+INFO: Found 1 test target...
+Target //tests:imported_assembly up-to-date:
+  bazel-bin/tests/imported_assembly
+INFO: Elapsed time: 6.691s, Critical Path: 4.92s
+INFO: 21 processes: 373 action cache hit, 2 internal, 19 linux-sandbox.
+INFO: Build completed successfully, 21 total actions
+//tests:imported_assembly                                                PASSED in 0.2s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

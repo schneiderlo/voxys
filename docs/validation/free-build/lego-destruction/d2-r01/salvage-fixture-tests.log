@@ -1,0 +1,222 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:salvage_asset_fixture
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 33 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SalvageAssetFixture
+[ RUN      ] SalvageAssetFixture.RejectsUninitializedUseWithoutMutatingTicket
+[       OK ] SalvageAssetFixture.RejectsUninitializedUseWithoutMutatingTicket (0 ms)
+[----------] 1 test from SalvageAssetFixture (0 ms total)
+
+[----------] 6 tests from InspectionGuides
+[ RUN      ] InspectionGuides.SharedMeshHasOutwardFacesExactBoundsAndAccountedStorage
+[       OK ] InspectionGuides.SharedMeshHasOutwardFacesExactBoundsAndAccountedStorage (0 ms)
+[ RUN      ] InspectionGuides.ExactMetrePlateRulersAndAsymmetricCanonicalAxes
+[       OK ] InspectionGuides.ExactMetrePlateRulersAndAsymmetricCanonicalAxes (0 ms)
+[ RUN      ] InspectionGuides.SocketFramesStayCanonicalAcrossAllRotationsAndSectorRebases
+[       OK ] InspectionGuides.SocketFramesStayCanonicalAcrossAllRotationsAndSectorRebases (0 ms)
+[ RUN      ] InspectionGuides.RejectsIncompleteOverlaysAndInvalidTransformsTransactionally
+[       OK ] InspectionGuides.RejectsIncompleteOverlaysAndInvalidTransformsTransactionally (0 ms)
+[ RUN      ] InspectionGuides.PrototypeBeamPreservesExactCanonicalFootprintAndLitMaterial
+[       OK ] InspectionGuides.PrototypeBeamPreservesExactCanonicalFootprintAndLitMaterial (0 ms)
+[ RUN      ] InspectionGuides.ExplicitConnectedSocketSelectionIsCompleteOrRejected
+[       OK ] InspectionGuides.ExplicitConnectedSocketSelectionIsCompleteOrRejected (0 ms)
+[----------] 6 tests from InspectionGuides (0 ms total)
+
+[----------] 1 test from SalvageFixtureAccounting
+[ RUN      ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps
+[       OK ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps (0 ms)
+[----------] 1 test from SalvageFixtureAccounting (0 ms total)
+
+[----------] 3 tests from CoveDockMarkings
+[ RUN      ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear
+[       OK ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear (273 ms)
+[ RUN      ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically
+[       OK ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically (278 ms)
+[ RUN      ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh
+[       OK ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh (275 ms)
+[----------] 3 tests from CoveDockMarkings (827 ms total)
+
+[----------] 22 tests from FixtureGPU
+[ RUN      ] FixtureGPU.CoveRoundRopeUsesLitDepthExactBoundsAndSharedOwnerTicket
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:06.571] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:06.571] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:06.571] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:06.571] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:06.573] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveRoundRopeUsesLitDepthExactBoundsAndSharedOwnerTicket (170 ms)
+[ RUN      ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:06.717] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:06.717] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:06.717] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:06.717] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:06.718] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement (417 ms)
+[ RUN      ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:07.133] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:07.133] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:07.133] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:07.133] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:07.134] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration (111 ms)
+[ RUN      ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:07.244] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:07.244] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:07.244] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:07.244] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:07.245] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveToyArtFitsExistingOwnerAndDrawLimits (544 ms)
+[ RUN      ] FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:07.789] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:07.789] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:07.789] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:07.789] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:07.790] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket (141 ms)
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:07.931] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:07.931] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:07.931] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:07.931] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:07.932] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (1167 ms)
+[ RUN      ] FixtureGPU.DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.099] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.099] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.099] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.099] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.100] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection (126 ms)
+[ RUN      ] FixtureGPU.GuideToggleSharesOwnerAndRespectsSeparateGuideBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.226] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.226] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.226] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.226] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.227] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.GuideToggleSharesOwnerAndRespectsSeparateGuideBudget (97 ms)
+[ RUN      ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.322] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.322] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.322] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.322] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.323] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget (105 ms)
+[ RUN      ] FixtureGPU.PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.428] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.428] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.428] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.428] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.429] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime (88 ms)
+[ RUN      ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.518] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.518] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.518] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.518] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.519] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically (110 ms)
+[ RUN      ] FixtureGPU.AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:09.640] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:09.640] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:09.640] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:09.640] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:09.642] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload (507 ms)
+[ RUN      ] FixtureGPU.TracksRealSubmitDiscardResetAndReplacementTickets
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.135] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.135] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.135] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.135] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.136] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.TracksRealSubmitDiscardResetAndReplacementTickets (99 ms)
+[ RUN      ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.234] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.234] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.234] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.234] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.235] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically (107 ms)
+[ RUN      ] FixtureGPU.RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.344] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.344] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.344] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.344] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.345] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor (95 ms)
+[ RUN      ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.438] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.438] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.438] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.438] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.439] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation (106 ms)
+[ RUN      ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.545] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.545] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.545] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.545] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.546] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload (78 ms)
+[ RUN      ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.624] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.624] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.624] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.624] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.625] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration (110 ms)
+[ RUN      ] FixtureGPU.DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.734] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.734] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.734] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.734] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.735] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames (235 ms)
+[ RUN      ] FixtureGPU.ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:10.970] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:10.970] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:10.970] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:10.970] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:10.971] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands (143 ms)
+[ RUN      ] FixtureGPU.ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:11.112] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:11.112] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:11.112] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:11.112] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:11.113] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal (87 ms)
+[ RUN      ] FixtureGPU.ForwardedDeviceLossDoesNotBecomeAnEndlessLeave
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [56:25:11.202] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [56:25:11.202] [GPU]   Vendor: radv[0m
+[32m[INFO ] [56:25:11.202] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [56:25:11.202] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [56:25:11.203] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.ForwardedDeviceLossDoesNotBecomeAnEndlessLeave (95 ms)
+[----------] 22 tests from FixtureGPU (4750 ms total)
+
+[----------] Global test environment tear-down
+[==========] 33 tests from 5 test suites ran. (5579 ms total)
+[  PASSED  ] 33 tests.

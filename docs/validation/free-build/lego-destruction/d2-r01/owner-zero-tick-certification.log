@@ -1,0 +1,77 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_wall_physics
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 7 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallPhysics
+[ RUN      ] ImportedWallPhysics.InitialQueriesExistBeforeGpuAdmissionAndFailedInitializationDoesNotActivate
+[       OK ] ImportedWallPhysics.InitialQueriesExistBeforeGpuAdmissionAndFailedInitializationDoesNotActivate (0 ms)
+[----------] 1 test from ImportedWallPhysics (0 ms total)
+
+[----------] 6 tests from ImportedWallGpu
+[ RUN      ] ImportedWallGpu.OnlyKnownSupportedPartsFallThenCertifiedStaticQueriesMatchAndResetRestores
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:10.537] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:10.537] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:10.537] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:10.537] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:10.539] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:33:19.132] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:33:19.321] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.OnlyKnownSupportedPartsFallThenCertifiedStaticQueriesMatchAndResetRestores (8842 ms)
+[ RUN      ] ImportedWallGpu.ResetDuringFallDiscardsOldObservationAndRetainsEverySourcePart
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:19.356] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:19.356] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:19.356] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:19.356] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:19.358] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:33:28.513] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:33:28.706] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.ResetDuringFallDiscardsOldObservationAndRetainsEverySourcePart (9392 ms)
+[ RUN      ] ImportedWallGpu.RenderSwitchesHandlesOnEncodedMutationBeforeGameplayPublication
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:28.751] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:28.751] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:28.751] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:28.751] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:28.752] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:33:37.022] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:33:37.037] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.RenderSwitchesHandlesOnEncodedMutationBeforeGameplayPublication (8322 ms)
+[ RUN      ] ImportedWallGpu.AccumulatorWorldCertifiesAtJoinedTickWithoutChangingClock
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:37.072] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:37.072] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:37.072] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:37.072] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:37.073] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:33:45.408] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:33:45.783] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.AccumulatorWorldCertifiesAtJoinedTickWithoutChangingClock (8747 ms)
+[ RUN      ] ImportedWallGpu.FailedPartialReplacementCanDrainAndRebuildAfterCapacityReturns
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:45.819] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:45.819] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:45.819] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:45.819] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:45.820] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:33:54.265] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:33:54.288] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.FailedPartialReplacementCanDrainAndRebuildAfterCapacityReturns (8504 ms)
+[ RUN      ] ImportedWallGpu.NeverSleepingFallTimesOutAndStillAllowsRebuild
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:33:54.324] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:33:54.324] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:33:54.324] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:33:54.324] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:33:54.325] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:34:02.915] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:34:03.465] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.NeverSleepingFallTimesOutAndStillAllowsRebuild (9185 ms)
+[----------] 6 tests from ImportedWallGpu (52995 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 2 test suites ran. (52996 ms total)
+[  PASSED  ] 7 tests.

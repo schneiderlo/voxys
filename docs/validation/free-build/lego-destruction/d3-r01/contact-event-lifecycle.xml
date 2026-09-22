@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="91.732" timestamp="2026-09-19T00:49:10.271" name="AllTests">
+  <testsuite name="GpuAuthoredShapes" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="91.732" timestamp="2026-09-19T00:49:10.271">
+    <testcase name="LiveTickFrontierRequiresSubmissionAndGpuProof" file="tests/test_gpu_authored_shapes.cpp" line="1975" status="run" result="completed" time="29.611" timestamp="2026-09-19T00:49:10.271" classname="GpuAuthoredShapes" />
+    <testcase name="RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap" file="tests/test_gpu_authored_shapes.cpp" line="2016" status="run" result="completed" time="32.864" timestamp="2026-09-19T00:49:39.882" classname="GpuAuthoredShapes" />
+    <testcase name="LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding" file="tests/test_gpu_authored_shapes.cpp" line="2196" status="run" result="completed" time="14.266" timestamp="2026-09-19T00:50:12.747" classname="GpuAuthoredShapes" />
+    <testcase name="LiveForceLimitedWinchStallsInsteadOfInventingCableOverload" file="tests/test_gpu_authored_shapes.cpp" line="2245" status="run" result="completed" time="14.99" timestamp="2026-09-19T00:50:27.013" classname="GpuAuthoredShapes" />
+  </testsuite>
+</testsuites>

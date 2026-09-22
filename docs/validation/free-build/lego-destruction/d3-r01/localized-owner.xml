@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="4.366" timestamp="2026-09-18T22:40:45.060" name="AllTests">
+  <testsuite name="ImportedWallGpu" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="4.365" timestamp="2026-09-18T22:40:45.060">
+    <testcase name="CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits" file="tests/test_imported_wall_physics.cpp" line="108" status="run" result="completed" time="3.459" timestamp="2026-09-18T22:40:45.060" classname="ImportedWallGpu" />
+    <testcase name="CenteredImpactDoesNotInventTorqueInReleasedNeighbors" file="tests/test_imported_wall_physics.cpp" line="170" status="run" result="completed" time="0.335" timestamp="2026-09-18T22:40:48.520" classname="ImportedWallGpu" />
+    <testcase name="OffCenterImpactUsesPackedInertiaAndBoundsLinearPlusAngularEnergy" file="tests/test_imported_wall_physics.cpp" line="204" status="run" result="completed" time="0.304" timestamp="2026-09-18T22:40:48.856" classname="ImportedWallGpu" />
+    <testcase name="ImpactIncludesNearbyEndOfRotatedLongSupportingPlate" file="tests/test_imported_wall_physics.cpp" line="252" status="run" result="completed" time="0.266" timestamp="2026-09-18T22:40:49.160" classname="ImportedWallGpu" />
+  </testsuite>
+</testsuites>

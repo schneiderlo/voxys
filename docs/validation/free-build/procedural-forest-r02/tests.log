@@ -1,0 +1,148 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = CreativeForest.*:CreativeScenery.*:CreativeVillage*:AdventureSpatialQueries.*:AdventurePlayer.*:BuilderMotorbike.*:MeshPathGPUTest.*Forest*
+[==========] Running 44 tests from 7 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from AdventureSpatialQueries
+[ RUN      ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision
+[       OK ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision (0 ms)
+[ RUN      ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead
+[       OK ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead (0 ms)
+[ RUN      ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids
+[       OK ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids (0 ms)
+[ RUN      ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery
+[       OK ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery (0 ms)
+[ RUN      ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets
+[       OK ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets (0 ms)
+[----------] 5 tests from AdventureSpatialQueries (0 ms total)
+
+[----------] 10 tests from AdventurePlayer
+[ RUN      ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall
+[       OK ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall (0 ms)
+[ RUN      ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge
+[       OK ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge (0 ms)
+[ RUN      ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight
+[       OK ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight (0 ms)
+[ RUN      ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom
+[       OK ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom (0 ms)
+[ RUN      ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic
+[       OK ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic (0 ms)
+[ RUN      ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim
+[       OK ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim (0 ms)
+[ RUN      ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls
+[       OK ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls (0 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping
+[       OK ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping (1 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall
+[       OK ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall (1 ms)
+[ RUN      ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance
+[       OK ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance (0 ms)
+[----------] 10 tests from AdventurePlayer (4 ms total)
+
+[----------] 9 tests from BuilderMotorbike
+[ RUN      ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount
+[       OK ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount (3 ms)
+[ RUN      ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof
+[       OK ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof (5 ms)
+[ RUN      ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle
+[       OK ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle (0 ms)
+[ RUN      ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds
+[       OK ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds (5 ms)
+[ RUN      ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps
+[       OK ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps (5 ms)
+[ RUN      ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping
+[       OK ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping (3 ms)
+[ RUN      ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires
+[       OK ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires (2 ms)
+[ RUN      ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering
+[       OK ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering (26 ms)
+[ RUN      ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace
+[       OK ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace (2 ms)
+[----------] 9 tests from BuilderMotorbike (54 ms total)
+
+[----------] 8 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (109 ms)
+[ RUN      ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots
+[       OK ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots (292 ms)
+[ RUN      ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest
+[       OK ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest (265 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (130 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (121 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+Scenery admitted 407 props; kinds 234 140 25 6 1 1 
+[       OK ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (109 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (194 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+World scenery at 1200,-1120: 407 props
+World scenery at 1500,-1100: 102 props
+World scenery at 900,-1000: 579 props
+World scenery at -63,-895: 491 props
+[       OK ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (248 ms)
+[----------] 8 tests from CreativeScenery (1472 ms total)
+
+[----------] 3 tests from CreativeVillageRealTerrain
+[ RUN      ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[       OK ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage (116 ms)
+[ RUN      ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[       OK ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging (114 ms)
+[ RUN      ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[       OK ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession (186 ms)
+[----------] 3 tests from CreativeVillageRealTerrain (417 ms total)
+
+[----------] 7 tests from CreativeForest
+[ RUN      ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees
+[       OK ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees (50 ms)
+[ RUN      ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry
+[       OK ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry (131 ms)
+[ RUN      ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload
+[       OK ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload (143 ms)
+[ RUN      ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace
+[       OK ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace (133 ms)
+[ RUN      ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer
+[       OK ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer (211 ms)
+[ RUN      ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing
+Forest canopy neighbours: 65333 / 68821
+[       OK ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing (131 ms)
+[ RUN      ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+Forest at 1200,-1120: near=407 distant=52379 horizon=8251 solids=1642
+Forest at 800,-800: near=863 distant=41705 horizon=5915 solids=2070
+Forest at -63,-895: near=491 distant=27105 horizon=3519 solids=1693
+[       OK ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (208 ms)
+[----------] 7 tests from CreativeForest (1010 ms total)
+
+[----------] 2 tests from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres
+[INFO ] [72:13:57.226] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [72:13:57.226] [GPU]   Vendor: radv
+[INFO ] [72:13:57.226] [GPU]   Backend: Vulkan
+[INFO ] [72:13:57.226] [GPU]   Type: Integrated GPU
+[INFO ] [72:13:57.229] [GPU] Headless GPU context initialized successfully
+Forest horizon mesh 0: triangles=412 pixels at 2000 m=138
+Forest horizon mesh 1: triangles=188 pixels at 2000 m=66
+[       OK ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres (133 ms)
+[ RUN      ] MeshPathGPUTest.ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres
+[INFO ] [72:13:57.325] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [72:13:57.325] [GPU]   Vendor: radv
+[INFO ] [72:13:57.325] [GPU]   Backend: Vulkan
+[INFO ] [72:13:57.325] [GPU]   Type: Integrated GPU
+[INFO ] [72:13:57.326] [GPU] Headless GPU context initialized successfully
+Forest family 0 pixels at 2000 m: 199, 199, 197
+Forest family 1 pixels at 2000 m: 218, 218, 217
+Forest family 2 pixels at 2000 m: 103, 100, 99
+Forest family 3 pixels at 2000 m: 188, 184, 180
+Forest family 4 pixels at 2000 m: 168, 167, 167
+Forest family 5 pixels at 2000 m: 91, 90, 90
+[       OK ] MeshPathGPUTest.ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres (592 ms)
+[----------] 2 tests from MeshPathGPUTest (726 ms total)
+
+[----------] Global test environment tear-down
+[==========] 44 tests from 7 test suites ran. (3686 ms total)
+[  PASSED  ] 44 tests.

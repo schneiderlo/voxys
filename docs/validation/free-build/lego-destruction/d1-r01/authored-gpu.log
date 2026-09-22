@@ -1,0 +1,508 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 55 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 55 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.RealHeapDecodesGeometryAndAnalyticalMassFrames
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.550] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.550] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.550] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.550] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.552] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.RealHeapDecodesGeometryAndAnalyticalMassFrames (76 ms)
+[ RUN      ] GpuAuthoredShapes.RetiringAnEncodedShapePreservesActualGpuReadAndLateReader
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.609] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.609] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.609] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.609] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.611] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.RetiringAnEncodedShapePreservesActualGpuReadAndLateReader (72 ms)
+[ RUN      ] GpuAuthoredShapes.DiscardUsesRealFenceAndInvalidatesOldGpuGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.672] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.672] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.672] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.672] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.674] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.DiscardUsesRealFenceAndInvalidatesOldGpuGeneration (48 ms)
+[ RUN      ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.721] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.721] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.721] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.721] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.723] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage (34 ms)
+[ RUN      ] GpuAuthoredShapes.ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.755] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.755] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.755] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.755] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.757] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement (63 ms)
+[ RUN      ] GpuAuthoredShapes.InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.819] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.820] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.820] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.820] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.821] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork (29 ms)
+[ RUN      ] GpuAuthoredShapes.CloseWaitsForAnUnresolvedSubmissionAndRetainedReader
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.852] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.852] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.852] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.852] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.854] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.CloseWaitsForAnUnresolvedSubmissionAndRetainedReader (35 ms)
+[ RUN      ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.883] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.883] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.883] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.883] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.884] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources (28 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelForceUsesPreparedPrincipalInertia
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.911] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.911] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.911] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.911] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.912] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelForceUsesPreparedPrincipalInertia (72 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelBallisticPoseAdvancesAboutItsStoredCenter
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:24.984] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:24.984] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:24.984] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:24.984] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:24.985] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelBallisticPoseAdvancesAboutItsStoredCenter (267 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelSpawnAndDestroyClearTheIndependentShapeReference
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:25.255] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:25.255] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:25.255] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:25.255] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:25.256] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelSpawnAndDestroyClearTheIndependentShapeReference (73 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelMaterialChangesPreserveMassAndShapeIdentity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:25.330] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:25.330] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:25.330] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:25.330] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:25.331] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelMaterialChangesPreserveMassAndShapeIdentity (54 ms)
+[ RUN      ] GpuAuthoredShapes.TerrainHullFaceInteriorCatchesSeabedPeak
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:25.388] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:25.388] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:25.388] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:25.388] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:25.390] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.TerrainHullFaceInteriorCatchesSeabedPeak (826 ms)
+[ RUN      ] GpuAuthoredShapes.LegoHullRestsOnRoundStudCapsAndNotSmoothHeightfield
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:26.205] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:26.205] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:26.205] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:26.205] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:26.206] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.LegoHullRestsOnRoundStudCapsAndNotSmoothHeightfield (1663 ms)
+[ RUN      ] GpuAuthoredShapes.LegoRaisedColumnInsidePontoonGapHasNoFalseSupport
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:27.871] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:27.871] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:27.871] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:27.871] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:27.872] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.LegoRaisedColumnInsidePontoonGapHasNoFalseSupport (929 ms)
+[ RUN      ] GpuAuthoredShapes.LegoExposedRiserStopsSidewaysHullMotion
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:28.805] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:28.805] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:28.805] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:28.805] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:28.806] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.LegoExposedRiserStopsSidewaysHullMotion (990 ms)
+[ RUN      ] GpuAuthoredShapes.LegoStudSidesAreRoundAndGapsBetweenStudsStayOpen
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:29.790] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:29.790] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:29.790] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:29.790] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:29.792] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.LegoStudSidesAreRoundAndGapsBetweenStudsStayOpen (1674 ms)
+[ RUN      ] GpuAuthoredShapes.TerrainPontoonGapDoesNotCreateFalseGround
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:31.464] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:31.464] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:31.464] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:31.464] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:31.465] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.TerrainPontoonGapDoesNotCreateFalseGround (835 ms)
+[ RUN      ] GpuAuthoredShapes.TerrainContactsRestoreRotatedRootInDistantSectors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:32.300] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:32.300] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:32.300] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:32.300] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:32.301] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.TerrainContactsRestoreRotatedRootInDistantSectors (839 ms)
+[ RUN      ] GpuAuthoredShapes.TerrainIncompleteGeometryStopsWithoutPrimitiveFallback
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:33.139] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:33.139] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:33.139] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:33.139] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:33.140] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.TerrainIncompleteGeometryStopsWithoutPrimitiveFallback (3426 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelConvertedRootForceMatchesWorldTensor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:36.565] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:36.565] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:36.565] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:36.565] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:36.567] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelConvertedRootForceMatchesWorldTensor (59 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelConvertedRootMotionCrossesSectorsAndRestoresOrigin
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:36.624] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:36.624] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:36.624] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:36.624] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:36.626] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.BodyKernelConvertedRootMotionCrossesSectorsAndRestoresOrigin (265 ms)
+[ RUN      ] GpuAuthoredShapes.ContactSphereUsesExteriorAndPreservesConcaveGap
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:36.891] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:36.891] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:36.891] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:36.891] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:36.892] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactSphereUsesExteriorAndPreservesConcaveGap (6975 ms)
+[ RUN      ] GpuAuthoredShapes.ContactCapsuleFindsThinRailWithoutSegmentSampling
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:43.868] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:43.868] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:43.868] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:43.868] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:43.869] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactCapsuleFindsThinRailWithoutSegmentSampling (7116 ms)
+[ RUN      ] GpuAuthoredShapes.ContactBoxClipsToExteriorPatchesAndLeavesNotchOpen
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:50.984] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:50.984] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:50.984] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:50.984] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:50.986] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactBoxClipsToExteriorPatchesAndLeavesNotchOpen (7212 ms)
+[ RUN      ] GpuAuthoredShapes.ContactCompoundPairRestoresPrincipalAnchorsAcrossSectors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:35:58.196] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:35:58.196] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:35:58.196] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:35:58.196] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:35:58.197] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactCompoundPairRestoresPrincipalAnchorsAcrossSectors (6392 ms)
+[ RUN      ] GpuAuthoredShapes.ContactMissingAtlasOrRetiredShapeReportsInvalidManifold
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:04.589] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:04.589] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:04.589] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:04.589] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:04.591] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactMissingAtlasOrRetiredShapeReportsInvalidManifold (6664 ms)
+[ RUN      ] GpuAuthoredShapes.ContactImpactMovesAndTurnsWholeCompoundWithConservedMomentum
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:11.254] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:11.254] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:11.254] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:11.254] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:11.255] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ContactImpactMovesAndTurnsWholeCompoundWithConservedMomentum (7409 ms)
+[ RUN      ] GpuAuthoredShapes.QueryRaysResolveExteriorAppendageNotchAndInsideOrigin
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:18.661] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:18.661] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:18.661] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:18.661] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:18.663] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QueryRaysResolveExteriorAppendageNotchAndInsideOrigin (427 ms)
+[ RUN      ] GpuAuthoredShapes.QueryOverlapUsesUnionBoundaryInsteadOfInternalMatingFace
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:19.099] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:19.099] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:19.099] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:19.099] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:19.100] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QueryOverlapUsesUnionBoundaryInsteadOfInternalMatingFace (639 ms)
+[ RUN      ] GpuAuthoredShapes.QuerySphereSweepKeepsConcaveGapOpen
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:19.737] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:19.737] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:19.737] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:19.737] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:19.739] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QuerySphereSweepKeepsConcaveGapOpen (480 ms)
+[ RUN      ] GpuAuthoredShapes.QueryCapsuleFindsThinRailBetweenSegmentSamples
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:20.215] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:20.215] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:20.215] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:20.215] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:20.217] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QueryCapsuleFindsThinRailBetweenSegmentSamples (418 ms)
+[ RUN      ] GpuAuthoredShapes.QueryRotatedPrincipalBodyCrossesQuerySectorWithoutMovingRoot
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:20.632] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:20.632] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:20.632] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:20.632] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:20.633] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QueryRotatedPrincipalBodyCrossesQuerySectorWithoutMovingRoot (411 ms)
+[ RUN      ] GpuAuthoredShapes.QueryMissingAtlasAndRetiredReferenceReportIncompleteInsteadOfPrimitiveFallback
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:21.048] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:21.048] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:21.048] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:21.048] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:21.050] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.QueryMissingAtlasAndRetiredReferenceReportIncompleteInsteadOfPrimitiveFallback (447 ms)
+[ RUN      ] GpuAuthoredShapes.BackendOwnsHeapAndSubmitsItsReadWithLegacyPhysics
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:21.491] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:21.491] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:21.491] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:21.491] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:21.492] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:36:30.936] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.BackendOwnsHeapAndSubmitsItsReadWithLegacyPhysics (9504 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdThinStaticWallRetainsSolverBounce
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:30.992] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:30.992] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:30.992] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:30.992] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:30.993] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:36:40.927] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:36:40.942] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:40.944] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:40.946] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:40.949] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdThinStaticWallRetainsSolverBounce (9994 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdObliqueWallInDistantSectorRetainsSolverBounce
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:40.989] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:40.989] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:40.989] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:40.989] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:40.990] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:36:52.268] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:36:52.283] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:52.286] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:52.288] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:36:52.290] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdObliqueWallInDistantSectorRetainsSolverBounce (11345 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdGrazingMissDoesNotHitWallBounds
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:36:52.336] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:36:52.336] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:36:52.336] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:36:52.336] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:36:52.338] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:00.495] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:37:00.510] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:37:00.512] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdGrazingMissDoesNotHitWallBounds (8218 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdUsesVelocityAfterForces
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:00.550] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:00.550] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:00.550] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:00.550] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:00.551] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:09.681] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:37:09.696] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:37:09.698] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdUsesVelocityAfterForces (9187 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdRealOpeningRemainsClear
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:09.738] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:09.738] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:09.738] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:09.738] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:09.740] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:18.941] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:37:18.957] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:37:18.960] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdRealOpeningRemainsClear (9259 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdLeavingOneFaceStillHitsAnotherInSameCompound
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:19.009] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:19.009] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:19.009] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:19.009] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:19.011] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:31.251] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdLeavingOneFaceStillHitsAnotherInSameCompound (12302 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdSlowNonBulletStillReachesSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:31.308] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:31.308] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:31.308] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:31.308] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:31.310] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:41.799] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdSlowNonBulletStillReachesSolver (10545 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdZeroSpeculativeDistanceStillReachesSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:41.844] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:41.844] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:41.844] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:41.844] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:41.845] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:37:52.151] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdZeroSpeculativeDistanceStillReachesSolver (10411 ms)
+[ RUN      ] GpuAuthoredShapes.LiveBodyReceivesRootForceWithPreparedMassAndPrincipalInertia
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:37:52.302] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:37:52.302] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:37:52.302] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:37:52.302] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:37:52.304] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:38:03.692] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveBodyReceivesRootForceWithPreparedMassAndPrincipalInertia (11483 ms)
+[ RUN      ] GpuAuthoredShapes.LiveBodyRequiresOwnedSubmissionAndCancelsUnsubmittedSpawn
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:38:03.740] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:38:03.740] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:38:03.740] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:38:03.740] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:38:03.741] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:38:13.818] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:38:13.830] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] GpuAuthoredShapes.LiveBodyRequiresOwnedSubmissionAndCancelsUnsubmittedSpawn (10114 ms)
+[ RUN      ] GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:38:13.856] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:38:13.856] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:38:13.856] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:38:13.856] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:38:13.858] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:38:22.727] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:38:32.925] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof (19098 ms)
+[ RUN      ] GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:38:32.958] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:38:32.958] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:38:32.958] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:38:32.958] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:38:32.959] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:38:41.605] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:38:41.632] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:38:41.636] GPU physics telemetry readback ring is full[0m
+[31m[ERROR] [48:38:41.646] WebGPU physics requires a device, queue, and valid capacities[0m
+[32m[INFO ] [48:38:50.265] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap (17343 ms)
+[ RUN      ] GpuAuthoredShapes.LivePauseDrainsReservedTicksAndResumesWithoutClockDebt
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:38:50.296] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:38:50.296] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:38:50.296] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:38:50.296] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:38:50.297] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:38:57.854] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:39:05.441] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LivePauseDrainsReservedTicksAndResumesWithoutClockDebt (15175 ms)
+[ RUN      ] GpuAuthoredShapes.LiveTickOrderMatchesThirtySixtyAndOneFortyFourHz
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:39:05.472] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:39:05.472] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:39:05.472] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:39:05.472] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:39:05.473] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:39:12.961] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:39:20.781] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:39:29.029] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveTickOrderMatchesThirtySixtyAndOneFortyFourHz (24200 ms)
+[ RUN      ] GpuAuthoredShapes.LiveStaticSceneryRefusesMotionAndRetainsExactShape
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:39:29.672] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:39:29.672] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:39:29.672] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:39:29.672] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:39:29.673] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:39:37.253] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:39:37.263] Discarding motion command for fixed authored scenery[0m
+[33m[WARN ] [48:39:37.263] Discarding motion command for fixed authored scenery[0m
+[33m[WARN ] [48:39:37.263] Discarding motion command for fixed authored scenery[0m
+[33m[WARN ] [48:39:37.263] Discarding motion command for fixed authored scenery[0m
+[33m[WARN ] [48:39:37.268] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:39:37.271] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.LiveStaticSceneryRefusesMotionAndRetainsExactShape (7632 ms)
+[ RUN      ] GpuAuthoredShapes.LiveWaterBalancesDisplacementAndSteeredPropellerAppliesTorque
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:39:37.306] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:39:37.306] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:39:37.306] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:39:37.306] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:39:37.307] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:39:44.889] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveWaterBalancesDisplacementAndSteeredPropellerAppliesTorque (7644 ms)
+[ RUN      ] GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:39:44.950] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:39:44.950] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:39:44.950] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:39:44.950] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:39:44.951] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:39:54.713] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding (9865 ms)
+[ RUN      ] GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:39:54.828] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:39:54.828] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:39:54.828] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:39:54.829] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:39:54.830] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:40:07.356] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:40:07.419] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:40:07.434] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:40:07.447] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload (12679 ms)
+[ RUN      ] GpuAuthoredShapes.LiveTwoWaterBodiesKeepIndependentBuoyancyAndHelmControls
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:40:07.510] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:40:07.510] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:40:07.510] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:40:07.510] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:40:07.512] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:40:18.366] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:40:18.433] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:40:18.448] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.LiveTwoWaterBodiesKeepIndependentBuoyancyAndHelmControls (11001 ms)
+[ RUN      ] GpuAuthoredShapes.BackendRestartRejectsOldWorldShapeIdentity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:40:18.511] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:40:18.511] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:40:18.511] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:40:18.511] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:40:18.513] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:40:28.721] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:40:38.773] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.BackendRestartRejectsOldWorldShapeIdentity (20348 ms)
+[----------] 55 tests from GpuAuthoredShapes (314323 ms total)
+
+[----------] Global test environment tear-down
+[==========] 55 tests from 1 test suite ran. (314323 ms total)
+[  PASSED  ] 55 tests.

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="7" failures="0" disabled="0" errors="0" time="114.661" timestamp="2026-09-18T17:16:43.540" name="AllTests">
+  <testsuite name="ImportedWallFlatFloorGpu" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="31.059" timestamp="2026-09-18T17:16:43.540">
+    <testcase name="ActualSourceWallSettlesOnSyntheticFlatFloor" file="tests/test_imported_stack.cpp" line="168" status="run" result="completed" time="31.058" timestamp="2026-09-18T17:16:43.540" classname="ImportedWallFlatFloorGpu">
+      <properties>
+        <property name="syntheticFloorTop" value="9.9999885559082031"/>
+        <property name="simulatedTicks" value="717"/>
+      </properties>
+    </testcase>
+  </testsuite>
+  <testsuite name="Catalog/ImportedStackGpu" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="57.204" timestamp="2026-09-18T17:17:14.599">
+    <testcase name="ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0" value_param="&quot;3005.dat&quot;" file="tests/test_imported_stack.cpp" line="96" status="run" result="completed" time="14.45" timestamp="2026-09-18T17:17:14.599" classname="Catalog/ImportedStackGpu">
+      <properties>
+        <property name="simulatedTicks" value="33"/>
+      </properties>
+    </testcase>
+    <testcase name="ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/1" value_param="&quot;3004.dat&quot;" file="tests/test_imported_stack.cpp" line="96" status="run" result="completed" time="14.739" timestamp="2026-09-18T17:17:29.050" classname="Catalog/ImportedStackGpu">
+      <properties>
+        <property name="simulatedTicks" value="33"/>
+      </properties>
+    </testcase>
+    <testcase name="ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/2" value_param="&quot;3023.dat&quot;" file="tests/test_imported_stack.cpp" line="96" status="run" result="completed" time="14.419" timestamp="2026-09-18T17:17:43.790" classname="Catalog/ImportedStackGpu">
+      <properties>
+        <property name="simulatedTicks" value="33"/>
+      </properties>
+    </testcase>
+    <testcase name="ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/3" value_param="&quot;distant-3005.dat&quot;" file="tests/test_imported_stack.cpp" line="96" status="run" result="completed" time="13.593" timestamp="2026-09-18T17:17:58.209" classname="Catalog/ImportedStackGpu">
+      <properties>
+        <property name="simulatedTicks" value="41"/>
+      </properties>
+    </testcase>
+  </testsuite>
+  <testsuite name="Activity/RawImportedStackGpu" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="26.397" timestamp="2026-09-18T17:18:11.803">
+    <testcase name="ThreePieceSleepsWithoutBias/0" value_param="&quot;3005.dat&quot;" file="tests/test_imported_stack.cpp" line="257" status="run" result="completed" time="12.814" timestamp="2026-09-18T17:18:11.803" classname="Activity/RawImportedStackGpu">
+      <properties>
+        <property name="longestSlowRun" value="29"/>
+        <property name="fastTicks" value="0"/>
+        <property name="maxLinear" value="0.015978965908288956"/>
+        <property name="maxAngular" value="0.0076957480050623417"/>
+      </properties>
+    </testcase>
+    <testcase name="ThreePieceSleepsWithoutBias/1" value_param="&quot;solid-3005.dat&quot;" file="tests/test_imported_stack.cpp" line="257" status="run" result="completed" time="13.582" timestamp="2026-09-18T17:18:24.618" classname="Activity/RawImportedStackGpu">
+      <properties>
+        <property name="longestSlowRun" value="29"/>
+        <property name="fastTicks" value="0"/>
+        <property name="maxLinear" value="0.015953252092003822"/>
+        <property name="maxAngular" value="0.006164520513266325"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

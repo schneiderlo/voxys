@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="7" failures="0" disabled="0" errors="0" time="0.111" timestamp="2026-09-19T00:10:30.019" name="AllTests">
+  <testsuite name="CannonPhysicsScene" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.111" timestamp="2026-09-19T00:10:30.019">
+    <testcase name="CompleteBlacksmithFitsBoundedPartitionsWithoutDroppingSolids" file="tests/test_cannon_physics_scene.cpp" line="22" status="run" result="completed" time="0.11" timestamp="2026-09-19T00:10:30.019" classname="CannonPhysicsScene">
+      <properties>
+        <property name="blacksmith_partitions" value="32"/>
+        <property name="blacksmith_cells" value="4054"/>
+        <property name="blacksmith_faces" value="21545"/>
+        <property name="blacksmith_bytes" value="1497424"/>
+      </properties>
+    </testcase>
+    <testcase name="DistantLocalFramePreservesDoorAndConservativeBounds" file="tests/test_cannon_physics_scene.cpp" line="48" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.130" classname="CannonPhysicsScene" />
+    <testcase name="InvalidAndOverBudgetPacketsDoNotBecomePartialScenes" file="tests/test_cannon_physics_scene.cpp" line="62" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.130" classname="CannonPhysicsScene" />
+    <testcase name="InitialMotionAndTransferredProjectileAreValidatedBeforeOwnership" file="tests/test_cannon_physics_scene.cpp" line="82" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.131" classname="CannonPhysicsScene" />
+    <testcase name="EmptyRevisionIsValidAndLabelsRemainInputScoped" file="tests/test_cannon_physics_scene.cpp" line="95" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.131" classname="CannonPhysicsScene" />
+  </testsuite>
+  <testsuite name="BuilderCannon" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-19T00:10:30.131">
+    <testcase name="BarrelHingeAndMuzzleStayAlignedAcrossAimRange" file="tests/test_builder_cannon.cpp" line="5" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.131" classname="BuilderCannon" />
+    <testcase name="AimBoundsFiniteInputAndRecoilDoNotMoveTheBase" file="tests/test_builder_cannon.cpp" line="24" status="run" result="completed" time="0." timestamp="2026-09-19T00:10:30.131" classname="BuilderCannon" />
+  </testsuite>
+</testsuites>

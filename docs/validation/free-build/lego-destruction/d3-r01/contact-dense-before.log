@@ -1,0 +1,32 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:31:04.986] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:31:04.986] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:31:04.986] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:31:04.986] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:31:04.988] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:31:13.649] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+tests/test_gpu_authored_shapes.cpp:1847: Failure
+Value of: hit[1]
+  Actual: false
+Expected: true
+Second dense contact lives beyond the first eight raw patch slots
+
+[  FAILED  ] GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots (8749 ms)
+[----------] 1 test from GpuAuthoredShapes (8749 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8749 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots
+
+ 1 FAILED TEST

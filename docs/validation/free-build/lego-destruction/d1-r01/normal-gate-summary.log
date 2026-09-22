@@ -1,0 +1,31 @@
+[----------] Global test environment tear-down
+[==========] 2535 tests from 352 test suites ran. (1838053 ms total)
+[  PASSED  ] 2513 tests.
+[  SKIPPED ] 16 tests, listed below:
+[  SKIPPED ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+[  SKIPPED ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+[  SKIPPED ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[  SKIPPED ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[  SKIPPED ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[  SKIPPED ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+[  SKIPPED ] WindowGLFWTest.WindowCreation
+[  SKIPPED ] GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp
+[  SKIPPED ] RaycastPathGPUTest.LegoHorizonBenchmark
+[  SKIPPED ] RaycastPathGPUTest.DayNightTerrainBenchmark
+[  SKIPPED ] AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses
+[  SKIPPED ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+[  SKIPPED ] AdventureBlueprints.GenericEarnedRecipeBuildsTheProvenFullTerrainShortcutWithoutChangingItsSite
+[  SKIPPED ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+[  SKIPPED ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[  SKIPPED ] FreeBuildRuntimeIntegration.CannonInputAndFullWorldGpuAdmission
+[  FAILED  ] 6 tests, listed below:
+[  FAILED  ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps
+[  FAILED  ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh
+[  FAILED  ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[  FAILED  ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget
+[  FAILED  ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically
+[  FAILED  ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation
+
+ 6 FAILED TESTS
+  YOU HAVE 4 DISABLED TESTS
+

@@ -1,0 +1,32 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (1 packages loaded, 157 targets configured).
+[635 / 656] Compiling src/game/adventure/adventure_preferences.cpp; 1s linux-sandbox ... (4 actions running)
+[650 / 657] 1 / 3 tests; Compiling tests/test_adventure_runtime.cpp; 2s linux-sandbox ... (2 actions running)
+[652 / 657] 1 / 3 tests; Compiling tests/test_adventure_runtime.cpp; 4s linux-sandbox ... (2 actions, 1 running)
+[656 / 658] 1 / 3 tests; Testing //tests:adventure_world; 1s linux-sandbox ... (2 actions, 1 running)
+[657 / 659] 1 / 3 tests; Testing //tests:adventure_world; 2s linux-sandbox ... (2 actions running)
+[657 / 659] 2 / 3 tests; Testing //tests:adventure_world; 4s linux-sandbox ... (2 actions running)
+[658 / 659] 2 / 3 tests; Testing //tests:adventure_runtime; 4s linux-sandbox
+[658 / 659] 3 / 3 tests; Testing //tests:adventure_runtime; 12s linux-sandbox
+INFO: Found 3 test targets...
+INFO: Elapsed time: 20.237s, Critical Path: 18.21s
+INFO: 11 processes: 649 action cache hit, 2 internal, 9 linux-sandbox.
+INFO: Build completed successfully, 11 total actions
+//tests:adventure_combat                                        (cached) PASSED in 1.0s
+//tests:adventure_runtime                                                PASSED in 12.4s
+//tests:adventure_world                                                  PASSED in 4.5s
+
+Executed 2 out of 3 tests: 3 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

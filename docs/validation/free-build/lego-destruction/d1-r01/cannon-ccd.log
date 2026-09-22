@@ -1,0 +1,99 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CannonCcd*
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CannonCcdThinStaticWallRetainsSolverBounce
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:26:26.649] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:26:26.649] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:26:26.649] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:26:26.649] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:26:26.652] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:26:37.998] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:26:38.097] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:38.117] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:38.145] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:38.160] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdThinStaticWallRetainsSolverBounce (11615 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdObliqueWallInDistantSectorRetainsSolverBounce
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:26:38.237] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:26:38.238] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:26:38.238] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:26:38.238] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:26:38.239] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:26:49.543] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:26:49.626] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:49.640] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:49.655] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:26:49.673] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdObliqueWallInDistantSectorRetainsSolverBounce (11511 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdGrazingMissDoesNotHitWallBounds
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:26:49.759] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:26:49.759] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:26:49.759] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:26:49.759] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:26:49.761] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:01.268] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:27:01.370] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:27:01.389] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdGrazingMissDoesNotHitWallBounds (11728 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdUsesVelocityAfterForces
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:27:01.477] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:27:01.477] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:27:01.477] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:27:01.477] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:27:01.479] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:12.654] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:27:12.729] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:27:12.743] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdUsesVelocityAfterForces (11324 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdRealOpeningRemainsClear
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:27:12.801] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:27:12.801] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:27:12.801] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:27:12.801] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:27:12.802] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:23.251] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:27:23.320] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:27:23.333] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.CannonCcdRealOpeningRemainsClear (10598 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdLeavingOneFaceStillHitsAnotherInSameCompound
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:27:23.411] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:27:23.411] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:27:23.411] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:27:23.411] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:27:23.412] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:33.927] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdLeavingOneFaceStillHitsAnotherInSameCompound (10644 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdSlowNonBulletStillReachesSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:27:34.045] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:27:34.045] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:27:34.045] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:27:34.045] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:27:34.047] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:43.869] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdSlowNonBulletStillReachesSolver (9913 ms)
+[ RUN      ] GpuAuthoredShapes.CannonCcdZeroSpeculativeDistanceStillReachesSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:27:43.957] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:27:43.957] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:27:43.957] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:27:43.957] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:27:43.958] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:27:54.093] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdZeroSpeculativeDistanceStillReachesSolver (10210 ms)
+[----------] 8 tests from GpuAuthoredShapes (87547 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (87547 ms total)
+[  PASSED  ] 8 tests.

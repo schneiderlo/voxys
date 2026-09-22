@@ -1,0 +1,33 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_wall_physics
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate:ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from ImportedWallGpu
+[ RUN      ] ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [71:08:49.892] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [71:08:49.893] [GPU]   Vendor: radv[0m
+[32m[INFO ] [71:08:49.893] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [71:08:49.893] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [71:08:49.894] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [71:09:01.037] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [71:09:01.703] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits (11882 ms)
+[ RUN      ] ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [71:09:01.756] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [71:09:01.756] [GPU]   Vendor: radv[0m
+[32m[INFO ] [71:09:01.756] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [71:09:01.756] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [71:09:01.758] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [71:09:11.155] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [71:09:11.181] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate (9476 ms)
+[----------] 2 tests from ImportedWallGpu (21359 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (21359 ms total)
+[  PASSED  ] 2 tests.

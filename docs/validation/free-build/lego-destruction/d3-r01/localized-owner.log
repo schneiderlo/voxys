@@ -1,0 +1,46 @@
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits:ImportedWallGpu.CenteredImpactDoesNotInventTorqueInReleasedNeighbors:ImportedWallGpu.OffCenterImpactUsesPackedInertiaAndBoundsLinearPlusAngularEnergy:ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from ImportedWallGpu
+[ RUN      ] ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits
+[32m[INFO ] [72:39:59.992] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [72:39:59.992] [GPU]   Vendor: radv[0m
+[32m[INFO ] [72:39:59.992] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [72:39:59.992] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [72:39:59.994] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [72:40:00.177] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [72:40:03.365] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.CertifiedImpactNeighborhoodPreservesSourcesAndBoundsEnergyAcrossRepeatedHits (3459 ms)
+[ RUN      ] ImportedWallGpu.CenteredImpactDoesNotInventTorqueInReleasedNeighbors
+[32m[INFO ] [72:40:03.441] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [72:40:03.441] [GPU]   Vendor: radv[0m
+[32m[INFO ] [72:40:03.441] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [72:40:03.441] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [72:40:03.442] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [72:40:03.632] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [72:40:03.708] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.CenteredImpactDoesNotInventTorqueInReleasedNeighbors (335 ms)
+[ RUN      ] ImportedWallGpu.OffCenterImpactUsesPackedInertiaAndBoundsLinearPlusAngularEnergy
+[32m[INFO ] [72:40:03.755] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [72:40:03.755] [GPU]   Vendor: radv[0m
+[32m[INFO ] [72:40:03.755] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [72:40:03.755] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [72:40:03.758] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [72:40:03.878] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [72:40:04.012] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.OffCenterImpactUsesPackedInertiaAndBoundsLinearPlusAngularEnergy (304 ms)
+[ RUN      ] ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate
+[32m[INFO ] [72:40:04.081] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [72:40:04.081] [GPU]   Vendor: radv[0m
+[32m[INFO ] [72:40:04.081] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [72:40:04.081] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [72:40:04.082] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [72:40:04.202] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [72:40:04.281] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.ImpactIncludesNearbyEndOfRotatedLongSupportingPlate (266 ms)
+[----------] 4 tests from ImportedWallGpu (4365 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (4366 ms total)
+[  PASSED  ] 4 tests.

@@ -1,0 +1,43 @@
+Running main() from gmock_main.cc
+[==========] Running 17 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 17 tests from ImportedAssembly
+[ RUN      ] ImportedAssembly.ExplicitCatalogConnectionsAndEveryAnchorDriveSupport
+[       OK ] ImportedAssembly.ExplicitCatalogConnectionsAndEveryAnchorDriveSupport (126 ms)
+[ RUN      ] ImportedAssembly.CutsAndPhysicalPreparationAreAtomicAndDeterministic
+[       OK ] ImportedAssembly.CutsAndPhysicalPreparationAreAtomicAndDeterministic (110 ms)
+[ RUN      ] ImportedAssembly.ManualPartRemovalDeletesOwnedTopologyAndPreservesOtherIdentitiesAtomically
+[       OK ] ImportedAssembly.ManualPartRemovalDeletesOwnedTopologyAndPreservesOtherIdentitiesAtomically (78 ms)
+[ RUN      ] ImportedAssembly.ActualSupportRemovalDropsOnlyNamedSourceAndBothIncidentConnections
+[       OK ] ImportedAssembly.ActualSupportRemovalDropsOnlyNamedSourceAndBothIncidentConnections (73 ms)
+[ RUN      ] ImportedAssembly.MetadataPreservesArbitraryRotationsButCollisionRefusesUnsupportedOnes
+[       OK ] ImportedAssembly.MetadataPreservesArbitraryRotationsButCollisionRefusesUnsupportedOnes (0 ms)
+[ RUN      ] ImportedAssembly.SourceSchemaDoesNotSilentlyTruncateToTheSectionBudget
+[       OK ] ImportedAssembly.SourceSchemaDoesNotSilentlyTruncateToTheSectionBudget (1 ms)
+[ RUN      ] ImportedAssembly.InvalidStudMatesAndImplicitProximityNeverCreateConnections
+[       OK ] ImportedAssembly.InvalidStudMatesAndImplicitProximityNeverCreateConnections (20 ms)
+[ RUN      ] ImportedAssembly.ExcessiveFragmentationRefusesTheWholeCut
+[       OK ] ImportedAssembly.ExcessiveFragmentationRefusesTheWholeCut (179 ms)
+[ RUN      ] ImportedAssembly.HollowBodyAndStudProxyPreserveOpenUnderside
+[       OK ] ImportedAssembly.HollowBodyAndStudProxyPreserveOpenUnderside (3 ms)
+[ RUN      ] ImportedAssembly.ChildMotionPreservesRigidVelocityWithoutInventedImpactImpulse
+[       OK ] ImportedAssembly.ChildMotionPreservesRigidVelocityWithoutInventedImpactImpulse (120 ms)
+[ RUN      ] ImportedAssembly.ReleasedShellKeepsEveryShellSurfaceAndFullPartMassButOmitsStudCollision
+[       OK ] ImportedAssembly.ReleasedShellKeepsEveryShellSurfaceAndFullPartMassButOmitsStudCollision (1 ms)
+[ RUN      ] ImportedAssembly.ReleasedShellPreservesSourcePosesMotionAndProfileAcrossTopologyChanges
+[       OK ] ImportedAssembly.ReleasedShellPreservesSourcePosesMotionAndProfileAcrossTopologyChanges (105 ms)
+[ RUN      ] ImportedAssembly.GroundSectionShellDoesNotIntersectCompiledRetainedHouse
+[       OK ] ImportedAssembly.GroundSectionShellDoesNotIntersectCompiledRetainedHouse (203 ms)
+[ RUN      ] ImportedAssembly.ActualBlacksmithWallPreservesAllSourcePartsAndSupportEvidence
+[       OK ] ImportedAssembly.ActualBlacksmithWallPreservesAllSourcePartsAndSupportEvidence (77 ms)
+[ RUN      ] ImportedAssembly.ActualSelectedPartCellsDoNotInitiallyInterpenetrateThroughBodyFrames
+[       OK ] ImportedAssembly.ActualSelectedPartCellsDoNotInitiallyInterpenetrateThroughBodyFrames (82 ms)
+[ RUN      ] ImportedAssembly.LoaderRejectsForgedCatalogAndUnwitnessedAnchors
+[       OK ] ImportedAssembly.LoaderRejectsForgedCatalogAndUnwitnessedAnchors (57 ms)
+[ RUN      ] ImportedAssembly.ActualRemainderDoesNotPenetrateAnySelectedPartProxy
+[       OK ] ImportedAssembly.ActualRemainderDoesNotPenetrateAnySelectedPartProxy (1011 ms)
+[----------] 17 tests from ImportedAssembly (2257 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 1 test suite ran. (2257 ms total)
+[  PASSED  ] 17 tests.

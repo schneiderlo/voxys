@@ -1,0 +1,67 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:adventure
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureSpatialQueries.*:AdventurePlayer.*:BuilderMotorbike.*:FreeBuildRuntimeIntegration.*
+[==========] Running 24 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from AdventureSpatialQueries
+[ RUN      ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision
+[       OK ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision (0 ms)
+[ RUN      ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead
+[       OK ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead (0 ms)
+[ RUN      ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids
+[       OK ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids (0 ms)
+[ RUN      ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery
+[       OK ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery (0 ms)
+[ RUN      ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets
+[       OK ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets (0 ms)
+[----------] 5 tests from AdventureSpatialQueries (0 ms total)
+
+[----------] 10 tests from AdventurePlayer
+[ RUN      ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall
+[       OK ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall (1 ms)
+[ RUN      ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge
+[       OK ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge (1 ms)
+[ RUN      ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight
+[       OK ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight (0 ms)
+[ RUN      ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom
+[       OK ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom (2 ms)
+[ RUN      ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic
+[       OK ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic (1 ms)
+[ RUN      ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim
+[       OK ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim (0 ms)
+[ RUN      ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls
+[       OK ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls (1 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping
+[       OK ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping (14 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall
+[       OK ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall (5 ms)
+[ RUN      ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance
+[       OK ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance (1 ms)
+[----------] 10 tests from AdventurePlayer (30 ms total)
+
+[----------] 9 tests from BuilderMotorbike
+[ RUN      ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount
+[       OK ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount (15 ms)
+[ RUN      ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof
+[       OK ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof (32 ms)
+[ RUN      ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle
+[       OK ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle (0 ms)
+[ RUN      ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds
+[       OK ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds (25 ms)
+[ RUN      ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps
+[       OK ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps (27 ms)
+[ RUN      ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping
+[       OK ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping (17 ms)
+[ RUN      ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires
+[       OK ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires (13 ms)
+[ RUN      ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering
+[       OK ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering (125 ms)
+[ RUN      ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace
+[       OK ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace (11 ms)
+[----------] 9 tests from BuilderMotorbike (269 ms total)
+
+[----------] Global test environment tear-down
+[==========] 24 tests from 3 test suites ran. (300 ms total)
+[  PASSED  ] 24 tests.

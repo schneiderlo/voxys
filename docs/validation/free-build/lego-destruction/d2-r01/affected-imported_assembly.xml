@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="14" failures="0" disabled="0" errors="0" time="1.553" timestamp="2026-09-18T16:50:55.509" name="AllTests">
+  <testsuite name="ImportedAssembly" tests="14" failures="0" disabled="0" skipped="0" errors="0" time="1.553" timestamp="2026-09-18T16:50:55.509">
+    <testcase name="ExplicitCatalogConnectionsAndEveryAnchorDriveSupport" file="tests/test_imported_assembly.cpp" line="36" status="run" result="completed" time="0.1" timestamp="2026-09-18T16:50:55.509" classname="ImportedAssembly" />
+    <testcase name="CutsAndPhysicalPreparationAreAtomicAndDeterministic" file="tests/test_imported_assembly.cpp" line="64" status="run" result="completed" time="0.104" timestamp="2026-09-18T16:50:55.609" classname="ImportedAssembly" />
+    <testcase name="ManualPartRemovalDeletesOwnedTopologyAndPreservesOtherIdentitiesAtomically" file="tests/test_imported_assembly.cpp" line="83" status="run" result="completed" time="0.066" timestamp="2026-09-18T16:50:55.713" classname="ImportedAssembly" />
+    <testcase name="ActualSupportRemovalDropsOnlyNamedSourceAndBothIncidentConnections" file="tests/test_imported_assembly.cpp" line="108" status="run" result="completed" time="0.064" timestamp="2026-09-18T16:50:55.780" classname="ImportedAssembly" />
+    <testcase name="MetadataPreservesArbitraryRotationsButCollisionRefusesUnsupportedOnes" file="tests/test_imported_assembly.cpp" line="129" status="run" result="completed" time="0." timestamp="2026-09-18T16:50:55.844" classname="ImportedAssembly" />
+    <testcase name="SourceSchemaDoesNotSilentlyTruncateToTheSectionBudget" file="tests/test_imported_assembly.cpp" line="140" status="run" result="completed" time="0." timestamp="2026-09-18T16:50:55.845" classname="ImportedAssembly" />
+    <testcase name="InvalidStudMatesAndImplicitProximityNeverCreateConnections" file="tests/test_imported_assembly.cpp" line="150" status="run" result="completed" time="0.012" timestamp="2026-09-18T16:50:55.846" classname="ImportedAssembly" />
+    <testcase name="ExcessiveFragmentationRefusesTheWholeCut" file="tests/test_imported_assembly.cpp" line="160" status="run" result="completed" time="0.055" timestamp="2026-09-18T16:50:55.858" classname="ImportedAssembly" />
+    <testcase name="HollowBodyAndStudProxyPreserveOpenUnderside" file="tests/test_imported_assembly.cpp" line="176" status="run" result="completed" time="0." timestamp="2026-09-18T16:50:55.914" classname="ImportedAssembly" />
+    <testcase name="ChildMotionPreservesRigidVelocityWithoutInventedImpactImpulse" file="tests/test_imported_assembly.cpp" line="204" status="run" result="completed" time="0.099" timestamp="2026-09-18T16:50:55.914" classname="ImportedAssembly" />
+    <testcase name="ActualBlacksmithWallPreservesAllSourcePartsAndSupportEvidence" file="tests/test_imported_assembly.cpp" line="225" status="run" result="completed" time="0.056" timestamp="2026-09-18T16:50:56.014" classname="ImportedAssembly">
+      <properties>
+        <property name="actualWallParts" value="39"/>
+        <property name="knownBoundarySupportedParts" value="29"/>
+        <property name="unknownSupportParts" value="10"/>
+        <property name="physicalRoots" value="6"/>
+      </properties>
+    </testcase>
+    <testcase name="ActualSelectedPartCellsDoNotInitiallyInterpenetrateThroughBodyFrames" file="tests/test_imported_assembly.cpp" line="248" status="run" result="completed" time="0.071" timestamp="2026-09-18T16:50:56.071" classname="ImportedAssembly">
+      <properties>
+        <property name="sourceMaximumPairPenetration" value="1.9256727483707436e-06"/>
+        <property name="worldMaximumPairPenetration" value="1.5570563363098699e-06"/>
+      </properties>
+    </testcase>
+    <testcase name="LoaderRejectsForgedCatalogAndUnwitnessedAnchors" file="tests/test_imported_assembly.cpp" line="304" status="run" result="completed" time="0.077" timestamp="2026-09-18T16:50:56.143" classname="ImportedAssembly" />
+    <testcase name="ActualRemainderDoesNotPenetrateAnySelectedPartProxy" file="tests/test_imported_assembly.cpp" line="321" status="run" result="completed" time="0.842" timestamp="2026-09-18T16:50:56.220" classname="ImportedAssembly">
+      <properties>
+        <property name="compiledRemainderCells" value="5921"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

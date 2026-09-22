@@ -1,0 +1,57 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuEventReadback.*:GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap:GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding:GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload:GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:48:25.198] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:48:25.199] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:48:25.199] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:48:25.199] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:48:25.201] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:48:39.333] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [70:48:54.739] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof (29611 ms)
+[ RUN      ] GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:48:54.786] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:48:54.786] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:48:54.786] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:48:54.786] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:48:54.788] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:49:12.143] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [70:49:12.225] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [70:49:12.238] GPU physics telemetry readback ring is full[0m
+[31m[ERROR] [70:49:12.266] WebGPU physics requires a device, queue, and valid capacities[0m
+[32m[INFO ] [70:49:27.610] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap (32864 ms)
+[ RUN      ] GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:49:27.658] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:49:27.658] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:49:27.658] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:49:27.658] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:49:27.659] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:49:41.802] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding (14266 ms)
+[ RUN      ] GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:49:41.924] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:49:41.925] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:49:41.925] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:49:41.925] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:49:41.926] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:49:56.758] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [70:49:56.824] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [70:49:56.831] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [70:49:56.844] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload (14990 ms)
+[----------] 4 tests from GpuAuthoredShapes (91732 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (91732 ms total)
+[  PASSED  ] 4 tests.

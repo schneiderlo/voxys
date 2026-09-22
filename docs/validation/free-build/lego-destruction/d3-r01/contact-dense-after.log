@@ -1,0 +1,22 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:34:05.681] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:34:05.681] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:34:05.681] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:34:05.681] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:34:05.683] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [70:34:14.249] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.CannonCcdEmitsEveryDenseHitWithEightSparsePatchSlots (8649 ms)
+[----------] 1 test from GpuAuthoredShapes (8649 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8649 ms total)
+[  PASSED  ] 1 test.

@@ -1,0 +1,34 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.LiveTwoWaterBodiesKeepIndependentBuoyancyAndHelmControls:GpuAuthoredShapes.BackendRestartRejectsOldWorldShapeIdentity
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.LiveTwoWaterBodiesKeepIndependentBuoyancyAndHelmControls
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [59:26:59.977] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [59:26:59.977] [GPU]   Vendor: radv[0m
+[32m[INFO ] [59:26:59.977] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [59:26:59.977] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [59:26:59.979] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [59:27:17.771] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [59:27:17.878] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [59:27:17.880] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuAuthoredShapes.LiveTwoWaterBodiesKeepIndependentBuoyancyAndHelmControls (18041 ms)
+[ RUN      ] GpuAuthoredShapes.BackendRestartRejectsOldWorldShapeIdentity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [59:27:17.947] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [59:27:17.947] [GPU]   Vendor: radv[0m
+[32m[INFO ] [59:27:17.947] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [59:27:17.947] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [59:27:17.949] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [59:27:35.381] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [59:27:52.610] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuAuthoredShapes.BackendRestartRejectsOldWorldShapeIdentity (34720 ms)
+[----------] 2 tests from GpuAuthoredShapes (52761 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (52761 ms total)
+[  PASSED  ] 2 tests.

@@ -1,0 +1,33 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_stack
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = */0
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Catalog/ImportedStackGpu
+[ RUN      ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:28:20.485] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:28:20.485] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:28:20.485] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:28:20.485] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:28:20.487] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [58:28:27.779] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+tests/test_imported_stack.cpp:106: Failure
+Value of: stack.ready()
+  Actual: false
+Expected: true
+part=3005.dat phase=4 body=3 awake=1 p=-0.0184134,1.67808,-0.000271662 v=0.00439102,0.0384309,0.00537832 omega=-0.0193072,-0.00297477,0.0235316 body=4 awake=1 p=-0.0231428,2.87699,0.0168618 v=-0.0257996,0.0484783,-0.0164792 omega=-0.0120028,-0.00464911,0.0152913 body=5 awake=1 p=0.000120237,4.07582,0.0399198 v=0.0707694,-0.0114545,0.0117407 omega=0.0419229,-0.00407026,-0.161027
+
+[33m[WARN ] [58:28:29.249] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0, where GetParam() = "3005.dat" (8817 ms)
+[----------] 1 test from Catalog/ImportedStackGpu (8817 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8818 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0, where GetParam() = "3005.dat"
+
+ 1 FAILED TEST

@@ -16,11 +16,57 @@ The first creative entry uses `free_build.cfg` on desktop and
 [Try the local creative preview](http://127.0.0.1:42764/index.html?experience=build&telemetry=0).
 The browser now uses a small Preact hotbar: scroll to choose a piece, R to rotate,
 Ctrl + scroll to zoom, and the round colour button to paint new placements.
+Press **B** to walk, then **left-click** to throw one 2×1 brick or **right-click**
+to throw 100. Right-drag still turns the camera. Scroll zooms out to **64 studs**;
+use Ctrl + scroll while building. Thrown bricks use GPU physics and clear after
+30 seconds of simulation to leave room for more throws.
+Hold **Shift** while moving on foot to run; press **Space** to jump while running.
+Release Shift to walk.
+In water, hold **Space** to rise or **X** to dive. Hold the right mouse button
+while moving to swim toward where you look. Release it for level swimming.
+Underwater you can stop and hold your depth; at the surface you float and paddle.
+Controller triggers rise (right) and dive (left).
+Free building has a gentle **24-minute day–night cycle**: warm dawn and dusk,
+soft moonlight and quiet stars. Nights stay bright enough to build, and opening
+the game menu holds the clock. Add `&debug=1` to the browser URL and open
+Renderer → Lighting:
+**Hold Time**, **Time of Day**, and **Day Length** let you choose the mood.
+Editing sun, ambient, fog colour or exposure switches to fixed lighting and keeps
+your edits. Lighting presets also switch the cycle off; **Day / Night** resumes it.
+The startup time and cycle length are also in `free_build.cfg` under `[lighting]`.
+Cycle time is local to the session and is not stored in world saves.
 Extra tools stay behind the three-dot button. Save/reload preserves brick colours.
+In the local motorbike candidate, **M** mounts or dismounts the red toy bike.
+**W/S** accelerate, brake and reverse; **A/D** steer; **Space** brakes.
+Stop on clear ground before getting off. The bike is summoned transport; saves
+restore on foot. [Motorbike behavior and validation](docs/validation/free-build/motorbike-r01/README.md).
+The red LDraw cannon stands beside the Blacksmith. Choose **Visit cannon** to
+travel to a checked, clear spot beside it, or approach and press **C**.
+**A/D** turns, **W/S** raises/lowers, **Space** or **Fire** shoots; **C** leaves.
+The current ground-wall candidate routes confirmed GPU hits to original LEGO
+part release. The default shot physically knocks a brick inward and down;
+nearby pieces can remain supported. One shot may be outstanding; leaving waits for the shot and any
+moving pieces. **Rebuild wall** restores the original assembly. Damage is
+session-only; rebuild before saving. The whole house and roof are not yet
+breakable, and a walk-through opening has not been proved.
+[Cannon progress, controls and limits](docs/validation/free-build/lego-destruction/README.md).
+[Definitive figurine reference](docs/design/free-build/figurine-target/README.md).
 See [UI build instructions](ui/README.md), [accepted minimal design](docs/design/free-build/minimal-ui.md),
 and [verification and limits](docs/validation/free-build/F1/minimal-ui-r01/README.md).
 Native retains its existing HUD. This is an early candidate; snapping, editing
 history and the full building-feel gate remain unfinished.
+
+Creative scenery now follows you across suitable regions of the main landscape:
+studded trees, flowers and rocks, with a decorative bench/crate at the starting
+clearing. Props yield to player construction and use lighter distant models.
+Seeded forest regions, groves and clearings now extend tree rendering to **2 km**.
+[Forest generation, distance levels and checks](docs/validation/free-build/procedural-forest-r01/README.md).
+[World scenery, material fixes and verification](docs/validation/free-build/world-scenery-r02/README.md).
+
+A small creative village now sits inland from the bay overlook. Turn right and
+follow the light stone path to eight cottages, a tower, windmill, gardens and well.
+Doors fit the current figure, and the lane accommodates the bike. Player builds
+can displace scenery. [Village details and checks](docs/validation/free-build/village-r01/README.md).
 
 The following adventure and salvage descriptions are historical context.
 

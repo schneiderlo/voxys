@@ -1,0 +1,29 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow:GpuAuthoredShapes.RelocatedContactDoesNotInheritUnmatchedFrictionOrTorque
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:01:30.623] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:01:30.623] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:01:30.624] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:01:30.624] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:01:30.626] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow (20986 ms)
+[ RUN      ] GpuAuthoredShapes.RelocatedContactDoesNotInheritUnmatchedFrictionOrTorque
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:01:51.577] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:01:51.577] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:01:51.577] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:01:51.577] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:01:51.578] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.RelocatedContactDoesNotInheritUnmatchedFrictionOrTorque (6882 ms)
+[----------] 2 tests from GpuAuthoredShapes (27868 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (27868 ms total)
+[  PASSED  ] 2 tests.

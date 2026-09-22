@@ -1,0 +1,69 @@
+{
+  "scope": "Historical once-per-second telemetry samples at spawn (1200,-1120), yaw 0.75, 1920x1080. These are sample medians, not frame percentiles or a controlled A/B benchmark. Different sessions, builds, background load and frame admission can affect results. FPS includes application frame accounting; measure completed presentations separately in the recovery benchmark.",
+  "sources": [
+    {
+      "path": "/tmp/voxys-forest-telemetry.ndjson.1",
+      "sha256": "e24c43527059fdb28e52861f63533ea6e630eecadab32ddb891e10c4759261d1"
+    },
+    {
+      "path": "/tmp/voxys-forest-telemetry.ndjson",
+      "sha256": "81c46983480be4bf375619e68fd84c76295d2039a6d7d5ad5841be56a3574d22"
+    }
+  ],
+  "groups": [
+    {
+      "recipe": 1,
+      "sample_count": 133,
+      "first_capture": "2026-09-18T10:11:06.500Z",
+      "last_capture": "2026-09-18T10:13:18.500Z",
+      "frame": {
+        "cpu_ms_sample_median": 3.7,
+        "fps_sample_median": 72.33
+      },
+      "render_gpu": {
+        "gpu_frame_ms_sample_median": 11.616,
+        "lighting_composite_ms_sample_median": 7.178
+      },
+      "forest": {
+        "distantTrees_sample_median": 14900,
+        "horizonDraws_sample_median": 29
+      }
+    },
+    {
+      "recipe": 2,
+      "sample_count": 60,
+      "first_capture": "2026-09-19T02:02:26.869Z",
+      "last_capture": "2026-09-19T02:12:50.732Z",
+      "frame": {
+        "cpu_ms_sample_median": 14.55,
+        "fps_sample_median": 46.896
+      },
+      "render_gpu": {
+        "gpu_frame_ms_sample_median": 18.636,
+        "lighting_composite_ms_sample_median": 13.168
+      },
+      "forest": {
+        "distantTrees_sample_median": 52071.0,
+        "horizonDraws_sample_median": 173.0
+      }
+    },
+    {
+      "recipe": 3,
+      "sample_count": 60,
+      "first_capture": "2026-09-19T02:21:35.462Z",
+      "last_capture": "2026-09-19T02:22:34.447Z",
+      "frame": {
+        "cpu_ms_sample_median": 16.3,
+        "fps_sample_median": 15.464
+      },
+      "render_gpu": {
+        "gpu_frame_ms_sample_median": 19.208,
+        "lighting_composite_ms_sample_median": 13.409
+      },
+      "forest": {
+        "distantTrees_sample_median": 51836.0,
+        "horizonDraws_sample_median": 117.0
+      }
+    }
+  ]
+}

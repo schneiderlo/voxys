@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="7" failures="0" disabled="0" errors="0" time="52.996" timestamp="2026-09-18T16:33:55.623" name="AllTests">
+  <testsuite name="ImportedWallPhysics" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-18T16:33:55.623">
+    <testcase name="InitialQueriesExistBeforeGpuAdmissionAndFailedInitializationDoesNotActivate" file="tests/test_imported_wall_physics.cpp" line="18" status="run" result="completed" time="0." timestamp="2026-09-18T16:33:55.623" classname="ImportedWallPhysics" />
+  </testsuite>
+  <testsuite name="ImportedWallGpu" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="52.995" timestamp="2026-09-18T16:33:55.624">
+    <testcase name="OnlyKnownSupportedPartsFallThenCertifiedStaticQueriesMatchAndResetRestores" file="tests/test_imported_wall_physics.cpp" line="80" status="run" result="completed" time="8.842" timestamp="2026-09-18T16:33:55.624" classname="ImportedWallGpu" />
+    <testcase name="ResetDuringFallDiscardsOldObservationAndRetainsEverySourcePart" file="tests/test_imported_wall_physics.cpp" line="108" status="run" result="completed" time="9.392" timestamp="2026-09-18T16:34:04.467" classname="ImportedWallGpu" />
+    <testcase name="RenderSwitchesHandlesOnEncodedMutationBeforeGameplayPublication" file="tests/test_imported_wall_physics.cpp" line="120" status="run" result="completed" time="8.322" timestamp="2026-09-18T16:34:13.859" classname="ImportedWallGpu" />
+    <testcase name="AccumulatorWorldCertifiesAtJoinedTickWithoutChangingClock" file="tests/test_imported_wall_physics.cpp" line="141" status="run" result="completed" time="8.747" timestamp="2026-09-18T16:34:22.182" classname="ImportedWallGpu" />
+    <testcase name="FailedPartialReplacementCanDrainAndRebuildAfterCapacityReturns" file="tests/test_imported_wall_physics.cpp" line="188" status="run" result="completed" time="8.504" timestamp="2026-09-18T16:34:30.929" classname="ImportedWallGpu" />
+    <testcase name="NeverSleepingFallTimesOutAndStillAllowsRebuild" file="tests/test_imported_wall_physics.cpp" line="211" status="run" result="completed" time="9.185" timestamp="2026-09-18T16:34:39.433" classname="ImportedWallGpu" />
+  </testsuite>
+</testsuites>

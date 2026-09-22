@@ -1,0 +1,121 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ApplicationGPUTest
+[ RUN      ] ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface
+[INFO ] [56:12:47.556] ═══════════════════════════════════════════════════════════════
+[INFO ] [56:12:47.556]   Voxy - Terrain Renderer
+[INFO ] [56:12:47.556]   Build target: native
+[INFO ] [56:12:47.556]   Render path: raycast
+[INFO ] [56:12:47.556] ═══════════════════════════════════════════════════════════════
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[INFO ] [56:12:47.677] [Application::init] Window created via Wayland: 320x240 logical, 400x300 framebuffer (1.25x1.25 scale)
+[INFO ] [56:12:47.737] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [56:12:47.738] [Application::init::GPU]   Vendor: radv
+[INFO ] [56:12:47.738] [Application::init::GPU]   Backend: Vulkan
+[INFO ] [56:12:47.738] [Application::init::GPU]   Type: Integrated GPU
+[INFO ] [56:12:47.740] [Application::init::GPU] Surface configured: 400x300, format=BGRA8Unorm, presentation=Fifo (VSync)
+[INFO ] [56:12:47.740] [Application::init::GPU] GPU context initialized successfully
+[INFO ] [56:12:47.892] [Application::init] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 32 MiB scratch
+[INFO ] [56:12:47.892] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)
+[INFO ] [56:12:47.892] [Application::init] Created procedural heightmap: 64x64
+[WARN ] [56:12:47.892] [Application::init] Heightmap has 7 mip levels, but ray-caster expects 8. This may affect hierarchical traversal performance for smaller heightmaps.
+[INFO ] [56:12:47.892] [Application::init] Uploaded heightmap to GPU with mips: 64x64 (7 levels, 0.01 MB total)
+[INFO ] [56:12:47.908] [Application::init] Coastal refraction field initialized: 64x64
+[INFO ] [56:12:47.909] [Application::init] FFT water simulation initialized: 2 cascades at 256x256
+[INFO ] [56:12:47.912] [Application::init::TrianglePath::init] TrianglePath initialized successfully
+[INFO ] [56:12:47.917] [Application::init::RaycastPath::init] RaycastPath initialized successfully (400x300 output)
+[INFO ] [56:12:47.917] [Application::init] Baked shadow height field: 32x32 (0.1 ms)
+[INFO ] [56:12:48.252] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)
+[INFO ] [56:12:48.254] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 64x64, lightmap 1x1, materials 1024x1024x4
+[INFO ] [56:12:48.284] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [56:12:48.372] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [56:12:49.291] [Application::init::BlitPath::init] BlitPath initialized successfully
+[INFO ] [56:12:49.294] Application initialized successfully
+[INFO ] [56:12:49.294]   Window: 320x240
+[INFO ] [56:12:49.294]   Terrain: 64x64 (mips: 7)
+[INFO ] [56:12:49.294]   Render path: raycast
+[INFO ] [56:12:49.294] 
+[INFO ] [56:12:49.294] Controls:
+[INFO ] [56:12:49.294]   WASD      - Move camera
+[INFO ] [56:12:49.294]   Mouse     - Look around (click to capture)
+[INFO ] [56:12:49.294]   Shift     - Speed boost / Run
+[INFO ] [56:12:49.294]   E/Space   - Move up / Jump
+[INFO ] [56:12:49.294]   Q/Ctrl    - Move down
+[INFO ] [56:12:49.294]   F1        - Toggle debug overlay
+[INFO ] [56:12:49.294]   F2        - Toggle wireframe mode
+[INFO ] [56:12:49.294]   F3        - Toggle render path
+[INFO ] [56:12:49.294]   F4        - Toggle depth visualization
+[INFO ] [56:12:49.294]   F5        - Toggle normal visualization
+[INFO ] [56:12:49.294]   F6        - Toggle mip level heat map
+[INFO ] [56:12:49.294]   F7        - Toggle benchmark mode
+[INFO ] [56:12:49.294]   F8        - Toggle controller (free-fly/character)
+[INFO ] [56:12:49.294]   F9        - Toggle uncapped/VSync presentation
+[INFO ] [56:12:49.294]   Escape    - Release mouse / Exit
+[INFO ] [56:12:49.294]   Wheel     - Select throwable object
+[INFO ] [56:12:49.294]   Left click- Capture mouse / throw selected object
+[INFO ] [56:12:49.294]   Right click- Throw 128 selected objects
+[INFO ] [56:12:49.294] 
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:719: Failure
+Expected equality of these values:
+  context.getCurrentTexture()
+    Which is: 0x58b87a3c1e00
+  nullptr
+    Which is: (nullptr)
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:720: Failure
+Expected equality of these values:
+  app.getStats().surfaceAcquiredFrames
+    Which is: 2
+  acquired
+    Which is: 1
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:719: Failure
+Expected equality of these values:
+  context.getCurrentTexture()
+    Which is: 0x58b87a3c1e00
+  nullptr
+    Which is: (nullptr)
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:720: Failure
+Expected equality of these values:
+  app.getStats().surfaceAcquiredFrames
+    Which is: 3
+  acquired
+    Which is: 1
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:719: Failure
+Expected equality of these values:
+  context.getCurrentTexture()
+    Which is: 0x58b87a3c1e00
+  nullptr
+    Which is: (nullptr)
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:720: Failure
+Expected equality of these values:
+  app.getStats().surfaceAcquiredFrames
+    Which is: 4
+  acquired
+    Which is: 1
+
+/home/modkin/workspace/schneiderlo/voxys/tests/test_application.cpp:727: Failure
+Expected equality of these values:
+  app.getStats().surfaceAcquiredFrames
+    Which is: 5
+  acquired + 1
+    Which is: 2
+
+[INFO ] [56:12:49.301] Shutting down application...
+[INFO ] [56:12:49.310] Application shutdown complete
+[  FAILED  ] ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface (1754 ms)
+[----------] 1 test from ApplicationGPUTest (1754 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1754 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface
+
+ 1 FAILED TEST

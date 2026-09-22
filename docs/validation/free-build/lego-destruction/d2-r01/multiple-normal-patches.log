@@ -1,0 +1,37 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_authored_shapes
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow:GpuAuthoredShapes.CompoundKeepsSimultaneousSupportAndSidePatches:GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:32:50.847] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:32:50.847] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:32:50.847] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:32:50.847] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:32:50.849] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.CompoundNormalKeepsCoherentSupportWithinSlopButAllowsDeeperSide (6873 ms)
+[ RUN      ] GpuAuthoredShapes.CompoundKeepsSimultaneousSupportAndSidePatches
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:32:57.698] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:32:57.698] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:32:57.698] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:32:57.698] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:32:57.699] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.CompoundKeepsSimultaneousSupportAndSidePatches (6822 ms)
+[ RUN      ] GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:33:04.520] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:33:04.520] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:33:04.520] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:33:04.520] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:33:04.521] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.CompoundCornerPreservesThreeNormalsAndLatchesPatchOverflow (13593 ms)
+[----------] 3 tests from GpuAuthoredShapes (27290 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (27290 ms total)
+[  PASSED  ] 3 tests.

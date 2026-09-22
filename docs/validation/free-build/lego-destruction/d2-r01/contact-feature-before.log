@@ -1,0 +1,104 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //tests:gpu_authored_shapes (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:gpu_authored_shapes (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:gpu_authored_shapes (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed target //tests:gpu_authored_shapes (1 packages loaded, 3319 targets configured).
+[307 / 308] Testing //tests:gpu_authored_shapes; 1s linux-sandbox
+FAIL: //tests:gpu_authored_shapes (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/gpu_authored_shapes/test.log)
+[307 / 308] 1 / 1 tests, 1 failed; Testing //tests:gpu_authored_shapes; 7s linux-sandbox
+INFO: From Testing //tests:gpu_authored_shapes:
+==================== Test output for //tests:gpu_authored_shapes:
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuAuthoredShapes.ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [59:56:16.063] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [59:56:16.063] [GPU]   Vendor: radv
+[INFO ] [59:56:16.063] [GPU]   Backend: Vulkan
+[INFO ] [59:56:16.063] [GPU]   Type: Integrated GPU
+[INFO ] [59:56:16.065] [GPU] Headless GPU context initialized successfully
+tests/test_gpu_authored_shapes.cpp:1043: Failure
+Expected equality of these values:
+  face.axis
+    Which is: 0
+  1u
+    Which is: 1
+point 0 root 1.0000002384185791,-0.99999994039535522,-1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: -0.0010000000474974513
+
+tests/test_gpu_authored_shapes.cpp:1044: Failure
+Expected equality of these values:
+  face.sign
+    Which is: 1
+  -1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: -0.0010000000474974513
+
+tests/test_gpu_authored_shapes.cpp:1043: Failure
+Expected equality of these values:
+  face.axis
+    Which is: 0
+  1u
+    Which is: 1
+point 2 root 1.0000002384185791,-0.99999994039535522,1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: -0.0010000000474974513
+
+tests/test_gpu_authored_shapes.cpp:1044: Failure
+Expected equality of these values:
+  face.sign
+    Which is: 1
+  -1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: -0.0010000000474974513
+
+tests/test_gpu_authored_shapes.cpp:1043: Failure
+Expected equality of these values:
+  face.axis
+    Which is: 0
+  1u
+    Which is: 1
+point 0 root -1.0000001192092896,-1.0000001192092896,-1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: 0.0010000000474974513
+
+tests/test_gpu_authored_shapes.cpp:1043: Failure
+Expected equality of these values:
+  face.axis
+    Which is: 0
+  1u
+    Which is: 1
+point 2 root -1,-0.99999994039535522,1
+Google Test trace:
+tests/test_gpu_authored_shapes.cpp:1024: 0.0010000000474974513
+
+[  FAILED  ] GpuAuthoredShapes.ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity (6993 ms)
+[----------] 1 test from GpuAuthoredShapes (6993 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6993 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] GpuAuthoredShapes.ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:gpu_authored_shapes up-to-date:
+  bazel-bin/tests/gpu_authored_shapes
+INFO: Elapsed time: 8.849s, Critical Path: 7.08s
+INFO: 2 processes: 307 action cache hit, 1 internal, 1 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 2 total actions
+//tests:gpu_authored_shapes                                              FAILED in 7.1s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/gpu_authored_shapes/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

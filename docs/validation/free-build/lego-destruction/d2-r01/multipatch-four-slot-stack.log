@@ -1,0 +1,94 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_stack
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = Catalog/*:ImportedWallFlatFloorGpu.*
+[==========] Running 5 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:38:59.391] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:38:59.392] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:38:59.392] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:38:59.392] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:38:59.393] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [61:39:07.536] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[31m[ERROR] [61:39:07.609] GPU tick proof rejected at tick 3[0m
+[31m[ERROR] [61:39:07.609] GPU contact capacity exceeded; physics stopped at encoded tick 3[0m
+tests/test_imported_stack.cpp:171: Failure
+Value of: step()
+  Actual: false
+Expected: true
+phase=3 error=
+
+[33m[WARN ] [61:39:17.597] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (18276 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (18276 ms total)
+
+[----------] 4 tests from Catalog/ImportedStackGpu
+[ RUN      ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:39:17.636] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:39:17.636] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:39:17.636] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:39:17.636] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:39:17.638] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [61:39:26.060] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [61:39:26.147] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/0 (8550 ms)
+[ RUN      ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:39:26.184] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:39:26.184] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:39:26.184] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:39:26.184] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:39:26.185] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [61:39:34.481] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[31m[ERROR] [61:39:34.495] GPU tick proof rejected at tick 3[0m
+[31m[ERROR] [61:39:34.495] GPU contact capacity exceeded; physics stopped at encoded tick 3[0m
+tests/test_imported_stack.cpp:102: Failure
+Value of: step()
+  Actual: false
+Expected: true
+
+[33m[WARN ] [61:39:44.494] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/1, where GetParam() = "3004.dat" (18347 ms)
+[ RUN      ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:39:44.543] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:39:44.543] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:39:44.543] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:39:44.543] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:39:44.545] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [61:39:52.981] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[31m[ERROR] [61:39:53.015] GPU tick proof rejected at tick 8[0m
+[31m[ERROR] [61:39:53.015] GPU contact capacity exceeded; physics stopped at encoded tick 8[0m
+tests/test_imported_stack.cpp:102: Failure
+Value of: step()
+  Actual: false
+Expected: true
+
+[33m[WARN ] [61:40:03.013] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/2, where GetParam() = "3023.dat" (18518 ms)
+[ RUN      ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/3
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [61:40:03.057] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [61:40:03.057] [GPU]   Vendor: radv[0m
+[32m[INFO ] [61:40:03.057] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [61:40:03.057] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [61:40:03.058] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [61:40:11.428] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [61:40:11.532] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/3 (8518 ms)
+[----------] 4 tests from Catalog/ImportedStackGpu (53934 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 2 test suites ran. (72211 ms total)
+[  PASSED  ] 2 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/1, where GetParam() = "3004.dat"
+[  FAILED  ] Catalog/ImportedStackGpu.ThreeSourceBricksReleasedAtRestSettleWithoutArtificialImpulse/2, where GetParam() = "3023.dat"
+
+ 3 FAILED TESTS

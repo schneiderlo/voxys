@@ -1,0 +1,77 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_islands
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 7 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuIslands
+[ RUN      ] GpuIslands.FixedSupportDoesNotJoinIndependentDynamicIslands
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:03.935] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:03.935] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:03.935] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:03.935] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:03.937] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslands.FixedSupportDoesNotJoinIndependentDynamicIslands (164 ms)
+[----------] 1 test from GpuIslands (164 ms total)
+
+[----------] 1 test from GpuIslandSectorTest
+[ RUN      ] GpuIslandSectorTest.RejectsCellSizeThatDoesNotDivideSector
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.069] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.069] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.069] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.069] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.070] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslandSectorTest.RejectsCellSizeThatDoesNotDivideSector (21 ms)
+[----------] 1 test from GpuIslandSectorTest (21 ms total)
+
+[----------] 2 tests from GpuIslandGlobalTest
+[ RUN      ] GpuIslandGlobalTest.LogarithmicRoundsConvergeLongChain
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.104] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.104] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.104] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.104] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.105] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslandGlobalTest.LogarithmicRoundsConvergeLongChain (112 ms)
+[ RUN      ] GpuIslandGlobalTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.204] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.204] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.204] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.204] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.205] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslandGlobalTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (120 ms)
+[----------] 2 tests from GpuIslandGlobalTest (233 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuIslandTest
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.325] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.325] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.325] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.325] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.327] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/0 (77 ms)
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.402] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.402] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.402] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.402] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.403] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/1 (73 ms)
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [58:53:04.478] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [58:53:04.478] [GPU]   Vendor: radv[0m
+[32m[INFO ] [58:53:04.478] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [58:53:04.478] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [58:53:04.479] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/2 (75 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuIslandTest (226 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 4 test suites ran. (645 ms total)
+[  PASSED  ] 7 tests.

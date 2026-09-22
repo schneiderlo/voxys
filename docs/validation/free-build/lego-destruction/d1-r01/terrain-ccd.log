@@ -1,0 +1,50 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = *GpuCcdTest*:GpuPhysicsTest.ExplicitBulletDoesNotTunnelThroughTerrain
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuPhysicsTest
+[ RUN      ] GpuPhysicsTest.ExplicitBulletDoesNotTunnelThroughTerrain
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:29:23.269] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:29:23.269] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:29:23.269] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:29:23.269] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:29:23.271] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:29:33.335] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:29:43.011] WebGPU physics initialized: 16 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.ExplicitBulletDoesNotTunnelThroughTerrain (19825 ms)
+[----------] 1 test from GpuPhysicsTest (19825 ms total)
+
+[----------] 3 tests from WorkgroupSizes/GpuCcdTest
+[ RUN      ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:29:43.059] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:29:43.059] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:29:43.059] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:29:43.059] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:29:43.061] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/0 (306 ms)
+[ RUN      ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:29:43.375] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:29:43.375] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:29:43.375] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:29:43.375] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:29:43.376] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/1 (301 ms)
+[ RUN      ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:29:43.667] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:29:43.667] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:29:43.667] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:29:43.667] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:29:43.668] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupSizes/GpuCcdTest.StopsFastSphereAndCapsuleWithBoundedBulletOverflow/2 (282 ms)
+[----------] 3 tests from WorkgroupSizes/GpuCcdTest (891 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (20717 ms total)
+[  PASSED  ] 4 tests.

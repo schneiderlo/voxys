@@ -1,0 +1,29 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_event_readback
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuEventReadback.*:GpuAuthoredShapes.RestoredInitialTickPreservesFullClockAcrossGpuCounterWrap:GpuAuthoredShapes.LiveWinchBreakIsConfirmedAndUnreadEventsBackpressureBeforeEncoding:GpuAuthoredShapes.LiveForceLimitedWinchStallsInsteadOfInventingCableOverload:GpuAuthoredShapes.LiveTickFrontierRequiresSubmissionAndGpuProof
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from GpuEventReadback
+[ RUN      ] GpuEventReadback.PacksPriorityAndStableKeysThroughAsyncRing
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:50:13.647] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:50:13.648] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:50:13.648] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:50:13.648] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:50:13.650] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuEventReadback.PacksPriorityAndStableKeysThroughAsyncRing (136 ms)
+[ RUN      ] GpuEventReadback.BatchedCopiesKeepTheirOwnTickParameters
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [70:50:13.735] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [70:50:13.735] [GPU]   Vendor: radv[0m
+[32m[INFO ] [70:50:13.735] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [70:50:13.735] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [70:50:13.737] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuEventReadback.BatchedCopiesKeepTheirOwnTickParameters (78 ms)
+[----------] 2 tests from GpuEventReadback (215 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (215 ms total)
+[  PASSED  ] 2 tests.

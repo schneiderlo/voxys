@@ -1,0 +1,275 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = CreativeScenery.*:CreativeForest.*:CreativeVillageRealTerrain.*:AdventureWorld.*:AdventureSpatialQueries.*:AdventurePlayer.*:AdventureDoor*:MeshPathTest.*:MeshPathGPUTest.*
+[==========] Running 62 tests from 10 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from AdventureDoorSessionTest
+[ RUN      ] AdventureDoorSessionTest.PaidDoorStartsClosedAndDesiredStatePublishesOneAtomicRevision
+[       OK ] AdventureDoorSessionTest.PaidDoorStartsClosedAndDesiredStatePublishesOneAtomicRevision (0 ms)
+[ RUN      ] AdventureDoorSessionTest.BlockedStaleForeignWrongTypeAndDuplicateChoicesPreserveAcceptedState
+[       OK ] AdventureDoorSessionTest.BlockedStaleForeignWrongTypeAndDuplicateChoicesPreserveAcceptedState (0 ms)
+[ RUN      ] AdventureDoorSessionTest.DoorsShareFurnitureCapacityOwnNoInventoryAndRefundOnce
+[       OK ] AdventureDoorSessionTest.DoorsShareFurnitureCapacityOwnNoInventoryAndRefundOnce (0 ms)
+[ RUN      ] AdventureDoorSessionTest.StrictDoorBooleanRoundTripsAndCannotBecomeFurnitureOrInventory
+[       OK ] AdventureDoorSessionTest.StrictDoorBooleanRoundTripsAndCannotBecomeFurnitureOrInventory (0 ms)
+[ RUN      ] AdventureDoorSessionTest.GenuineSchemaFiveKeepsCompletedSurveyCombatAndOldPayloadExactly
+[       OK ] AdventureDoorSessionTest.GenuineSchemaFiveKeepsCompletedSurveyCombatAndOldPayloadExactly (1 ms)
+[----------] 5 tests from AdventureDoorSessionTest (2 ms total)
+
+[----------] 9 tests from AdventureDoorGeometry
+[ RUN      ] AdventureDoorGeometry.SharedRigidRecipeAndEnvelopesCoverTheEntireQuarterTurn
+[       OK ] AdventureDoorGeometry.SharedRigidRecipeAndEnvelopesCoverTheEntireQuarterTurn (0 ms)
+[ RUN      ] AdventureDoorGeometry.PaidDoorPublishesOneLeafForWalkingCameraAndPickingAtEveryYaw
+[       OK ] AdventureDoorGeometry.PaidDoorPublishesOneLeafForWalkingCameraAndPickingAtEveryYaw (0 ms)
+[ RUN      ] AdventureDoorGeometry.SweptOccupancyRefusesEvenWhenBothEndpointPosesAreEmpty
+[       OK ] AdventureDoorGeometry.SweptOccupancyRefusesEvenWhenBothEndpointPosesAreEmpty (0 ms)
+[ RUN      ] AdventureDoorGeometry.FutureSwingReservationRefusesBuildingButAllowsClearGroundedAdditions
+[       OK ] AdventureDoorGeometry.FutureSwingReservationRefusesBuildingButAllowsClearGroundedAdditions (0 ms)
+[ RUN      ] AdventureDoorGeometry.MovingLeafCannotSupportAnotherPieceAndHandleSightIsRequired
+[       OK ] AdventureDoorGeometry.MovingLeafCannotSupportAnotherPieceAndHandleSightIsRequired (0 ms)
+[ RUN      ] AdventureDoorGeometry.TerrainInsideFutureSwingRefusesPlacementBeforeSpending
+[       OK ] AdventureDoorGeometry.TerrainInsideFutureSwingRefusesPlacementBeforeSpending (0 ms)
+[ RUN      ] AdventureDoorGeometry.OldOpenDoorwaysStayHollowAndMalformedDoorStateKeepsOutputIntact
+[       OK ] AdventureDoorGeometry.OldOpenDoorwaysStayHollowAndMalformedDoorStateKeepsOutputIntact (0 ms)
+[ RUN      ] AdventureDoorGeometry.DoorSwingPreservesVillageAndTrailApproachesAcrossChanges
+[       OK ] AdventureDoorGeometry.DoorSwingPreservesVillageAndTrailApproachesAcrossChanges (5 ms)
+[ RUN      ] AdventureDoorGeometry.CreativeDoorYieldsSceneryButStillRejectsOtherStaticObstacles
+[       OK ] AdventureDoorGeometry.CreativeDoorYieldsSceneryButStillRejectsOtherStaticObstacles (0 ms)
+[----------] 9 tests from AdventureDoorGeometry (6 ms total)
+
+[----------] 1 test from AdventureWorld
+[ RUN      ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity
+[       OK ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity (0 ms)
+[----------] 1 test from AdventureWorld (0 ms total)
+
+[----------] 5 tests from AdventureSpatialQueries
+[ RUN      ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision
+[       OK ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision (0 ms)
+[ RUN      ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead
+[       OK ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead (0 ms)
+[ RUN      ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids
+[       OK ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids (0 ms)
+[ RUN      ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery
+[       OK ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery (0 ms)
+[ RUN      ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets
+[       OK ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets (0 ms)
+[----------] 5 tests from AdventureSpatialQueries (0 ms total)
+
+[----------] 10 tests from AdventurePlayer
+[ RUN      ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall
+[       OK ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall (0 ms)
+[ RUN      ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge
+[       OK ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge (0 ms)
+[ RUN      ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight
+[       OK ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight (0 ms)
+[ RUN      ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom
+[       OK ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom (0 ms)
+[ RUN      ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic
+[       OK ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic (0 ms)
+[ RUN      ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim
+[       OK ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim (0 ms)
+[ RUN      ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls
+[       OK ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls (0 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping
+[       OK ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping (1 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall
+[       OK ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall (0 ms)
+[ RUN      ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance
+[       OK ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance (0 ms)
+[----------] 10 tests from AdventurePlayer (3 ms total)
+
+[----------] 6 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (37 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (43 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (40 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+Scenery admitted 178 props; kinds 90 51 29 6 1 1 
+[       OK ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (77 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (64 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+World scenery at 1200,-1120: 178 props
+World scenery at 1500,-1100: 37 props
+World scenery at 900,-1000: 313 props
+World scenery at -63,-895: 237 props
+[       OK ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (127 ms)
+[----------] 6 tests from CreativeScenery (392 ms total)
+
+[----------] 3 tests from CreativeVillageRealTerrain
+[ RUN      ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[       OK ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage (79 ms)
+[ RUN      ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[       OK ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging (75 ms)
+[ RUN      ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[       OK ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession (102 ms)
+[----------] 3 tests from CreativeVillageRealTerrain (258 ms total)
+
+[----------] 4 tests from CreativeForest
+[ RUN      ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees
+[       OK ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees (16 ms)
+[ RUN      ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry
+[       OK ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry (43 ms)
+[ RUN      ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload
+[       OK ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload (51 ms)
+[ RUN      ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+Forest at 1200,-1120: near=178 distant=14900 horizon=2716 solids=1667
+Forest at 800,-800: near=455 distant=11441 horizon=1976 solids=3269
+Forest at -63,-895: near=237 distant=7254 horizon=1063 solids=2575
+[       OK ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (109 ms)
+[----------] 4 tests from CreativeForest (221 ms total)
+
+[----------] 2 tests from MeshPathTest
+[ RUN      ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData
+[       OK ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData (0 ms)
+[ RUN      ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha
+[       OK ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha (0 ms)
+[----------] 2 tests from MeshPathTest (0 ms total)
+
+[----------] 17 tests from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+[INFO ] [48:50:12.624] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:12.624] [GPU]   Vendor: radv
+[INFO ] [48:50:12.624] [GPU]   Backend: Vulkan
+[INFO ] [48:50:12.624] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:12.626] [GPU] Headless GPU context initialized successfully
+Mechanism rotor stationaryPixels=87 stationaryChanged=0 movingChanged=456 liveDifference=0 stalePixels=0
+Mechanism drum stationaryPixels=88 stationaryChanged=0 movingChanged=420 liveDifference=0 stalePixels=0
+[       OK ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors (292 ms)
+[ RUN      ] MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration
+[INFO ] [48:50:12.882] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:12.882] [GPU]   Vendor: radv
+[INFO ] [48:50:12.882] [GPU]   Backend: Vulkan
+[INFO ] [48:50:12.882] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:12.883] [GPU] Headless GPU context initialized successfully
+Paint live root static=24,105,215 live=24,105,215 differingBytes=0
+[       OK ] MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration (260 ms)
+[ RUN      ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[INFO ] [48:50:13.141] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:13.141] [GPU]   Vendor: radv
+[INFO ] [48:50:13.141] [GPU]   Backend: Vulkan
+[INFO ] [48:50:13.141] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:13.142] [GPU] Headless GPU context initialized successfully
+Sun receiver clear=190 static=6 live=6
+Live sun: clear 190, shadow 6, ambient 6
+[       OK ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses (347 ms)
+[ RUN      ] MeshPathGPUTest.VillageDistanceReceiverRetainsRealCasterShadow
+[INFO ] [48:50:13.485] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:13.485] [GPU]   Vendor: radv
+[INFO ] [48:50:13.485] [GPU]   Backend: Vulkan
+[INFO ] [48:50:13.485] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:13.486] [GPU] Headless GPU context initialized successfully
+Village sun at 100 studs: clear=196 shadow=6
+[       OK ] MeshPathGPUTest.VillageDistanceReceiverRetainsRealCasterShadow (210 ms)
+[ RUN      ] MeshPathGPUTest.ToySkyGroundFillSeparatesShadedPlanesAndPreservesDirectSun
+[INFO ] [48:50:13.706] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:13.706] [GPU]   Vendor: radv
+[INFO ] [48:50:13.706] [GPU]   Backend: Vulkan
+[INFO ] [48:50:13.706] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:13.707] [GPU] Headless GPU context initialized successfully
+Toy shaded planes: up=59 side=32 down=7 legacySide=67
+[       OK ] MeshPathGPUTest.ToySkyGroundFillSeparatesShadedPlanesAndPreservesDirectSun (285 ms)
+[ RUN      ] MeshPathGPUTest.RepeatedMeshesBatchWithoutLosingPaintTransformsOrShadowEligibility
+[INFO ] [48:50:13.981] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:13.981] [GPU]   Vendor: radv
+[INFO ] [48:50:13.981] [GPU]   Backend: Vulkan
+[INFO ] [48:50:13.981] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:13.982] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.RepeatedMeshesBatchWithoutLosingPaintTransformsOrShadowEligibility (178 ms)
+[ RUN      ] MeshPathGPUTest.ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters
+[INFO ] [48:50:14.161] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:14.161] [GPU]   Vendor: radv
+[INFO ] [48:50:14.161] [GPU]   Backend: Vulkan
+[INFO ] [48:50:14.161] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:14.163] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters (57 ms)
+[ RUN      ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres
+[INFO ] [48:50:14.219] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:14.219] [GPU]   Vendor: radv
+[INFO ] [48:50:14.219] [GPU]   Backend: Vulkan
+[INFO ] [48:50:14.219] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:14.220] [GPU] Headless GPU context initialized successfully
+Forest horizon mesh 0: triangles=412 pixels at 2000 m=138
+Forest horizon mesh 1: triangles=188 pixels at 2000 m=66
+[       OK ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres (94 ms)
+[ RUN      ] MeshPathGPUTest.ExceptionalReleasePreservesEncodedTextureDependencies
+[INFO ] [48:50:14.311] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:14.311] [GPU]   Vendor: radv
+[INFO ] [48:50:14.311] [GPU]   Backend: Vulkan
+[INFO ] [48:50:14.311] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:14.312] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.ExceptionalReleasePreservesEncodedTextureDependencies (61 ms)
+[ RUN      ] MeshPathGPUTest.SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces
+[INFO ] [48:50:14.376] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:14.376] [GPU]   Vendor: radv
+[INFO ] [48:50:14.376] [GPU]   Backend: Vulkan
+[INFO ] [48:50:14.376] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:14.378] [GPU] Headless GPU context initialized successfully
+[ERROR] [48:50:14.382] MeshPath: failed to upload VMESH data
+[       OK ] MeshPathGPUTest.SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces (134 ms)
+[ RUN      ] MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity
+[INFO ] [48:50:14.509] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:14.509] [GPU]   Vendor: radv
+[INFO ] [48:50:14.509] [GPU]   Backend: Vulkan
+[INFO ] [48:50:14.509] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:14.510] [GPU] Headless GPU context initialized successfully
+Paint material unlit=1 alpha=0 center=0,98,93 changed=4800 mismatches=0
+Paint material unlit=1 alpha=1 center=0,0,0 changed=2352 mismatches=0
+Paint material unlit=1 alpha=2 center=0,45,43 changed=4800 mismatches=0
+Paint material unlit=0 alpha=0 center=34,85,79 changed=4800 mismatches=0
+Paint material unlit=0 alpha=1 center=0,0,0 changed=2352 mismatches=0
+Paint material unlit=0 alpha=2 center=15,39,36 changed=4800 mismatches=0
+[       OK ] MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity (741 ms)
+[ RUN      ] MeshPathGPUTest.CoveSurfaceLayersWetReflectionWithoutChangingLegacyAlphaOrMetalHue
+[INFO ] [48:50:15.263] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:15.263] [GPU]   Vendor: radv
+[INFO ] [48:50:15.263] [GPU]   Backend: Vulkan
+[INFO ] [48:50:15.263] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:15.264] [GPU] Headless GPU context initialized successfully
+[ERROR] [48:50:15.282] MeshPath::render: invalid mesh instance
+[ERROR] [48:50:15.284] MeshPath::render: invalid mesh instance
+[ERROR] [48:50:15.548] MeshPath::render: invalid mesh instance
+[ERROR] [48:50:15.550] MeshPath::render: invalid mesh instance
+[       OK ] MeshPathGPUTest.CoveSurfaceLayersWetReflectionWithoutChangingLegacyAlphaOrMetalHue (616 ms)
+[ RUN      ] MeshPathGPUTest.CoveNormalVarianceBroadensSubpixelSpecularHighlights
+[INFO ] [48:50:15.874] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:15.874] [GPU]   Vendor: radv
+[INFO ] [48:50:15.874] [GPU]   Backend: Vulkan
+[INFO ] [48:50:15.874] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:15.875] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.CoveNormalVarianceBroadensSubpixelSpecularHighlights (93 ms)
+[ RUN      ] MeshPathGPUTest.DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame
+[INFO ] [48:50:15.962] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:15.962] [GPU]   Vendor: radv
+[INFO ] [48:50:15.962] [GPU]   Backend: Vulkan
+[INFO ] [48:50:15.962] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:15.963] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame (173 ms)
+[ RUN      ] MeshPathGPUTest.PreservesColorSpaceAndPackedMaterialChannels
+[INFO ] [48:50:16.134] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:16.134] [GPU]   Vendor: radv
+[INFO ] [48:50:16.134] [GPU]   Backend: Vulkan
+[INFO ] [48:50:16.134] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:16.136] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.PreservesColorSpaceAndPackedMaterialChannels (233 ms)
+[ RUN      ] MeshPathGPUTest.LoadsAndRendersAuthoredBikeAndRider
+[INFO ] [48:50:16.370] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:16.370] [GPU]   Vendor: radv
+[INFO ] [48:50:16.370] [GPU]   Backend: Vulkan
+[INFO ] [48:50:16.370] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:16.372] [GPU] Headless GPU context initialized successfully
+[       OK ] MeshPathGPUTest.LoadsAndRendersAuthoredBikeAndRider (81 ms)
+[ RUN      ] MeshPathGPUTest.CoveSmoothGgxPeakUsesFinitePhysicalDenominatorAndLeavesLegacyUntouched
+[INFO ] [48:50:16.455] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [48:50:16.455] [GPU]   Vendor: radv
+[INFO ] [48:50:16.455] [GPU]   Backend: Vulkan
+[INFO ] [48:50:16.455] [GPU]   Type: Integrated GPU
+[INFO ] [48:50:16.456] [GPU] Headless GPU context initialized successfully
+[ERROR] [48:50:16.481] MeshPath::render: invalid mesh instance
+[       OK ] MeshPathGPUTest.CoveSmoothGgxPeakUsesFinitePhysicalDenominatorAndLeavesLegacyUntouched (92 ms)
+[----------] 17 tests from MeshPathGPUTest (3955 ms total)
+
+[----------] Global test environment tear-down
+[==========] 62 tests from 10 test suites ran. (4840 ms total)
+[  PASSED  ] 62 tests.

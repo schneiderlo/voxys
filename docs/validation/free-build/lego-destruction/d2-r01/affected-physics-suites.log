@@ -1,0 +1,49 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 6 targets (0 packages loaded, 0 targets configured)
+Analyzing: 6 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 6 targets (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed 6 targets (1 packages loaded, 3845 targets configured).
+[668 / 682] 1 / 6 tests; Compiling tests/test_gpu_authored_shapes.cpp; 1s linux-sandbox ... (6 actions running)
+[669 / 682] 1 / 6 tests; Compiling tests/test_gpu_authored_shapes.cpp; 3s linux-sandbox ... (5 actions running)
+[671 / 683] 1 / 6 tests; Compiling tests/test_gpu_authored_shapes.cpp; 4s linux-sandbox ... (5 actions, 4 running)
+[672 / 683] 1 / 6 tests; Testing //tests:imported_wall_physics; 5s linux-sandbox ... (5 actions, 3 running)
+[676 / 684] 1 / 6 tests; Testing //tests:imported_wall_physics; 7s linux-sandbox ... (4 actions, 2 running)
+[676 / 684] 1 / 6 tests; Testing //tests:imported_wall_physics; 17s linux-sandbox ... (4 actions, 2 running)
+[681 / 686] 1 / 6 tests; Testing //tests:imported_wall_physics; 19s linux-sandbox ... (5 actions, 1 running)
+[681 / 686] 1 / 6 tests; Testing //tests:imported_wall_physics; 29s linux-sandbox ... (5 actions, 1 running)
+[681 / 686] 1 / 6 tests; Testing //tests:imported_wall_physics; 59s linux-sandbox ... (5 actions, 1 running)
+[681 / 686] 1 / 6 tests; Testing //tests:imported_wall_physics; 102s linux-sandbox ... (5 actions, 2 running)
+[682 / 686] 2 / 6 tests; [Sched] Testing //tests:gpu_authored_shapes; 98s ... (4 actions, 1 running)
+[682 / 686] 2 / 6 tests; [Sched] Testing //tests:gpu_authored_shapes; 108s ... (4 actions, 1 running)
+[682 / 686] 2 / 6 tests; [Sched] Testing //tests:gpu_authored_shapes; 138s ... (4 actions, 1 running)
+[682 / 686] 2 / 6 tests; [Sched] Testing //tests:gpu_authored_shapes; 198s ... (4 actions, 1 running)
+[682 / 686] 2 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 200s ... (4 actions, 2 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 201s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 211s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 241s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 301s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 361s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 421s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 481s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_dynamic_solver; 541s ... (3 actions, 1 running)
+[683 / 686] 3 / 6 tests; [Sched] Testing //tests:gpu_islands; 582s ... (3 actions, 2 running)
+[684 / 686] 4 / 6 tests; [Sched] Testing //tests:gpu_islands; 583s ... (2 actions, 1 running)
+[684 / 686] 4 / 6 tests; Testing //tests:gpu_dynamic_solver; 5s linux-sandbox ... (2 actions running)
+INFO: Found 6 test targets...
+INFO: Elapsed time: 607.700s, Critical Path: 605.75s
+INFO: 17 processes: 671 action cache hit, 2 internal, 15 linux-sandbox.
+INFO: Build completed successfully, 17 total actions
+//tests:imported_assembly                                       (cached) PASSED in 1.6s
+//tests:gpu_authored_shapes                                              PASSED in 382.2s
+//tests:gpu_dynamic_solver                                               PASSED in 5.1s
+//tests:gpu_islands                                                      PASSED in 0.7s
+//tests:imported_stack                                                   PASSED in 114.8s
+//tests:imported_wall_physics                                            PASSED in 102.9s
+
+Executed 5 out of 6 tests: 6 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

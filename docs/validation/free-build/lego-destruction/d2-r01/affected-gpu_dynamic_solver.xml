@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="5.02" timestamp="2026-09-18T17:25:00.542" name="AllTests">
+  <testsuite name="GpuDynamicSolverDifferentialTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.486" timestamp="2026-09-18T17:25:00.542">
+    <testcase name="StableDenseContactsMatchSparseOrdinalWindowBitwise" file="tests/test_gpu_dynamic_solver.cpp" line="205" status="run" result="completed" time="0.486" timestamp="2026-09-18T17:25:00.542" classname="GpuDynamicSolverDifferentialTest" />
+  </testsuite>
+  <testsuite name="GpuDynamicSolverTest" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="3.766" timestamp="2026-09-18T17:25:01.028">
+    <testcase name="RestingContactsRespectLinearSlopAcrossSolvePaths" file="tests/test_gpu_dynamic_solver.cpp" line="473" status="run" result="completed" time="1.285" timestamp="2026-09-18T17:25:01.028" classname="GpuDynamicSolverTest" />
+    <testcase name="ContactOverflowStopsIntegrationAcrossSolvePaths" file="tests/test_gpu_dynamic_solver.cpp" line="524" status="run" result="completed" time="0.64" timestamp="2026-09-18T17:25:02.313" classname="GpuDynamicSolverTest" />
+    <testcase name="RepeatedPairPatchesReachLateSerialConstraints" file="tests/test_gpu_dynamic_solver.cpp" line="575" status="run" result="completed" time="0.439" timestamp="2026-09-18T17:25:02.954" classname="GpuDynamicSolverTest" />
+    <testcase name="SoftStepSeparatesAndFrictionSlowsContact" file="tests/test_gpu_dynamic_solver.cpp" line="644" status="run" result="completed" time="0.231" timestamp="2026-09-18T17:25:03.393" classname="GpuDynamicSolverTest" />
+    <testcase name="SmallIslandFastPathMatchesGlobalSolver" file="tests/test_gpu_dynamic_solver.cpp" line="728" status="run" result="completed" time="0.865" timestamp="2026-09-18T17:25:03.625" classname="GpuDynamicSolverTest" />
+    <testcase name="BoxTowerMixedPileAndAvalancheStayBounded" file="tests/test_gpu_dynamic_solver.cpp" line="847" status="run" result="completed" time="0.304" timestamp="2026-09-18T17:25:04.490" classname="GpuDynamicSolverTest" />
+  </testsuite>
+  <testsuite name="WorkgroupProfiles/GpuDynamicColoringTest" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.767" timestamp="2026-09-18T17:25:04.795">
+    <testcase name="ColorsConflictsAndGathersOverflowDeterministically/0" value_param="64" file="tests/test_gpu_dynamic_solver.cpp" line="333" status="run" result="completed" time="0.258" timestamp="2026-09-18T17:25:04.795" classname="WorkgroupProfiles/GpuDynamicColoringTest" />
+    <testcase name="ColorsConflictsAndGathersOverflowDeterministically/1" value_param="128" file="tests/test_gpu_dynamic_solver.cpp" line="333" status="run" result="completed" time="0.265" timestamp="2026-09-18T17:25:05.053" classname="WorkgroupProfiles/GpuDynamicColoringTest" />
+    <testcase name="ColorsConflictsAndGathersOverflowDeterministically/2" value_param="256" file="tests/test_gpu_dynamic_solver.cpp" line="333" status="run" result="completed" time="0.243" timestamp="2026-09-18T17:25:05.318" classname="WorkgroupProfiles/GpuDynamicColoringTest" />
+  </testsuite>
+</testsuites>

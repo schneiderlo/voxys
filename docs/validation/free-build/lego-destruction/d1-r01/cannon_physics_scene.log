@@ -1,0 +1,27 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cannon_physics_scene
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 6 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from CannonPhysicsScene
+[ RUN      ] CannonPhysicsScene.CompleteBlacksmithFitsBoundedPartitionsWithoutDroppingSolids
+[       OK ] CannonPhysicsScene.CompleteBlacksmithFitsBoundedPartitionsWithoutDroppingSolids (141 ms)
+[ RUN      ] CannonPhysicsScene.DistantLocalFramePreservesDoorAndConservativeBounds
+[       OK ] CannonPhysicsScene.DistantLocalFramePreservesDoorAndConservativeBounds (0 ms)
+[ RUN      ] CannonPhysicsScene.InvalidAndOverBudgetPacketsDoNotBecomePartialScenes
+[       OK ] CannonPhysicsScene.InvalidAndOverBudgetPacketsDoNotBecomePartialScenes (0 ms)
+[ RUN      ] CannonPhysicsScene.EmptyRevisionIsValidAndLabelsRemainInputScoped
+[       OK ] CannonPhysicsScene.EmptyRevisionIsValidAndLabelsRemainInputScoped (0 ms)
+[----------] 4 tests from CannonPhysicsScene (142 ms total)
+
+[----------] 2 tests from BuilderCannon
+[ RUN      ] BuilderCannon.BarrelHingeAndMuzzleStayAlignedAcrossAimRange
+[       OK ] BuilderCannon.BarrelHingeAndMuzzleStayAlignedAcrossAimRange (0 ms)
+[ RUN      ] BuilderCannon.AimBoundsFiniteInputAndRecoilDoNotMoveTheBase
+[       OK ] BuilderCannon.AimBoundsFiniteInputAndRecoilDoNotMoveTheBase (0 ms)
+[----------] 2 tests from BuilderCannon (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test suites ran. (142 ms total)
+[  PASSED  ] 6 tests.

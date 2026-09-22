@@ -1,0 +1,53 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:adventure
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CreativeScenery.*:CreativeForest.*
+[==========] Running 12 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (177 ms)
+[ RUN      ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots
+[       OK ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots (597 ms)
+[ RUN      ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest
+[       OK ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest (644 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (222 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (220 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+tests/test_adventure_world.cpp:542: Skipped
+Set terrain path for actual shelf admission
+
+[  SKIPPED ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (0 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (345 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+tests/test_adventure_world.cpp:580: Skipped
+
+
+[  SKIPPED ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (0 ms)
+[----------] 8 tests from CreativeScenery (2206 ms total)
+
+[----------] 4 tests from CreativeForest
+[ RUN      ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees
+[       OK ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees (94 ms)
+[ RUN      ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry
+[       OK ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry (232 ms)
+[ RUN      ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload
+[       OK ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload (318 ms)
+[ RUN      ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+tests/test_adventure_world.cpp:839: Skipped
+
+
+[  SKIPPED ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (0 ms)
+[----------] 4 tests from CreativeForest (646 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 2 test suites ran. (2853 ms total)
+[  PASSED  ] 9 tests.
+[  SKIPPED ] 3 tests, listed below:
+[  SKIPPED ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+[  SKIPPED ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+[  SKIPPED ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision

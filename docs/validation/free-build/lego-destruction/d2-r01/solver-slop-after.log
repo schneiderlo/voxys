@@ -1,0 +1,82 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_dynamic_solver
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 8 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuDynamicSolverDifferentialTest
+[ RUN      ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:41.520] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:41.520] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:41.520] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:41.520] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:41.522] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (594 ms)
+[----------] 1 test from GpuDynamicSolverDifferentialTest (594 ms total)
+
+[----------] 4 tests from GpuDynamicSolverTest
+[ RUN      ] GpuDynamicSolverTest.RestingContactsRespectLinearSlopAcrossSolvePaths
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:42.078] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:42.078] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:42.078] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:42.078] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:42.079] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.RestingContactsRespectLinearSlopAcrossSolvePaths (1278 ms)
+[ RUN      ] GpuDynamicSolverTest.SoftStepSeparatesAndFrictionSlowsContact
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:43.356] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:43.356] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:43.356] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:43.356] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:43.357] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.SoftStepSeparatesAndFrictionSlowsContact (248 ms)
+[ RUN      ] GpuDynamicSolverTest.SmallIslandFastPathMatchesGlobalSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:43.606] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:43.606] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:43.606] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:43.606] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:43.607] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.SmallIslandFastPathMatchesGlobalSolver (829 ms)
+[ RUN      ] GpuDynamicSolverTest.BoxTowerMixedPileAndAvalancheStayBounded
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:44.433] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:44.433] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:44.433] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:44.433] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:44.434] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.BoxTowerMixedPileAndAvalancheStayBounded (277 ms)
+[----------] 4 tests from GpuDynamicSolverTest (2633 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuDynamicColoringTest
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:44.710] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:44.710] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:44.710] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:44.710] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:44.712] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/0 (250 ms)
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:44.960] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:44.960] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:44.960] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:44.960] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:44.962] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/1 (241 ms)
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [60:26:45.204] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [60:26:45.204] [GPU]   Vendor: radv[0m
+[32m[INFO ] [60:26:45.204] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [60:26:45.204] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [60:26:45.205] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/2 (254 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuDynamicColoringTest (747 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 3 test suites ran. (3975 ms total)
+[  PASSED  ] 8 tests.

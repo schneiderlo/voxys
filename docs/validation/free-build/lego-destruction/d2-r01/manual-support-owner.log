@@ -1,0 +1,23 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_wall_physics
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallGpu.ManualSupportRemovalDropsRemainingPartAndResetRestoresSourceBindings
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallGpu
+[ RUN      ] ImportedWallGpu.ManualSupportRemovalDropsRemainingPartAndResetRestoresSourceBindings
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:59:20.532] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:59:20.532] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:59:20.532] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:59:20.532] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:59:20.534] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:59:33.291] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [62:59:34.642] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] ImportedWallGpu.ManualSupportRemovalDropsRemainingPartAndResetRestoresSourceBindings (14201 ms)
+[----------] 1 test from ImportedWallGpu (14203 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (14204 ms total)
+[  PASSED  ] 1 test.

@@ -1,0 +1,162 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface:ApplicationTest.*:ApplicationConfigTest.*:ApplicationStatsTest.*:ApplicationDayNightTest.*
+[==========] Running 21 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from ApplicationConfigTest
+[ RUN      ] ApplicationConfigTest.DefaultsHaveReasonableValues
+[       OK ] ApplicationConfigTest.DefaultsHaveReasonableValues (0 ms)
+[ RUN      ] ApplicationConfigTest.CustomConfiguration
+[       OK ] ApplicationConfigTest.CustomConfiguration (0 ms)
+[ RUN      ] ApplicationConfigTest.HeightmapPathHandling
+[       OK ] ApplicationConfigTest.HeightmapPathHandling (0 ms)
+[----------] 3 tests from ApplicationConfigTest (0 ms total)
+
+[----------] 1 test from ApplicationStatsTest
+[ RUN      ] ApplicationStatsTest.InitializesToZero
+[       OK ] ApplicationStatsTest.InitializesToZero (0 ms)
+[----------] 1 test from ApplicationStatsTest (0 ms total)
+
+[----------] 12 tests from ApplicationTest
+[ RUN      ] ApplicationTest.DefaultConstruction
+[       OK ] ApplicationTest.DefaultConstruction (0 ms)
+[ RUN      ] ApplicationTest.RequestExitBeforeInit
+[INFO ] [56:14:55.706] Exit requested
+[       OK ] ApplicationTest.RequestExitBeforeInit (0 ms)
+[ RUN      ] ApplicationTest.ShutdownBeforeInit
+[       OK ] ApplicationTest.ShutdownBeforeInit (0 ms)
+[ RUN      ] ApplicationTest.RejectsInvalidDimensionsBeforeCreatingResources
+[ERROR] [56:14:55.706] Application configuration is invalid (window 0x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x0, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window -1x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x-1, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 0x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 8193x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 8193x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 0)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 0.24)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 2.01)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale inf)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale nan)
+[       OK ] ApplicationTest.RejectsInvalidDimensionsBeforeCreatingResources (0 ms)
+[ RUN      ] ApplicationTest.RejectsNonFiniteAndUnsafeConfigurationBeforeGpu
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[ERROR] [56:14:55.706] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)
+[       OK ] ApplicationTest.RejectsNonFiniteAndUnsafeConfigurationBeforeGpu (0 ms)
+[ RUN      ] ApplicationTest.StatsAccessBeforeInit
+[       OK ] ApplicationTest.StatsAccessBeforeInit (0 ms)
+[ RUN      ] ApplicationTest.ConfigAccessBeforeInit
+[       OK ] ApplicationTest.ConfigAccessBeforeInit (0 ms)
+[ RUN      ] ApplicationTest.RenderPathAccessBeforeInit
+[       OK ] ApplicationTest.RenderPathAccessBeforeInit (0 ms)
+[ RUN      ] ApplicationTest.RuntimeRendererSettingsValidateAndClamp
+[       OK ] ApplicationTest.RuntimeRendererSettingsValidateAndClamp (0 ms)
+[ RUN      ] ApplicationTest.RuntimeRendererSchemaRoundTripsEveryEngineSetting
+[       OK ] ApplicationTest.RuntimeRendererSchemaRoundTripsEveryEngineSetting (0 ms)
+[ RUN      ] ApplicationTest.RuntimeRendererPathUsesTheExistingSwitch
+[INFO ] [56:14:55.706] Render path changed to: triangle
+[INFO ] [56:14:55.706] Render path changed to: raycast
+[       OK ] ApplicationTest.RuntimeRendererPathUsesTheExistingSwitch (0 ms)
+[ RUN      ] ApplicationTest.DayNightControlsWrapClampAndRejectInvalidInput
+[       OK ] ApplicationTest.DayNightControlsWrapClampAndRejectInvalidInput (0 ms)
+[----------] 12 tests from ApplicationTest (0 ms total)
+
+[----------] 1 test from ApplicationGPUTest
+[ RUN      ] ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface
+[INFO ] [56:14:55.706] ═══════════════════════════════════════════════════════════════
+[INFO ] [56:14:55.706]   Voxy - Terrain Renderer
+[INFO ] [56:14:55.706]   Build target: native
+[INFO ] [56:14:55.706]   Render path: raycast
+[INFO ] [56:14:55.706] ═══════════════════════════════════════════════════════════════
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[INFO ] [56:14:55.789] [Application::init] Window created via Wayland: 320x240 logical, 400x300 framebuffer (1.25x1.25 scale)
+[INFO ] [56:14:55.836] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [56:14:55.836] [Application::init::GPU]   Vendor: radv
+[INFO ] [56:14:55.836] [Application::init::GPU]   Backend: Vulkan
+[INFO ] [56:14:55.836] [Application::init::GPU]   Type: Integrated GPU
+[INFO ] [56:14:55.838] [Application::init::GPU] Surface configured: 400x300, format=BGRA8Unorm, presentation=Fifo (VSync)
+[INFO ] [56:14:55.838] [Application::init::GPU] GPU context initialized successfully
+[INFO ] [56:14:55.936] [Application::init] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 32 MiB scratch
+[INFO ] [56:14:55.936] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)
+[INFO ] [56:14:55.936] [Application::init] Created procedural heightmap: 64x64
+[WARN ] [56:14:55.936] [Application::init] Heightmap has 7 mip levels, but ray-caster expects 8. This may affect hierarchical traversal performance for smaller heightmaps.
+[INFO ] [56:14:55.936] [Application::init] Uploaded heightmap to GPU with mips: 64x64 (7 levels, 0.01 MB total)
+[INFO ] [56:14:55.948] [Application::init] Coastal refraction field initialized: 64x64
+[INFO ] [56:14:55.950] [Application::init] FFT water simulation initialized: 2 cascades at 256x256
+[INFO ] [56:14:55.951] [Application::init::TrianglePath::init] TrianglePath initialized successfully
+[INFO ] [56:14:55.956] [Application::init::RaycastPath::init] RaycastPath initialized successfully (400x300 output)
+[INFO ] [56:14:55.956] [Application::init] Baked shadow height field: 32x32 (0.0 ms)
+[INFO ] [56:14:56.206] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)
+[INFO ] [56:14:56.207] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 64x64, lightmap 1x1, materials 1024x1024x4
+[INFO ] [56:14:56.237] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [56:14:56.334] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [56:14:57.232] [Application::init::BlitPath::init] BlitPath initialized successfully
+[INFO ] [56:14:57.235] Application initialized successfully
+[INFO ] [56:14:57.235]   Window: 320x240
+[INFO ] [56:14:57.235]   Terrain: 64x64 (mips: 7)
+[INFO ] [56:14:57.235]   Render path: raycast
+[INFO ] [56:14:57.235] 
+[INFO ] [56:14:57.235] Controls:
+[INFO ] [56:14:57.235]   WASD      - Move camera
+[INFO ] [56:14:57.235]   Mouse     - Look around (click to capture)
+[INFO ] [56:14:57.235]   Shift     - Speed boost / Run
+[INFO ] [56:14:57.235]   E/Space   - Move up / Jump
+[INFO ] [56:14:57.235]   Q/Ctrl    - Move down
+[INFO ] [56:14:57.235]   F1        - Toggle debug overlay
+[INFO ] [56:14:57.235]   F2        - Toggle wireframe mode
+[INFO ] [56:14:57.235]   F3        - Toggle render path
+[INFO ] [56:14:57.235]   F4        - Toggle depth visualization
+[INFO ] [56:14:57.235]   F5        - Toggle normal visualization
+[INFO ] [56:14:57.235]   F6        - Toggle mip level heat map
+[INFO ] [56:14:57.235]   F7        - Toggle benchmark mode
+[INFO ] [56:14:57.235]   F8        - Toggle controller (free-fly/character)
+[INFO ] [56:14:57.235]   F9        - Toggle uncapped/VSync presentation
+[INFO ] [56:14:57.235]   Escape    - Release mouse / Exit
+[INFO ] [56:14:57.235]   Wheel     - Select throwable object
+[INFO ] [56:14:57.235]   Left click- Capture mouse / throw selected object
+[INFO ] [56:14:57.235]   Right click- Throw 128 selected objects
+[INFO ] [56:14:57.235] 
+[INFO ] [56:14:57.241] Shutting down application...
+[INFO ] [56:14:57.250] Application shutdown complete
+[       OK ] ApplicationGPUTest.DISABLED_PhysicsAdmissionWaitDoesNotAcquireSurface (1543 ms)
+[----------] 1 test from ApplicationGPUTest (1544 ms total)
+
+[----------] 4 tests from ApplicationDayNightTest
+[ RUN      ] ApplicationDayNightTest.PartialDisableImportRebuildsShadowsOnCommit
+[       OK ] ApplicationDayNightTest.PartialDisableImportRebuildsShadowsOnCommit (0 ms)
+[ RUN      ] ApplicationDayNightTest.ManualLightingPersistsEvenWhenTimeWasHeld
+[       OK ] ApplicationDayNightTest.ManualLightingPersistsEvenWhenTimeWasHeld (0 ms)
+[ RUN      ] ApplicationDayNightTest.PauseResumeAndMidnightKeepClockAndLightingTogether
+[       OK ] ApplicationDayNightTest.PauseResumeAndMidnightKeepClockAndLightingTogether (0 ms)
+[ RUN      ] ApplicationDayNightTest.WaterAndFogDensityEditsKeepTheCycleRunning
+[       OK ] ApplicationDayNightTest.WaterAndFogDensityEditsKeepTheCycleRunning (0 ms)
+[----------] 4 tests from ApplicationDayNightTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 21 tests from 5 test suites ran. (1544 ms total)
+[  PASSED  ] 21 tests.

@@ -1,0 +1,150 @@
+[  FAILED  ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps (0 ms)
+[  FAILED  ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh (342 ms)
+[  FAILED  ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (1448 ms)
+[  FAILED  ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget (146 ms)
+[  FAILED  ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically (175 ms)
+[  FAILED  ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation (198 ms)
+
+[ RUN      ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps
+tests/test_salvage_asset_fixture.cpp:321: Failure
+Expected equality of these values:
+  SalvageAssetFixture::fixedGpuRequestedBytes
+    Which is: 138840
+  138616u
+    Which is: 138616
+
+tests/test_salvage_asset_fixture.cpp:322: Failure
+Expected equality of these values:
+
+
+tests/test_salvage_asset_fixture.cpp:322: Failure
+Expected equality of these values:
+  SalvageAssetFixture::fixedGpuRequestedBytes
+    Which is: 138840
+  119336u+16384u+2896u
+    Which is: 138616
+
+[  FAILED  ] SalvageFixtureAccounting.SurfaceAndRopeChargeBothFullDrawPathsWithinUnchangedOwnerCaps (0 ms)
+[----------] 1 test from SalvageFixtureAccounting (0 ms total)
+
+[ RUN      ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh
+tests/test_salvage_asset_fixture.cpp:444: Failure
+Expected equality of these values:
+  SalvageAssetFixture::fixedGpuRequestedBytes
+    Which is: 138840
+  138616u
+    Which is: 138616
+
+[  FAILED  ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh (342 ms)
+[----------] 3 tests from CoveDockMarkings (1010 ms total)
+
+[32m[INFO ] [00:22:35.194] [GPU] Headless GPU context initialized successfully[0m
+tests/test_salvage_asset_fixture.cpp:966: Failure
+Expected equality of these values:
+  requested
+    Which is: 9740904
+  9740584u
+    Which is: 9740584
+
+[90m[TRACE] [00:22:36.460] Created buffer 'mesh_path_uniforms': 160 bytes[0m
+[90m[TRACE] [00:22:36.460] Created buffer 'mesh_path_draw_instances': 65536 bytes[0m
+
+[90m[TRACE] [00:22:36.560] Created bind group 'mesh_path_material_bind_group' with 15 entries[0m
+tests/test_salvage_asset_fixture.cpp:987: Failure
+Expected equality of these values:
+  reserved
+    Which is: 11411480
+  9748344u+robot->prefab.counts.gpuBytes+environment->gpuBytes+33328u
+    Which is: 11411160
+
+[90m[TRACE] [00:22:36.574] Created texture '': 64x64, 1 mip levels[0m
+[90m[TRACE] [00:22:36.574] Created texture '': 64x64, 1 mip levels[0m
+
+[90m[TRACE] [00:22:36.576] Created bind group 'environment_bake_group' with 4 entries[0m
+tests/test_salvage_asset_fixture.cpp:1012: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 103
+  153u
+    Which is: 153
+
+[90m[TRACE] [00:22:36.578] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1037: Failure
+
+[90m[TRACE] [00:22:36.578] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1037: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 105
+  219u
+    Which is: 219
+
+[90m[TRACE] [00:22:36.583] Created bind group 'mesh_live_body' with 5 entries[0m
+[90m[TRACE] [00:22:36.585] Created bind group 'mesh_live_body' with 5 entries[0m
+
+[90m[TRACE] [00:22:36.997] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1140: Failure
+Expected equality of these values:
+  fixture.stats().lastEncodedDraws
+    Which is: 1
+  SalvageAssetFixture::maximumPlacements
+    Which is: 99
+
+[  FAILED  ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget (146 ms)
+[ RUN      ] FixtureGPU.PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime
+
+[90m[TRACE] [00:22:37.308] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1188: Failure
+Expected equality of these values:
+  fixture.stats().lastEncodedDraws
+    Which is: 2
+  527u
+    Which is: 527
+
+[90m[TRACE] [00:22:37.313] Created bind group 'mesh_live_body' with 5 entries[0m
+[  FAILED  ] FixtureGPU.SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically (175 ms)
+
+[90m[TRACE] [00:22:38.571] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+Expected: (drawCount) > (1u), actual: 1 vs 1
+
+[90m[TRACE] [00:22:38.573] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+Expected: (drawCount) > (1u), actual: 1 vs 1
+
+[90m[TRACE] [00:22:38.574] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+
+[90m[TRACE] [00:22:38.573] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+Expected: (drawCount) > (1u), actual: 1 vs 1
+
+[90m[TRACE] [00:22:38.574] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+Expected: (drawCount) > (1u), actual: 1 vs 1
+
+tests/test_salvage_asset_fixture.cpp:1385: Failure
+Expected equality of these values:
+
+[90m[TRACE] [00:22:38.574] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1370: Failure
+Expected: (drawCount) > (1u), actual: 1 vs 1
+
+tests/test_salvage_asset_fixture.cpp:1385: Failure
+Expected equality of these values:
+  SalvageAssetFixture::fixedGpuRequestedBytes
+    Which is: 138840
+  138616u
+    Which is: 138616
+
+
+tests/test_salvage_asset_fixture.cpp:1385: Failure
+Expected equality of these values:
+  SalvageAssetFixture::fixedGpuRequestedBytes
+    Which is: 138840
+  138616u
+    Which is: 138616
+
+[  FAILED  ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation (198 ms)
+[ RUN      ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload
+

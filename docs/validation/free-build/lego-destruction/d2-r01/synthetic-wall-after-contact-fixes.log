@@ -1,0 +1,56 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:imported_stack (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:imported_stack (1 packages loaded, 74 targets configured).
+[396 / 397] Testing //tests:imported_stack; 1s linux-sandbox
+[396 / 397] Testing //tests:imported_stack; 10s linux-sandbox
+FAIL: //tests:imported_stack (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/imported_stack/test.log)
+[396 / 397] 1 / 1 tests, 1 failed; Testing //tests:imported_stack; 22s linux-sandbox
+INFO: From Testing //tests:imported_stack:
+==================== Test output for //tests:imported_stack:
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [60:33:41.241] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [60:33:41.241] [GPU]   Vendor: radv
+[INFO ] [60:33:41.241] [GPU]   Backend: Vulkan
+[INFO ] [60:33:41.241] [GPU]   Type: Integrated GPU
+[INFO ] [60:33:41.243] [GPU] Headless GPU context initialized successfully
+[INFO ] [60:33:49.324] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+tests/test_imported_stack.cpp:185: Failure
+Value of: stack.ready()
+  Actual: false
+Expected: true
+Synthetic floor only; phase=4  dynamic=29 awake=25 maxLinear=9.00602 maxAngular=1.473
+
+[WARN ] [60:34:03.627] Abandoning undrained authored shape resources during world shutdown
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (22453 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (22453 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (22453 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:imported_stack up-to-date:
+  bazel-bin/tests/imported_stack
+INFO: Elapsed time: 24.342s, Critical Path: 22.57s
+INFO: 2 processes: 395 action cache hit, 1 internal, 1 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 2 total actions
+//tests:imported_stack                                                   FAILED in 22.6s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/imported_stack/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

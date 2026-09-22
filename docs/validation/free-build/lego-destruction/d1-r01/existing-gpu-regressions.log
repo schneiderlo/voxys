@@ -1,0 +1,521 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gpu_physics_regressions
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = GpuDynamicSolver*.*:*GpuDynamicColoringTest*:*GpuIslandTest*:*GpuIslandGlobalTest*:GpuPhysicsTest.AppliesOrderedCommandsClampsSpeedsAndCompactsSleep:GpuPhysicsTest.VelocityCommandsWakeSleepingBodies:GpuPhysicsTest.SleepClearsSameTickForceInsteadOfDeferringIt:GpuPhysicsTest.KinematicTargetsCarryVelocityIntoContactsThenStop:GpuPhysicsTest.LastSameTickKinematicTargetUsesWholeTickVelocity:GpuPhysicsTest.AllPrimitiveShapesSettleOnFlatTerrain:GpuPhysicsTest.ThrownTerrainBodyEventuallySleeps:GpuPhysicsTest.RestingTerrainPileEventuallySleeps:GpuPhysicsTest.SettlesOnTerrainAcrossSectorBoundary:GpuPhysicsTest.SphereSlidesAcrossCanonicalDiagonalWithoutSnagging:GpuPhysicsTest.MatchesJoltSphereTerrainBounceTrajectory:GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries:GpuPhysicsTest.UsesGlobalSolverAboveSerialWorldLimit:GpuPhysicsTest.WaterKeepsBodyAfloatAndDryBodyFallsToSeabed:GpuPhysicsTest.ShorelineBodyHasTerrainAndWaterContact:GpuPhysicsTest.CompliantDistanceAttachmentAbsorbsImpactWithoutAddingEnergy
+[==========] Running 28 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 16 tests from GpuPhysicsTest
+[ RUN      ] GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:47:01.214] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:47:01.214] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:47:01.214] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:47:01.214] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:47:01.216] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:47:19.295] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries (18246 ms)
+[ RUN      ] GpuPhysicsTest.MatchesJoltSphereTerrainBounceTrajectory
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:47:19.427] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:47:19.427] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:47:19.427] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:47:19.427] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:47:19.429] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:47:36.720] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:47:36.854] WebGPU physics initialized: 64 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.MatchesJoltSphereTerrainBounceTrajectory (18772 ms)
+[ RUN      ] GpuPhysicsTest.UsesGlobalSolverAboveSerialWorldLimit
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:47:38.196] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:47:38.196] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:47:38.196] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:47:38.196] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:47:38.198] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:47:55.101] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.UsesGlobalSolverAboveSerialWorldLimit (17028 ms)
+[ RUN      ] GpuPhysicsTest.AppliesOrderedCommandsClampsSpeedsAndCompactsSleep
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:47:55.228] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:47:55.228] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:47:55.228] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:47:55.228] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:47:55.230] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:48:12.000] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.AppliesOrderedCommandsClampsSpeedsAndCompactsSleep (16925 ms)
+[ RUN      ] GpuPhysicsTest.VelocityCommandsWakeSleepingBodies
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:48:12.151] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:48:12.151] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:48:12.151] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:48:12.151] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:48:12.153] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:48:28.482] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.VelocityCommandsWakeSleepingBodies (16458 ms)
+[ RUN      ] GpuPhysicsTest.SleepClearsSameTickForceInsteadOfDeferringIt
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:48:28.610] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:48:28.610] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:48:28.610] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:48:28.610] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:48:28.612] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:48:45.353] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.SleepClearsSameTickForceInsteadOfDeferringIt (16910 ms)
+[ RUN      ] GpuPhysicsTest.KinematicTargetsCarryVelocityIntoContactsThenStop
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:48:45.521] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:48:45.521] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:48:45.521] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:48:45.521] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:48:45.523] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:49:02.202] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.KinematicTargetsCarryVelocityIntoContactsThenStop (16814 ms)
+[ RUN      ] GpuPhysicsTest.LastSameTickKinematicTargetUsesWholeTickVelocity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:49:02.338] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:49:02.338] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:49:02.338] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:49:02.338] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:49:02.340] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:49:20.191] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] GpuPhysicsTest.LastSameTickKinematicTargetUsesWholeTickVelocity (18063 ms)
+[ RUN      ] GpuPhysicsTest.AllPrimitiveShapesSettleOnFlatTerrain
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:49:20.404] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:49:20.404] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:49:20.404] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:49:20.404] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:49:20.407] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:49:34.983] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:49:35.179] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.227] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.234] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.270] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.284] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.286] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.322] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.329] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.367] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.377] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.378] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.381] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.385] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.420] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.427] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:35.462] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.AllPrimitiveShapesSettleOnFlatTerrain (15249 ms)
+[ RUN      ] GpuPhysicsTest.ThrownTerrainBodyEventuallySleeps
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:49:35.648] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:49:35.648] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:49:35.648] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:49:35.648] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:49:35.649] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:49:48.187] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:49:48.293] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.306] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.316] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.324] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.337] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.346] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.354] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.389] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.395] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.442] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.454] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.456] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.458] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.460] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.462] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.464] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.512] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.532] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.535] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.537] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.540] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.543] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.545] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.549] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.552] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.556] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.607] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.618] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.623] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.626] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.628] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.632] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.637] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.639] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.643] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.686] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.695] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.698] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.700] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.741] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.756] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.758] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.761] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.763] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.766] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.768] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.770] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.772] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.774] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.806] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.811] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.813] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.815] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:49:48.852] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.ThrownTerrainBodyEventuallySleeps (13494 ms)
+[ RUN      ] GpuPhysicsTest.RestingTerrainPileEventuallySleeps
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:49:49.147] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:49:49.147] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:49:49.147] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:49:49.147] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:49:49.148] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:50:02.670] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:50:02.782] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.793] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.811] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.820] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.827] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.838] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.848] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.856] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.874] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.884] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.895] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.905] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.909] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.912] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.930] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.941] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.952] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.954] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.956] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.966] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.971] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:02.985] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.025] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.034] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.037] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.040] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.042] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.045] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.047] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.049] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.088] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.094] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.097] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.100] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.102] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.104] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.106] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.142] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.154] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.156] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.158] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.160] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.195] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.201] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.205] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.207] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.210] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.212] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.214] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.217] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.254] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.258] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.260] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.262] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.265] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.268] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.270] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.273] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:03.310] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.RestingTerrainPileEventuallySleeps (14634 ms)
+[ RUN      ] GpuPhysicsTest.SettlesOnTerrainAcrossSectorBoundary
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:50:03.783] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:50:03.783] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:50:03.783] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:50:03.783] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:50:03.786] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:50:18.560] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:50:18.614] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.630] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.641] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.646] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.657] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.670] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.676] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.687] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.693] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.695] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.706] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.711] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:18.720] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.SettlesOnTerrainAcrossSectorBoundary (15141 ms)
+[ RUN      ] GpuPhysicsTest.SphereSlidesAcrossCanonicalDiagonalWithoutSnagging
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:50:18.917] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:50:18.917] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:50:18.917] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:50:18.917] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:50:18.919] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:50:30.439] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:50:30.536] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.557] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.568] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.575] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.585] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.597] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.609] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.626] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.638] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.651] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.658] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.660] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.662] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.674] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.687] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.690] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.692] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.702] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.705] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:30.716] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.SphereSlidesAcrossCanonicalDiagonalWithoutSnagging (12089 ms)
+[ RUN      ] GpuPhysicsTest.WaterKeepsBodyAfloatAndDryBodyFallsToSeabed
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:50:31.007] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:50:31.007] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:50:31.007] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:50:31.007] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:50:31.008] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:50:41.914] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:50:42.001] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.010] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.020] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.033] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.042] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.051] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.056] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.065] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.073] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.083] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.092] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.094] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.105] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.114] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.123] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.129] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.135] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.137] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.143] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.144] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.152] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.160] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.167] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.174] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.181] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.184] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.187] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.188] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.190] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.193] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.195] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.204] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.214] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.246] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.359] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.362] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.365] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.368] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.370] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.380] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.383] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.386] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.389] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.391] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.393] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.395] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.397] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.400] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.402] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.406] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.409] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.411] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.413] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.415] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.417] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.418] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.420] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:42.455] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.WaterKeepsBodyAfloatAndDryBodyFallsToSeabed (11811 ms)
+[ RUN      ] GpuPhysicsTest.ShorelineBodyHasTerrainAndWaterContact
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:50:42.819] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:50:42.819] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:50:42.819] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:50:42.819] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:50:42.821] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:50:53.427] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:50:53.520] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.531] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.541] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.554] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.565] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.576] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.592] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.602] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.612] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.615] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.617] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.619] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.630] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.640] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.652] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.654] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.656] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.666] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.675] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.677] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.688] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.693] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.695] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.697] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.700] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.702] GPU physics telemetry readback ring is full[0m
+[33m[WARN ] [48:50:53.708] GPU physics telemetry readback ring is full[0m
+[       OK ] GpuPhysicsTest.ShorelineBodyHasTerrainAndWaterContact (11195 ms)
+[ RUN      ] GpuPhysicsTest.CompliantDistanceAttachmentAbsorbsImpactWithoutAddingEnergy
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:50:54.018] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:50:54.019] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:50:54.019] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:50:54.019] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:50:54.020] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [48:51:04.990] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [48:51:15.928] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [48:51:15.928] Discarding invalid GPU distance attachment[0m
+[33m[WARN ] [48:51:15.928] Discarding invalid GPU distance attachment[0m
+[33m[WARN ] [48:51:15.928] Discarding invalid GPU distance attachment[0m
+[33m[WARN ] [48:51:15.928] Discarding invalid GPU distance attachment[0m
+[       OK ] GpuPhysicsTest.CompliantDistanceAttachmentAbsorbsImpactWithoutAddingEnergy (22762 ms)
+[----------] 16 tests from GpuPhysicsTest (255599 ms total)
+
+[----------] 1 test from GpuDynamicSolverDifferentialTest
+[ RUN      ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:16.783] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:16.783] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:16.783] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:16.783] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:16.785] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (619 ms)
+[----------] 1 test from GpuDynamicSolverDifferentialTest (619 ms total)
+
+[----------] 3 tests from GpuDynamicSolverTest
+[ RUN      ] GpuDynamicSolverTest.SoftStepSeparatesAndFrictionSlowsContact
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:17.393] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:17.393] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:17.393] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:17.393] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:17.395] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.SoftStepSeparatesAndFrictionSlowsContact (363 ms)
+[ RUN      ] GpuDynamicSolverTest.SmallIslandFastPathMatchesGlobalSolver
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:17.757] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:17.757] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:17.757] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:17.757] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:17.758] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.SmallIslandFastPathMatchesGlobalSolver (1085 ms)
+[ RUN      ] GpuDynamicSolverTest.BoxTowerMixedPileAndAvalancheStayBounded
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:18.842] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:18.842] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:18.842] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:18.842] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:18.844] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverTest.BoxTowerMixedPileAndAvalancheStayBounded (383 ms)
+[----------] 3 tests from GpuDynamicSolverTest (1832 ms total)
+
+[----------] 2 tests from GpuIslandGlobalTest
+[ RUN      ] GpuIslandGlobalTest.LogarithmicRoundsConvergeLongChain
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:19.242] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:19.242] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:19.242] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:19.242] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:19.244] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslandGlobalTest.LogarithmicRoundsConvergeLongChain (142 ms)
+[ RUN      ] GpuIslandGlobalTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:19.368] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:19.368] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:19.368] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:19.368] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:19.370] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuIslandGlobalTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (143 ms)
+[----------] 2 tests from GpuIslandGlobalTest (285 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuDynamicColoringTest
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:19.510] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:19.510] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:19.510] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:19.510] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:19.512] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/0 (393 ms)
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:19.903] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:19.903] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:19.903] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:19.903] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:19.904] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/1 (470 ms)
+[ RUN      ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:20.375] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:20.375] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:20.375] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:20.375] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:20.376] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuDynamicColoringTest.ColorsConflictsAndGathersOverflowDeterministically/2 (449 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuDynamicColoringTest (1313 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuIslandTest
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/0
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:20.825] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:20.825] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:20.825] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:20.825] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:20.827] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/0 (379 ms)
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/1
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:21.204] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:21.204] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:21.204] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:21.204] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:21.205] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/1 (385 ms)
+[ RUN      ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/2
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [48:51:21.592] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [48:51:21.592] [GPU]   Vendor: radv[0m
+[32m[INFO ] [48:51:21.592] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [48:51:21.592] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [48:51:21.594] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuIslandTest.CompactsSleepsWakesAndMaintainsSleepingGrid/2 (406 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuIslandTest (1172 ms total)
+
+[----------] Global test environment tear-down
+[==========] 28 tests from 6 test suites ran. (260823 ms total)
+[  PASSED  ] 28 tests.

@@ -1,0 +1,62 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_stack
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallFlatFloorGpu.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:05:04.106] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:05:04.106] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:05:04.106] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:05:04.106] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:05:04.108] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:05:12.709] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+tests/test_imported_stack.cpp:210: Failure
+Value of: stack.ready()
+  Actual: false
+Expected: true
+Synthetic floor only; phase=4  dynamic=29 awake=28 maxLinear=0.126991 maxAngular=0.147701
+ body=11 awake=1 position=13.0739,13.4825,2.47179 speed=0.0730403 angular=0.00585238 velocity=-0.0274893,0.0661017,-0.014484 omega=0.00557353,-0.000752554,0.00161856 orientation(wxyz)=0.999899,0.00244999,0.0139824,0.00116217
+ body=12 awake=1 position=12.0513,11.8965,2.46606 speed=0.0430834 angular=0.0110165 velocity=0.000993255,0.0399097,-0.0161991 omega=0.00951928,-0.00240291,-0.0049972 orientation(wxyz)=0.999999,0.000629232,-0.00105818,0.000662619
+ body=13 awake=1 position=14.6078,15.4327,2.41878 speed=0.0768473 angular=0.00775207 velocity=-0.034018,0.0680801,-0.0106481 omega=-0.00187931,-0.00306939,0.00686598 orientation(wxyz)=0.498265,-0.495386,-0.501647,-0.504654
+ body=14 awake=1 position=14.573,13.4583,2.44469 speed=0.0724746 angular=0.00822946 velocity=-0.020517,0.0686148,-0.0111192 omega=0.000525418,0.00126617,0.00811448 orientation(wxyz)=0.491956,0.507694,0.506384,0.493762
+ body=15 awake=1 position=12.5545,14.6501,2.50692 speed=0.0746397 angular=0.0113637 velocity=-0.0239988,0.0705579,-0.0040895 omega=0.00743681,-0.00553439,0.00657245 orientation(wxyz)=0.484291,0.514369,0.510869,0.489796
+ body=16 awake=1 position=14.5773,10.6741,2.45015 speed=0.032008 angular=0.0160872 velocity=-0.00640191,0.0186159,-0.0252384 omega=0.0134435,-0.00300921,-0.00830755 orientation(wxyz)=0.499033,0.499157,0.501257,0.50055
+ body=17 awake=1 position=1.5223,15.0593,2.44136 speed=0.00879286 angular=0.0443463 velocity=0.00593604,0.00619785,-0.00191428 omega=0.0439741,-0.00409048,0.00401752 orientation(wxyz)=0.706348,0.707858,0.0024624,0.00182635
+ body=18 awake=1 position=4.80824,13.6,2.46048 speed=0.00415888 angular=0.0031127 velocity=-0.00312885,-0.00268735,0.000533629 omega=-0.000967234,-0.00120904,-0.0027003 orientation(wxyz)=0.70704,-0.000127212,0.000119959,-0.707174
+ body=19 awake=1 position=14.051,11.8992,2.43659 speed=0.0318815 angular=0.00218159 velocity=-0.00574885,0.0295893,-0.0103855 omega=0.00161317,-0.000653846,-0.0013151 orientation(wxyz)=0.999999,0.00020312,-0.00103238,-7.15542e-05
+ body=20 awake=1 position=6.58752,13.0546,2.46905 speed=0.0815381 angular=0.0364884 velocity=0.0138494,0.0768506,-0.0234656 omega=-0.0293943,-0.0122787,-0.0177936 orientation(wxyz)=0.509013,0.495189,0.492642,0.502989
+ body=21 awake=1 position=6.56361,11.8707,2.47036 speed=0.0501212 angular=0.0125094 velocity=0.0163457,0.0401996,0.0250787 omega=0.00261727,0.0103057,-0.00659001 orientation(wxyz)=0.500283,0.4997,0.500674,0.499341
+ body=22 awake=1 position=7.16535,15.8676,2.47943 speed=0.0460097 angular=0.043232 velocity=0.00139705,0.0392673,0.0239379 omega=0.0397064,-0.00913462,0.0144555 orientation(wxyz)=0.999995,-0.00157499,0.00249304,-0.00144483
+ body=23 awake=1 position=12.5939,17.0479,2.54063 speed=0.111311 angular=0.0253831 velocity=-0.0772508,0.0796078,-0.00922074 omega=-0.00501073,0.000419009,0.0248801 orientation(wxyz)=0.484049,0.51477,0.512294,0.488121
+ body=24 awake=1 position=4.73032,16.7077,2.46448 speed=0.0590073 angular=0.0343066 velocity=3.12531e-05,0.0352285,0.0473373 omega=0.0339859,-0.00162262,-0.00438924 orientation(wxyz)=0.990314,0.000162137,-0.00874985,0.13857
+ body=25 awake=1 position=13.5552,12.6587,2.45205 speed=0.0403258 angular=0.0053564 velocity=-0.00386227,0.0400465,-0.00274431 omega=0.000509013,0.00141444,-0.00514114 orientation(wxyz)=0.706689,0.707372,0.0106156,-0.0101684
+ body=26 awake=1 position=13.0706,10.6997,2.45215 speed=0.0320305 angular=0.00501684 velocity=-0.00717011,0.0269711,-0.0157195 omega=0.00489594,-0.000655308,0.000876958 orientation(wxyz)=0.999989,-0.000433398,0.00472741,-5.05967e-05
+ body=27 awake=1 position=7.05164,10.6989,2.47369 speed=0.036873 angular=0.0198504 velocity=-0.000377516,0.0332534,0.0159276 omega=-0.00015514,0.0155649,-0.0123187 orientation(wxyz)=0.999913,-0.000822197,0.013202,9.23222e-05
+ body=29 awake=1 position=14.6096,15.8291,2.41851 speed=0.0951618 angular=0.0281283 velocity=-0.0412703,0.0848968,-0.0120442 omega=-0.00175519,0.00340209,0.0278666 orientation(wxyz)=0.497653,-0.496682,-0.50203,-0.503602
+ body=30 awake=1 position=1.57502,14.2684,2.48107 speed=0.00471751 angular=0.00139653 velocity=0.00464013,0.000536265,-0.000660655 omega=0.000616053,0.000538974,0.0011315 orientation(wxyz)=0.707387,0.706827,0.000615622,0.000199662
+ body=31 awake=1 position=7.14027,14.6708,2.47223 speed=0.0568958 angular=0.0284186 velocity=0.0205404,0.0497111,-0.0185478 omega=0.0242713,-0.0110879,0.00977629 orientation(wxyz)=0.999986,-0.00159877,0.00393225,-0.00318367
+ body=32 awake=1 position=5.83494,13.6934,2.47707 speed=0.100747 angular=0.147701 velocity=-0.0418003,-0.0914637,0.00609552 omega=-0.00243359,0.00415017,-0.147623 orientation(wxyz)=0.702144,-0.0166951,-0.711244,-0.0291146
+ body=33 awake=1 position=7.11271,13.8362,2.48902 speed=0.0682956 angular=0.0279892 velocity=0.0358212,0.0430532,-0.0390839 omega=-0.0011958,0.00473264,0.0275603 orientation(wxyz)=0.709855,0.704322,-0.00609203,0.000557051
+ body=34 awake=1 position=8.12048,11.8946,2.45981 speed=0.0241319 angular=0.0199318 velocity=0.0149919,0.0189064,-0.000374972 omega=-6.77686e-05,0.0145735,-0.0135972 orientation(wxyz)=0.999058,-0.00217188,0.000808544,-0.043341
+ body=35 awake=1 position=13.0732,15.8762,2.50141 speed=0.099974 angular=0.027542 velocity=-0.0423331,0.0903617,-0.00612097 omega=-0.00189845,-0.00111314,0.027454 orientation(wxyz)=0.999488,0.00329396,0.0317887,-0.0013375
+ body=36 awake=1 position=1.29856,15.9607,2.41926 speed=0.0481198 angular=0.0337734 velocity=-0.00980667,0.0431908,0.0188122 omega=0.0326865,0.00251414,0.00811904 orientation(wxyz)=0.433223,0.427358,0.556859,0.565324
+ body=37 awake=1 position=14.0901,14.6817,2.4401 speed=0.0869242 angular=0.00688068 velocity=-0.0320982,0.0803457,-0.00837158 omega=0.000504565,5.38976e-05,0.00686194 orientation(wxyz)=0.999957,0.00300864,0.00873594,5.92813e-05
+ body=38 awake=1 position=2.0494,14.6615,2.46047 speed=0.00611869 angular=0.00258386 velocity=0.00424109,0.00438306,0.00049017 omega=0.000609165,0.00248481,-0.000361893 orientation(wxyz)=0.707293,0.706918,0.0013021,0.000715082
+ body=39 awake=0 position=-0.762796,10.4999,2.48078 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=-0.00761064,0.00768527,0.707058,0.707072
+ body=40 awake=1 position=14.0951,17.0736,2.46588 speed=0.126991 angular=0.0151016 velocity=-0.0662411,0.108046,-0.0080591 omega=-0.00265061,-0.000916789,0.0148389 orientation(wxyz)=0.99962,0.00317233,0.0273513,-0.00149473
+
+[33m[WARN ] [62:05:29.071] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (25034 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (25034 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (25034 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+
+ 1 FAILED TEST

@@ -1,0 +1,62 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:imported_stack
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = ImportedWallFlatFloorGpu.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ImportedWallFlatFloorGpu
+[ RUN      ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [62:06:52.874] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [62:06:52.874] [GPU]   Vendor: radv[0m
+[32m[INFO ] [62:06:52.874] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [62:06:52.874] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [62:06:52.876] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [62:07:01.431] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+tests/test_imported_stack.cpp:210: Failure
+Value of: stack.ready()
+  Actual: false
+Expected: true
+Synthetic floor only; phase=4  dynamic=29 awake=14 maxLinear=0.0486288 maxAngular=0.0149443
+ body=11 awake=1 position=13.0979,13.4908,2.47985 speed=0.0186937 angular=0.00713726 velocity=0.0074389,0.00154432,0.0170801 omega=0.00122796,0.00363443,0.00601859 orientation(wxyz)=0.999974,0.00152236,0.0070995,-0.00012845
+ body=12 awake=1 position=12.0714,11.9017,2.4695 speed=0.0175923 angular=0.0121485 velocity=0.00826535,0.0141683,0.00635881 omega=0.00759575,0.000743307,-0.00945183 orientation(wxyz)=0.999998,0.000415072,0.00210479,4.2561e-05
+ body=13 awake=1 position=14.6154,15.4368,2.45571 speed=0.0307619 angular=0.0126965 velocity=-0.0121219,0.0198416,0.0201411 omega=0.00466999,0.0034888,0.0112792 orientation(wxyz)=0.497666,-0.496706,-0.502308,-0.503288
+ body=14 awake=1 position=14.5972,13.4625,2.45729 speed=0.022901 angular=0.0109601 velocity=0.00827026,0.0183139,0.0109844 omega=0.00341704,0.00308996,0.00994485 orientation(wxyz)=0.495958,0.5041,0.503185,0.496703
+ body=15 awake=1 position=12.5836,14.658,2.50624 speed=0.0269461 angular=0.0108832 velocity=-0.00824966,-0.0143187,0.021284 omega=0.00362255,0.00285486,0.00985753 orientation(wxyz)=0.494417,0.505817,0.5041,0.495565
+ body=16 awake=1 position=14.5914,10.6751,2.46203 speed=0.00275001 angular=0.00445858 velocity=-0.000208758,0.00129946,0.00241462 omega=0.00278889,0.00036364,-0.00345959 orientation(wxyz)=0.500416,0.499445,0.500416,0.499723
+ body=17 awake=0 position=1.62797,15.0657,2.45444 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.706525,0.70767,0.000379971,0.00509359
+ body=18 awake=0 position=4.81715,13.6,2.47302 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.707089,-0.000785571,0.000809523,-0.707124
+ body=19 awake=1 position=14.0718,11.9017,2.46666 speed=0.00989748 angular=0.00819903 velocity=0.0062289,0.00524951,0.00562169 omega=0.0060229,-0.00026856,-0.00555668 orientation(wxyz)=0.999999,0.000329053,0.00146082,-0.00011348
+ body=20 awake=0 position=6.58846,13.0691,2.46255 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.495005,0.505394,0.506597,0.492855
+ body=21 awake=0 position=6.58594,11.8738,2.46286 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.499303,0.501074,0.502191,0.497418
+ body=22 awake=0 position=7.1536,15.8923,2.46147 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.99999,0.000173293,0.00435801,-0.000270796
+ body=23 awake=1 position=12.6182,17.056,2.53237 speed=0.0486288 angular=0.0133334 velocity=-0.0349354,-0.0168964,0.0293051 omega=-0.00137463,0.00464224,0.0124233 orientation(wxyz)=0.491794,0.50978,0.505313,0.492871
+ body=24 awake=0 position=4.82393,16.7495,2.46031 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.989653,0.00161281,-0.0028092,0.143446
+ body=25 awake=1 position=13.5775,12.6621,2.46171 speed=0.0183315 angular=0.00559293 velocity=0.0119789,0.0105132,0.00905653 omega=0.00247554,-0.000282489,-0.00500727 orientation(wxyz)=0.70674,0.707436,0.00511198,-0.00520032
+ body=26 awake=1 position=13.0912,10.7019,2.46363 speed=0.00938188 angular=0.0091342 velocity=-0.000408399,0.00903982,-0.00247681 omega=0.00724118,-0.000285403,-0.00556034 orientation(wxyz)=0.999999,0.00034389,0.0014679,-9.84085e-05
+ body=27 awake=0 position=7.09528,10.7028,2.46413 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=1,-0.000205822,-0.000273175,-4.98154e-05
+ body=29 awake=1 position=14.6188,15.8315,2.45479 speed=0.0346762 angular=0.0120961 velocity=-0.0157047,0.0218881,0.0218337 omega=0.00137101,0.00343356,0.0115173 orientation(wxyz)=0.498478,-0.497612,-0.501467,-0.502427
+ body=30 awake=0 position=1.58049,14.2705,2.46305 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.706293,0.707918,0.00174035,3.3275e-05
+ body=31 awake=0 position=7.13186,14.6927,2.45616 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.999993,0.000609138,0.00373252,-0.000467954
+ body=32 awake=0 position=5.86037,14.3054,2.52307 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.716789,0.00108367,-0.697149,-0.0139656
+ body=33 awake=0 position=7.10923,13.8569,2.45669 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.707564,0.706509,0.00912574,-0.0106883
+ body=34 awake=0 position=8.18844,11.8916,2.46463 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.997811,-0.00012756,-9.05852e-05,-0.066135
+ body=35 awake=1 position=13.0921,15.8857,2.50525 speed=0.0338292 angular=0.0120927 velocity=-0.0210046,-0.00888025,0.0249873 omega=0.00380173,0.00327542,0.0110024 orientation(wxyz)=0.999756,0.0014163,0.022023,-0.000145636
+ body=36 awake=0 position=1.40724,15.9774,2.43667 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.424131,0.422339,0.564693,0.568212
+ body=37 awake=1 position=14.108,14.6861,2.46291 speed=0.0197223 angular=0.0149443 velocity=-0.00347531,0.00960422,0.0168716 omega=0.00462484,0.00329156,0.0138242 orientation(wxyz)=0.999977,0.00135412,0.00666337,6.3819e-05
+ body=38 awake=0 position=2.07649,14.6672,2.45679 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.707172,0.706913,0.011278,-0.00734282
+ body=39 awake=0 position=0.263567,10.6795,2.64723 speed=0 angular=0 velocity=0,0,0 omega=0,0,0 orientation(wxyz)=0.506993,0.492913,0.492908,0.506987
+ body=40 awake=1 position=14.1159,17.0834,2.48536 speed=0.0421935 angular=0.0130745 velocity=-0.0349777,0.00362316,0.0233179 omega=-0.00152502,0.00352903,0.0124965 orientation(wxyz)=0.999869,0.00442767,0.0152226,-0.00337227
+
+[33m[WARN ] [62:07:16.057] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor (23260 ms)
+[----------] 1 test from ImportedWallFlatFloorGpu (23260 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (23260 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ImportedWallFlatFloorGpu.ActualSourceWallSettlesOnSyntheticFlatFloor
+
+ 1 FAILED TEST

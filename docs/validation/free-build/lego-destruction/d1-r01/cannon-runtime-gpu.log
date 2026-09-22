@@ -1,0 +1,19 @@
+Running main() from gmock_main.cc
+Note: Google Test filter = FreeBuildRuntimeIntegration.CannonInputAndFullWorldGpuAdmission
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FreeBuildRuntimeIntegration
+[ RUN      ] FreeBuildRuntimeIntegration.CannonInputAndFullWorldGpuAdmission
+[32m[INFO ] [49:04:05.118] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [49:04:05.118] [GPU]   Vendor: radv[0m
+[32m[INFO ] [49:04:05.118] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [49:04:05.118] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [49:04:05.120] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [49:04:13.247] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [49:04:26.265] Abandoning undrained authored shape resources during world shutdown[0m
+[       OK ] FreeBuildRuntimeIntegration.CannonInputAndFullWorldGpuAdmission (21322 ms)
+[----------] 1 test from FreeBuildRuntimeIntegration (21322 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (21322 ms total)
+[  PASSED  ] 1 test.

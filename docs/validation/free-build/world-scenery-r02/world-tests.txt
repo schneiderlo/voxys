@@ -1,0 +1,86 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:adventure_world
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 27 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from AdventureWorld
+[ RUN      ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity
+[       OK ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity (0 ms)
+[----------] 1 test from AdventureWorld (0 ms total)
+
+[----------] 4 tests from AdventureSpatialQueries
+[ RUN      ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision
+[       OK ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision (0 ms)
+[ RUN      ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead
+[       OK ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead (0 ms)
+[ RUN      ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids
+[       OK ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids (0 ms)
+[ RUN      ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery
+[       OK ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery (0 ms)
+[----------] 4 tests from AdventureSpatialQueries (0 ms total)
+
+[----------] 6 tests from AdventurePlayer
+[ RUN      ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall
+[       OK ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall (1 ms)
+[ RUN      ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge
+[       OK ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge (1 ms)
+[ RUN      ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight
+[       OK ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight (0 ms)
+[ RUN      ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom
+[       OK ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom (2 ms)
+[ RUN      ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic
+[       OK ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic (1 ms)
+[ RUN      ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim
+[       OK ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim (0 ms)
+[----------] 6 tests from AdventurePlayer (6 ms total)
+
+[----------] 1 test from AdventureInput
+[ RUN      ] AdventureInput.ControllerMatchesHudAndPlacementCannotAlsoJump
+[       OK ] AdventureInput.ControllerMatchesHudAndPlacementCannotAlsoJump (0 ms)
+[----------] 1 test from AdventureInput (0 ms total)
+
+[----------] 9 tests from BuilderMotorbike
+[ RUN      ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount
+[       OK ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount (15 ms)
+[ RUN      ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof
+[       OK ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof (31 ms)
+[ RUN      ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle
+[       OK ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle (0 ms)
+[ RUN      ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds
+[       OK ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds (27 ms)
+[ RUN      ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps
+[       OK ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps (30 ms)
+[ RUN      ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping
+[       OK ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping (19 ms)
+[ RUN      ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires
+[       OK ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires (14 ms)
+[ RUN      ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering
+[       OK ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering (147 ms)
+[ RUN      ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace
+[       OK ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace (11 ms)
+[----------] 9 tests from BuilderMotorbike (298 ms total)
+
+[----------] 6 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (80 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (40 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (36 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+Scenery admitted 186 props; kinds 67 49 38 30 1 1 
+[       OK ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (72 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (47 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+World scenery at 1200,-1120: 186 props
+World scenery at 1500,-1100: 93 props
+World scenery at 900,-1000: 215 props
+World scenery at -63,-895: 89 props
+[       OK ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (75 ms)
+[----------] 6 tests from CreativeScenery (353 ms total)
+
+[----------] Global test environment tear-down
+[==========] 27 tests from 6 test suites ran. (659 ms total)
+[  PASSED  ] 27 tests.
