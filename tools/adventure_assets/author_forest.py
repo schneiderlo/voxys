@@ -57,6 +57,20 @@ def leaf_detail(m, leaf, center, yaw, tilt, color):
     bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
     bm.to_mesh(ob.data);bm.free();ob.data.update()
 
+def distant_shell(m,name,x,y,z,rx,rz,rings,color):
+    # At the horizon a six-sided ring holds the same envelope with fewer
+    # vertices than the near eight-sided molded crown.
+    outline=((1,0),(.5,-1),(-.5,-1),
+             (-1,0),(-.5,1),(.5,1))
+    points=[(x+dx*rx*scale,y+height,z+dz*rz*scale)
+            for height,scale in rings for dx,dz in outline]
+    n=len(outline)
+    faces=[tuple(range(n-1,-1,-1)),
+           tuple(range((len(rings)-1)*n,len(rings)*n))]
+    faces.extend((j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i)
+                 for j in range(len(rings)-1) for i in range(n))
+    m.mesh(name,points,faces,color,0)
+
 def build(kind,lod,materials,leaf):
     m=Toy(f'{kind:02d}_{NAMES[kind]}',lod,materials)
     bottom,height,width,depth=SIZES[kind]
@@ -66,20 +80,20 @@ def build(kind,lod,materials,leaf):
     # Beyond ~700 units the entire tree is only a few pixels wide. Keep its
     # height and crown width, while removing overlapping interior lobes.
     if lod==3:
-        ring_shell(m,'Distant trunk',0,0,0,radius,radius,
-                   ((0,1.25),(trunk_top,.66)),bark,0)
+        distant_shell(m,'Distant trunk',0,0,0,radius,radius,
+                      ((0,1.25),(trunk_top,.66)),bark)
         if kind>=4:
-            for i in range(3):
-                t=i/3;y=bottom+(height-bottom-2.1)*t
+            for i in range(2):
+                t=i/2;y=bottom+(height-bottom-2.1)*t
                 r=width*(1-t*.88);d=depth*(1-t*.88)
-                h=height-y if i==2 else (height-y)*.55
-                ring_shell(m,'Distant needle bough',0,y,0,r,d,
-                           ((0,1),(.28*h,.84),(h,.13)),'needle' if i!=1 else 'shade',0)
+                h=height-y if i==1 else (height-y)*.55
+                distant_shell(m,'Distant needle bough',0,y,0,r,d,
+                              ((0,1),(.28*h,.84),(h,.13)),'needle' if i==0 else 'shade')
         else:
-            ring_shell(m,'Distant crown',0,bottom,0,width,depth,
-                       ((0,.58),(.30*(height-bottom),.92),
-                        (.65*(height-bottom),1),(height-bottom,.22)),
-                       'leaf',0)
+            distant_shell(m,'Distant crown',0,bottom,0,width,depth,
+                          ((0,.58),(.30*(height-bottom),.92),
+                           (.65*(height-bottom),1),(height-bottom,.22)),
+                          'leaf')
     else:
         # The nearer levels share tapered roots and branching detail.
         ring_shell(m,'Tapered trunk',0,0,0,radius,radius,

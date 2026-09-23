@@ -211,8 +211,8 @@ std::optional<moto::VmeshData> installedCreativePropsHorizonMesh(std::string& er
     return mesh;
 }
 std::optional<moto::VmeshData> installedForestMesh(uint32_t lod,std::string& error) {
-    constexpr std::array<size_t,4> sizes{6641643,310227,348059,94078};
-    constexpr std::array<std::string_view,4> digests{"212969ccf052eb54f281028a57c9f93d3d1b9fb1b70133a32a99782cc95a91f6","fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b","9ca6371dc633831762b198da312ceeb3e96707b5a53848ff10385544e06c7aed","834b2c76005026c466caa18fc152eb3aa5a804859c6ea6d49a7b629dd8d6e9e9"};
+    constexpr std::array<size_t,4> sizes{6641643,310227,348059,61198};
+    constexpr std::array<std::string_view,4> digests{"212969ccf052eb54f281028a57c9f93d3d1b9fb1b70133a32a99782cc95a91f6","fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b","9ca6371dc633831762b198da312ceeb3e96707b5a53848ff10385544e06c7aed","f9435df0496fde14b5d70f9f2e7b68b487a7ef56839415a1d8eeda88710d5083"};
     if(lod>=sizes.size())return {};
     std::ifstream file(installedPath("data/adventure/forest-r02/forest-lod"+std::to_string(lod)+".vmesh"),std::ios::binary);
     std::vector<uint8_t> bytes(sizes[lod]+1);
@@ -2302,11 +2302,19 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 ++forestVisited_;const auto& tree=forestDraws_[i];const auto& prop=tree.prop;
                 const auto delta=prop.feet-eye;const double squared=delta.x*delta.x+delta.z*delta.z;
                 if(squared>CreativeScenery::forestDrawDistance*CreativeScenery::forestDrawDistance)continue;
+                if(squared>400.*400.) {
+                    // Stable per-tree rank keeps the distant canopy coherent
+                    // while its projected detail shrinks with distance.
+                    const double distance=std::sqrt(squared);
+                    const double keep=std::max(.10,1.-(distance-400.)*.00060);
+                    const double rank=double((prop.id*2654435761u)>>8)*(1./16777216.);
+                    if(rank>keep)continue;
+                }
                 const bool shadow=squared<280.*280.;
                 if(!shadow && !visible(prop.minimum,prop.maximum))continue;
                 ++forestVisible_;
                 const double nearLimit=48.+double(prop.id%21u),horizonLimit=260.+double(prop.id%81u);
-                const double distantLimit=700.+double(prop.id%151u);
+                const double distantLimit=500.+double(prop.id%101u);
                 if(!shadow && squared>distantLimit*distantLimit)forestSelection_.push_back(i);
                 else {
                     auto instance=tree.instance;
