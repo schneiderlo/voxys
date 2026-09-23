@@ -1117,6 +1117,10 @@ int main(int argc, char* argv[]) {
     } else if (browserPhysicsBackend == 3) {
         appConfig.physicsBackend = voxy::physics::BackendType::WebGpuSoft;
     }
+    appConfig.gpuPhysicsSoftwareCompat = EM_ASM_INT({
+        return globalThis.voxyDeviceProfile?.adapter?.architecture?.toLowerCase()
+            === 'swiftshader' ? 1 : 0;
+    }) != 0;
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
     appConfig.gpuPhysicsBroadPhaseCellSize =

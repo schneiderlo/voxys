@@ -699,7 +699,9 @@ public:
         narrowConfig.speculativeDistance = config_.speculativeDistance;
         narrowConfig.recycleDistance = std::max(
             0.05f, config_.speculativeDistance * 2.0f);
-        narrowConfig.shaderPath = shaderFile("physics_narrow_phase.wgsl");
+        narrowConfig.shaderPath = config_.narrowPhaseShaderPath.empty()
+            ? shaderFile("physics_narrow_phase.wgsl")
+            : std::filesystem::path(config_.narrowPhaseShaderPath);
         narrowConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
         narrowConfig.shaderSources = config_.shaderSources;

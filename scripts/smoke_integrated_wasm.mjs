@@ -105,7 +105,7 @@ const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
 let logs='',spawnError,socket,chromeClosed=false;
 chrome.once('close',()=>{chromeClosed=true;});
 const browserErrors=[],consoleMessages=[];
-const diagnostics={allocationSemantics:'cumulative creation calls/requested buffer bytes; not live memory',allocations:{buffers:0,textures:0,bufferBytes:0},destroyCalls:[]};
+const diagnostics={allocationSemantics:'cumulative creation calls/requested buffer bytes; not live memory',allocations:{buffers:0,textures:0,bufferBytes:0,largeBuffers:[]},pipelineCalls:[],destroyCalls:[]};
 chrome.stderr.on('data',d=>logs+=d);chrome.on('error',e=>spawnError=e);
 const report={kind:'application startup, no FPS acceptance',experience:selected,gpuMode:process.env.VOXY_SMOKE_GPU||'hardware',flags:gpuFlags};
 let memoryObserver,memoryObserverClosed,memoryObserverError,memoryObserverStderr='';
@@ -247,8 +247,19 @@ try{
             const original=GPUDevice.prototype[name];
             GPUDevice.prototype[name]=function(descriptor){
                 if(name==='destroy')d.destroyCalls.push(new Error('GPUDevice.destroy').stack);
-                else if(name==='createBuffer'){d.allocations.buffers++;d.allocations.bufferBytes+=descriptor.size;}
+                else if(name==='createBuffer'){
+                    d.allocations.buffers++;d.allocations.bufferBytes+=descriptor.size;
+                    if(descriptor.size>=1024*1024)d.allocations.largeBuffers.push({label:descriptor.label||'',bytes:descriptor.size});
+                }
                 else d.allocations.textures++;
+                return original.apply(this,arguments);
+            };
+        }
+        for(const name of ['createShaderModule','createComputePipeline','createRenderPipeline']){
+            const original=GPUDevice.prototype[name];
+            GPUDevice.prototype[name]=function(descriptor){
+                d.pipelineCalls.push({name,label:descriptor?.label||'',time:performance.now()});
+                if(d.pipelineCalls.length>100)d.pipelineCalls.shift();
                 return original.apply(this,arguments);
             };
         }

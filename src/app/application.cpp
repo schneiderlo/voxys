@@ -4601,6 +4601,13 @@ bool Application::initCamera() {
         // contact patches in the Free Build world without expanding demos.
         if (config_.freeBuildEnabled) {
             physicsContext.gpu.authoredContactPatches = 8;
+            // The default creative world admits 1,024 live bodies. Reserving
+            // the generic 262k-command upload ring and 4k-body debug packets
+            // wastes tens of MiB before its first frame on browser GPUs.
+            if(config_.gpuPhysicsMaxBodies<=1024u)
+                physicsContext.gpu.commandCapacity = 16'384;
+            physicsContext.gpu.debugReadbackBodyCapacity = std::min(
+                physicsContext.gpu.debugReadbackBodyCapacity,config_.gpuPhysicsMaxBodies);
             // Interlocking hollow parts need this convergence budget. The
             // real wall sleeps naturally; gravity and sleep limits stay fixed.
             physicsContext.gpu.substeps = 16;
@@ -4631,6 +4638,15 @@ bool Application::initCamera() {
     }
     physicsContext.gpu.shaderPath =
         (config_.shaderDir / "physics_ballistic.wgsl").string();
+    if(config_.gpuPhysicsSoftwareCompat
+        && config_.physicsBackend == physics::BackendType::WebGpuSoft) {
+        // Chrome's SwiftShader process crashes compiling the expanded
+        // multi-patch narrow phase. Keep its proven single-patch path while
+        // hardware adapters use the full authored-contact implementation.
+        physicsContext.gpu.authoredContactPatches = 1;
+        physicsContext.gpu.narrowPhaseShaderPath =
+            (config_.shaderDir / "physics_narrow_phase_compat.wgsl").string();
+    }
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
     if(config_.salvageAssetFixtureWaterAnchor) {

@@ -323,6 +323,7 @@ struct ApplicationConfig {
     uint32_t gpuPhysicsMaxBodies = 131'072;
     uint32_t gpuPhysicsMaxPairs = 65'536;
     uint32_t gpuPhysicsMaxCandidatePairs = 262'144;
+    bool gpuPhysicsSoftwareCompat = false;
     uint32_t gpuPhysicsSolverWorkgroupSize = 256;
     float gpuPhysicsBroadPhaseCellSize = 4.0f;
     uint32_t gpuPhysicsMaximumCatchUpTicks = 8;

@@ -214,6 +214,7 @@ struct PhysicsInitContext {
         uint32_t ccdBisectionIterations = 8;
         float ccdFastDistanceRatio = 0.5f;
         std::string shaderPath = "shaders/physics_ballistic.wgsl";
+        std::string narrowPhaseShaderPath; // Empty uses the standard narrow-phase shader.
         // A nonempty bundle is a strict trusted-source policy. Every WGSL
         // requested by WebGpuSoft must exist in it; filesystem fallback is
         // disabled. The caller owns the source storage for this world.

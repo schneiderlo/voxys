@@ -6,7 +6,7 @@ Preserve the original [source attribution and mixed CC BY 2.0/4.0 notices](../ld
 
 ## Runtime contract
 
-- `wall-parts.vmesh`: 81,656,239 bytes, 992,589 vertices, 2,545,401 indices, 848,467 triangles, 54 material submeshes, 44 materials, 11 mesh nodes.
+- `wall-parts.vmesh`: 19,606,015 bytes, 243,279 vertices, 520,425 indices, 173,475 triangles, 54 material submeshes, 44 materials, 11 mesh nodes. Only the fixed remainder's render triangles were reduced; its collision boxes and all selected movable meshes stay at source detail.
 - Node/mesh 0 is the fixed remainder. The remaining ten shared meshes render the 20 selected instances. Nodes have identity transforms; each instance uses its source transform from `wall.json`.
 - Coordinates: Y up, one unit per stud, common house yaw pi. Quaternion order is w,x,y,z. Source IDs are decimal strings, not JavaScript numbers.
 - Selection: 18 wall pieces plus two actual 2×8 floorplates beneath the opening. The floorplates are source IDs `3336692187990364` and `30700057810174424`; both have exact catalog stud connections. They are not invisible collision deletions.
@@ -44,8 +44,12 @@ From the repository root:
   --output /tmp/blacksmith-ground-rebuild \
   --asset-id ldraw-blacksmith-ground-r01 \
   --selection-source-ids data/adventure/ldraw-blacksmith-ground-r01/selection-source-ids.json
+/snap/blender/current/blender --background --factory-startup \
+  --python tools/adventure_assets/reduce_blacksmith_remainder.py -- \
+  --input /tmp/blacksmith-ground-rebuild/wall-parts.glb \
+  --output /tmp/blacksmith-ground-rebuild/wall-parts-optimized.glb
 bazel-bin/tools/gltf_vmesh_tool --profile salvage-rigid-v1 \
-  /tmp/blacksmith-ground-rebuild/wall-parts.glb \
+  /tmp/blacksmith-ground-rebuild/wall-parts-optimized.glb \
   /tmp/blacksmith-ground-rebuild/wall-parts.vmesh
 /snap/blender/current/blender --background --factory-startup \
   --python tools/adventure_assets/bake_ldraw_collision.py -- \

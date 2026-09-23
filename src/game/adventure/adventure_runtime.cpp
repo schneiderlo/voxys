@@ -249,8 +249,8 @@ std::optional<moto::VmeshData> installedShadowProxyMesh(std::string& error) {
 }
 std::optional<moto::VmeshData> installedLdrawBlacksmithMesh(std::string& error) {
     // Pin the inspected material-batched derivative of the original LDraw set.
-    constexpr size_t expectedBytes=81656239;
-    constexpr std::string_view digest="4ee13dc6e14e8c33a6e7c2507c23db986e6e81fe777f5304b727ae37a45232c5";
+    constexpr size_t expectedBytes=19606015;
+    constexpr std::string_view digest="870af9c0eac96fe04795e5b5b1848c3de8265fde57dfe879020786c7c78aa817";
     std::ifstream file(installedPath("data/adventure/ldraw-blacksmith-ground-r01/wall-parts.vmesh"),std::ios::binary);
     std::vector<uint8_t> bytes(expectedBytes+1);
     if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()

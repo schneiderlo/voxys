@@ -36,6 +36,22 @@ make these directional measurements. A sustained 200 FPS result is not verified.
 
 The scene retained the same recipe 3 tree counts in checked views: 51,836 distant trees at spawn; 40,821 and 26,216 at two other terrain positions. Tests compare streamed and cold generation for IDs, placement, bounds, and variants, and compare retained rendering against live draws.
 
+The 2026-09-23 follow-up reduced the Blacksmith's fixed render remainder from
+about 78 MB to 19 MB while retaining its movable meshes and collision. Free
+Build also reserves a 16,384-command physics upload ring instead of the
+generic 262,144-command ring. On Chrome's SwiftShader adapter, the expanded
+multi-patch narrow-phase shader crashed the GPU process during startup. That
+adapter now uses the last passing single-patch shader; hardware adapters keep
+the full shader. A local full-page smoke test rendered 35 frames on SwiftShader
+and 149 on the AMD adapter, both with completed GPU timing.
+
+At 1946 × 1095 on the AMD adapter, the follow-up startup sample reported a
+6.35 ms GPU frame interval and 1.39 million colour triangles with 9,217
+visible forest trees. That interval is above the 5 ms needed for 200 FPS, and
+the browser's reported FPS was lower under its normal pacing. This remains a
+startup sample, not a sustained or worst-frame benchmark. The 200 FPS target
+is not met or verified.
+
 ## Verification and limits
 
 The implementation check passed 47 focused native forest, scene, and renderer tests plus one free-build runtime integration test. The WASM target linked in that check. A fresh focused rerun is recorded in [the validation note](../../validation/free-build/forest-performance-r04/README.md). The new distant silhouette, shadow-only drawing, and free-build startup checks passed after the fourth forest level and proxy geometry were added; the browser target rebuilt successfully.

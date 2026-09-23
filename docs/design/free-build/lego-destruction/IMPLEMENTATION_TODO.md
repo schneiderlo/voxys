@@ -61,8 +61,10 @@ All 2,140 source identities are preserved. Twenty original ground-wall pieces
 use ten shared part meshes plus the fixed remainder mesh (11 nodes total).
 Eighteen eligible pieces form one connected component; two unknown-support
 plates stay fixed. There are 30 internal and 44 boundary stud bonds, with 6,409
-fixed-remainder collision boxes. The mesh is 81,656,239 bytes, SHA-256
-`4ee13dc6e14e8c33a6e7c2507c23db986e6e81fe777f5304b727ae37a45232c5`.
+fixed-remainder collision boxes. The render mesh is 19,606,015 bytes, SHA-256
+`870af9c0eac96fe04795e5b5b1848c3de8265fde57dfe879020786c7c78aa817`.
+Only the fixed remainder render geometry is reduced; the movable parts and
+collision source remain at their original detail.
 The generated header is `src/game/adventure/ldraw_blacksmith_ground_remainder.hpp`.
 The older 39-part upper-wall package and its D2 evidence remain historical
 fixtures; do not overwrite them or mistake their counts for the active selection.
