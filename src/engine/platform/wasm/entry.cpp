@@ -1118,9 +1118,13 @@ int main(int argc, char* argv[]) {
         appConfig.physicsBackend = voxy::physics::BackendType::WebGpuSoft;
     }
     appConfig.gpuPhysicsSoftwareCompat = EM_ASM_INT({
-        return globalThis.voxyDeviceProfile?.adapter?.architecture?.toLowerCase()
+        // The release build runs Closure Compiler. Quoted property names must
+        // match the unminified page that supplies the adapter profile.
+        return globalThis['voxyDeviceProfile']?.['adapter']?.['architecture']?.toLowerCase()
             === 'swiftshader' ? 1 : 0;
     }) != 0;
+    LOG_INFO("SwiftShader physics compatibility: {}",
+             appConfig.gpuPhysicsSoftwareCompat ? "enabled" : "disabled");
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
     appConfig.gpuPhysicsBroadPhaseCellSize =

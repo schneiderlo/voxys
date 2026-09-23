@@ -350,6 +350,11 @@ try{
     if(process.env.VOXY_SMOKE_PRESENTATION_PARTS!==undefined)
         assert.equal(sample.salvage?.assetFixture?.presentationParts,Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS),'active presentation parts');
     assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
+    if(sample.adapter?.architecture?.toLowerCase()==='swiftshader'){
+        assert(consoleMessages.some(message=>message.args?.some(arg=>
+            String(arg.value||'').includes('SwiftShader physics compatibility: enabled'))),
+        'SwiftShader adapter did not select the compatible physics shader');
+    }
     assert.equal(sample.telemetry.render_gpu.frame_interval_available,true);
     assert(sample.telemetry.render_gpu.gpu_frame_ms>0,'missing complete-frame timestamp');
     assert(sample.telemetry.render_gpu.render_width>0&&sample.telemetry.render_gpu.render_height>0);
