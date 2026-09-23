@@ -94,7 +94,7 @@ function App({engine,environment}){
                     <button type="button" class="bb-colour-toggle bb-round" style={{'--swatch':selectedColour[2]}} data-popup-toggle="colour" aria-label={`Choose colour · ${selectedColour[0]}`} title="Colour" aria-expanded={popup==='colour'} aria-controls="bb-colour-popup" disabled={busy} onClick={()=>toggle('colour')}><span/></button>
                     <Button icon={Ellipsis} className="bb-icon bb-round" data-popup-toggle="tools" aria-label="Building tools" title="Building tools" aria-expanded={popup==='tools'} aria-controls="bb-tools-popup" disabled={busy} onClick={()=>toggle('tools')}/>
                 </div>
-                <div class="bb-hints">{state.swimming?<><span>Space · rise</span><span>X · dive</span><span>Right-drag · steer</span></>:<><span>Scroll · pieces</span><span>R · rotate</span><span>Ctrl + scroll · zoom</span></>}</div>
+                {state.swimming&&<div class="bb-hints"><span>Space · rise</span><span>X · dive</span><span>Right-drag · steer</span></div>}
                 {popup==='colour'&&<section id="bb-colour-popup" class="bb-popup bb-colours" aria-label="Colour palette"><div class="bb-popup-title"><strong>{selectedColour[0]}</strong><small>For new pieces</small></div><div role="group" aria-label="Colour for new pieces" class="bb-swatches">
                     {colours.map(([name,value,colour])=><button type="button" key={value} class="bb-swatch" style={{'--swatch':colour}} aria-label={`${name} colour`} title={name} aria-pressed={(state.paint||0)===value} disabled={busy||!state.colourAvailable}
                         onClick={()=>{if(act(30,value))setPopup(null);}}>{(state.paint||0)===value&&<Check size={16}/>}</button>)}
@@ -108,7 +108,6 @@ function App({engine,environment}){
                     <Button icon={HelpCircle} disabled={busy} onClick={()=>act(29,1)}>How to build</Button>
                     <small>{Number(state.parts)||0} / 1,024 pieces</small>
                 </section>}
-                {!state.valid&&<div class="bb-placement-note">{text(state.previewReason)||'Point at the ground to begin'}</div>}
             </section>}
             {!modal&&state.cannon?.active&&<section class="bb-walk-dock" aria-label="Cannon controls">
                 <span>{state.cannon.inspectingWall?'Wall close-up · A/D or W/S to return to aiming':'A/D · turn　 W/S · elevation'}</span>
@@ -118,7 +117,7 @@ function App({engine,environment}){
                 {state.cannon.wallReleased&&<span>Damage lasts this session · Rebuild to save</span>}
             </section>}
             {!modal&&state.riding&&<section class="bb-walk-dock" aria-label="Motorbike controls"><span>W/S · drive &amp; reverse　 A/D · steer　 Space · brake</span></section>}
-            {!modal&&!state.riding&&!state.cannon?.active&&state.mode==='explore'&&<section class="bb-walk-dock bb-throw-dock"><div class="bb-hints"><span>Left-click · 1 brick</span><span>Right-click · 100 bricks</span><span>Scroll · zoom</span></div>{state.swimming?<span>Space · rise　 X · dive　 Right-drag · steer</span>:<Button icon={Hand} disabled={busy} onClick={()=>act(7)}>{text(state.interaction)||'Use nearby'}</Button>}<Button icon={Plus} shortcut="B" disabled={busy} onClick={()=>act(21)}>Build</Button></section>}
+            {!modal&&!state.riding&&!state.cannon?.active&&state.mode==='explore'&&<section class="bb-walk-dock bb-throw-dock">{state.swimming?<span>Space · rise　 X · dive　 Right-drag · steer</span>:<Button icon={Hand} disabled={busy} onClick={()=>act(7)}>{text(state.interaction)||'Use nearby'}</Button>}<Button icon={Plus} shortcut="B" disabled={busy} onClick={()=>act(21)}>Build</Button></section>}
             {modal&&<div class="bb-modal-shade"><section ref={dialog} role="dialog" aria-modal="true" aria-labelledby="bb-dialog-title" class={`bb-dialog ${state.mode==='catalog'?'bb-catalog':''}`}>
                 <div class="bb-dialog-head"><h1 id="bb-dialog-title">{state.mode==='pause'?'Paused':text(state.menuTitle)||'Your brick box'}</h1><Button icon={X} className="bb-icon" aria-label="Close menu" disabled={busy} onClick={()=>act(20)}/></div>
                 <p class="bb-dialog-intro">{text(state.menuText)}</p>
