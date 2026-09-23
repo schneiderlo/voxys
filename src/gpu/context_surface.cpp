@@ -4,6 +4,8 @@
 #include "gpu/webgpu_compat.hpp"
 #if defined(VOXY_NATIVE)
     #include "engine/platform/window.hpp"
+#elif defined(VOXY_WASM)
+    #include <emscripten/emscripten.h>
 #endif
 
 #include <cstring>
@@ -279,9 +281,18 @@ bool Context::configureSurface(const ContextConfig& config) {
     }
 
 #if defined(VOXY_WASM)
-    swapchainFormat_ = (config.preferredFormat != WGPUTextureFormat_Undefined)
-        ? config.preferredFormat
-        : WGPUTextureFormat_BGRA8Unorm;
+    // The browser's preferred canvas format can be RGBA on some devices.
+    // Using a different format makes the browser copy every presented frame.
+    const int browserFormat = EM_ASM_INT({
+        const format = navigator.gpu?.getPreferredCanvasFormat?.();
+        if (format === 'rgba8unorm') return 1;
+        if (format === 'bgra8unorm') return 2;
+        return 0;
+    });
+    swapchainFormat_ = browserFormat == 1 ? WGPUTextureFormat_RGBA8Unorm
+        : browserFormat == 2 ? WGPUTextureFormat_BGRA8Unorm
+        : config.preferredFormat != WGPUTextureFormat_Undefined
+            ? config.preferredFormat : WGPUTextureFormat_BGRA8Unorm;
 
     swapchainWidth_ =
         config.swapchainWidth > 0 ? config.swapchainWidth : 1280;
