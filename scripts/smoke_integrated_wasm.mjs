@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Real startup, not a throughput benchmark. Node 22+, Chrome and a directory
-// with web assets and built voxy_wasm.{js,wasm,data}. Each scene has its own
-// browser so closing a busy software-GPU tab cannot poison the next fixture.
+// Real startup, with an optional moving-camera throughput gate. Node 22+,
+// Chrome and a directory with web assets and built voxy_wasm.{js,wasm,data}.
+// Each scene has its own browser so a busy tab cannot poison the next fixture.
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
@@ -270,7 +270,8 @@ try{
     // without a C++ rebuild. It must be explicitly requested and is reported.
     if(process.env.VOXY_SMOKE_SHADER_DIR){
         const overrides={};
-        for(const name of ['ray_blit.wgsl','water_clipmap.wgsl'])overrides[name]=await readFile(path.join(process.env.VOXY_SMOKE_SHADER_DIR,name),'utf8');
+        for(const name of ['ray_blit.wgsl','terrain_raycast.wgsl','water_clipmap.wgsl'])
+            overrides[name]=await readFile(path.join(process.env.VOXY_SMOKE_SHADER_DIR,name),'utf8');
         await call('Page.addScriptToEvaluateOnNewDocument',{source:`(() => {
             const files=${JSON.stringify(overrides)};const original=GPUDevice.prototype.createShaderModule;
             GPUDevice.prototype.createShaderModule=function(d){const code=files[d.label];return original.call(this,code?{...d,code}:d);};
@@ -367,6 +368,79 @@ try{
     assert.equal(budget.result.value.summary.status,'insufficient_samples');
     assert.equal(budget.result.value.summary.sample_count,1);
     report.budget_single_sample=budget.result.value.summary;
+    if(process.env.VOXY_SMOKE_FRAME_GATE_MS){
+        const duration=Number(process.env.VOXY_SMOKE_FRAME_GATE_MS);
+        assert(Number.isInteger(duration)&&duration>=1000&&duration<=120000,
+            'frame gate duration must be 1000..120000 ms');
+        const gate=await call('Runtime.evaluate',{
+            awaitPromise:true,returnByValue:true,
+            expression:`(async()=>{
+                const read=()=>JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_telemetry_json()));
+                const canvas=document.getElementById('voxy-canvas');
+                voxyModule._voxy_set_uncapped_fps(1);
+                voxyModule._voxy_key_event(87,1);
+                await new Promise(resolve=>setTimeout(resolve,1000));
+                const start=performance.now(),first=read(),gpu=new Map(),cpu=[];
+                let forward=true;
+                while(performance.now()-start<${duration}){
+                    const nextForward=Math.floor((performance.now()-start)/2000)%2===0;
+                    if(nextForward!==forward){
+                        voxyModule._voxy_key_event(forward?87:83,0);
+                        voxyModule._voxy_key_event(nextForward?87:83,1);
+                        forward=nextForward;
+                    }
+                    const t=read();
+                    if(t.render_gpu?.frame_interval_available)
+                        gpu.set(t.render_gpu.frame,t.render_gpu);
+                    if(Number.isFinite(t.frame?.cpu_ms))cpu.push(t.frame.cpu_ms);
+                    await new Promise(resolve=>setTimeout(resolve,16));
+                }
+                voxyModule._voxy_key_event(forward?87:83,0);
+                const end=performance.now(),last=read();
+                const retiredFrames=(last.frame.count-last.frame.gpu_queue)
+                    -(first.frame.count-first.frame.gpu_queue);
+                const percentile=(values,p)=>{
+                    const sorted=values.sort((a,b)=>a-b);
+                    return sorted.length?sorted[Math.ceil(sorted.length*p)-1]:null;
+                };
+                const gpuFrames=[...gpu.values()];
+                return {output_width:window.innerWidth,output_height:window.innerHeight,
+                    width:canvas.width,height:canvas.height,
+                    elapsed_ms:end-start,frames:last.frame.count-first.frame.count,
+                    throughput_fps:1000*(last.frame.count-first.frame.count)/(end-start),
+                    retired_frames:retiredFrames,
+                    retired_fps:1000*retiredFrames/(end-start),
+                    terrain_cache_refreshes:last.render.terrain_cache_refreshes
+                        -first.render.terrain_cache_refreshes,
+                    gpu_samples:gpuFrames.length,
+                    gpu_p50_ms:percentile(gpuFrames.map(t=>t.gpu_frame_ms),.5),
+                    gpu_p95_ms:percentile(gpuFrames.map(t=>t.gpu_frame_ms),.95),
+                    cpu_p95_ms:percentile(cpu,.95),
+                    last_gpu:gpuFrames.at(-1)||null,
+                    pacing_skips:last.frame.pacing_skips-first.frame.pacing_skips,
+                    adapter:window.voxyDeviceProfile?.adapter||null};
+            })()`},duration+10000);
+        if(gate.exceptionDetails)throw new Error(JSON.stringify(gate.exceptionDetails));
+        report.frame_gate=gate.result.value;
+        assert.equal(report.frame_gate.width,report.frame_gate.output_width,
+            'frame gate changed the horizontal render resolution');
+        assert.equal(report.frame_gate.height,report.frame_gate.output_height,
+            'frame gate changed the vertical render resolution');
+        assert(report.frame_gate.gpu_samples>=5,
+            'frame gate did not observe enough completed GPU frames');
+        assert.equal(report.frame_gate.last_gpu.render_width,report.frame_gate.width,
+            'GPU timing used a different render width');
+        assert.equal(report.frame_gate.last_gpu.render_height,report.frame_gate.height,
+            'GPU timing used a different render height');
+        assert(report.frame_gate.terrain_cache_refreshes>=10,
+            'frame gate did not move the camera through the scene');
+        if(process.env.VOXY_SMOKE_MIN_FPS){
+            const minimum=Number(process.env.VOXY_SMOKE_MIN_FPS);
+            assert(Number.isFinite(minimum)&&minimum>0,'minimum FPS must be positive');
+            assert(report.frame_gate.retired_fps>=minimum,
+                `retired browser frames ${report.frame_gate.retired_fps.toFixed(1)} FPS < ${minimum} FPS`);
+        }
+    }
     if(process.env.VOXY_SMOKE_BUILD_ID)assert.equal(sample.buildId,process.env.VOXY_SMOKE_BUILD_ID,'deployed revision mismatch');
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
     assert.equal(Boolean(sample.salvage?.active),isSalvage,'salvage activation mismatch');

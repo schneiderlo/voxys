@@ -975,6 +975,11 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     // ─────────────────────────────────────────────────────────────────────────
     let terrainSize = vec2<f32>(camera.terrainSize);
     let cellScale = camera.metrics.y;
+    // A 0.6-cell stud becomes smaller than about 2.2 screen pixels here.
+    // Keep nearby silhouette geometry exact; distant studs cannot contribute
+    // stable shape at the current physical framebuffer resolution.
+    let studMaxDistance = 0.6 * cellScale * f32(dims.y) /
+        (4.4 * max(abs(camera.invProjParams.y), 1e-3));
     let terrainOrigin = 0.5 * (terrainSize - vec2<f32>(1.0, 1.0)) * cellScale;
     let borderMargin = select(cellScale, 0.0, legoStudy());
     let boundsMin = vec3<f32>(
@@ -1154,7 +1159,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                     }
 
                     // A brick side at the segment entry is already the nearest hit.
-                    if (!hitLego || t > entryT) {
+                    if (entryT < studMaxDistance && (!hitLego || t > entryT)) {
                         let studHeightWorld = cellScale * legoStudHeight();
                         let studRadiusWorld = cellScale * legoStudRadius();
                         let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
@@ -1370,4 +1375,3 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                      vec4<f32>(terrainNormal, select(1.0, legoTopDistance, legoMode)));
     }
 }
-
