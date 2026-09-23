@@ -29,7 +29,9 @@ public:
     [[nodiscard]] WGPUTexture depthTexture() const noexcept;
     [[nodiscard]] uint64_t requestedBytes() const noexcept;
     static constexpr uint64_t bytesPerPixel = 12;
-    static constexpr uint64_t maximumBytes = 128ull * 1024 * 1024;
+    // A 4K CSS viewport at the browser's 1.5 DPR cap needs over 200 MiB.
+    // Rejecting it here leaves an initialized UI above a black canvas.
+    static constexpr uint64_t maximumBytes = 256ull * 1024 * 1024;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

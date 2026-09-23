@@ -265,7 +265,7 @@ try{
         }
     })();`});
     await call('Network.setBlockedURLs',{urls:['*googletagmanager.com*','*google-analytics.com*']});
-    await call('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VOXY_SMOKE_WIDTH)||((isLego||isSalvage)?960:320),height:Number(process.env.VOXY_SMOKE_HEIGHT)||((isLego||isSalvage)?540:240),deviceScaleFactor:1,mobile:false});
+    await call('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VOXY_SMOKE_WIDTH)||((isLego||isSalvage)?960:320),height:Number(process.env.VOXY_SMOKE_HEIGHT)||((isLego||isSalvage)?540:240),deviceScaleFactor:Number(process.env.VOXY_SMOKE_DPR)||1,mobile:false});
     // Allows a previously compiled integration artifact to exercise newer WGSL
     // without a C++ rebuild. It must be explicitly requested and is reported.
     if(process.env.VOXY_SMOKE_SHADER_DIR){
