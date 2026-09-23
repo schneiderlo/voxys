@@ -5,6 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Voxys — Building Adventure</title>
+    <script>
+        // Keep the directory entry on the same URL as the working app page.
+        // Browsers cache / and /index.html as separate documents.
+        if (location.pathname.endsWith('/')) {
+            const page = new URL('index.html', location.href);
+            page.search = location.search;
+            page.hash = location.hash;
+            location.replace(page.href);
+        }
+    </script>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="renderer_inspector.css">
