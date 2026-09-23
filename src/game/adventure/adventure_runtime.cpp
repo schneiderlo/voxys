@@ -211,8 +211,8 @@ std::optional<moto::VmeshData> installedCreativePropsHorizonMesh(std::string& er
     return mesh;
 }
 std::optional<moto::VmeshData> installedForestMesh(uint32_t lod,std::string& error) {
-    constexpr std::array<size_t,3> sizes{6641643,310227,348059};
-    constexpr std::array<std::string_view,3> digests{"212969ccf052eb54f281028a57c9f93d3d1b9fb1b70133a32a99782cc95a91f6","fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b","9ca6371dc633831762b198da312ceeb3e96707b5a53848ff10385544e06c7aed"};
+    constexpr std::array<size_t,4> sizes{6641643,310227,348059,94078};
+    constexpr std::array<std::string_view,4> digests{"212969ccf052eb54f281028a57c9f93d3d1b9fb1b70133a32a99782cc95a91f6","fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b","9ca6371dc633831762b198da312ceeb3e96707b5a53848ff10385544e06c7aed","834b2c76005026c466caa18fc152eb3aa5a804859c6ea6d49a7b629dd8d6e9e9"};
     if(lod>=sizes.size())return {};
     std::ifstream file(installedPath("data/adventure/forest-r02/forest-lod"+std::to_string(lod)+".vmesh"),std::ios::binary);
     std::vector<uint8_t> bytes(sizes[lod]+1);
@@ -227,6 +227,24 @@ std::optional<moto::VmeshData> installedForestMesh(uint32_t lod,std::string& err
     moto::VmeshData mesh;
     if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
     if(mesh.header.meshCount!=6||mesh.nodes.size()!=6) {error="Unsupported forest layout.";return {};}
+    return mesh;
+}
+std::optional<moto::VmeshData> installedShadowProxyMesh(std::string& error) {
+    constexpr size_t expectedBytes=7907323;
+    constexpr std::string_view digest="591c0667bc3cde0ffe5e0c8800ad078a6386e8b5565e022c408595a49957ec62";
+    std::ifstream file(installedPath("data/adventure/shadow-proxies-r01/shadow-proxies.vmesh"),std::ios::binary);
+    std::vector<uint8_t> bytes(expectedBytes+1);
+    if(!file||!file.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size())).eof()
+        ||file.bad()||file.gcount()!=static_cast<std::streamsize>(expectedBytes)) {
+        error="The installed distant building shadows are missing or have changed.";return {};
+    }
+    bytes.resize(expectedBytes);
+    if(core::sha256Hex(core::sha256(std::as_bytes(std::span(bytes))))!=digest) {
+        error="The installed distant building shadows do not match this build.";return {};
+    }
+    moto::VmeshData mesh;
+    if(!moto::readVmesh(bytes.data(),bytes.size(),&mesh,&error))return {};
+    if(mesh.header.meshCount!=16||mesh.nodes.size()!=16) {error="Unsupported distant building shadow layout.";return {};}
     return mesh;
 }
 std::optional<moto::VmeshData> installedLdrawBlacksmithMesh(std::string& error) {
@@ -545,10 +563,12 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         if(!cannonMesh||!meshes_.loadMeshData(*cannonMesh))return false;
         const auto horizon=installedCreativePropsHorizonMesh(error);
         if(!horizon||!meshes_.loadMeshData(*horizon))return false;
-        for(uint32_t lod=0;lod<3;++lod) {
+        for(uint32_t lod=0;lod<4;++lod) {
             const auto forest=installedForestMesh(lod,error);
             if(!forest||!meshes_.loadMeshData(*forest))return false;
         }
+        const auto shadows=installedShadowProxyMesh(error);
+        if(!shadows||!meshes_.loadMeshData(*shadows))return false;
         double cannonLow=INFINITY,cannonHigh=-INFINITY;
         for(int z=-4;z<=4;++z)for(int x=-4;x<=4;++x) {
             const double y=surface.heightAt(float(cannonPlot.x+x),float(cannonPlot.y+z));
@@ -2197,13 +2217,15 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
         const auto transform=glm::translate(glm::dmat4(1),piece.feet-origin)
             *glm::rotate(glm::dmat4(1),double(piece.yaw)*std::numbers::pi/2,glm::dvec3(0,1,0))
             *glm::scale(glm::dmat4(1),piece.scale);
-        meshes_.addInstance({.assetIndex=11,.meshIndex=piece.mesh,.modelMatrix=glm::mat4(transform),.surface={0,0,1,0}});
+        meshes_.addInstance({.assetIndex=11,.meshIndex=piece.mesh,.modelMatrix=glm::mat4(transform),.shadowRegions=1,.surface={0,0,1,0}});
+        meshes_.addInstance({.assetIndex=19,.meshIndex=piece.mesh,.modelMatrix=glm::mat4(transform),.colorVisible=false,.shadowRegions=2});
     }
     if(freeBuild_&&blacksmithVisible()
         &&glm::length(glm::dvec2(blacksmithFeet_->x-state().player.x,blacksmithFeet_->z-state().player.z))<220) {
         const auto transform=glm::translate(glm::dmat4(1),*blacksmithFeet_-origin)
             *glm::rotate(glm::dmat4(1),std::numbers::pi,glm::dvec3(0,1,0));
-        meshes_.addInstance({.assetIndex=12,.meshIndex=0,.modelMatrix=glm::mat4(transform),.surface={0,0,1,0}});
+        meshes_.addInstance({.assetIndex=12,.meshIndex=0,.modelMatrix=glm::mat4(transform),.shadowRegions=1,.surface={0,0,1,0}});
+        meshes_.addInstance({.assetIndex=19,.meshIndex=15,.modelMatrix=glm::mat4(transform),.colorVisible=false,.shadowRegions=2});
         if(wall_&&!wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0).empty()) {
             for(const auto& binding:wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0))meshes_.addInstance({.assetIndex=12,.meshIndex=binding.meshNode,
                 .modelMatrix=glm::mat4(binding.localMatrix),.physicsBody=binding.body,.surface={0,0,1,0}});
@@ -2248,7 +2270,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 auto transform=glm::translate(glm::dmat4(1),prop.feet-origin)
                     *glm::rotate(glm::dmat4(1),double(prop.yawQuarterTurns)*std::numbers::pi/2,glm::dvec3(0,1,0));
                 const float tone=.94f+.01f*float((prop.id*2654435761u>>24)%13u);
-                forestDraws_.push_back({prop,{.assetIndex=17,.meshIndex=prop.forestVariant,
+                forestDraws_.push_back({prop,{.assetIndex=18,.meshIndex=prop.forestVariant,
                     .modelMatrix=glm::mat4(transform),.tintColor={tone,tone,tone,1},.castsSunShadow=false,.surface={0,0,1,0}}});
             };
             for(const auto& prop:scenery_.props())cache(prop);
@@ -2264,7 +2286,10 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 auto& tile=forestTiles_.back();++tile.count;
                 tile.minimum=glm::min(tile.minimum,tree.prop.minimum);tile.maximum=glm::max(tile.maximum,tree.prop.maximum);
             }
-            if(!meshes_.setStaticInstances(retained))return false;
+            if(!meshes_.setStaticInstances(retained)) {
+                LOG_ERROR("Forest static instance preparation failed for {} trees",retained.size());
+                return false;
+            }
             forestDrawEpoch_=staticGeometryEpoch_;forestDrawOrigin_=origin;forestDrawSource_=scenery_.forestSource();
         }
         forestSelection_.clear();
@@ -2281,7 +2306,8 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 if(!shadow && !visible(prop.minimum,prop.maximum))continue;
                 ++forestVisible_;
                 const double nearLimit=48.+double(prop.id%21u),horizonLimit=260.+double(prop.id%81u);
-                if(!shadow && squared>horizonLimit*horizonLimit)forestSelection_.push_back(i);
+                const double distantLimit=700.+double(prop.id%151u);
+                if(!shadow && squared>distantLimit*distantLimit)forestSelection_.push_back(i);
                 else {
                     auto instance=tree.instance;
                     instance.assetIndex=squared>horizonLimit*horizonLimit?17u:squared>nearLimit*nearLimit?16u:15u;
@@ -2289,7 +2315,10 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 }
             }
         }
-        if(!meshes_.selectStaticInstances(forestSelection_))return false;
+        if(!meshes_.selectStaticInstances(forestSelection_)) {
+            LOG_ERROR("Forest static instance selection failed for {} trees",forestSelection_.size());
+            return false;
+        }
         forestSelectionMs_=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-forestBegin).count();
         const auto drawProp=[&](const CreativeProp& prop) {
             if(prop.forestVariant<6)return;
@@ -2553,7 +2582,9 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
     const auto bodyView=physics_&&wall_&&!wall_->bindingsForEncodedTick(physics_?physics_->encodedTick():0).empty()
         ?physics_->renderView():physics::PhysicsRenderView{};
     if(!meshes_.setAuthoredBodyView(bodyView,{camera.worldSector(),camera.position()}))return false;
-    return meshes_.render(encoder,color,depth,camera.viewMatrix(),camera.projectionMatrix(),camera.position(),lighting,width,height,true,linearDepth,background,glm::vec3(origin),footContacts);
+    const bool rendered=meshes_.render(encoder,color,depth,camera.viewMatrix(),camera.projectionMatrix(),camera.position(),lighting,width,height,true,linearDepth,background,glm::vec3(origin),footContacts);
+    if(!rendered)LOG_ERROR("Adventure mesh scene failed to render");
+    return rendered;
 }
 bool AdventureRuntime::renderHud(WGPUCommandEncoder encoder,WGPUTextureView view,uint32_t width,uint32_t height){
 #if !defined(VOXY_NATIVE)
@@ -2589,7 +2620,7 @@ std::string AdventureRuntime::json() const {
     if(freeBuild_)out<<",\"forest\":{\"seed\":"<<CreativeScenery::forestSeed
         <<",\"recipe\":"<<CreativeScenery::forestRecipeVersion<<",\"drawDistance\":"<<CreativeScenery::forestDrawDistance
         <<",\"nearProps\":"<<scenery_.props().size()<<",\"distantTrees\":"<<scenery_.distantTrees().size()
-        <<",\"horizonDraws\":"<<(meshes_.lastEncodedDrawCountForAsset(14)+meshes_.lastEncodedDrawCountForAsset(17))
+        <<",\"horizonDraws\":"<<(meshes_.lastEncodedDrawCountForAsset(14)+meshes_.lastEncodedDrawCountForAsset(17)+meshes_.lastEncodedDrawCountForAsset(18))
         <<",\"visitedTrees\":"<<forestVisited_<<",\"visibleTrees\":"<<forestVisible_
         <<",\"selectionMs\":"<<forestSelectionMs_<<",\"instanceUploadBytes\":"<<meshes_.lastInstanceUploadBytes()
         <<",\"meshColorTriangles\":"<<meshes_.lastColorTriangles()<<",\"meshShadowTriangles\":"<<meshes_.lastShadowTriangles()<<'}';

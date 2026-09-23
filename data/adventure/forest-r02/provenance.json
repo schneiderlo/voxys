@@ -2,7 +2,7 @@
   "asset_id": "voxys-forest-r02",
   "stud_pitch": 1,
   "render_to_canonical": 0,
-  "author_sha256": "42948dd6c9cdb88c4817c78f198859900d872670f0069cba737069639c8546db",
+  "author_sha256": "e7794c58bfa3b0cb4c17cbd7dcdb7c1134425607be049dcc22b8227ccf9dc28a",
   "helper_sha256": "cff03f72a237c180e1e870874aa5c498955fa20dd2f34f10c9ac406c6ca11617",
   "ldraw_source": "source/ldraw-manifest.json",
   "attribution": "source/ATTRIBUTION.md",
@@ -531,6 +531,181 @@
       ],
       "glb_sha256": "cfdf95902c3ef80ae3c99620bff0c8f9cd12a8ec8340644be873e0d969e671ec",
       "blend_sha256": "6e371df0762a41667c23b75f97db93f5ed3fd76648ccd515e25ea827e8074d7e"
+    },
+    {
+      "lod": 3,
+      "variants": [
+        {
+          "name": "oak",
+          "bounds": {
+            "minimum": [
+              -6.099999904632568,
+              0.0,
+              -5.5
+            ],
+            "maximum": [
+              6.099999904632568,
+              15.399999618530273,
+              5.5
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.57,
+              0,
+              -0.57
+            ],
+            "maximum": [
+              0.57,
+              9.2,
+              0.57
+            ]
+          },
+          "triangles": 88
+        },
+        {
+          "name": "beech",
+          "bounds": {
+            "minimum": [
+              -5.5,
+              0.0,
+              -5.099999904632568
+            ],
+            "maximum": [
+              5.5,
+              18.5,
+              5.099999904632568
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.57,
+              0,
+              -0.57
+            ],
+            "maximum": [
+              0.57,
+              10.4,
+              0.57
+            ]
+          },
+          "triangles": 88
+        },
+        {
+          "name": "young_oak",
+          "bounds": {
+            "minimum": [
+              -4.25,
+              0.0,
+              -3.799999952316284
+            ],
+            "maximum": [
+              4.25,
+              11.600000381469727,
+              3.799999952316284
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.4,
+              0,
+              -0.4
+            ],
+            "maximum": [
+              0.4,
+              7.8,
+              0.4
+            ]
+          },
+          "triangles": 88
+        },
+        {
+          "name": "birch",
+          "bounds": {
+            "minimum": [
+              -4.25,
+              0.0,
+              -3.799999952316284
+            ],
+            "maximum": [
+              4.25,
+              19.700000762939453,
+              3.799999952316284
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.38,
+              0,
+              -0.38
+            ],
+            "maximum": [
+              0.38,
+              11.2,
+              0.38
+            ]
+          },
+          "triangles": 88
+        },
+        {
+          "name": "spruce",
+          "bounds": {
+            "minimum": [
+              -4.300000190734863,
+              0.0,
+              -4.099999904632568
+            ],
+            "maximum": [
+              4.300000190734863,
+              22.0,
+              4.099999904632568
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.57,
+              0,
+              -0.57
+            ],
+            "maximum": [
+              0.57,
+              19.6,
+              0.57
+            ]
+          },
+          "triangles": 160
+        },
+        {
+          "name": "young_fir",
+          "bounds": {
+            "minimum": [
+              -3.5,
+              0.0,
+              -3.299999952316284
+            ],
+            "maximum": [
+              3.5,
+              15.5,
+              3.299999952316284
+            ]
+          },
+          "trunk": {
+            "minimum": [
+              -0.4,
+              0,
+              -0.4
+            ],
+            "maximum": [
+              0.4,
+              13.1,
+              0.4
+            ]
+          },
+          "triangles": 160
+        }
+      ],
+      "glb_sha256": "c056efeeee16f59db90a5f2adcda52314488b83489ca2b1d2f60a2c3935d3cfa",
+      "blend_sha256": "8c9b5981890613f5d0caa2e1c1bec61f2449a25494fc4637f03f8999dcff6bca"
     }
   ]
 }

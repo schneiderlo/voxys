@@ -1,53 +1,43 @@
 # Forest performance recovery
 
-Status: strategy based on source inspection and saved browser telemetry. No performance fix has been applied by this audit.
+Status: implemented. The deterministic recipe 3 forest, its 2 km draw range, six tree variants, and the village meadow remain in place.
 
-Keep the 2 km forest, six tree species/ages, deterministic placement, the village meadow and nearby trunk collisions. Change how that forest is processed and drawn.
+## Problem and result
 
-## Evidence
+The enhanced forest increased the buffered distant tree count from about 15,000 to about 52,000. Every frame then scanned and prepared the full list. The renderer rebuilt and uploaded material records for visible trees and replayed too many nearby trees in both shadow regions. Travel also regenerated the 2 km source whenever the player crossed a 128-unit cell.
 
-Historical samples at the same spawn position, camera yaw and 1920 × 1080 resolution:
+At the same 1920 × 1080 spawn view during the implementation check, the reported frame rate rose from about 49 to about 76 FPS. CPU frame work fell from about 16 to 3.4 ms; the GPU frame interval fell from roughly 16–18 to 11.6 ms. This was one view on one host, not a forest-only GPU timing or a worst-frame guarantee. The raw local browser capture was temporary and is no longer available; these rounded values come from the interactive verification, so repeat the benchmark before using them as a formal acceptance result. The older recipe comparison is preserved in [historical-summary.json](../../validation/free-build/forest-performance-audit-r01/historical-summary.json).
 
-| Sample median | Original forest, recipe 1 | Enhanced forest, recipe 2 | Village meadow, recipe 3 |
-| --- | ---: | ---: | ---: |
-| Buffered distant trees | 14,900 | 52,071 | 51,836 |
-| CPU frame work | 3.7 ms | 14.6 ms | 16.3 ms |
-| GPU frame interval | 11.6 ms | 18.6 ms | 19.2 ms |
-| Reported FPS | 72.3 | 46.9 | 15.5 |
-| Samples | 133 | 60 | 60 |
+The next pass adds a fourth detail level beyond 700–850 units. It retains the
+six tree heights and crown outlines at 88–160 triangles each. In the checked
+spawn view, colour triangles fell from about 4.18 million to 1.39 million.
+The 2 km GPU silhouette test found nearly the same pixel coverage for each
+variant. Coarse far-shadow casters for the village and blacksmith then reduced
+the total mesh shadow triangles from about 2.7 million to 0.64 million, while
+their full colour meshes and near shadows remain. The forest still has 51,836
+distant trees and the same clearing. A clean, uncapped browser sample with a
+second build tab active reached roughly 115–130 FPS at 1920 × 1080 and up to
+about 170 FPS at 1280 × 720. The shared GPU load and variable browser pacing
+make these directional measurements. A sustained 200 FPS result is not verified.
 
-These are historical observations from different sessions, not a controlled A/B experiment. The meadow reduced tree count slightly; it did not introduce the threefold increase. The especially low recipe 3 FPS is not explained by CPU/GPU timings alone. Frame admission, scheduling and other GPU activity must be measured before assigning the entire regression to trees. The existing composite GPU timer does not isolate forest color or its shadows.
+## Changes
 
-Summary and source hashes: [historical-summary.json](../../validation/free-build/forest-performance-audit-r01/historical-summary.json).
+- The forest is grouped into 64-unit render tiles. Tiles outside the draw distance or camera view are rejected before visiting their trees.
+- Distant tree transforms and GPU material records are retained. Camera movement updates a compact list of visible instance indices; an unchanged selection needs no instance upload.
+- Nearby detailed trees still change detail level with distance and cast sun shadows. Shadow submissions are culled separately against the near and far light regions, retaining relevant offscreen casters.
+- The opaque sort key groups equal shadow eligibility so compatible draws remain batched.
+- The procedural source is cached in immutable 128-unit generation tiles. Moving into the next region creates only entering tiles; collision-only refreshes reuse the same source and tree identity. Terrain, construction admission, and camera-origin changes still invalidate the appropriate caches.
+- Forest telemetry now reports visited and visible trees, selection time, instance upload bytes, and color/shadow triangle totals.
+- Distant forest trees switch to an 88–160-triangle mesh after 700–850 units. The
+  switch varies by stable tree ID, so a grove does not change together.
+- The village and blacksmith use collision-derived proxy geometry in the far
+  shadow region. The colour pass and near shadow region retain the original
+  meshes.
 
-Confirmed work in the current code:
+The scene retained the same recipe 3 tree counts in checked views: 51,836 distant trees at spawn; 40,821 and 26,216 at two other terrain positions. Tests compare streamed and cold generation for IDs, placement, bounds, and variants, and compare retained rendering against live draws.
 
-- `AdventureRuntime::render` scans the entire distant tree list every frame. Visible trees get fresh double-precision transforms and another bounds test in `MeshPath`.
-- `MeshPath::render` expands each tree into material records, allocates temporary vectors, sorts, copies and uploads them every frame. Instanced drawing already exists; adding instancing alone will not fix this.
-- The merge key includes shadow eligibility, but the opaque sort key does not. Mixed eligibility can split otherwise compatible batches.
-- Trees within 280 units bypass camera rejection to preserve shadows. They enter the color pass too. Both shadow regions replay every eligible caster without testing each region's bounds.
-- The far models still have 264–464 triangles per tree; detailed broadleaf models have about 16,000. Both tiers become expensive at the new density.
-- Crossing a 128-unit boundary regenerates a 2,144-unit-radius forest. Crossing 32 units reruns admission and geometry preparation. This is a separate travel-stutter risk.
+## Verification and limits
 
-## Implementation order
+The implementation check passed 47 focused native forest, scene, and renderer tests plus one free-build runtime integration test. The WASM target linked in that check. A fresh focused rerun is recorded in [the validation note](../../validation/free-build/forest-performance-r04/README.md). The new distant silhouette, shadow-only drawing, and free-build startup checks passed after the fourth forest level and proxy geometry were added; the browser target rebuilt successfully.
 
-1. **Establish a fair baseline.** Run one foreground game at fixed resolution, camera, lighting and physics state. Compare forest enabled/disabled, forest shadows disabled, and forced distance detail tiers. Record CPU selection/packing/upload time, separate GPU forest color/shadow time, triangles, uploaded bytes and completed presentations. Use 30 seconds after warm-up, three runs, and report frame median, p95 and p99. Also record deferred frames and queue depth. Recreate the earlier forest baseline where possible; do not compare FPS from unrelated sessions.
-
-2. **Remove repeated CPU work first.** Store trees in persistent 64–128-unit tiles with conservative bounds. Reject tiles before visiting trees. Cache transforms and opaque material groups; keep static instance data on the GPU. Update changed tiles and compact visibility lists, rather than recreating every material record. Use tile-local coordinates with a separate world-origin offset. Start with CPU tile culling; add GPU culling only if measurements justify it. Include shadow eligibility in opaque batching while preserving transparent draw order.
-
-3. **Give shadows their own visible lists.** Cull color against the camera and casters against each light region independently. Keep offscreen trees that can cast into visible space. Use simpler tree geometry for shadows where the projected error permits it. Verify moving sun, village roofs and ground contact before considering shadow caching.
-
-4. **Make distant woodland much cheaper.** Select detail by projected screen size, with hysteresis. Starting tuning bands: detailed trees within about 40 units, simplified trees to 160, very cheap silhouettes to 500, then opaque grouped canopy meshes to 2,000. These are tuning proposals, not new placement boundaries. Build distant groups from the same deterministic trees; retain species mix, glades and skyline. Check elevated views, fog and transitions before replacing individual models. Avoid dense overlapping transparent cards that could exchange geometry cost for fill cost.
-
-5. **Bound streaming work.** Generate only entering tiles and prefetch ahead of walking/biking. Spread generation over a measured per-frame budget. Recheck construction only in affected tiles. Publish render/collision changes together, preserving suppressed IDs and the existing nearby safety margin. Invalidate caches on terrain, recipe or construction changes.
-
-## Acceptance
-
-- Test the village facing woodland, a dense grove, an elevated 2 km view, and a bike route across tile boundaries.
-- Aim to return within 10% of the reproduced pre-enhancement frame-time baseline on the same hardware/settings. Target 60 FPS where that baseline supports it; this is not yet a measured promise.
-- Initial incremental forest budgets: at most 2 ms CPU and 3 ms GPU in representative views. Adjust only from measurements, and check worst-frame behavior as well as averages.
-- Preserve deterministic IDs, the 60-unit village meadow, construction displacement, camera-origin transitions and nearby collisions.
-- Keep the prior frame-acquisition fix: optimization must not bring back blank-frame flicker.
-- Capture matching screenshots and repeat the same benchmark after each stage. Stop adding complexity once the performance and visual targets pass.
-
-The previous functional checks established correctness, not an acceptable frame-time budget. Performance and visual acceptance must both gate the next forest revision.
+The 2 ms CPU and 3 ms GPU forest-only targets from the initial plan are not established: current timers cover different scopes. Elevated 2 km views, long bike runs, p95/p99 frame times, and multiple hardware profiles still need a controlled benchmark. Keep the present forest density and meadow until those measurements show a reason to change them.

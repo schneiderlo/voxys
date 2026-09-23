@@ -703,6 +703,22 @@ TEST(MeshPathGPUTest, ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters) 
     EXPECT_GT(pixelAt(pixels,32,32).r,20);
 }
 
+TEST(MeshPathGPUTest, DistantShadowProxyDoesNotDrawIntoColorOrNearShadow) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;config.farSunShadows=true;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto mesh=diagnosticQuad();mesh.materials[0].unlit=1;ASSERT_TRUE(path.loadMeshData(mesh));
+    PrimitiveLighting light;light.fogDensity=0;
+    path.addInstance({.shadowRegions=1});
+    path.addInstance({.colorVisible=false,.shadowRegions=2});
+    std::vector<uint8_t> pixels;ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,pixels));
+    EXPECT_EQ(path.lastColorTriangles(),2u);
+    EXPECT_EQ(path.lastShadowTriangles(),4u);
+    EXPECT_EQ(path.lastSubmittedDrawCount(),1u);
+    EXPECT_GT(pixelAt(pixels,32,32).r,20);
+}
+
 TEST(MeshPathGPUTest, AuthoredForestHorizonMeshesRenderAtTwoKilometres) {
     DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
     std::filesystem::path resources=std::filesystem::current_path();
@@ -738,7 +754,7 @@ TEST(MeshPathGPUTest, ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKil
     if(const char* root=std::getenv("VOXY_ADVENTURE_TEST_WORKSPACE"))resources=root;
     MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;config.frontFace=WGPUFrontFace_CW;
     MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
-    for(uint32_t lod=0;lod<3;++lod) {
+    for(uint32_t lod=0;lod<4;++lod) {
         std::ifstream input(resources/("data/adventure/forest-r02/forest-lod"+std::to_string(lod)+".vmesh"),std::ios::binary);
         ASSERT_TRUE(input);
         const std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(input)),{});
@@ -750,12 +766,17 @@ TEST(MeshPathGPUTest, ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKil
             for(const auto& sub:data.submeshes)triangles[sub.meshIndex]+=sub.indexCount/3;
             for(auto n:triangles)EXPECT_LE(n,700u);
         }
+        if(lod==3) {
+            std::array<uint32_t,6> triangles{};
+            for(const auto& sub:data.submeshes)triangles[sub.meshIndex]+=sub.indexCount/3;
+            for(auto n:triangles)EXPECT_LE(n,180u);
+        }
         ASSERT_TRUE(path.loadMeshData(data));
     }
     PrimitiveLighting light;light.fogDensity=0;light.ambientIntensity=1;light.sunIntensity=1;
     for(uint32_t tree=0;tree<6;++tree) {
-        std::array<size_t,3> coverage{};
-        for(uint32_t lod=0;lod<3;++lod) {
+        std::array<size_t,4> coverage{};
+        for(uint32_t lod=0;lod<4;++lod) {
             path.clearInstances();path.addInstance({.assetIndex=lod,.meshIndex=tree,
                 .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(0,-10,0)),.castsSunShadow=false});
             std::vector<uint8_t> pixels;
@@ -765,11 +786,11 @@ TEST(MeshPathGPUTest, ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKil
             EXPECT_GT(coverage[lod],30u)<<tree<<":"<<lod;
             EXPECT_EQ(path.lastCulledInstanceCount(),0u);
         }
-        for(uint32_t lod=1;lod<3;++lod) {
-            EXPECT_GT(coverage[lod],coverage[0]*.75)<<tree;
-            EXPECT_LT(coverage[lod],coverage[0]*1.25)<<tree;
+        for(uint32_t lod=1;lod<4;++lod) {
+            EXPECT_GT(coverage[lod]*4,coverage[0]*3)<<tree;
+            EXPECT_LT(coverage[lod]*4,coverage[0]*5)<<tree;
         }
-        std::cout<<"Forest family "<<tree<<" pixels at 2000 m: "<<coverage[0]<<", "<<coverage[1]<<", "<<coverage[2]<<'\n';
+        std::cout<<"Forest family "<<tree<<" pixels at 2000 m: "<<coverage[0]<<", "<<coverage[1]<<", "<<coverage[2]<<", "<<coverage[3]<<'\n';
     }
 }
 

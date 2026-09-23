@@ -1468,6 +1468,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             || glm::any(glm::greaterThan(instance.surface, glm::vec4(1.0f)))
             || (instance.surface.z != 0.0f && instance.surface.z != 1.0f)
             || (instance.surface.z == 0.0f && instance.surface != glm::vec4(0.0f))
+            || instance.shadowRegions > 3u
             || !finiteFloat(instance.emissiveBoost)) {
             LOG_ERROR("MeshPath::render: invalid mesh instance");
             instancesValid_ = false;
@@ -1506,10 +1507,11 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             return false;
         }
         const bool live=instance.physicsBody.valid();
-        uint8_t visibility=(live || boundsVisible(viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)) ? 1u : 0u;
+        uint8_t visibility=instance.colorVisible &&
+            (live || boundsVisible(viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)) ? 1u : 0u;
         if(sunShadows_ && instance.castsSunShadow && instance.tintColor.a>=.99f) {
-            if(live || boundsVisible(shadow.viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum))visibility|=2u;
-            if(farSunShadows_ && (live || boundsVisible(shadow.farViewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)))visibility|=4u;
+            if((instance.shadowRegions&1u) && (live || boundsVisible(shadow.viewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)))visibility|=2u;
+            if(farSunShadows_ && (instance.shadowRegions&2u) && (live || boundsVisible(shadow.farViewProj*instance.modelMatrix,bounds.minimum,bounds.maximum)))visibility|=4u;
         }
         if(!visibility) { ++lastCulledInstanceCount_;continue; }
 

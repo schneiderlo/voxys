@@ -1,0 +1,71 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:adventure
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CreativeScenery.*:CreativeForest.*:CreativeVillageRealTerrain.*:FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[==========] Running 20 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (577 ms)
+[ RUN      ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots
+[       OK ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots (1600 ms)
+[ RUN      ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest
+[       OK ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest (1542 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (584 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (811 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+Scenery admitted 65 props; kinds 16 12 29 6 1 1
+[       OK ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (450 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (1037 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+World scenery at 1200,-1120: 65 props
+World scenery at 1500,-1100: 82 props
+World scenery at 900,-1000: 303 props
+World scenery at -63,-895: 491 props
+[       OK ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (1552 ms)
+[----------] 8 tests from CreativeScenery (8156 ms total)
+
+[----------] 3 tests from CreativeVillageRealTerrain
+[ RUN      ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[       OK ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage (576 ms)
+[ RUN      ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[       OK ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging (530 ms)
+[ RUN      ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[       OK ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession (797 ms)
+[----------] 3 tests from CreativeVillageRealTerrain (1904 ms total)
+
+[----------] 9 tests from CreativeForest
+[ RUN      ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees
+[       OK ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees (330 ms)
+[ RUN      ] CreativeForest.SettlementMeadowProtectsEveryVillageEdgeDuringTravel
+[       OK ] CreativeForest.SettlementMeadowProtectsEveryVillageEdgeDuringTravel (527 ms)
+[ RUN      ] CreativeForest.StreamedTilesMatchColdGenerationAndReuseCollisionOnlyRefreshes
+Forest region refresh: reused=36.6622 ms cold=270.534 ms
+Forest region refresh: reused=54.8925 ms cold=261.172 ms
+Forest region refresh: reused=83.0902 ms cold=286.112 ms
+[       OK ] CreativeForest.StreamedTilesMatchColdGenerationAndReuseCollisionOnlyRefreshes (1339 ms)
+[ RUN      ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry
+[       OK ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry (598 ms)
+[ RUN      ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload
+[       OK ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload (809 ms)
+[ RUN      ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace
+[       OK ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace (932 ms)
+[ RUN      ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer
+[       OK ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer (1815 ms)
+[ RUN      ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing
+Forest canopy neighbours: 64196 / 67664
+[       OK ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing (749 ms)
+[ RUN      ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+Forest at 1200,-1120: near=65 distant=51836 horizon=8251 solids=1296
+Forest at 800,-800: near=858 distant=40821 horizon=5915 solids=2065
+Forest at -63,-895: near=491 distant=26216 horizon=3519 solids=1693
+[       OK ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (1104 ms)
+[----------] 9 tests from CreativeForest (8216 ms total)
+
+[----------] Global test environment tear-down
+[==========] 20 tests from 3 test suites ran. (18276 ms total)
+[  PASSED  ] 20 tests.

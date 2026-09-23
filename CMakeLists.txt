@@ -542,6 +542,7 @@ if(VOXY_BUILD_WASM)
             data/adventure/forest-r02/forest-lod0.vmesh
             data/adventure/forest-r02/forest-lod1.vmesh
             data/adventure/forest-r02/forest-lod2.vmesh
+            data/adventure/forest-r02/forest-lod3.vmesh
             data/adventure/forest-r02/manifest.json
             data/adventure/forest-r02/source/ATTRIBUTION.md
             data/adventure/forest-r02/source/ldraw-manifest.json
@@ -551,6 +552,8 @@ if(VOXY_BUILD_WASM)
             data/adventure/creative-props-far-r01/manifest.json
             data/adventure/creative-village-r01/creative-village.vmesh
             data/adventure/creative-village-r01/manifest.json
+            data/adventure/shadow-proxies-r01/shadow-proxies.vmesh
+            data/adventure/shadow-proxies-r01/manifest.json
             data/adventure/ldraw-cannon-r01/cannon.vmesh
             data/adventure/ldraw-cannon-r01/manifest.json
             data/adventure/ldraw-cannon-r01/articulation.json

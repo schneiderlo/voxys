@@ -9,7 +9,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--package',type=Path,required=True)
     p.add_argument('--tool',type=Path,required=True);p.add_argument('--header',type=Path,required=True);a=p.parse_args()
     root=a.package.resolve();prov=json.loads((root/'provenance.json').read_text());reports=[]
-    assert len(prov['lods'])==3
+    assert [entry['lod'] for entry in prov['lods']]==[0,1,2,3]
     for entry in prov['lods']:
         lod=entry['lod'];glb=root/'source'/f'forest-lod{lod}.glb';mesh=root/f'forest-lod{lod}.vmesh'
         assert sha(glb)==entry['glb_sha256']
@@ -36,7 +36,7 @@ def main():
             lo=variant['bounds']['minimum'];hi=variant['bounds']['maximum']
             assert all(all(lo[k]-.001<=points[j][k]<=hi[k]+.001 for k in range(3)) for j in used)
             triangles.append(len(used)//3)
-        assert max(triangles)<(18000,1500,700)[lod],triangles
+        assert max(triangles)<(18000,1500,700,180)[lod],triangles
         reports.append({'lod':lod,'bytes':len(raw),'sha256':sha(mesh),'triangles':triangles,'draws':ns,'vertices':nv})
     # Union bounds include the near foliage ornaments and every LOD silhouette.
     def vec(v):return '{'+','.join(f'{x:.6f}' for x in v)+'}'

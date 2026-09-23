@@ -1,0 +1,60 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:mesh_path_test
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = MeshPathTest.*:MeshPathGPUTest.RetainedSceneryMatchesLiveDrawsAcrossSelectionGrowthAndReplacement:MeshPathGPUTest.ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters:MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres:MeshPathGPUTest.ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres:CreativeScenery.*:CreativeForest.*:CreativeVillageRealTerrain.*:FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[==========] Running 6 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from MeshPathTest
+[ RUN      ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData
+[       OK ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData (0 ms)
+[ RUN      ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha
+[       OK ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha (0 ms)
+[----------] 2 tests from MeshPathTest (0 ms total)
+
+[----------] 4 tests from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.RetainedSceneryMatchesLiveDrawsAcrossSelectionGrowthAndReplacement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [05:00:04.795] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [05:00:04.795] [GPU]   Vendor: radv[0m
+[32m[INFO ] [05:00:04.795] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [05:00:04.795] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [05:00:04.811] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] MeshPathGPUTest.RetainedSceneryMatchesLiveDrawsAcrossSelectionGrowthAndReplacement (360 ms)
+[ RUN      ] MeshPathGPUTest.ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [05:00:04.956] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [05:00:04.956] [GPU]   Vendor: radv[0m
+[32m[INFO ] [05:00:04.956] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [05:00:04.956] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [05:00:04.958] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] MeshPathGPUTest.ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters (117 ms)
+[ RUN      ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [05:00:05.071] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [05:00:05.071] [GPU]   Vendor: radv[0m
+[32m[INFO ] [05:00:05.071] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [05:00:05.071] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [05:00:05.073] [GPU] Headless GPU context initialized successfully[0m
+Forest horizon mesh 0: triangles=412 pixels at 2000 m=138
+Forest horizon mesh 1: triangles=188 pixels at 2000 m=66
+[       OK ] MeshPathGPUTest.AuthoredForestHorizonMeshesRenderAtTwoKilometres (110 ms)
+[ RUN      ] MeshPathGPUTest.ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [05:00:05.183] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [05:00:05.183] [GPU]   Vendor: radv[0m
+[32m[INFO ] [05:00:05.183] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [05:00:05.183] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [05:00:05.184] [GPU] Headless GPU context initialized successfully[0m
+Forest family 0 pixels at 2000 m: 199, 199, 197
+Forest family 1 pixels at 2000 m: 218, 218, 217
+Forest family 2 pixels at 2000 m: 103, 100, 99
+Forest family 3 pixels at 2000 m: 188, 184, 180
+Forest family 4 pixels at 2000 m: 168, 167, 167
+Forest family 5 pixels at 2000 m: 91, 90, 90
+[       OK ] MeshPathGPUTest.ForestFamilyKeepsItsSilhouetteAcrossDistanceLevelsAtTwoKilometres (521 ms)
+[----------] 4 tests from MeshPathGPUTest (1110 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test suites ran. (1111 ms total)
+[  PASSED  ] 6 tests.

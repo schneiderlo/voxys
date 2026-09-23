@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Six original forest silhouettes, with attributed LDraw 2417 leaf detail.
 
-Blender background recipe. The three LODs retain identical crown envelopes;
+Blender background recipe. The four LODs retain similar crown envelopes;
 studs, leaf ornaments and trunk seams are removed with distance. Stud pitch and
 trunk dimensions stay physical: no random runtime scaling.
 """
@@ -63,10 +63,28 @@ def build(kind,lod,materials,leaf):
     radius=.38 if kind==3 else .40 if kind in (2,5) else .57
     bark='birch' if kind==3 else 'bark'
     trunk_top=height-2.4 if kind>=4 else bottom+2.0
-    # Tapered octagonal trunk, with the same root and branch structure in every LOD.
-    ring_shell(m,'Tapered trunk',0,0,0,radius,radius,
-               ((0,1.25),(bottom*.65,1),(trunk_top,.66)),bark,.022)
-    if kind>=4:
+    # Beyond ~700 units the entire tree is only a few pixels wide. Keep its
+    # height and crown width, while removing overlapping interior lobes.
+    if lod==3:
+        ring_shell(m,'Distant trunk',0,0,0,radius,radius,
+                   ((0,1.25),(trunk_top,.66)),bark,0)
+        if kind>=4:
+            for i in range(3):
+                t=i/3;y=bottom+(height-bottom-2.1)*t
+                r=width*(1-t*.88);d=depth*(1-t*.88)
+                h=height-y if i==2 else (height-y)*.55
+                ring_shell(m,'Distant needle bough',0,y,0,r,d,
+                           ((0,1),(.28*h,.84),(h,.13)),'needle' if i!=1 else 'shade',0)
+        else:
+            ring_shell(m,'Distant crown',0,bottom,0,width,depth,
+                       ((0,.58),(.30*(height-bottom),.92),
+                        (.65*(height-bottom),1),(height-bottom,.22)),
+                       'leaf',0)
+    else:
+        # The nearer levels share tapered roots and branching detail.
+        ring_shell(m,'Tapered trunk',0,0,0,radius,radius,
+                   ((0,1.25),(bottom*.65,1),(trunk_top,.66)),bark,.022)
+    if lod!=3 and kind>=4:
         levels=7 if kind==4 else 5
         for i in range(levels):
             t=i/(levels-1);y=bottom+(height-bottom-2.1)*t
@@ -76,7 +94,7 @@ def build(kind,lod,materials,leaf):
                        ((0,.68),(.22*h,1),(h,.16)),
                        'needle' if i%3!=1 else 'shade',.025 if lod<2 else 0)
             if lod==0:m.stud(.2*math.sin(i*2),y+h,.15*math.cos(i*3),'needle')
-    else:
+    elif lod!=3:
         # Each lobe is a rounded molded volume, not a stack of broad shelves.
         # Shared ring profiles preserve silhouettes across the three LODs.
         crown_height=height-bottom
@@ -120,13 +138,15 @@ def build(kind,lod,materials,leaf):
             'triangles':len(ob.data.polygons)}
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args(sys.argv[sys.argv.index('--')+1:])
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--lod',type=int,choices=range(4),help='Regenerate only this detail level')
+    a=p.parse_args(sys.argv[sys.argv.index('--')+1:])
     assert bpy.app.background and '--factory-startup' in sys.argv
     out=a.output.resolve();source=out/'source'
     manifest=json.loads((source/'ldraw-manifest.json').read_text())
     for entry in manifest['dependencies']:assert sha(source/'ldraw'/entry['path'])==entry['sha256']
     leaf=foliage(source/'ldraw');reports=[]
-    for lod in range(3):
+    for lod in ([a.lod] if a.lod is not None else range(4)):
         bpy.ops.wm.read_factory_settings(use_empty=True);materials={}
         for name,color in PALETTE.items():
             mat=bpy.data.materials.new('forest_'+name);mat.use_nodes=True;mat.use_backface_culling=True
@@ -147,6 +167,10 @@ def main():
         text=json.dumps(doc,separators=(',',':')).encode();text+=b' '*(-len(text)%4);tail=raw[20+n:]
         glb.write_bytes(struct.pack('<III',0x46546c67,2,20+len(text)+len(tail))+struct.pack('<II',len(text),tag)+text+tail)
         reports.append({'lod':lod,'variants':variants,'glb_sha256':sha(glb),'blend_sha256':sha(blend)})
+    if a.lod is not None:
+        previous=json.loads((out/'provenance.json').read_text())['lods']
+        reports=sorted((entry for entry in previous if entry['lod']!=a.lod),key=lambda entry:entry['lod'])+reports
+        reports.sort(key=lambda entry:entry['lod'])
     (out/'provenance.json').write_text(json.dumps({'asset_id':'voxys-forest-r02','stud_pitch':1,'render_to_canonical':0,'author_sha256':sha(__file__),'helper_sha256':sha(Path(__file__).with_name('author_creative_props.py')),'ldraw_source':'source/ldraw-manifest.json','attribution':'source/ATTRIBUTION.md','lods':reports},indent=2)+'\n')
     print('FOREST_AUTHOR_COMPLETE',flush=True);os._exit(0)
 if __name__=='__main__':main()

@@ -9,10 +9,11 @@ detail level. Original downloaded parts, dependency hashes and attribution are
 in [source/ATTRIBUTION.md](source/ATTRIBUTION.md) and
 [source/ldraw-manifest.json](source/ldraw-manifest.json).
 
-All three detail levels share the same crown volumes. Near trees retain molded
+The first three detail levels share the same crown volumes. Near trees retain molded
 leaf details, studs and bevels. Middle trees retain branches. Horizon trees use
-264–464 triangles each. The runtime staggers the detail changes between trees
-and keeps them visible up to 2,000 game units away.
+264–464 triangles each. Beyond roughly 700–850 units, a fourth detail level
+keeps the tree height and outer crown at 88–160 triangles. The runtime staggers
+the detail changes between trees and keeps them visible up to 2,000 game units away.
 
 Generation uses fixed integer noise and a fixed seed. Warped woodland fields,
 small groves, glades and young trees at sparse edges produce coherent stands.

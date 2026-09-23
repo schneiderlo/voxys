@@ -72,6 +72,8 @@ struct MeshDrawInstance {
     uint32_t pad[3] = {};
     physics::BodyHandle physicsBody{}; // If valid, modelMatrix is root-local.
     bool castsSunShadow = true;
+    bool colorVisible = true; // False for a shadow-only proxy.
+    uint8_t shadowRegions = 3; // Bit 0: near, bit 1: far.
     // Linear base RGB replacement + enable (0 or 1), applied before tintColor.
     // Zero retains authored RGB; the material's alpha and texture stay intact.
     glm::vec4 baseColorOverride{0.0f};
