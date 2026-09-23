@@ -3682,6 +3682,7 @@ bool Application::rebuildSunShadowMap() {
     bakeConfig.lightDir = rendererSettings_.sunDirection;
     bakeConfig.heightScale = config_.heightScale;
     bakeConfig.cellScale = config_.cellScale;
+    if (config_.gpuPhysicsSoftwareCompat) bakeConfig.downsample = 4;
     const auto baked = terrain::bakeShadowHeightField(
         heightmap_->getData(), heightmap_->getWidth(),
         heightmap_->getHeight(), bakeConfig);
@@ -3689,6 +3690,19 @@ bool Application::rebuildSunShadowMap() {
 
     const WGPUDevice device = gpuContext_->getDevice();
     const WGPUQueue queue = gpuContext_->getQueue();
+    // Sun controls commonly update the field already bound to the raycaster.
+    // Reuse its storage to avoid a second full shadow texture at frame start.
+    if (shadowMapTexture_ && shadowMapView_
+        && wgpuTextureGetWidth(shadowMapTexture_) == baked.width
+        && wgpuTextureGetHeight(shadowMapTexture_) == baked.height
+        && gpu::writeTexture(queue, shadowMapTexture_,
+            std::as_bytes(std::span<const uint16_t>(baked.data)),
+            baked.width, baked.height, baked.width * sizeof(uint16_t))) {
+        appliedShadowSunDirection_ = rendererSettings_.sunDirection;
+        LOG_INFO("Updated sun shadow field: {}x{} ({:.1f} ms)",
+                 baked.width, baked.height, bakeTimer.elapsedMs());
+        return true;
+    }
     gpu::TextureDesc desc = gpu::TextureDesc::tex2D(
         baked.width, baked.height, WGPUTextureFormat_R16Uint,
         WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
@@ -5081,6 +5095,7 @@ bool Application::initRenderers() {
             bakeConfig.lightDir = rendererSettings_.sunDirection;
             bakeConfig.heightScale = config_.heightScale;
             bakeConfig.cellScale = config_.cellScale;
+            if (config_.gpuPhysicsSoftwareCompat) bakeConfig.downsample = 4;
 
             const auto baked = terrain::bakeShadowHeightField(
                 heightmap_->getData(), heightmap_->getWidth(),
