@@ -380,6 +380,20 @@ struct MeshPath::StaticCache {
     bool upload=true,selectionUpload=true;
 };
 
+struct MeshPath::FrameScratch {
+    std::vector<GpuDrawInstance> gpuInstances, sortedInstances;
+    std::vector<PendingDraw> draws, batches;
+    std::vector<uint32_t> liveIndices;
+};
+
+uint64_t MeshPath::frameScratchCapacityBytes() const noexcept {
+    if (!frameScratch_) return 0;
+    const auto& scratch = *frameScratch_;
+    return (scratch.gpuInstances.capacity() + scratch.sortedInstances.capacity()) * sizeof(GpuDrawInstance)
+        + (scratch.draws.capacity() + scratch.batches.capacity()) * sizeof(PendingDraw)
+        + scratch.liveIndices.capacity() * sizeof(uint32_t);
+}
+
 glm::vec4 opaqueSrgbPaintOverride(const std::array<uint8_t, 4>& rgba) noexcept {
     return {srgbToLinear(float(rgba[0]) / 255.0f),
         srgbToLinear(float(rgba[1]) / 255.0f),
@@ -502,6 +516,8 @@ void MeshPath::releaseHandles() {
 }
 
 void MeshPath::teardown(bool destroyResources) {
+    frameScratch_.reset();
+    lastSubmeshVisitCount_ = 0;
     staticCache_.reset();
     for (GpuAsset& asset : assets_) releaseAsset(asset, destroyResources);
     assets_.clear();
@@ -937,7 +953,8 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
 
     std::vector<moto::VmeshSubmesh> submeshes = data.submeshes;
     std::vector<MeshBounds> meshBounds(data.header.meshCount);
-    for (moto::VmeshSubmesh& submesh : submeshes) {
+    for (uint32_t submeshIndex = 0; submeshIndex < submeshes.size(); ++submeshIndex) {
+        auto& submesh = submeshes[submeshIndex];
         if (submesh.indexCount == 0u || (submesh.indexCount % 3u) != 0u
             || submesh.materialIndex >= data.materials.size()
             || submesh.meshIndex >= data.header.meshCount
@@ -952,6 +969,7 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
             return false;
         }
         MeshBounds& bounds = meshBounds[submesh.meshIndex];
+        bounds.submeshIndices.push_back(submeshIndex);
         for (uint32_t i = 0u; i < submesh.indexCount; ++i) {
             const glm::vec3& position = positions[indices[firstIndex + i]];
             if (!bounds.valid) {
@@ -1139,8 +1157,8 @@ bool MeshPath::setStaticInstances(std::span<const MeshDrawInstance> instances) {
         const auto& asset=assets_[instance.assetIndex];
         if(instance.meshIndex>=asset.meshBounds.size() || !asset.meshBounds[instance.meshIndex].valid)return false;
         const uint32_t first=static_cast<uint32_t>(next->records.size());
-        for(uint32_t sub=0;sub<asset.submeshes.size();++sub) {
-            const auto& mesh=asset.submeshes[sub];if(mesh.meshIndex!=instance.meshIndex)continue;
+        for(const uint32_t sub:asset.meshBounds[instance.meshIndex].submeshIndices) {
+            const auto& mesh=asset.submeshes[sub];
             if(asset.materialAlphaModes[mesh.materialIndex]!=moto::VmeshAlphaOpaque
                 || next->records.size()>=maxDrawsPerFrame_)return false;
             auto batch=std::find_if(next->templates.begin(),next->templates.end(),[&](const auto& b){return b.assetIndex==instance.assetIndex&&b.submeshIndex==sub;});
@@ -1432,6 +1450,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     lastSubmittedDrawCount_ = 0u;
     lastCulledInstanceCount_ = 0u;
     lastInstanceUploadBytes_=lastColorTriangles_=lastShadowTriangles_=0;
+    lastSubmeshVisitCount_=0;
     for (auto& asset : assets_) asset.encodedColorDraws=0;
     if (!isInitialized() || !encoder || !colorView || !depthView
         || linearHdrOutput_ != (linearDepthOutput != nullptr)) return false;
@@ -1452,8 +1471,11 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     auto shadow = sunShadows_ ? sunShadowFrame(cameraPosition,lighting.direction,shadowFrameWorldOrigin,farSunShadows_) : SunShadowUniforms{};
     shadow.footContacts = footContacts;
 
-    std::vector<GpuDrawInstance> gpuInstances;
-    std::vector<PendingDraw> draws;
+    if (!frameScratch_) frameScratch_ = std::make_shared<FrameScratch>();
+    auto& gpuInstances = frameScratch_->gpuInstances;
+    auto& draws = frameScratch_->draws;
+    gpuInstances.clear();
+    draws.clear();
     gpuInstances.reserve(std::min<size_t>(instances_.size(), maxDrawsPerFrame_));
     draws.reserve(std::min<size_t>(instances_.size(), maxDrawsPerFrame_));
     for (const MeshDrawInstance& instance : instances_) {
@@ -1494,14 +1516,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             return false;
         }
 
-        bool foundMesh = false;
-        for (const moto::VmeshSubmesh& submesh : asset.submeshes) {
-            if (submesh.meshIndex == instance.meshIndex) {
-                foundMesh = true;
-                break;
-            }
-        }
-        if (!foundMesh) {
+        if (bounds.submeshIndices.empty()) {
             LOG_ERROR("MeshPath::render: asset {} has no logical mesh {}",
                       instance.assetIndex, instance.meshIndex);
             instancesValid_ = false;
@@ -1522,10 +1537,9 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             instance.modelMatrix * glm::vec4(localCenter, 1.0f));
         const glm::vec3 cameraDelta = cameraPosition - worldCenter;
         const float distanceSquared = glm::dot(cameraDelta, cameraDelta);
-        for (uint32_t submeshIndex = 0u;
-             submeshIndex < asset.submeshes.size(); ++submeshIndex) {
+        for (const uint32_t submeshIndex : bounds.submeshIndices) {
+            ++lastSubmeshVisitCount_;
             const moto::VmeshSubmesh& submesh = asset.submeshes[submeshIndex];
-            if (submesh.meshIndex != instance.meshIndex) continue;
             if (gpuInstances.size() >= maxDrawsPerFrame_
                 || gpuInstances.size()
                     >= std::numeric_limits<uint32_t>::max()) {
@@ -1580,9 +1594,11 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     // material/depth order, then coalesce compatible consecutive draws. Each
     // instance keeps its transform, paint, live-body handle and surface state.
     // Blended records retain back-to-front order; no new transparency sorting.
-    std::vector<GpuDrawInstance> sortedInstances;
+    auto& sortedInstances = frameScratch_->sortedInstances;
+    sortedInstances.clear();
     sortedInstances.reserve(gpuInstances.size());
-    std::vector<PendingDraw> batches;
+    auto& batches = frameScratch_->batches;
+    batches.clear();
     batches.reserve(draws.size());
     for (auto draw : draws) {
         sortedInstances.push_back(gpuInstances[draw.firstInstance]);
@@ -1623,7 +1639,8 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             lastInstanceUploadBytes_+=staticVisible*sizeof(uint32_t);
         }
         staticCache_->selectionUpload=false;
-        std::vector<uint32_t> liveIndices;liveIndices.reserve(gpuInstances.size());
+        auto& liveIndices=frameScratch_->liveIndices;
+        liveIndices.clear();liveIndices.reserve(gpuInstances.size());
         for(uint32_t i=0;i<gpuInstances.size();++i)liveIndices.push_back(static_cast<uint32_t>(staticCount)+i);
         if(!liveIndices.empty() && !gpu::writeBuffer(queue_,instanceIndexBuffer_,staticVisible*sizeof(uint32_t),std::span<const uint32_t>(liveIndices)))return false;
         lastInstanceUploadBytes_+=liveIndices.size()*sizeof(uint32_t);
@@ -1678,6 +1695,8 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (!pass) return false;
         wgpuRenderPassEncoderSetPipeline(pass,sunCasterPipeline_);
         wgpuRenderPassEncoderSetBindGroup(pass,1u,bodyBinding_,0u,nullptr);
+        uint32_t boundShadowAsset = std::numeric_limits<uint32_t>::max();
+        uint32_t boundShadowMaterial = std::numeric_limits<uint32_t>::max();
         for (uint32_t region=0;region<(farSunShadows_ ? 2u : 1u);++region) {
             const uint32_t size = region ? farSunShadowResolution : sunShadowResolution;
             const uint32_t x = region ? sunShadowResolution : 0;
@@ -1689,9 +1708,16 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 if (!draw.castsSunShadow || !(draw.visibility & (2u<<region))) continue;
                 const auto& asset = assets_[draw.assetIndex];
                 const auto& submesh = asset.submeshes[draw.submeshIndex];
-                wgpuRenderPassEncoderSetBindGroup(pass,0u,asset.materials[draw.materialIndex].bindGroup,0u,nullptr);
-                wgpuRenderPassEncoderSetVertexBuffer(pass,0u,asset.vertexBuffer,0u,WGPU_WHOLE_SIZE);
-                wgpuRenderPassEncoderSetIndexBuffer(pass,asset.indexBuffer,WGPUIndexFormat_Uint32,0u,WGPU_WHOLE_SIZE);
+                if (boundShadowAsset != draw.assetIndex) {
+                    boundShadowAsset = draw.assetIndex;
+                    boundShadowMaterial = std::numeric_limits<uint32_t>::max();
+                    wgpuRenderPassEncoderSetVertexBuffer(pass,0u,asset.vertexBuffer,0u,WGPU_WHOLE_SIZE);
+                    wgpuRenderPassEncoderSetIndexBuffer(pass,asset.indexBuffer,WGPUIndexFormat_Uint32,0u,WGPU_WHOLE_SIZE);
+                }
+                if (boundShadowMaterial != draw.materialIndex) {
+                    boundShadowMaterial = draw.materialIndex;
+                    wgpuRenderPassEncoderSetBindGroup(pass,0u,asset.materials[draw.materialIndex].bindGroup,0u,nullptr);
+                }
                 wgpuRenderPassEncoderDrawIndexed(pass,submesh.indexCount,draw.instanceCount,submesh.indexOffset/4u,0,draw.firstInstance);
                 lastShadowTriangles_+=uint64_t(submesh.indexCount/3)*draw.instanceCount;
             }

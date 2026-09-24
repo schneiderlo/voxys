@@ -137,6 +137,10 @@ public:
     [[nodiscard]] uint64_t lastInstanceUploadBytes() const noexcept { return lastInstanceUploadBytes_; }
     [[nodiscard]] uint64_t lastColorTriangles() const noexcept { return lastColorTriangles_; }
     [[nodiscard]] uint64_t lastShadowTriangles() const noexcept { return lastShadowTriangles_; }
+    [[nodiscard]] uint64_t lastSubmeshVisitCount() const noexcept { return lastSubmeshVisitCount_; }
+    /// Retained CPU preparation storage. Stable capacity means the frame's
+    /// scratch vectors do not allocate again for an unchanged workload.
+    [[nodiscard]] uint64_t frameScratchCapacityBytes() const noexcept;
     // Borrowed only for an owned physics submission. Static draws bind inert
     // buffers; dynamic draws resolve COM/principal pose directly on the GPU.
     [[nodiscard]] bool setAuthoredBodyView(const physics::PhysicsRenderView&, physics::WorldPosition camera);
@@ -205,9 +209,12 @@ public:
                 FootContacts footContacts = {});
 
 private:
+    struct FrameScratch;
+    std::shared_ptr<FrameScratch> frameScratch_;
     struct StaticCache;
     std::shared_ptr<StaticCache> staticCache_;
     uint64_t lastInstanceUploadBytes_=0,lastColorTriangles_=0,lastShadowTriangles_=0;
+    uint64_t lastSubmeshVisitCount_=0;
     WGPUTexture sunShadowTexture_ = nullptr;
     WGPUTextureView sunShadowView_ = nullptr;
     WGPUBuffer sunShadowUniform_ = nullptr, farSunShadowUniform_ = nullptr;
@@ -225,6 +232,9 @@ private:
         glm::vec3 minimum{0.0f};
         glm::vec3 maximum{0.0f};
         bool valid = false;
+        // Original submesh order, including assets with interleaved meshes.
+        // Built once at upload; each instance visits only its own submeshes.
+        std::vector<uint32_t> submeshIndices;
     };
 
     struct GpuMaterialResources {

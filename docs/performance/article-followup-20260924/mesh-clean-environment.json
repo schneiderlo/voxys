@@ -1,0 +1,227 @@
+{
+  "startUtc": "2026-09-24T20:36:36.462952+00:00",
+  "processesBefore": "    PID    PPID STAT COMMAND\n      1       0 Ss   systemd\n      2       1 Sl+  init-systemd(Ub\n      6       2 Sl+  init\n     42       1 S<s  systemd-journal\n     64       1 Ss   systemd-udevd\n     74       1 Ssl  snapfuse\n     78       1 Ssl  snapfuse\n     81       1 Ssl  snapfuse\n     94       1 Ssl  snapfuse\n     98       1 Ssl  snapfuse\n    102       1 Ssl  snapfuse\n    103       1 Ssl  snapfuse\n    113       1 Ssl  snapfuse\n    114       1 Ssl  snapfuse\n    126       1 Ssl  snapfuse\n    130       1 Ssl  snapfuse\n    135       1 Ssl  snapfuse\n    143       1 Ssl  snapfuse\n    149       1 Ssl  snapfuse\n    155       1 Ssl  snapfuse\n    158       1 Ssl  snapfuse\n    249       1 Ss   systemd-resolve\n    254       1 Ss   cron\n    256       1 Ss   dbus-daemon\n    260       1 Ss   networkd-dispat\n    261       1 Ssl  rsyslogd\n    263       1 Ssl  snapd\n    269       1 Ss   systemd-logind\n    291       1 Ss   subiquity-serve\n    296       1 Ssl  containerd\n    304       1 Ss+  agetty\n    320       1 Ssl  unattended-upgr\n    345       1 Ssl  dockerd\n    636     291 Sl   python3.10\n    703       2 Ss   login\n    731       1 Ss   systemd\n    732     731 S    (sd-pam)\n    750     703 S+   bash\n    842       1 S    Relay(854)\n   1446     636 S    python3\n  15911     731 Ss   dbus-daemon\n  15923     731 Ssl  at-spi-bus-laun\n  42256     842 Ssl  java\n  93180       1 Ssl  nix-daemon\n 137250       2 Ss   SessionLeader\n 137251  137250 S    Relay(137252)\n 137252  137251 Ss+  sh\n 137253  137252 S+   sh\n 137260  137253 S+   sh\n 137264  137260 Sl+  MainThread\n 137305  137264 Sl+  MainThread\n 137566  137264 Sl+  MainThread\n 137572  137264 Sl+  MainThread\n 137653  137572 Sl+  MainThread\n 137726  137264 Sl+  MainThread\n 137742       2 Ss   SessionLeader\n 137743  137742 S    Relay(137744)\n 137744  137743 Ss+  sh\n 137745  137744 S+   sh\n 137756  137745 Sl+  MainThread\n 137768  137726 Ss   bash\n 138179  137756 S+   sh\n 138264  137566 Sl+  pet\n 138361  137726 Ss+  bash\n 138591  137768 Sl+  codex\n 138824  137566 Sl+  MainThread\n 139092  137566 Sl+  python3\n 139128  137566 Sl+  MainThread\n 140681  138591 Sl   codex-code-mode\n 142330  137726 Ss   bash\n 142554  142330 Sl+  codex\n 144300  142554 Sl   codex-code-mode\n 172689  137566 Sl+  clangd.main\n 273811       2 Ss   SessionLeader\n 273813  273811 S    Relay(273827)\n 273827  273813 Ssl+ MainThread\n 273853       2 Ss   SessionLeader\n 273855  273853 S    Relay(273857)\n 273857  273855 Ssl+ MainThread\n 279351  137566 Sl+  MainThread\n 351193  137726 S+   sh\n 351194  351193 S+   cpuUsage.sh\n 351199  351194 S+   sleep\n 351202  142554 Ss   python3\n 351204  351202 R    ps\n",
+  "samples": [
+    {
+      "atUtc": "2026-09-24T20:36:36.488143+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:36.996228+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:37.502347+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:38.007378+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:38.513158+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:39.019484+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:39.527529+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:40.032808+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:40.540950+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:41.048680+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:41.556577+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:42.065184+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:42.572592+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:43.079505+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:43.585051+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:44.091621+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:44.599767+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:45.105857+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:45.612052+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:46.118429+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:46.625072+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:47.137995+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:47.664045+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:48.183796+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:48.702556+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:49.209920+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:49.715473+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:50.224530+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:50.731353+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:51.237302+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:51.746090+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:52.251896+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:52.758102+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:53.266887+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:53.776323+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:54.284512+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:54.793931+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:55.303554+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:55.811547+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:56.317855+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:56.825947+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:57.334127+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:57.844652+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:58.352808+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:58.861679+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:59.369809+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:36:59.876148+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:00.388084+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:00.896664+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:01.406400+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:01.922064+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:02.430465+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:02.940084+00:00",
+      "conflictingProcesses": []
+    },
+    {
+      "atUtc": "2026-09-24T20:37:03.449129+00:00",
+      "conflictingProcesses": []
+    }
+  ],
+  "scope": "Linux process sampler detects known compilers/builds and browser/native test probes every 0.5 seconds. Does not prove absence of ordinary background applications on Windows host.",
+  "exitCode": 0,
+  "endUtc": "2026-09-24T20:37:03.968388+00:00",
+  "processesAfter": "    PID    PPID STAT COMMAND\n      1       0 Ss   systemd\n      2       1 Sl+  init-systemd(Ub\n      6       2 Sl+  init\n     42       1 S<s  systemd-journal\n     64       1 Ss   systemd-udevd\n     74       1 Ssl  snapfuse\n     78       1 Ssl  snapfuse\n     81       1 Ssl  snapfuse\n     94       1 Ssl  snapfuse\n     98       1 Ssl  snapfuse\n    102       1 Ssl  snapfuse\n    103       1 Ssl  snapfuse\n    113       1 Ssl  snapfuse\n    114       1 Ssl  snapfuse\n    126       1 Ssl  snapfuse\n    130       1 Ssl  snapfuse\n    135       1 Ssl  snapfuse\n    143       1 Ssl  snapfuse\n    149       1 Ssl  snapfuse\n    155       1 Ssl  snapfuse\n    158       1 Ssl  snapfuse\n    249       1 Ss   systemd-resolve\n    254       1 Ss   cron\n    256       1 Ss   dbus-daemon\n    260       1 Ss   networkd-dispat\n    261       1 Ssl  rsyslogd\n    263       1 Ssl  snapd\n    269       1 Ss   systemd-logind\n    291       1 Ss   subiquity-serve\n    296       1 Ssl  containerd\n    304       1 Ss+  agetty\n    320       1 Ssl  unattended-upgr\n    345       1 Ssl  dockerd\n    636     291 Sl   python3.10\n    703       2 Ss   login\n    731       1 Ss   systemd\n    732     731 S    (sd-pam)\n    750     703 S+   bash\n    842       1 S    Relay(854)\n   1446     636 S    python3\n  15911     731 Ss   dbus-daemon\n  15923     731 Ssl  at-spi-bus-laun\n  42256     842 Ssl  java\n  93180       1 Ssl  nix-daemon\n 137250       2 Ss   SessionLeader\n 137251  137250 S    Relay(137252)\n 137252  137251 Ss+  sh\n 137253  137252 S+   sh\n 137260  137253 S+   sh\n 137264  137260 Sl+  MainThread\n 137305  137264 Sl+  MainThread\n 137566  137264 Sl+  MainThread\n 137572  137264 Sl+  MainThread\n 137653  137572 Sl+  MainThread\n 137726  137264 Sl+  MainThread\n 137742       2 Ss   SessionLeader\n 137743  137742 S    Relay(137744)\n 137744  137743 Ss+  sh\n 137745  137744 S+   sh\n 137756  137745 Sl+  MainThread\n 137768  137726 Ss   bash\n 138179  137756 S+   sh\n 138264  137566 Sl+  pet\n 138361  137726 Ss+  bash\n 138591  137768 Sl+  codex\n 138824  137566 Sl+  MainThread\n 139092  137566 Sl+  python3\n 139128  137566 Sl+  MainThread\n 140681  138591 Sl   codex-code-mode\n 142330  137726 Ss   bash\n 142554  142330 Sl+  codex\n 144300  142554 Sl   codex-code-mode\n 172689  137566 Sl+  clangd.main\n 273811       2 Ss   SessionLeader\n 273813  273811 S    Relay(273827)\n 273827  273813 Ssl+ MainThread\n 273853       2 Ss   SessionLeader\n 273855  273853 S    Relay(273857)\n 273857  273855 Ssl+ MainThread\n 279351  137566 Sl+  MainThread\n 351202  142554 Ss   python3\n 351870  351202 R    ps\n",
+  "overlapDetected": false
+}

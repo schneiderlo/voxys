@@ -1,0 +1,204 @@
+{
+  "historicalProfile": {
+    "source": "/mnt/c/Users/m3ndag/AppData/Local/Temp/voxys-gpu-diagnostic/perf-after-repeat/diagnostic-idle.cpuprofile",
+    "sha256": "8f9e75ec29f64b9f102c545079dd1740fd2ccc748dc4713158fe9b64956c3f16",
+    "durationMs": 5224.75,
+    "totalSamples": 3678,
+    "topSelfSamples": [
+      {
+        "selfSamples": 1500,
+        "function": "(idle)"
+      },
+      {
+        "selfSamples": 290,
+        "function": "voxy::render::MeshPath::render(WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0> const&, voxy::render::PrimitiveLighting const&, unsigned int, unsigned int, bool, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer, glm::vec<3, float, (glm::qualifier)0>, std::__2::array<glm::vec<4, float, (glm::qualifier)0>, 2ul>)"
+      },
+      {
+        "selfSamples": 208,
+        "function": "voxy::Application::renderRaycastPath(WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, voxy::render::SalvageFixtureTicket&)::$_0::__invoke(void*, WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer)"
+      },
+      {
+        "selfSamples": 200,
+        "function": "(program)"
+      },
+      {
+        "selfSamples": 58,
+        "function": "glm::mat<4, 4, float, (glm::qualifier)0> glm::operator*<float, (glm::qualifier)0>(glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::mat<4, 4, float, (glm::qualifier)0> const&)"
+      },
+      {
+        "selfSamples": 49,
+        "function": "writeBuffer"
+      },
+      {
+        "selfSamples": 48,
+        "function": "maybeStopUnwind"
+      },
+      {
+        "selfSamples": 44,
+        "function": "voxy::game::adventure::AdventureRuntime::render(WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, voxy::Camera const&, voxy::render::PrimitiveLighting const&, unsigned int, unsigned int, voxy::render::SceneShadowConsumer)::$_5::operator()(glm::vec<3, double, (glm::qualifier)0>, glm::vec<3, double, (glm::qualifier)0>) const"
+      },
+      {
+        "selfSamples": 37,
+        "function": "voxy::render::(anonymous namespace)::boundsVisible(glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0> const&)"
+      },
+      {
+        "selfSamples": 37,
+        "function": "wrapper"
+      },
+      {
+        "selfSamples": 33,
+        "function": "voxy::Application::processFrame(float, float)"
+      },
+      {
+        "selfSamples": 28,
+        "function": "wasm-to-js"
+      },
+      {
+        "selfSamples": 26,
+        "function": "glm::mat<4, 4, double, (glm::qualifier)0> glm::operator*<double, (glm::qualifier)0>(glm::mat<4, 4, double, (glm::qualifier)0> const&, glm::mat<4, 4, double, (glm::qualifier)0> const&)"
+      },
+      {
+        "selfSamples": 24,
+        "function": "std::__2::vector<voxy::render::(anonymous namespace)::GpuDrawInstance, std::__2::allocator<voxy::render::(anonymous namespace)::GpuDrawInstance>>::push_back[abi:ne210108](voxy::render::(anonymous namespace)::GpuDrawInstance const&)"
+      },
+      {
+        "selfSamples": 24,
+        "function": "setBindGroup"
+      },
+      {
+        "selfSamples": 21,
+        "function": "bigintToI53Checked"
+      },
+      {
+        "selfSamples": 18,
+        "function": "setIndexBuffer"
+      },
+      {
+        "selfSamples": 17,
+        "function": "dynCall_vii"
+      },
+      {
+        "selfSamples": 15,
+        "function": "bigintToI53Checked"
+      },
+      {
+        "selfSamples": 15,
+        "function": "beginRenderPass"
+      },
+      {
+        "selfSamples": 13,
+        "function": "std::__2::vector<voxy::render::MeshDrawInstance, std::__2::allocator<voxy::render::MeshDrawInstance>>::push_back[abi:ne210108](voxy::render::MeshDrawInstance&&)"
+      },
+      {
+        "selfSamples": 13,
+        "function": "drawIndexed"
+      },
+      {
+        "selfSamples": 12,
+        "function": "add"
+      },
+      {
+        "selfSamples": 12,
+        "function": "(garbage collector)"
+      },
+      {
+        "selfSamples": 12,
+        "function": "_wgpuRenderPassEncoderDrawIndexed"
+      },
+      {
+        "selfSamples": 12,
+        "function": "beginRenderPass"
+      },
+      {
+        "selfSamples": 11,
+        "function": "getJsObject"
+      },
+      {
+        "selfSamples": 11,
+        "function": "getCurrentTexture"
+      },
+      {
+        "selfSamples": 11,
+        "function": "void std::__2::__introsort<std::__2::_ClassicAlgPolicy, voxy::render::MeshPath::render(WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0> const&, voxy::render::PrimitiveLighting const&, unsigned int, unsigned int, bool, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer, glm::vec<3, float, (glm::qualifier)0>, std::__2::array<glm::vec<4, float, (glm::qualifier)0>, 2ul>)::$_0&, voxy::render::(anonymous namespace)::PendingDraw*, false>(voxy::render::(anonymous namespace)::PendingDraw*, voxy::render::(anonymous namespace)::PendingDraw*, voxy::render::MeshPath::render(WGPUCommandEncoderImpl*, WGPUTextureViewImpl*, WGPUTextureViewImpl*, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::mat<4, 4, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0> const&, voxy::render::PrimitiveLighting const&, unsigned int, unsigned int, bool, WGPUTextureViewImpl*, voxy::render::SceneShadowConsumer, glm::vec<3, float, (glm::qualifier)0>, std::__2::array<glm::vec<4, float, (glm::qualifier)0>, 2ul>)::$_0&, std::__2::iterator_traits<voxy::render::(anonymous namespace)::PendingDraw*>::difference_type, bool)"
+      },
+      {
+        "selfSamples": 11,
+        "function": "wasm-to-js"
+      }
+    ]
+  },
+  "immutableAssetSubmeshWork": [
+    {
+      "asset": "data/adventure/forest-r02/forest-lod0.vmesh",
+      "submeshes": 22,
+      "perMesh": {
+        "0": 4,
+        "1": 3,
+        "2": 4,
+        "3": 5,
+        "4": 3,
+        "5": 3
+      },
+      "oldRecordVisitsOneVisibleInstancePerVariant": 195,
+      "newRecordVisitsOneVisibleInstancePerVariant": 22
+    },
+    {
+      "asset": "data/adventure/forest-r02/forest-lod1.vmesh",
+      "submeshes": 22,
+      "perMesh": {
+        "0": 4,
+        "1": 3,
+        "2": 4,
+        "3": 5,
+        "4": 3,
+        "5": 3
+      },
+      "oldRecordVisitsOneVisibleInstancePerVariant": 195,
+      "newRecordVisitsOneVisibleInstancePerVariant": 22
+    },
+    {
+      "asset": "data/adventure/forest-r02/forest-lod2.vmesh",
+      "submeshes": 21,
+      "perMesh": {
+        "0": 4,
+        "1": 3,
+        "2": 4,
+        "3": 4,
+        "4": 3,
+        "5": 3
+      },
+      "oldRecordVisitsOneVisibleInstancePerVariant": 187,
+      "newRecordVisitsOneVisibleInstancePerVariant": 21
+    },
+    {
+      "asset": "data/adventure/forest-r02/forest-lod3.vmesh",
+      "submeshes": 14,
+      "perMesh": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2,
+        "4": 3,
+        "5": 3
+      },
+      "oldRecordVisitsOneVisibleInstancePerVariant": 121,
+      "newRecordVisitsOneVisibleInstancePerVariant": 14
+    }
+  ],
+  "benchmarkWorkDerivedFromImmutableAssets": {
+    "scope": "Deterministic counts for the uncropped benchmark fixtures, not instrumented baseline timing counters. Retained trees do not scan submeshes each frame.",
+    "baselineTelemetryAvailability": "Baseline binary prints placeholder zero for submesh visits and scratch capacity because its original implementation has no counters. Treat those fields as unavailable.",
+    "live600": {
+      "before": 19500,
+      "after": 2200
+    },
+    "live6000": {
+      "before": 195000,
+      "after": 22000
+    },
+    "mixed330LiveAnd3000Retained": {
+      "before": 12272,
+      "after": 1210
+    }
+  }
+}

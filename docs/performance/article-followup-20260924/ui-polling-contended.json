@@ -1,0 +1,219 @@
+{
+  "scope": "Real Chromium UI with synthetic accepted engine snapshots. Measures JSON parsing, publication and DOM/Preact work; excludes WASM serialization, GPU work and frame rate.",
+  "browser": "154.0.8037.0",
+  "polls_per_run": 1000,
+  "warmup_polls": 100,
+  "runs": [
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1344.2999999411404,
+      "p50_poll_ms": 0.6000000014901161,
+      "p95_poll_ms": 6.5
+    },
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 311.2000000439584,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.9000000022351742
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 314.39999996870756,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.6000000014901161
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1205.0000000149012,
+      "p50_poll_ms": 0.6000000014901161,
+      "p95_poll_ms": 4.199999999254942
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1481.5999999567866,
+      "p50_poll_ms": 0.6000000014901161,
+      "p95_poll_ms": 9.599999997764826
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 265.5999999791384,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.5999999977648258
+    },
+    {
+      "mode": "shared",
+      "run": 0,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 297.60000006109476,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.6000000014901161
+    },
+    {
+      "mode": "shared",
+      "run": 0,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 274.2999999523163,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.5999999977648258
+    },
+    {
+      "mode": "shared",
+      "run": 1,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 361.5000000447035,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.6000000014901161
+    },
+    {
+      "mode": "shared",
+      "run": 1,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 318.7000000216067,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.7000000029802322
+    },
+    {
+      "mode": "shared",
+      "run": 2,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 418,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.5999999977648258
+    },
+    {
+      "mode": "shared",
+      "run": 2,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 333.0999999344349,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.5
+    }
+  ],
+  "summary": [
+    {
+      "mode": "preact",
+      "baseline_median_total_ms": 1344.2999999411404,
+      "candidate_median_total_ms": 311.2000000439584,
+      "reduction_percent": 76.85040541117428,
+      "baseline_renders": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_renders": [
+        0,
+        0,
+        0
+      ],
+      "baseline_mutations": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_mutations": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mode": "shared",
+      "baseline_median_total_ms": 318.7000000216067,
+      "candidate_median_total_ms": 333.0999999344349,
+      "reduction_percent": -4.518355792862239,
+      "baseline_renders": [
+        0,
+        0,
+        0
+      ],
+      "candidate_renders": [
+        0,
+        0,
+        0
+      ],
+      "baseline_mutations": [
+        3000,
+        3000,
+        3000
+      ],
+      "candidate_mutations": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "source_sha256": {
+    "baseline_bridge": "9ccbc60e84db051439e15ede49709b6cf346e35355225eac39a92d20e37743fc",
+    "candidate_bridge": null,
+    "main_jsx": "264292545ffe53b58a49ca716f3f2d8571a34333fa825a56011437ce8ba6e99b",
+    "shared_js": "f78dd3448bd1b14bceb96f4415490b197a3b53458560babab2399156f77ebcce"
+  },
+  "limitations": [
+    "Concurrent native/wasm compilation was active. Treat timings as exploratory; use render and mutation counts as deterministic evidence.",
+    "This capture predates action-only animation-frame polling and unchanged-raw presentation-signature caching. The candidate bridge was subsequently edited before automatic source snapshots were added, so its exact source hash was not captured.",
+    "Both variants used the same main.jsx and shared.js files. Their modification times predate this benchmark.",
+    "The synthetic engine omits WASM serialization and rendering; the measured changes are not a gameplay frame-rate result."
+  ],
+  "workload": "100 warmup polls, then 1000 sequential microtask-flushed polls. DOM writes counted in a separate untimed pass. Three alternating-order runs per variant."
+}

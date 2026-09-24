@@ -1,0 +1,45 @@
+{
+  "system": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+  "cpuCount": 8,
+  "compiler": "GCC 15.2.0 in repository Nix shell; -O2, same explicit flags and wrapper hardening for both variants",
+  "rendererBackend": "wgpu-native + Vulkan llvmpipe (LLVM21.1.8); CPU preparation/encoding benchmark only",
+  "baselineInstrumentation": "Baseline source unchanged except zero-return scratch-capacity accessor added for common test linkage; counter zeros are unavailable, not zero work.",
+  "linkage": "Both variants link the same freshly compiled test object and existing native dependency shared libraries. The variant MeshPath object is directly linked into the executable with --export-dynamic so it overrides the cached shared renderer definitions. No Bazel outputs changed.",
+  "sha256": {
+    "baselineSource": "748e25266d099b34a239fc39a7b1869ced59d246db5d3b700a65e39234f4ae96",
+    "candidateSource": "3feb585306b6b51f714631ea22dd35fcd76639ea6fc1289e22f2a2c05e112856",
+    "header": "169ece752dcf7c43bac08aa06a2d53c2e1386391a9f2ca7188b4feba585dded4",
+    "testSource": "56c6134f27df0df552eeab6f50ec5db785d573858381e02532b78a0bb6e3ca32",
+    "baselineBinary": "4acec48fc33ca36c7dcaf410ae6f6448c5b488f5ae168364e6686556936dd8e6",
+    "candidateBinary": "4c7c0ef102c489bc1214bdd85d66accad2dc2dfbf6266e540deace657e508ddd",
+    "baselineHeader": "82c161e81dea58e72d16e4bca9eb5ee3a4e597905ebbeff4c2ba8b58b1515e6f"
+  },
+  "preliminaryStatus": "Both variants passed all 3 workloads while a separate WASM build ran. Preliminary wall times are excluded as speed evidence.",
+  "scratchHighWater": "Five scratch vectors retain capacity until MeshPath teardown. The mixed fixture follows 6000-live stress, so 7548840 B is a high-water value, not a fresh mixed-frame requirement.",
+  "baselineSourceCommit": "186e2a6",
+  "headerCompatibility": "The baseline object uses original mesh_path.cpp against the current candidate header for the same test object/class layout. Original header is archived separately for provenance; it was not used for the A/B baseline compilation.",
+  "cleanTiming": "Six alternating runs completed 2026-09-24 20:36:36\u201320:37:03 UTC, no overlapping known build/test/browser-probe process detected by sampler. See mesh-clean-environment.json.",
+  "recipes": {
+    "mesh-direct-build.sh": {
+      "originalSha256": "993be1c764f2be6325eb171d5b27369588b7aa34585549467a0621442a1039a1",
+      "note": "Machine-specific archived recipe; uses cached native dependencies and repository Nix compiler wrapper."
+    },
+    "mesh-direct-baseline.params": {
+      "originalSha256": "0e7f2056ff1232531defa30c77e14e87edc0e87c26513ea8ce8511cd87fcfa88",
+      "note": "Machine-specific archived recipe; uses cached native dependencies and repository Nix compiler wrapper."
+    },
+    "mesh-direct-candidate.params": {
+      "originalSha256": "6920904391832c9b5c89e462bf69548e226a1043b0a293d5baec0ad0ac6a4fc6",
+      "note": "Machine-specific archived recipe; uses cached native dependencies and repository Nix compiler wrapper."
+    },
+    "mesh-instrumented-baseline.cpp.gz": {
+      "originalSha256": "2eda0026d8163c5abd228457f660e8db258ae6feb47fd1707e49792126731e2d",
+      "note": "Machine-specific archived recipe; uses cached native dependencies and repository Nix compiler wrapper."
+    },
+    "mesh-clean-run.sh": {
+      "originalSha256": "c2b7ed9dba5bc6be1d3bdb78ac102956090bd56668de5cf11a74745b6878f0cb",
+      "note": "Machine-specific archived recipe; uses cached native dependencies and repository Nix compiler wrapper."
+    }
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "scope": "One successful current-candidate hardware probe; no paired baseline, speedup, or displayed-FPS claim.",
+  "source_report": {
+    "path": "/mnt/c/Users/m3ndag/AppData/Local/Temp/voxys-article-followup-20260924-v2/probe/report.json",
+    "sha256": "226ddcffcf9d9ab086a3deeaa688eddcb2c000c2897635b557453ebd07beebbf"
+  },
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "Unknown",
+    "description": "Unknown",
+    "fallback": false
+  },
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "headless": true,
+  "deduplication": "One available render_gpu record per reported frame id across each scenario before/samples/after. Cached boundary records may originate just before the scenario; these are sparse timestamp samples, not every displayed frame.",
+  "lighting_scope": "lighting_composite_ms is an aggregate interval spanning multiple lighting/compositing passes and object color work. Depending on cache refresh, it can include additional background/shadow work. It does not attribute the cost to one shader.",
+  "scenarios": [
+    {
+      "name": "idle",
+      "elapsed_ms": 10025.60000000149,
+      "unique_timing_frames": 16,
+      "timing_frame_ids": [
+        570,
+        600,
+        630,
+        660,
+        690,
+        720,
+        750,
+        780,
+        810,
+        840,
+        870,
+        900,
+        930,
+        960,
+        990,
+        1020
+      ],
+      "median_ms": {
+        "water_simulation": 1.376256,
+        "terrain_raycast": 0.0,
+        "lighting_composite": 13.664256,
+        "primitives": 0.065536,
+        "gpu_frame": 20.971519999999998
+      }
+    },
+    {
+      "name": "orbit",
+      "elapsed_ms": 10032.599999997765,
+      "unique_timing_frames": 9,
+      "timing_frame_ids": [
+        1110,
+        1140,
+        1170,
+        1200,
+        1230,
+        1260,
+        1290,
+        1320,
+        1350
+      ],
+      "median_ms": {
+        "water_simulation": 1.31072,
+        "terrain_raycast": 14.876672,
+        "lighting_composite": 19.595264,
+        "primitives": 0.065536,
+        "gpu_frame": 37.158912
+      }
+    },
+    {
+      "name": "walk",
+      "elapsed_ms": 10019.099999997765,
+      "unique_timing_frames": 8,
+      "timing_frame_ids": [
+        1440,
+        1500,
+        1530,
+        1560,
+        1620,
+        1650,
+        1680,
+        1710
+      ],
+      "median_ms": {
+        "water_simulation": 1.376256,
+        "terrain_raycast": 13.631488000000001,
+        "lighting_composite": 16.809984,
+        "primitives": 0.098304,
+        "gpu_frame": 33.947648
+      }
+    },
+    {
+      "name": "throw",
+      "elapsed_ms": 10047.39999999851,
+      "unique_timing_frames": 12,
+      "timing_frame_ids": [
+        1830,
+        1860,
+        1890,
+        1920,
+        1950,
+        1980,
+        2010,
+        2040,
+        2070,
+        2100,
+        2130,
+        2160
+      ],
+      "median_ms": {
+        "water_simulation": 1.245184,
+        "terrain_raycast": 0.0,
+        "lighting_composite": 8.716288,
+        "primitives": 0.262144,
+        "gpu_frame": 12.976128
+      }
+    }
+  ],
+  "diagnostic_cpu_profile": {
+    "path": "/mnt/c/Users/m3ndag/AppData/Local/Temp/voxys-article-followup-20260924-v2/probe/diagnostic-idle.cpuprofile",
+    "sha256": "720631295a246f346f42e656c4d957ed46405c155e759481469ed13fcfb310db",
+    "duration_ms": 5248.618,
+    "total_samples": 2696,
+    "idle_samples": 1750,
+    "non_idle_samples": 946,
+    "symbol_scope": "Current WebAssembly profile contains stripped function indices. No matching nonempty symbol map was established, so no C++ function names are inferred from older maps.",
+    "top_aggregate_self_samples": [
+      {
+        "function": "(idle)",
+        "self_samples": 1750
+      },
+      {
+        "function": "wasm-function[579]",
+        "self_samples": 104
+      },
+      {
+        "function": "(program)",
+        "self_samples": 99
+      },
+      {
+        "function": "wasm-function[2398]",
+        "self_samples": 85
+      },
+      {
+        "function": "writeBuffer",
+        "self_samples": 54
+      },
+      {
+        "function": "wasm-to-js",
+        "self_samples": 34
+      },
+      {
+        "function": "wasm-function[478]",
+        "self_samples": 34
+      },
+      {
+        "function": "wasm-function[2403]",
+        "self_samples": 26
+      },
+      {
+        "function": "type.<computed>",
+        "self_samples": 21
+      },
+      {
+        "function": "beginRenderPass",
+        "self_samples": 21
+      },
+      {
+        "function": "wasm-function[1060]",
+        "self_samples": 20
+      },
+      {
+        "function": "",
+        "self_samples": 19
+      }
+    ]
+  },
+  "timingEnvironment": {
+    "note": "A separate native build resumed after the clean CPU/UI comparisons and overlapped the hardware probe. Hardware frame/startup times are observational, not clean comparative performance evidence.",
+    "buildLog": "hardware-overlapping-build.log.gz",
+    "buildLogSha256": "b73d4ac5f89a1208dfa66cb8ad595c0d98013c01534932b4b6f0bc9a635c77c7",
+    "buildLogLastModifiedUtc": "2026-09-24T20:47:47.797176+00:00",
+    "buildElapsedSeconds": 356.777
+  }
+}

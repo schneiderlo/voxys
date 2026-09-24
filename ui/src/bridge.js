@@ -1,7 +1,20 @@
 // All accepted game state comes from C++. The UI owns presentation only.
 const modes=new Set(['build','explore','catalog','pause','settings','controls','combat-binding','binding-choice','guide']);
+// Only presentation data invalidates the DOM. The engine's observation, player
+// tick, camera and physics diagnostics change even while every control is idle.
+// Keep this projection in step with the fields read by main.jsx;
+// the full, fresh snapshot is still retained for action admission and delivery.
+const presentationFields=['ready','failed','message','mode','piece','paint','parts','rows','menuToken','menuSelected',
+    'menuTitle','menuText','catalogCategory','status','statusEvent','saveStatus','saveFailure','dirty',
+    'preferencesStatus','textScale','highContrast','reducedMotion','colourAvailable',
+    'canUndo','canRemove','riding','swimming','interaction'];
+const cannonFields=['available','nearby','active','ready','awaitingHit','wallBusy','wallReleased','wallFailed',
+    'wallMessage','error','inspectingWall','impacts'];
+const presentationSignature=state=>JSON.stringify([
+    ...presentationFields.map(key=>state[key]),state.cannon&&cannonFields.map(key=>state.cannon[key]),
+]);
 export function createBridge(engine,environment,notify){
-    let stopped=false,owned=false,latest=null,pending=null,preferences=null,dirty=false;
+    let stopped=false,owned=false,latest=null,pending=null,preferences=null,dirty=false,pendingFrame=null,pendingFramesRemaining=0;
     const dispatch=(action,value=0)=>engine._adventure_action(action,value);
     const own=value=>{if(owned!==value){owned=value;dispatch(15,value?1:0);}};
     function readRaw(){
@@ -17,21 +30,36 @@ export function createBridge(engine,environment,notify){
         return state;
     }
     const read=()=>parse(readRaw());
-    // The 100ms poll usually sees an unchanged snapshot. Publishing it again
-    // re-renders the whole interface, so publish only when the core's bytes
-    // or the pending flag differ from what the UI already shows.
-    let publishedRaw=null,publishedPending=null;
+    let previousRaw=null,previousSignature=null,publishedSignature=null,publishedPending=null;
+    const cancelPendingFrame=()=>{
+        pendingFramesRemaining=0;
+        if(pendingFrame!==null){environment.cancelAnimationFrame?.(pendingFrame);pendingFrame=null;}
+    };
+    const followPending=()=>{
+        if(pendingFrame!==null||pendingFramesRemaining===0||typeof environment.requestAnimationFrame!=='function')return;
+        // Input waits for the next accepted engine frame, not the next 100ms
+        // poll. Eight attempts bound work when the engine is stalled; the
+        // interval covers that case and hidden tabs. Idle play schedules none.
+        --pendingFramesRemaining;
+        pendingFrame=environment.requestAnimationFrame(()=>{pendingFrame=null;refresh();});
+    };
     function refresh(){
         if(stopped)return;
         try{
             const raw=readRaw();
-            const state=raw===publishedRaw&&latest?latest:parse(raw);latest=state;dirty=state.dirty===true;
+            const unchanged=raw===previousRaw&&latest;
+            const state=unchanged?latest:parse(raw);latest=state;previousRaw=raw;dirty=state.dirty===true;
             if(pending!==null&&pending!==state.observation)pending=null;
             const isPending=pending!==null;
-            if(raw===publishedRaw&&isPending===publishedPending)return;
-            publishedRaw=raw;publishedPending=isPending;
-            preferences?.tick(state);notify({...state,pending:isPending});
-        }catch(error){latest=null;publishedRaw=null;notify({failed:true,message:String(error.message)});}
+            if(isPending)followPending();else cancelPendingFrame();
+            // Preference persistence is driven by its own accepted revision,
+            // including revisions that do not change a visible label.
+            preferences?.tick(state);
+            const signature=unchanged?previousSignature:presentationSignature(state);previousSignature=signature;
+            if(signature===publishedSignature&&isPending===publishedPending)return;
+            publishedSignature=signature;publishedPending=isPending;
+            notify({...state,pending:isPending});
+        }catch(error){cancelPendingFrame();latest=null;previousRaw=null;publishedSignature=null;notify({failed:true,message:String(error.message)});}
     }
     const worldFocus=()=>{environment.document.getElementById('voxy-canvas')?.focus({preventScroll:true});own(false);};
     const action=(id,value=0,expectedToken=null)=>{
@@ -42,7 +70,7 @@ export function createBridge(engine,environment,notify){
             const current=read();
             if(expectedToken!==null&&current.menuToken!==expectedToken){refresh();return false;}
             if(id===4&&(current.mode!=='build'||current.valid!==true))return false;
-            if(id!==26)pending=current.observation;dispatch(id,value);refresh();return true;
+            if(id!==26){pending=current.observation;pendingFramesRemaining=8;}dispatch(id,value);refresh();return true;
         }catch{refresh();return false;}
     };
     dispatch(19,1);
@@ -54,7 +82,7 @@ export function createBridge(engine,environment,notify){
     environment.addEventListener('beforeunload',beforeUnload);
     refresh();const timer=environment.setInterval(refresh,100);
     return {action,own,worldFocus,refresh,cleanup(){
-        if(stopped)return;own(false);stopped=true;dispatch(19,0);preferences?.cleanup();
+        if(stopped)return;own(false);stopped=true;cancelPendingFrame();dispatch(19,0);preferences?.cleanup();
         canvas?.removeEventListener('pointerdown',focusWorld,true);
         environment.clearInterval(timer);environment.removeEventListener('beforeunload',beforeUnload);
     }};

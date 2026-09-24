@@ -1,0 +1,170 @@
+{
+  "scope": "Real Chromium UI with synthetic accepted engine snapshots. Measures JSON parsing, publication and DOM/Preact work; excludes fixture/WASM serialization, GPU work and frame rate.",
+  "workload": "Sequential polls, each flushed through the microtask queue. DOM writes counted in a separate untimed pass. Three alternating-order runs per variant.",
+  "source_sha256": {
+    "baseline_bridge": "61eff6cb524abc646c88ae35d8240a83d012018b031fe9e01f94902e6914c875",
+    "main.jsx": "23d224d434a2ab9e57193e3e984543be44e8e0b57c9d308f8910f00e0b3e4baf",
+    "bridge.js": "ec8cf49e0ab90a9c6a9a2ddf0c783d59ca645c004991387ebca6c122c79d9b5f"
+  },
+  "browser": "154.0.8037.0",
+  "started_utc": "2026-09-24T20:55:33.779Z",
+  "modes": [
+    "preact"
+  ],
+  "shared_hud_fixture": false,
+  "polls_per_run": 1000,
+  "warmup_polls": 100,
+  "runs": [
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "baseline",
+      "snapshot_bytes": 16158,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1230.5999999418855,
+      "p50_poll_ms": 0.5999999977648258,
+      "p95_poll_ms": 6.5
+    },
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "candidate",
+      "snapshot_bytes": 16158,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 337.90000000596046,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.5999999977648258
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "candidate",
+      "snapshot_bytes": 16158,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 509.8999998867512,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.6000000014901161
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "baseline",
+      "snapshot_bytes": 16158,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1708.9999999254942,
+      "p50_poll_ms": 0.5999999977648258,
+      "p95_poll_ms": 10.699999999254942
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "baseline",
+      "snapshot_bytes": 16158,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1180.1999999582767,
+      "p50_poll_ms": 0.6000000014901161,
+      "p95_poll_ms": 5.199999999254942
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "candidate",
+      "snapshot_bytes": 16158,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 413.2999999821186,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.9000000022351742
+    }
+  ],
+  "summary": [
+    {
+      "mode": "preact",
+      "baseline_median_total_ms": 1230.5999999418855,
+      "candidate_median_total_ms": 413.2999999821186,
+      "reduction_percent": 66.41475702895852,
+      "baseline_renders": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_renders": [
+        0,
+        0,
+        0
+      ],
+      "baseline_mutations": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_mutations": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "completed_utc": "2026-09-24T20:56:09.708Z",
+  "measurement_window": {
+    "started_utc": "2026-09-24T20:55:33.293739+00:00",
+    "process_snapshot_start": [
+      "    PID COMMAND         %CPU",
+      " 374153 adventure_hud_l 98.5",
+      " 373944 bash            63.6",
+      " 138591 codex           15.3",
+      "  42256 java            14.6",
+      " 137566 MainThread      14.0",
+      " 142554 codex           10.6",
+      " 137726 MainThread       6.9",
+      " 137264 MainThread       5.8",
+      " 273827 MainThread       2.8",
+      " 273813 Relay(273827)    1.4",
+      " 273857 MainThread       1.4",
+      "      1 systemd          1.2",
+      " 137572 MainThread       0.8",
+      "   1446 python3          0.7",
+      " 139128 MainThread       0.7"
+    ],
+    "overlap_caveat": "Concurrent adventure_hud_l and adventure_runti native executables were present in the start/end snapshots. Timing is exploratory and excluded from release speed claims. The deterministic render/mutation counts and visible-change assertions remain valid.",
+    "process_snapshot_end": [
+      "    PID COMMAND         %CPU",
+      " 375907 adventure_runti 96.0",
+      " 375706 bash            28.5",
+      " 138591 codex           15.3",
+      "  42256 java            14.5",
+      " 137566 MainThread      13.9",
+      " 142554 codex           10.6",
+      " 376231 python3         10.0",
+      " 137726 MainThread       6.9",
+      " 137264 MainThread       5.8",
+      " 376227 bash             3.0",
+      " 273827 MainThread       2.9",
+      " 273813 Relay(273827)    1.4",
+      " 273857 MainThread       1.4",
+      "      1 systemd          1.2",
+      " 137572 MainThread       0.8"
+    ],
+    "browser_exit_observed_utc": "2026-09-24T20:57:06.616220+00:00"
+  },
+  "release_scope": "Isolated worktree based on origin/main 186e2a6. Both variants use the unmodified production Preact main.jsx; only bridge.js differs. No shared HUD or colours mode redesign is included.",
+  "baseline_artifact": "ui-bridge-origin-main.mjs.gz",
+  "limitations": [
+    "Synthetic 256-part engine fixture, with moving observation/player/camera/forest/cannon diagnostics; excludes fixture JSON serialization, WASM serialization and GPU work.",
+    "Counts cover 1000 immediately scheduled polls per pass, not a timed ten-hertz gameplay session. Timing and DOM-mutation counting use separate passes.",
+    "Process snapshots show lifetime-average Linux CPU percentages, not an instantaneous utilization trace. Unrelated host or Windows-side background work cannot be ruled out.",
+    "Native test overlap was discovered during final review; this is not a clean timing comparison."
+  ],
+  "timing_contended": true
+}

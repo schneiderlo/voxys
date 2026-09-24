@@ -686,6 +686,151 @@ TEST(MeshPathGPUTest, RetainedSceneryMatchesLiveDrawsAcrossSelectionGrowthAndRep
     ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));EXPECT_EQ(actual,reference);
 }
 
+TEST(MeshPathGPUTest, InterleavedLogicalMeshesPreserveMaterialsAcrossLiveAndRetainedFrames) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;config.farSunShadows=true;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto split=diagnosticQuad();split.materials.resize(2);
+    split.header.materialCount=2;split.header.submeshCount=2;
+    split.submeshes={{0,3,0,0},{6,3,1,0}};
+    std::copy_n(std::array<float,4>{.8f,.03f,.01f,1}.begin(),4,split.materials[0].baseColorFactor);
+    std::copy_n(std::array<float,4>{.02f,.04f,.8f,1}.begin(),4,split.materials[1].baseColorFactor);
+    for(auto& material:split.materials)material.unlit=1;
+    auto green=diagnosticQuad();green.materials[0].unlit=1;
+    std::copy_n(std::array<float,4>{.02f,.8f,.04f,1}.begin(),4,green.materials[0].baseColorFactor);
+    ASSERT_TRUE(path.loadMeshData(split));ASSERT_TRUE(path.loadMeshData(green));
+    // Mesh 0's triangles surround mesh 1 in the source list. Neither source
+    // adjacency nor material order identifies the logical mesh correctly.
+    auto interleaved=split;
+    interleaved.header.meshCount=2;interleaved.header.submeshCount=3;
+    interleaved.header.materialCount=3;interleaved.header.indexCount=12;
+    interleaved.materials.push_back(green.materials[0]);
+    constexpr std::array<uint16_t,12> indices{0,2,1,0,2,1,0,3,2,0,3,2};
+    interleaved.indices.resize(sizeof(indices));
+    std::memcpy(interleaved.indices.data(),indices.data(),sizeof(indices));
+    interleaved.submeshes={{0,3,0,0},{6,6,2,1},{18,3,1,0}};
+    ASSERT_TRUE(path.loadMeshData(interleaved));
+    PrimitiveLighting light;light.sunIntensity=0;light.ambientIntensity=1;light.fogDensity=0;
+    std::array<MeshDrawInstance,2> instances;
+    for(uint32_t i=0;i<instances.size();++i) {
+        instances[i].assetIndex=i;
+        instances[i].modelMatrix=glm::translate(glm::mat4(1),glm::vec3(i?.65f:-.65f,0,0))
+            *glm::scale(glm::mat4(1),glm::vec3(.4f));
+        path.addInstance(instances[i]);
+    }
+    std::vector<uint8_t> reference,actual;
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,reference));
+    const auto shadowTriangles=path.lastShadowTriangles();
+    EXPECT_GT(shadowTriangles,0u);
+    path.clearInstances();
+    for(uint32_t i=0;i<instances.size();++i) {
+        instances[i].assetIndex=2;instances[i].meshIndex=i;
+        path.addInstance(instances[i]);
+    }
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(actual,reference);EXPECT_EQ(path.lastSubmeshVisitCount(),3u);
+    EXPECT_EQ(path.lastSubmittedDrawCount(),3u);EXPECT_EQ(path.lastShadowTriangles(),shadowTriangles);
+    // Scratch buffers survive both the sorting swap and changing populations.
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    const auto warmedCapacity=path.frameScratchCapacityBytes();EXPECT_GT(warmedCapacity,0u);
+    for(int frame=0;frame<3;++frame) {
+        ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+        EXPECT_EQ(actual,reference);EXPECT_EQ(path.frameScratchCapacityBytes(),warmedCapacity);
+    }
+    path.clearInstances();path.addInstance(instances[1]);
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_NE(actual,reference);EXPECT_EQ(path.lastSubmeshVisitCount(),1u);
+    EXPECT_EQ(path.lastSubmittedDrawCount(),1u);
+    path.clearInstances();for(auto& instance:instances)instance.castsSunShadow=false;
+    ASSERT_TRUE(path.setStaticInstances(instances));
+    ASSERT_TRUE(path.selectStaticInstances(std::array<uint32_t,2>{1,0}));
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(actual,reference);EXPECT_EQ(path.lastSubmeshVisitCount(),0u);
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},light,actual));
+    EXPECT_EQ(actual,reference);EXPECT_EQ(path.lastInstanceUploadBytes(),0u);
+}
+
+#if !defined(VOXY_WASM)
+// Opt-in CPU encoding benchmark, not a GPU or displayed-FPS measurement.
+// Run in an optimized build with --gtest_also_run_disabled_tests and this filter.
+// The normal renderer validates, culls, expands, sorts, uploads and encodes the
+// actual forest meshes. Discarded encoders keep rasterization outside the test;
+// upload completion is drained outside each measured interval.
+TEST(MeshPathGPUTest, DISABLED_ForestCpuEncodingBenchmark) {
+    DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace=WGPUFrontFace_CW;config.sunShadows=true;config.farSunShadows=true;
+    config.maxInstances=32768;config.maxDrawsPerFrame=65536;
+    MeshPath path;ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    ASSERT_TRUE(path.loadMesh("data/adventure/forest-r02/forest-lod1.vmesh"));
+    ASSERT_TRUE(path.loadMesh("data/adventure/forest-r02/forest-lod3.vmesh"));
+    ASSERT_TRUE(path.loadMesh("data/adventure/creative-village-r01/creative-village.vmesh"));
+    ASSERT_TRUE(path.loadMesh("data/adventure/human-r01/human.vmesh"));
+    PixelResources targets;
+    targets.color=gpu::createTexture(context.getDevice(),gpu::TextureDesc::renderTarget(
+        64,64,WGPUTextureFormat_RGBA8Unorm,"mesh_encoding_benchmark"));
+    targets.depth=gpu::createTexture(context.getDevice(),gpu::TextureDesc::depth(
+        64,64,WGPUTextureFormat_Depth32Float,"mesh_encoding_benchmark_depth"));
+    ASSERT_NE(targets.color,nullptr);ASSERT_NE(targets.depth,nullptr);
+    targets.colorView=gpu::createTextureView(targets.color);
+    targets.depthView=gpu::createTextureView(targets.depth);
+    ASSERT_NE(targets.colorView,nullptr);ASSERT_NE(targets.depthView,nullptr);
+    const glm::vec3 eye{0,25,-120};
+    const auto view=glm::lookAt(eye,glm::vec3(0,6,0),glm::vec3(0,1,0));
+    const auto projection=glm::ortho(-160.f,160.f,-160.f,160.f,.1f,500.f);
+    PrimitiveLighting lighting;lighting.fogDensity=0;
+    for(const uint32_t count:std::array<uint32_t,3>{600,6000,300}) {
+        path.clearInstances();
+        const bool mixed=count==300;
+        std::vector<MeshDrawInstance> retained;
+        std::vector<uint32_t> selection;
+        if(mixed)for(uint32_t i=0;i<3000;++i) {
+            retained.push_back({.assetIndex=1,.meshIndex=i%6u,
+                .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(float(i%100u)*1.6f-80.f,0,float(i/100u)*1.6f)),
+                .castsSunShadow=false});
+            selection.push_back(i);
+        }
+        ASSERT_TRUE(path.setStaticInstances(retained));ASSERT_TRUE(path.selectStaticInstances(selection));
+        for(uint32_t i=0;i<count;++i) {
+            const glm::vec3 position{float(i%100u)*1.6f-80.f,0,float((i/100u)%60u)*1.6f-48.f};
+            path.addInstance({.meshIndex=i%6u,.modelMatrix=glm::translate(glm::mat4(1),position)});
+        }
+        if(mixed)for(uint32_t mesh=0;mesh<15;++mesh) {
+            path.addInstance({.assetIndex=2,.meshIndex=mesh,
+                .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(float(mesh%5u)*20.f-40.f,0,float(mesh/5u)*20.f))});
+            path.addInstance({.assetIndex=3,.meshIndex=mesh});
+        }
+        std::vector<double> milliseconds;
+        uint32_t expectedDraws=0;uint64_t expectedTriangles=0;
+        for(uint32_t frame=0;frame<140;++frame) {
+            WGPUCommandEncoderDescriptor descriptor{};
+            auto encoder=wgpuDeviceCreateCommandEncoder(context.getDevice(),&descriptor);
+            ASSERT_NE(encoder,nullptr);
+            const auto begin=std::chrono::steady_clock::now();
+            const bool rendered=path.render(encoder,targets.colorView,targets.depthView,
+                view,projection,eye,lighting,64,64,false);
+            const auto end=std::chrono::steady_clock::now();
+            wgpuCommandEncoderRelease(encoder);
+            ASSERT_TRUE(rendered);
+            if(frame==0) {expectedDraws=path.lastSubmittedDrawCount();expectedTriangles=path.lastColorTriangles();}
+            EXPECT_EQ(path.lastSubmittedDrawCount(),expectedDraws);EXPECT_GT(expectedDraws,0u);
+            EXPECT_EQ(path.lastColorTriangles(),expectedTriangles);EXPECT_GT(expectedTriangles,0u);
+            if(frame>=20)milliseconds.push_back(std::chrono::duration<double,std::milli>(end-begin).count());
+            wgpuQueueSubmit(context.getQueue(),0,nullptr);
+            wgpuDevicePoll(context.getDevice(),true,nullptr);
+        }
+        std::sort(milliseconds.begin(),milliseconds.end());
+        std::printf("mesh_encoding case=%s live_instances=%u retained_instances=%zu samples=%zu median_ms=%.6f p95_ms=%.6f draws=%u triangles=%llu submesh_visits=%llu scratch_bytes=%llu\n",
+            mixed?"retained_forest_village_character":"live_forest_stress",count+(mixed?30u:0u),retained.size(),
+            milliseconds.size(),milliseconds[milliseconds.size()/2],milliseconds[milliseconds.size()*95/100],
+            expectedDraws,static_cast<unsigned long long>(expectedTriangles),
+            static_cast<unsigned long long>(path.lastSubmeshVisitCount()),
+            static_cast<unsigned long long>(path.frameScratchCapacityBytes()));
+    }
+}
+#endif
+
 TEST(MeshPathGPUTest, ShadowModeCullsDistantNonCastersButKeepsOffscreenCasters) {
     DiagnosticContext context;ASSERT_TRUE(context.initHeadless());
     MeshPathConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;

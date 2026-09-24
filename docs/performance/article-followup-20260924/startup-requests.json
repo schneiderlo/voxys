@@ -1,0 +1,97 @@
+{
+  "fixture": "Real document/parser and data loader; synthetic engine/data; no GPU workload",
+  "latency_comparison": false,
+  "browser": "154.0.8037.0",
+  "rounds": [
+    {
+      "name": "baseline",
+      "first_css_response_ms": 885.9074350000001,
+      "critical_requests": {
+        "data": {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 1097.8359339999997,
+          "response_ms": 1097.8899089999995
+        },
+        "wasm": {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 977.6381999999994,
+          "response_ms": 977.7584469999993
+        },
+        "runtime": {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 306.0848539999997,
+          "response_ms": 306.14444000000003
+        }
+      },
+      "stylesheet_fixture": "Fixed 750 ms delay",
+      "stylesheet_gate_timed_out": false,
+      "started_before_styles": {
+        "data": false,
+        "wasm": false,
+        "runtime": true
+      },
+      "runtime_request_count": 1,
+      "runtime_executions": 1,
+      "data_bytes": 32,
+      "wasm_compiled": true,
+      "errors": []
+    },
+    {
+      "name": "candidate",
+      "first_css_response_ms": 391.01741200000015,
+      "critical_requests": {
+        "data": {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 390.36105900000075,
+          "response_ms": 390.43849500000033
+        },
+        "wasm": {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 327.53890000000047,
+          "response_ms": 327.58565799999997
+        },
+        "runtime": {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 149.72302200000013,
+          "response_ms": 149.75315200000023
+        }
+      },
+      "stylesheet_fixture": "Held until all three critical requests start (10-second failure bound)",
+      "stylesheet_gate_timed_out": false,
+      "started_before_styles": {
+        "data": true,
+        "wasm": true,
+        "runtime": true
+      },
+      "runtime_request_count": 1,
+      "runtime_executions": 1,
+      "data_bytes": 32,
+      "wasm_compiled": true,
+      "errors": []
+    }
+  ],
+  "note": "Dependency check only, not a latency or full-page startup comparison. The baseline uses a fixed CSS delay; candidate CSS responses are withheld until all three critical requests start. The candidate must not require stylesheet completion to make progress.",
+  "source_sha256": {
+    "/tmp/voxys-perf-article-baseline-src/web/index.html": "f7bf4d892576baa55f116cab1ec942595248ab97df1b859ae2d5b6824b7c5806",
+    "web/index.html": "741d58c60742a831b791c9d81a7a06a4213bdd50558653fc35121f508549d251",
+    "web/data_packs.js": "83ae3c2f418bd1213afbba7766f98ec7db4c00a264dfa633a556cb19e69d9e24",
+    "scripts/performance/measure_startup_requests.mjs": "e67bba391988dd1214c07415566a8bf4dd0e6cdbb2dcce539cbb4f77ead37e31"
+  },
+  "negative_check": {
+    "fixture": "Baseline index substituted as candidate; loader still follows blocking CSS",
+    "expected_failure": "Critical requests must start without releasing any stylesheet",
+    "stylesheet_gate_timed_out": true,
+    "started_before_styles": {
+      "data": false,
+      "wasm": false,
+      "runtime": true
+    }
+  },
+  "baseline_artifact": {
+    "path": "docs/performance/article-followup-20260924/startup-baseline-index.html.gz",
+    "original_path": "/tmp/voxys-perf-article-baseline-src/web/index.html",
+    "uncompressed_sha256": "f7bf4d892576baa55f116cab1ec942595248ab97df1b859ae2d5b6824b7c5806",
+    "compressed_sha256": "fc1b7b7243450b5db1e04c1d0320e05805fff2bfa9dbcaf6f1553b0a54066e60",
+    "uncompressed_bytes": 104174
+  }
+}

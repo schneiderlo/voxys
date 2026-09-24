@@ -16,6 +16,13 @@
         }
     </script>
     <link rel="icon" href="data:,">
+    <link rel="preload" href="voxy_wasm.js?v=__VOXY_BUILD_ID__" as="script">
+    <script>
+        // Begin downloads before stylesheets can block script execution.
+        // The Pages build writes the release's WASM and data content hashes.
+        window.voxyReleaseFiles = '__VOXY_RELEASE_FILES__';
+    </script>
+    <script src="data_packs.js?v=__VOXY_BUILD_ID__"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="renderer_inspector.css">
     <link rel="stylesheet" href="lego_playground.css">
@@ -25,13 +32,6 @@
             new URLSearchParams(location.search).get('debug')?.toLowerCase());
         document.documentElement.classList.toggle('debug-enabled', window.voxyDebugEnabled);
     </script>
-    <script>
-        // Content hashes of the release's WASM and data packs, written by the
-        // Pages build. data_packs.js starts those downloads right away.
-        window.voxyReleaseFiles = '__VOXY_RELEASE_FILES__';
-    </script>
-    <script src="data_packs.js?v=__VOXY_BUILD_ID__"></script>
-
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVBHPYQCGP"></script>
     <script>

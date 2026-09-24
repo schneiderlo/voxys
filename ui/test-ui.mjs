@@ -35,6 +35,52 @@ test('bridge publishes only changed snapshots so an idle poll does not re-render
     f.state={...f.state,creative:true};b.refresh();assert.equal(published.at(-1).failed,undefined);
     b.cleanup();f.close();
 });
+test('engine ticks do not publish unchanged controls, but pending completion and preferences stay current',()=>{
+    const f=fixture(),published=[],preferenceTicks=[];
+    f.w.VoxyAdventurePreferences={install:()=>({tick:state=>preferenceTicks.push(state.preferencesRevision),cleanup(){}})};
+    f.state={...f.state,preferencesRevision:'1',cannon:{available:true,nearby:false,ready:true,shots:0}};
+    const b=createBridge(f.engine,f.w,state=>published.push(state));
+    for(let tick=2;tick<=101;tick++){
+        f.advance({player:{tick:String(tick),x:tick},camera:{yaw:tick/10},forest:{selectionMs:tick/100},
+            cannon:{...f.state.cannon,shots:tick,yaw:tick/10},preferencesRevision:String(tick)});
+        b.refresh();
+    }
+    assert.equal(published.length,1,'Frame diagnostics must not invalidate the controls');
+    assert.equal(preferenceTicks.at(-1),'101','Preference transport must still see fresh accepted revisions');
+    assert.equal(b.action(3),true);assert.equal(published.at(-1).pending,true);
+    assert.equal(published.at(-1).observation,f.state.observation,'Admission uses the latest observation');
+    assert.equal(b.action(3),false,'Pending guard still blocks repeated input');
+    f.advance();b.refresh();assert.equal(published.at(-1).pending,false);
+    assert.equal(published.length,3,'An accepted tick must release pending controls even without a visual change');
+    f.advance({cannon:{...f.state.cannon,nearby:true}});b.refresh();
+    assert.equal(published.length,4);assert.equal(published.at(-1).cannon.nearby,true);
+    f.state={...f.state,menuToken:2};assert.equal(b.action(10,65,1),false,'Stale menu input is still rejected');
+    b.cleanup();f.close();
+});
+test('pending input publishes the next accepted frame without idle animation work',()=>{
+    const f=fixture(),frames=new Map(),published=[];let serial=0;
+    f.w.requestAnimationFrame=callback=>{frames.set(++serial,callback);return serial;};
+    f.w.cancelAnimationFrame=id=>frames.delete(id);
+    const frame=()=>{const [id,callback]=frames.entries().next().value;frames.delete(id);callback();};
+    const b=createBridge(f.engine,f.w,state=>published.push(state));
+    b.refresh();assert.equal(frames.size,0,'Idle controls must not create animation callbacks');
+    assert(b.action(26,65,1));assert.equal(frames.size,0,'Focus metadata needs no pending frame');
+    assert(b.action(2,8));assert.equal(published.at(-1).pending,true);assert.equal(frames.size,1);
+    b.refresh();b.refresh();assert.equal(frames.size,1,'Only one follow-up may be queued');
+    frame();assert.equal(frames.size,1,'An unaccepted observation waits one more frame');
+    f.advance({piece:8});frame();
+    assert.equal(published.at(-1).piece,8);assert.equal(published.at(-1).pending,false);
+    assert.equal(frames.size,0,'Completion ends animation work without an interval tick');
+    const beforeStall=serial;assert(b.action(3));
+    for(let attempt=0;attempt<8;attempt++)frame();
+    assert.equal(serial-beforeStall,8);assert.equal(frames.size,0,'A stalled engine gets only eight fast follow-ups');
+    b.refresh();assert.equal(frames.size,0,'Ordinary polls cannot restart the exhausted action budget');
+    f.advance();b.refresh();assert.equal(published.at(-1).pending,false,'The interval still resolves a stalled action');
+    assert(b.action(3));assert.equal(frames.size,1);
+    f.advance();b.refresh();assert.equal(frames.size,0,'The hidden-tab interval can resolve and cancel the frame');
+    assert(b.action(3));assert.equal(frames.size,1);
+    b.cleanup();assert.equal(frames.size,0,'Cleanup cancels queued input work');f.close();
+});
 test('invalid runtime state fails closed; unsaved builds keep unload protection',()=>{
     const f=fixture();let published;const b=createBridge(f.engine,f.w,s=>published=s);
     const event=new f.w.Event('beforeunload',{cancelable:true});f.w.dispatchEvent(event);assert.equal(event.defaultPrevented,true);

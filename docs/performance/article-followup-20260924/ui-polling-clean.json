@@ -1,0 +1,261 @@
+{
+  "scope": "Real Chromium UI with synthetic accepted engine snapshots. Measures JSON parsing, publication and DOM/Preact work; excludes fixture/WASM serialization, GPU work and frame rate.",
+  "workload": "Sequential polls, each flushed through the microtask queue. DOM writes counted in a separate untimed pass. Three alternating-order runs per variant.",
+  "source_sha256": {
+    "baseline_bridge": "9ccbc60e84db051439e15ede49709b6cf346e35355225eac39a92d20e37743fc",
+    "main.jsx": "264292545ffe53b58a49ca716f3f2d8571a34333fa825a56011437ce8ba6e99b",
+    "shared.js": "f78dd3448bd1b14bceb96f4415490b197a3b53458560babab2399156f77ebcce",
+    "bridge.js": "18485d9035697f465963108e8da4cf25086c9dfaaee8347f4ba34b24b02cc0a4"
+  },
+  "browser": "154.0.8037.0",
+  "polls_per_run": 1000,
+  "warmup_polls": 100,
+  "runs": [
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 1352.7000000216067,
+      "p50_poll_ms": 0.6999999992549419,
+      "p95_poll_ms": 4.800000000745058
+    },
+    {
+      "mode": "preact",
+      "run": 0,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 160.9999999962747,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 216.29999996349216,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.4000000022351742
+    },
+    {
+      "mode": "preact",
+      "run": 1,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 738.2999999709427,
+      "p50_poll_ms": 0.5999999977648258,
+      "p95_poll_ms": 1.3999999985098839
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 1000,
+      "dom_mutations": 1000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 577.2000000327826,
+      "p50_poll_ms": 0.5,
+      "p95_poll_ms": 1.300000000745058
+    },
+    {
+      "mode": "preact",
+      "run": 2,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 190.10000005364418,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    },
+    {
+      "mode": "shared",
+      "run": 0,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 122.8999999910593,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.20000000298023224
+    },
+    {
+      "mode": "shared",
+      "run": 0,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 156.50000000745058,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    },
+    {
+      "mode": "shared",
+      "run": 1,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 152.8000000603497,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    },
+    {
+      "mode": "shared",
+      "run": 1,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 142.7000000178814,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    },
+    {
+      "mode": "shared",
+      "run": 2,
+      "variant": "baseline",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 3000,
+      "visible_selection_updated": true,
+      "total_poll_ms": 190.80000001564622,
+      "p50_poll_ms": 0.19999999925494194,
+      "p95_poll_ms": 0.3999999985098839
+    },
+    {
+      "mode": "shared",
+      "run": 2,
+      "variant": "candidate",
+      "snapshot_bytes": 17954,
+      "app_renders": 0,
+      "dom_mutations": 0,
+      "visible_selection_updated": true,
+      "total_poll_ms": 128.19999999552965,
+      "p50_poll_ms": 0.10000000149011612,
+      "p95_poll_ms": 0.30000000074505806
+    }
+  ],
+  "summary": [
+    {
+      "mode": "preact",
+      "baseline_median_total_ms": 738.2999999709427,
+      "candidate_median_total_ms": 190.10000005364418,
+      "reduction_percent": 74.25165920884113,
+      "baseline_renders": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_renders": [
+        0,
+        0,
+        0
+      ],
+      "baseline_mutations": [
+        1000,
+        1000,
+        1000
+      ],
+      "candidate_mutations": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "mode": "shared",
+      "baseline_median_total_ms": 142.7000000178814,
+      "candidate_median_total_ms": 152.8000000603497,
+      "reduction_percent": -7.07778559299419,
+      "baseline_renders": [
+        0,
+        0,
+        0
+      ],
+      "candidate_renders": [
+        0,
+        0,
+        0
+      ],
+      "baseline_mutations": [
+        3000,
+        3000,
+        3000
+      ],
+      "candidate_mutations": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "measurement_window": {
+    "started_utc": "2026-09-24T20:37:56.320492+00:00",
+    "process_snapshot_start": [
+      "    PID COMMAND         %CPU",
+      " 138591 codex           15.4",
+      "  42256 java            14.3",
+      " 137566 MainThread      14.1",
+      " 142554 codex           10.3",
+      " 137726 MainThread       6.7",
+      " 137264 MainThread       5.7",
+      " 273827 MainThread       2.9",
+      " 273813 Relay(273827)    1.4",
+      " 273857 MainThread       1.4",
+      "      1 systemd          1.2",
+      " 137572 MainThread       0.9",
+      "   1446 python3          0.7",
+      " 139128 MainThread       0.7",
+      " 137305 MainThread       0.5",
+      " 140681 codex-code-mode  0.5"
+    ],
+    "overlap_caveat": "Parent coordinated a quiet measurement window after six native benchmark runs. No other team CPU/GPU workload was launched during this UI run. Process snapshots cannot prove absence of unrelated host or Windows-side background work.",
+    "report_written_utc": "2026-09-24T20:38:23.928520+00:00",
+    "browser_exit_observed_utc": "2026-09-24T20:39:06.689285+00:00",
+    "process_snapshot_end": [
+      "    PID COMMAND         %CPU",
+      " 354890 cc1plus         98.0",
+      " 354871 cc1plus         95.7",
+      " 355150 cc1plus         91.5",
+      " 138591 codex           15.3",
+      "  42256 java            14.4",
+      " 137566 MainThread      14.0",
+      " 353608 bash            11.2",
+      " 142554 codex           10.3",
+      " 137726 MainThread       6.7",
+      " 355233 bash             6.0",
+      " 137264 MainThread       5.7",
+      " 273827 MainThread       2.9",
+      " 273813 Relay(273827)    1.4",
+      " 273857 MainThread       1.4",
+      "      1 systemd          1.2"
+    ]
+  },
+  "limitations": [
+    "Synthetic 256-part engine fixture, with moving observation/player/camera/forest/cannon diagnostics; excludes fixture JSON serialization, WASM serialization and GPU work.",
+    "Counts cover 1000 immediately scheduled polls per pass, not a timed ten-hertz gameplay session. Timing and DOM-mutation counting use separate passes.",
+    "Preact CPU work fell in all three repeats. Shared semantic DOM writes were eliminated, but its median measured CPU work increased by about 0.0101 ms per poll; no shared CPU speedup is claimed.",
+    "Process snapshots show lifetime-average Linux CPU percentages, not an instantaneous utilization trace. Unrelated host or Windows-side background work cannot be ruled out."
+  ]
+}

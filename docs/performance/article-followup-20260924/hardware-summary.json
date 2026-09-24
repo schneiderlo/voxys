@@ -1,0 +1,122 @@
+{
+  "scope": "One current-candidate headless hardware run. No matched full-game baseline; no before/after FPS or startup-speed claim. Engine GPU timestamps enabled. Separate CPU/work diagnostic completed before scenario timings.",
+  "complete": true,
+  "exitCode": 0,
+  "browser": "Chrome/153.0.8010.53",
+  "device": {
+    "name": "webgpu-physics",
+    "adapter": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "requiredStorageBuffers": 8,
+    "maxStorageBuffersPerShaderStage": 8,
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 268435456,
+    "maxComputeWorkgroupsPerDimension": 65535,
+    "timestampQuery": true
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "scenarioSeconds": 10,
+  "exactThrowBodyDeltaChecked": 100,
+  "reportSha256": "226ddcffcf9d9ab086a3deeaa688eddcb2c000c2897635b557453ebd07beebbf",
+  "screenshots": {
+    "idle": "481d0ee0471d174672404ea12a6cb128dc35dfe942b1af0f824d77a0d0df017c",
+    "orbit": "784a1682a89d279629ee29355a0166124a1da0aec1ded88b3c063d5790d04071",
+    "walk": "48f5858e5c7285852ce571639ec8daa8fd01db770582529e43ceba54ccb57903",
+    "throw": "98c6847922f2ba95be71337f21943d8499c810e587b72ab48660da6404a2ef82"
+  },
+  "scenarios": [
+    {
+      "name": "idle",
+      "elapsedMs": 10025.60000000149,
+      "summary": {
+        "frames": 442,
+        "renderedFrames": 442,
+        "p50": 16.79999999998836,
+        "p95": 33.5,
+        "p99": 50.100000000034925,
+        "cpuP50": 8.099999998,
+        "cpuP95": 17.1,
+        "terrainRefreshes": 0
+      },
+      "health": {
+        "lost": null,
+        "errors": []
+      },
+      "physicsTickDelta": 180
+    },
+    {
+      "name": "orbit",
+      "elapsedMs": 10032.599999997765,
+      "summary": {
+        "frames": 239,
+        "renderedFrames": 239,
+        "p50": 49.800000000046566,
+        "p95": 66.89999999996508,
+        "p99": 67.29999999998836,
+        "cpuP50": 7.5,
+        "cpuP95": 11.5,
+        "terrainRefreshes": 219
+      },
+      "health": {
+        "lost": null,
+        "errors": []
+      },
+      "physicsTickDelta": 90
+    },
+    {
+      "name": "walk",
+      "elapsedMs": 10019.099999997765,
+      "summary": {
+        "frames": 272,
+        "renderedFrames": 245,
+        "p50": 33.40000000002328,
+        "p95": 50.29999999998836,
+        "p99": 300.6000000000349,
+        "cpuP50": 7.099999998,
+        "cpuP95": 10.2,
+        "terrainRefreshes": 239
+      },
+      "health": {
+        "lost": null,
+        "errors": []
+      },
+      "physicsTickDelta": 86
+    },
+    {
+      "name": "throw",
+      "elapsedMs": 10047.39999999851,
+      "summary": {
+        "frames": 319,
+        "renderedFrames": 319,
+        "p50": 16.70000000001164,
+        "p95": 150.29999999998836,
+        "p99": 183.90000000002328,
+        "cpuP50": 6.800000001,
+        "cpuP95": 15.4,
+        "terrainRefreshes": 0
+      },
+      "health": {
+        "lost": null,
+        "errors": []
+      },
+      "physicsTickDelta": 120
+    }
+  ],
+  "renderedFrameNote": "The walk scenario advanced 272 engine frames but acquired/rendered 245 surfaces; engine-frame counts are not interchangeable with presented frames.",
+  "localPackNote": "Bazel monolithic data pack is 144.63 MiB. Production uses separate CMake packs. Startup timing is not compared with production.",
+  "timingEnvironment": {
+    "note": "A separate native build resumed after the clean CPU/UI comparisons and overlapped the hardware probe. Hardware frame/startup times are observational, not clean comparative performance evidence.",
+    "buildLog": "hardware-overlapping-build.log.gz",
+    "buildLogSha256": "b73d4ac5f89a1208dfa66cb8ad595c0d98013c01534932b4b6f0bc9a635c77c7",
+    "buildLogLastModifiedUtc": "2026-09-24T20:47:47.797176+00:00",
+    "buildElapsedSeconds": 356.777
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "kind": "local coherent Bazel preview; not production CMake packs",
+  "buildCommand": "nix-shell --run 'bazel build --config=wasm --jobs=3 //:voxy_wasm'",
+  "binaries": {
+    "voxy_wasm_cc.js": {
+      "sha256": "cccf6580245a51962228b98a9034298d61caf08af55887d19156cf4f2e0217d7",
+      "bytes": 242914,
+      "mtimeNs": 1790282018745000533
+    },
+    "voxy_wasm_cc.wasm": {
+      "sha256": "eadc390117f4b96fbc1d8eadd438e5014b1c22d14b7916fd568231bd093fdf19",
+      "bytes": 9590240,
+      "mtimeNs": 1790282018751907833
+    },
+    "voxy_wasm_cc.data": {
+      "sha256": "c8e4abba7335b86e9c8ab839da9173e9f43db8d351656dbafe684ab8bcf1633b",
+      "bytes": 151660020,
+      "mtimeNs": 1790282019135906113
+    }
+  },
+  "sources": {
+    "src/render/mesh_path.hpp": {
+      "sha256": "169ece752dcf7c43bac08aa06a2d53c2e1386391a9f2ca7188b4feba585dded4",
+      "mtimeNs": 1790279590091663488
+    },
+    "src/render/mesh_path.cpp": {
+      "sha256": "3feb585306b6b51f714631ea22dd35fcd76639ea6fc1289e22f2a2c05e112856",
+      "mtimeNs": 1790279590127662580
+    },
+    "src/app/application.cpp": {
+      "sha256": "26df9a393837805d33b30a639b6c2c194e669ce641bba1da5126e48dbae847f3",
+      "mtimeNs": 1790267238333653790
+    },
+    "src/app/application.hpp": {
+      "sha256": "b1574ed852dce83d548e064df2c5e2a1389844aaae59ba6ad69bd415dfbcf0ea",
+      "mtimeNs": 1790259369550617762
+    },
+    "src/game/adventure/adventure_runtime.hpp": {
+      "sha256": "25620d778930f03146caa2b4b8f203679c0797adc2f0a1d7a93c6a7ce902d2e1",
+      "mtimeNs": 1790279375593390081
+    },
+    "src/game/adventure/adventure_runtime.cpp": {
+      "sha256": "4fe72f47ff30d4a9f60d35e10f2a05165493cd575690a58c8621be77de1ad86e",
+      "mtimeNs": 1790280761246646886
+    },
+    "src/render/adventure_hud.hpp": {
+      "sha256": "d7a1185bcf38b01cd52b690500723143dd2f077ef9f6889437a8a901be05c8c4",
+      "mtimeNs": 1790279412236122574
+    },
+    "src/render/adventure_hud.cpp": {
+      "sha256": "4208b56ce162a62d9afdb27b02ff68c622fdff6ddb0115098b232f38be85d5be",
+      "mtimeNs": 1790280392221842874
+    },
+    "ui/src/bridge.js": {
+      "sha256": "18485d9035697f465963108e8da4cf25086c9dfaaee8347f4ba34b24b02cc0a4",
+      "mtimeNs": 1790280079518133637
+    },
+    "ui/src/shared.js": {
+      "sha256": "f78dd3448bd1b14bceb96f4415490b197a3b53458560babab2399156f77ebcce",
+      "mtimeNs": 1790279864305787996
+    },
+    "web/index.html": {
+      "sha256": "741d58c60742a831b791c9d81a7a06a4213bdd50558653fc35121f508549d251",
+      "mtimeNs": 1790279566952246894
+    }
+  },
+  "glueRename": "voxy_wasm_cc. -> voxy_wasm.",
+  "localCoreBudgetMiB": 150,
+  "published": false,
+  "stagedBytesVerified": true,
+  "buildSuccess": true,
+  "elapsedSeconds": 1061.703,
+  "objects": {
+    "bazel-out/wasm-opt-ST-87cf4af9f873/bin/src/app/_objs/app/application.o": {
+      "mtimeNs": 1790281228123500563
+    },
+    "bazel-out/wasm-opt-ST-87cf4af9f873/bin/src/game/_objs/adventure_runtime/adventure_runtime.o": {
+      "mtimeNs": 1790281296859126499
+    }
+  }
+}

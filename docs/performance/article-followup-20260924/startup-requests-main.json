@@ -1,0 +1,348 @@
+{
+  "fixture": "Real document/parser and data loader; synthetic engine/data; no GPU workload",
+  "latency_comparison": false,
+  "browser": "154.0.8037.0",
+  "rounds": [
+    {
+      "name": "baseline",
+      "first_css_response_ms": 1046.8707910000012,
+      "critical_requests": {
+        "data": {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 1514.946073000001,
+          "response_ms": 1515.0633440000001
+        },
+        "wasm": {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 1133.2538320000003,
+          "response_ms": 1133.368781000001
+        },
+        "runtime": {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 412.9822640000002,
+          "response_ms": 413.0138079999997
+        }
+      },
+      "stylesheet_fixture": "Fixed 750 ms delay",
+      "stylesheet_gate_timed_out": false,
+      "started_before_styles": {
+        "data": false,
+        "wasm": false,
+        "runtime": true
+      },
+      "runtime_request_count": 1,
+      "runtime_executions": 1,
+      "data_bytes": 32,
+      "wasm_compiled": true,
+      "errors": [],
+      "requests": [
+        {
+          "url": "/index.html",
+          "start_ms": 0,
+          "response_ms": 0.4439700000002631
+        },
+        {
+          "url": "/style.css",
+          "start_ms": 295.1225740000009,
+          "response_ms": 1046.8707910000012
+        },
+        {
+          "url": "/data_packs.js?v=startup-request-fixture",
+          "start_ms": 303.0961160000006,
+          "response_ms": 303.1468110000005
+        },
+        {
+          "url": "/renderer_inspector.css",
+          "start_ms": 304.333165,
+          "response_ms": 1054.5988400000006
+        },
+        {
+          "url": "/lego_playground.css",
+          "start_ms": 304.84850000000006,
+          "response_ms": 1055.6175820000008
+        },
+        {
+          "url": "/salvage_preview.css",
+          "start_ms": 305.295481000001,
+          "response_ms": 1056.9809610000011
+        },
+        {
+          "url": "/adventure_preferences.js",
+          "start_ms": 334.2624360000009,
+          "response_ms": 334.32743800000026
+        },
+        {
+          "url": "/build_ui.css",
+          "start_ms": 336.1291110000002,
+          "response_ms": 1087.2442769999998
+        },
+        {
+          "url": "/adventure_ui.css",
+          "start_ms": 336.5913500000006,
+          "response_ms": 1088.6874420000004
+        },
+        {
+          "url": "/controller_menu.js",
+          "start_ms": 343.43835600000057,
+          "response_ms": 349.5057770000003
+        },
+        {
+          "url": "/expedition_store.js",
+          "start_ms": 351.92950200000087,
+          "response_ms": 352.1188860000002
+        },
+        {
+          "url": "/cove_saves.js",
+          "start_ms": 356.0224109999999,
+          "response_ms": 356.11070500000096
+        },
+        {
+          "url": "/design_library.js",
+          "start_ms": 360.9576109999998,
+          "response_ms": 361.01549499999965
+        },
+        {
+          "url": "/cove_preferences.js",
+          "start_ms": 362.66843400000107,
+          "response_ms": 362.7190640000008
+        },
+        {
+          "url": "/adventure_saves.js",
+          "start_ms": 368.42482999999993,
+          "response_ms": 368.7811290000009
+        },
+        {
+          "url": "/salvage_preview.js",
+          "start_ms": 379.37882900000113,
+          "response_ms": 379.46318299999984
+        },
+        {
+          "url": "/lego_playground.js",
+          "start_ms": 380.522739,
+          "response_ms": 380.55830100000094
+        },
+        {
+          "url": "/network_transport.js",
+          "start_ms": 381.13164900000083,
+          "response_ms": 381.1508809999996
+        },
+        {
+          "url": "/cove_menu.js",
+          "start_ms": 384.0974860000006,
+          "response_ms": 384.31479299999955
+        },
+        {
+          "url": "/adventure_ui.js",
+          "start_ms": 395.15273400000115,
+          "response_ms": 395.1937429999998
+        },
+        {
+          "url": "/loader.js?v=startup-request-fixture",
+          "start_ms": 400.0682429999997,
+          "response_ms": 400.1359339999999
+        },
+        {
+          "url": "/build_ui.js",
+          "start_ms": 401.50926100000106,
+          "response_ms": 401.5387100000007
+        },
+        {
+          "url": "/frame_budget.js?v=startup-request-fixture",
+          "start_ms": 411.39268900000025,
+          "response_ms": 411.4420480000008
+        },
+        {
+          "url": "/renderer_inspector.js",
+          "start_ms": 412.46682800000053,
+          "response_ms": 412.49525900000117
+        },
+        {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 412.9822640000002,
+          "response_ms": 413.0138079999997
+        },
+        {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 1133.2538320000003,
+          "response_ms": 1133.368781000001
+        },
+        {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 1514.946073000001,
+          "response_ms": 1515.0633440000001
+        }
+      ]
+    },
+    {
+      "name": "candidate",
+      "first_css_response_ms": 192.25333799999862,
+      "critical_requests": {
+        "data": {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 191.8550039999991,
+          "response_ms": 191.90696500000013
+        },
+        "wasm": {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 190.87958499999877,
+          "response_ms": 190.94307599999956
+        },
+        "runtime": {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 88.31695899999977,
+          "response_ms": 88.3525239999999
+        }
+      },
+      "stylesheet_fixture": "Held until all three critical requests start (10-second failure bound)",
+      "stylesheet_gate_timed_out": false,
+      "started_before_styles": {
+        "data": true,
+        "wasm": true,
+        "runtime": true
+      },
+      "runtime_request_count": 1,
+      "runtime_executions": 1,
+      "data_bytes": 32,
+      "wasm_compiled": true,
+      "errors": [],
+      "requests": [
+        {
+          "url": "/index.html",
+          "start_ms": 0,
+          "response_ms": 0.36750299999948766
+        },
+        {
+          "url": "/voxy_wasm.js?v=startup-request-fixture",
+          "start_ms": 88.31695899999977,
+          "response_ms": 88.3525239999999
+        },
+        {
+          "url": "/style.css",
+          "start_ms": 89.29525999999896,
+          "response_ms": 192.25333799999862
+        },
+        {
+          "url": "/renderer_inspector.css",
+          "start_ms": 89.60415899999862,
+          "response_ms": 192.9861179999989
+        },
+        {
+          "url": "/expedition_store.js",
+          "start_ms": 113.02490000000034,
+          "response_ms": 113.05122399999891
+        },
+        {
+          "url": "/lego_playground.css",
+          "start_ms": 114.16076299999986,
+          "response_ms": 193.39258399999926
+        },
+        {
+          "url": "/salvage_preview.css",
+          "start_ms": 122.10332799999924,
+          "response_ms": 193.7879809999995
+        },
+        {
+          "url": "/build_ui.css",
+          "start_ms": 122.53109799999947,
+          "response_ms": 194.17046899999877
+        },
+        {
+          "url": "/adventure_ui.css",
+          "start_ms": 122.7519599999996,
+          "response_ms": 194.50420699999995
+        },
+        {
+          "url": "/data_packs.js?v=startup-request-fixture",
+          "start_ms": 124.55810299999939,
+          "response_ms": 124.59258099999897
+        },
+        {
+          "url": "/cove_saves.js",
+          "start_ms": 130.2969409999987,
+          "response_ms": 130.33097699999962
+        },
+        {
+          "url": "/adventure_saves.js",
+          "start_ms": 130.8713029999999,
+          "response_ms": 130.8887479999994
+        },
+        {
+          "url": "/build_ui.js",
+          "start_ms": 131.40111199999956,
+          "response_ms": 131.44960399999945
+        },
+        {
+          "url": "/controller_menu.js",
+          "start_ms": 131.7800900000002,
+          "response_ms": 131.79305699999895
+        },
+        {
+          "url": "/adventure_preferences.js",
+          "start_ms": 132.22672799999964,
+          "response_ms": 132.24677399999928
+        },
+        {
+          "url": "/adventure_ui.js",
+          "start_ms": 132.74166200000036,
+          "response_ms": 132.75612
+        },
+        {
+          "url": "/design_library.js",
+          "start_ms": 142.827213999999,
+          "response_ms": 142.85998800000016
+        },
+        {
+          "url": "/cove_preferences.js",
+          "start_ms": 156.36332599999878,
+          "response_ms": 156.3985130000001
+        },
+        {
+          "url": "/cove_menu.js",
+          "start_ms": 157.32237899999927,
+          "response_ms": 157.35580200000004
+        },
+        {
+          "url": "/salvage_preview.js",
+          "start_ms": 162.63644299999942,
+          "response_ms": 162.66621099999975
+        },
+        {
+          "url": "/lego_playground.js",
+          "start_ms": 163.20581799999854,
+          "response_ms": 163.2294239999992
+        },
+        {
+          "url": "/network_transport.js",
+          "start_ms": 163.65274899999895,
+          "response_ms": 163.66834500000004
+        },
+        {
+          "url": "/loader.js?v=startup-request-fixture",
+          "start_ms": 163.97920599999998,
+          "response_ms": 163.99512799999866
+        },
+        {
+          "url": "/frame_budget.js?v=startup-request-fixture",
+          "start_ms": 165.5576689999998,
+          "response_ms": 165.57679800000005
+        },
+        {
+          "url": "/renderer_inspector.js",
+          "start_ms": 178.40261199999986,
+          "response_ms": 179.18513399999938
+        },
+        {
+          "url": "/voxy_wasm.wasm?h=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "start_ms": 190.87958499999877,
+          "response_ms": 190.94307599999956
+        },
+        {
+          "url": "/voxy_wasm.data?h=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "start_ms": 191.8550039999991,
+          "response_ms": 191.90696500000013
+        }
+      ]
+    }
+  ],
+  "baseline_git_source": "186e2a68e6a7afaeb1c3c7dfb2e91e0f125e9717:web/index.html"
+}
