@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/adventure_hud.hpp"
 #include "render/generated/adventure_piece_thumbnails.hpp"
 #include "gpu/resources.hpp"
@@ -346,7 +347,7 @@ bool AdventureHudPath::init(WGPUDevice device,WGPUQueue queue,WGPUTextureFormat 
     descriptor.primitive.topology=WGPUPrimitiveTopology_TriangleList;
     descriptor.primitive.frontFace=WGPUFrontFace_CCW;descriptor.primitive.cullMode=WGPUCullMode_None;
     descriptor.multisample.count=1;descriptor.multisample.mask=0xffffffff;descriptor.fragment=&fragment;
-    pipeline_=wgpuDeviceCreateRenderPipeline(device,&descriptor);
+    pipeline_=::voxy::gpu::createRenderPipeline(device,&descriptor);
     if(!pipeline_){shutdown();return false;}
     return true;
 }

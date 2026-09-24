@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_physics_backend.hpp"
 
 #include "core/log.hpp"
@@ -281,7 +282,7 @@ WGPUComputePipeline makeComputePipeline(WGPUDevice device,
     desc.layout = layout;
     desc.compute.module = module;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint);
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 template <typename T>

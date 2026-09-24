@@ -2,6 +2,7 @@
 // mesh_path.cpp - RIDGEBREAK static VMESH PBR renderer
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/mesh_path.hpp"
 
 #include "core/log.hpp"
@@ -771,7 +772,7 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
         descriptor.primitive = primitiveState;
         descriptor.depthStencil = &depthState;
         descriptor.multisample = multisample;
-        return wgpuDeviceCreateRenderPipeline(device_, &descriptor);
+        return ::voxy::gpu::createRenderPipeline(device_, &descriptor);
     };
     opaquePipeline_ = create("mesh_path_opaque_pipeline", false, true);
     blendPipeline_ = create("mesh_path_blend_pipeline", !config.linearHdrOutput, config.linearHdrOutput);
@@ -793,7 +794,7 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
         descriptor.layout = sunCasterPipelineLayout_; descriptor.vertex = vertexState;
         descriptor.fragment = &fragmentState; descriptor.primitive = primitiveState;
         descriptor.depthStencil = &depthState; descriptor.multisample = multisample;
-        sunCasterPipeline_ = wgpuDeviceCreateRenderPipeline(device_,&descriptor);
+        sunCasterPipeline_ = ::voxy::gpu::createRenderPipeline(device_,&descriptor);
     }
     return opaquePipeline_ && blendPipeline_ && (!sunShadows_ || sunCasterPipeline_);
 }

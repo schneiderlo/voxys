@@ -2,6 +2,7 @@
 // blit_path.cpp - Fullscreen Blit/Lighting Rendering Path Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/blit_path.hpp"
 #include "render/triangle_path.hpp"  // For CameraUniforms
 #include "render/water_clipmap_mesh.hpp"
@@ -1344,7 +1345,7 @@ bool BlitPath::createUnderwaterParticleResources(
     descriptor.fragment = &fragmentState;
     descriptor.primitive = primitiveState;
     descriptor.multisample = multisample;
-    particlePipeline_ = wgpuDeviceCreateRenderPipeline(device_, &descriptor);
+    particlePipeline_ = ::voxy::gpu::createRenderPipeline(device_, &descriptor);
     return particlePipeline_ != nullptr;
 }
 
@@ -1657,7 +1658,7 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     neutralClouds.value = config.dayNightSky ? 1.0 : 0.0;
     pipelineDesc.compute.constantCount = 1;
     pipelineDesc.compute.constants = &neutralClouds;
-    skyLutPipeline_ = wgpuDeviceCreateComputePipeline(device_, &pipelineDesc);
+    skyLutPipeline_ = ::voxy::gpu::createComputePipeline(device_, &pipelineDesc);
     if (!skyLutPipeline_) {
         LOG_ERROR("Failed to create sky LUT compute pipeline");
         return false;
@@ -1719,7 +1720,7 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     mipPipelineDesc.compute.module = skyLutMipShaderModule_;
     WGPU_SET_ENTRY_POINT(mipPipelineDesc.compute, "main");
     skyLutMipPipeline_ =
-        wgpuDeviceCreateComputePipeline(device_, &mipPipelineDesc);
+        ::voxy::gpu::createComputePipeline(device_, &mipPipelineDesc);
     if (!skyLutMipPipeline_) {
         LOG_ERROR("Failed to create sky LUT mip compute pipeline");
         return false;
@@ -2104,7 +2105,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     pipelineDesc.multisample = multisampleState;
     // No depth stencil - depth is handled by ray-caster
     
-    pipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    pipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     
     if (!pipeline_) {
         LOG_ERROR("Failed to create blit render pipeline");
@@ -2117,7 +2118,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     WGPU_SET_ENTRY_POINT(fragmentState, "fsBackground");
     WGPU_SET_LABEL(pipelineDesc, "blit_background_pipeline");
     backgroundPipeline_ =
-        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     if (!backgroundPipeline_) {
         LOG_ERROR("Failed to create linear background pipeline");
         return false;
@@ -2150,7 +2151,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         WGPU_SET_ENTRY_POINT(fragmentState, config.coveVisuals ? "fsSceneTerrainCove" : "fsSceneTerrain");
         pipelineDesc.layout = sceneTerrainLayout_;
         WGPU_SET_LABEL(pipelineDesc, "scene_live_terrain_lighting");
-        sceneTerrainPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        sceneTerrainPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
         if (!sceneTerrainPipeline_) return false;
     }
 
@@ -2186,7 +2187,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     opaqueMaskState.stencilWriteMask = 0u;
     pipelineDesc.depthStencil = &opaqueMaskState;
     WGPU_SET_LABEL(pipelineDesc, "blit_cached_opaque_pipeline");
-    cachedPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    cachedPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     if (!cachedPipeline_) {
         LOG_ERROR("Failed to create cached blit render pipeline");
         return false;
@@ -2197,7 +2198,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     WGPU_SET_ENTRY_POINT(fragmentState, "fsCachedOpaqueColor");
     WGPU_SET_LABEL(pipelineDesc, "blit_cached_opaque_color_pipeline");
     cachedColorPipeline_ =
-        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     if (!cachedColorPipeline_) {
         LOG_ERROR("Failed to create color-only cached blit pipeline");
         return false;
@@ -2324,7 +2325,7 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     pipelineDesc.depthStencil = &waterMaskState;
     pipelineDesc.multisample = multisampleState;
     waterClipmapPipeline_ =
-        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     if (!waterClipmapPipeline_) {
         LOG_ERROR("Failed to create water clipmap render pipeline");
         return false;
@@ -2335,7 +2336,7 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     WGPU_SET_ENTRY_POINT(fragmentState, "fsColor");
     WGPU_SET_LABEL(pipelineDesc, "water_clipmap_color_pipeline");
     waterClipmapColorPipeline_ =
-        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     if (!waterClipmapColorPipeline_) {
         LOG_ERROR("Failed to create color-only water clipmap pipeline");
         return false;
@@ -2346,11 +2347,11 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
         fragmentState.targetCount = colorTargets.size();
         WGPU_SET_ENTRY_POINT(fragmentState, "fsScene");
         WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_lighting");
-        sceneWaterPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        sceneWaterPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
         fragmentState.targetCount = 1u;
         WGPU_SET_ENTRY_POINT(fragmentState, "fsSceneColor");
         WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_color_lighting");
-        sceneWaterColorPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+        sceneWaterColorPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
         if (!sceneWaterPipeline_ || !sceneWaterColorPipeline_) return false;
     }
 

@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_queries.hpp"
 
 #include "gpu/resources.hpp"
@@ -131,7 +132,7 @@ public:
         pipelineDesc.layout = pipelineLayout_;
         pipelineDesc.compute.module = shaderModule_;
         WGPU_SET_ENTRY_POINT(pipelineDesc.compute, "execute_queries");
-        pipeline_ = wgpuDeviceCreateComputePipeline(device_, &pipelineDesc);
+        pipeline_ = ::voxy::gpu::createComputePipeline(device_, &pipelineDesc);
         if (!pipeline_) {
             shutdown();
             return false;

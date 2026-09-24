@@ -2,6 +2,7 @@
 // debug_visualizer.cpp - Debug Visualization Renderer Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/debug_visualizer.hpp"
 #include "gpu/resources.hpp"
 #include "core/log.hpp"
@@ -283,7 +284,7 @@ bool DebugVisualizer::createPipeline(const DebugVisualizerConfig& config) {
     fragmentState.targets = &colorTarget;
     pipelineDesc.fragment = &fragmentState;
     
-    pipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    pipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     
     if (!pipeline_) {
         LOG_ERROR("Failed to create debug render pipeline");

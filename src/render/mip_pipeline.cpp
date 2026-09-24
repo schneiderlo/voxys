@@ -2,6 +2,7 @@
 // mip_pipeline.cpp - GPU Max-Height Mip Chain Generation Pipeline Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/mip_pipeline.hpp"
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
@@ -187,7 +188,7 @@ bool MipGeneratorPipeline::initWithSource(WGPUDevice device, std::string_view sh
     pipelineDesc.compute.constants = nullptr;
     
     replacement.pipeline_ =
-        wgpuDeviceCreateComputePipeline(device, &pipelineDesc);
+        ::voxy::gpu::createComputePipeline(device, &pipelineDesc);
     if (!replacement.pipeline_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create compute pipeline");
         return false;

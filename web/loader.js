@@ -150,6 +150,29 @@ async function requestVoxyDevice(adapter, { enableTimestamps = false } = {}) {
     return { device, profile };
 }
 
+// Cold driver compilation can take minutes. WASM yields while compiling, so
+// module creation/callMain can finish before the engine is ready to use.
+async function waitForVoxyInitialization(module, {timeoutMs = 600000} = {}) {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+        if (globalThis.voxyDeviceLost) {
+            throw new Error('The graphics device stopped responding. Reload the page to try again.');
+        }
+        if (module.voxyInitializationFailed) {
+            throw new Error('The world could not start. Your saves are kept.');
+        }
+        if (module._voxy_is_initialized?.() === 1) {
+            // The legacy defaults poll may expire during cold compilation.
+            applyMainRuntimeRendererDefaults(module);
+            return;
+        }
+        if (Date.now() >= deadline) {
+            throw new Error('The world took too long to start. Your saves are kept.');
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+}
+
 /**
  * Request pointer lock on an element with cross-browser support
  * @param {HTMLElement} element
@@ -390,6 +413,7 @@ window.VoxyLoader = {
     isWebGPUSupported,
     getWebGPUInfo,
     requestVoxyDevice,
+    waitForVoxyInitialization,
     requestPointerLock,
     exitPointerLock,
     isPointerLocked,

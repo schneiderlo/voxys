@@ -61,10 +61,10 @@
                 if(!booted){
                     if(engine.ccall('voxy_stage_cove_resume','number',['string','string'],[world,toHex(payload)])!==1)return false;
                     engine.callMain(args);booted=true;
-                    const deadline=Date.now()+30000;
-                    while(!stopped&&engine._voxy_is_initialized()!==1&&Date.now()<deadline)
+                    const deadline=Date.now()+600000;
+                    while(!stopped&&!environment.voxyDeviceLost&&!engine.voxyInitializationFailed&&engine._voxy_is_initialized()!==1&&Date.now()<deadline)
                         await new Promise(resolve=>environment.setTimeout(resolve,30));
-                    if(stopped||engine._voxy_is_initialized()!==1)return false;
+                    if(stopped||environment.voxyDeviceLost||engine.voxyInitializationFailed||engine._voxy_is_initialized()!==1)return false;
                     const state=read(engine);
                     if(state.world!==world||state.restore?.phase!=='awaiting-storage')return false;
                 }

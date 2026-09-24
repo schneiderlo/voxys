@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/primitive_gpu_culling.hpp"
 
 #include "core/log.hpp"
@@ -51,7 +52,7 @@ WGPUComputePipeline createPipeline(WGPUDevice device, WGPUPipelineLayout layout,
     desc.layout = layout;
     desc.compute.module = module;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint);
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 template <typename T>

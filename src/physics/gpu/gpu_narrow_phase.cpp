@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_narrow_phase.hpp"
 
 #include "gpu/resources.hpp"
@@ -47,7 +48,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
         desc.compute.constantCount = 1;
         desc.compute.constants = &authored;
     }
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 } // namespace

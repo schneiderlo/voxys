@@ -2,6 +2,7 @@
 // triangle_path.cpp - Triangle Terrain Rendering Path Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/triangle_path.hpp"
 #include "physics/terrain_topology.hpp"
 #include "gpu/resources.hpp"
@@ -812,7 +813,7 @@ bool TrianglePath::createPipeline(const TrianglePathConfig& config) {
     fragmentState.targets = &colorTarget;
     pipelineDesc.fragment = &fragmentState;
     
-    pipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    pipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     
     if (!pipeline_) {
         LOG_ERROR("Failed to create terrain render pipeline");
@@ -824,7 +825,7 @@ bool TrianglePath::createPipeline(const TrianglePathConfig& config) {
     primitiveState.topology = WGPUPrimitiveTopology_LineList;
     pipelineDesc.primitive = primitiveState;
     
-    wireframePipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    wireframePipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
     
     if (!wireframePipeline_) {
         LOG_WARN("Failed to create terrain wireframe pipeline (wireframe mode will be unavailable)");
@@ -1292,7 +1293,7 @@ bool TrianglePath::createComputeResources(const TrianglePathConfig& config) {
     computeDesc.compute.module = computeModule_;
     WGPU_SET_ENTRY_POINT(computeDesc.compute, "main");
 
-    computePipeline_ = wgpuDeviceCreateComputePipeline(device_, &computeDesc);
+    computePipeline_ = ::voxy::gpu::createComputePipeline(device_, &computeDesc);
     if (!computePipeline_) return false;
 
     return true;

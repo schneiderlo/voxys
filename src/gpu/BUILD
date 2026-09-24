@@ -18,6 +18,7 @@ cc_library(
     hdrs = [
         "context.hpp",
         "resources.hpp",
+        "pipeline.hpp",
         "webgpu_compat.hpp",
     ],
     copts = PROJECT_DEFAULT_COPTS,
@@ -39,6 +40,7 @@ cc_library(
     hdrs = [
         "context.hpp",
         "resources.hpp",
+        "pipeline.hpp",
         "webgpu_compat.hpp",
     ],
     copts = PROJECT_DEFAULT_COPTS,

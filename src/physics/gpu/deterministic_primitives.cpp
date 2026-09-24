@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/deterministic_primitives.hpp"
 
 #include "core/log.hpp"
@@ -43,7 +44,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device,
     desc.layout = layout;
     desc.compute.module = module;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint.c_str());
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 template <size_t N>

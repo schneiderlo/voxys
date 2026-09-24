@@ -4581,9 +4581,10 @@ bool Application::initCamera() {
 
     camera_ = std::make_unique<Camera>(startPos, camConfig);
 
-    // The renderer centers the terrain at (0,0,0)
-    // So we should look at the origin, not the calculated positive center
-    camera_->lookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+    // Admission can take several frames before adventure installs its camera.
+    // The initial view must already have canonical sector/local coordinates:
+    // rejecting it after physics encoding discards the authoritative tick.
+    setCameraWorldPose(*camera_, glm::dvec3(startPos), glm::dvec3(0.0));
 
     // Create free-fly camera controller
     FreeFlyConfig flyConfig;

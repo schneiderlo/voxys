@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_ccd.hpp"
 
 #include "gpu/resources.hpp"
@@ -39,7 +40,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
     desc.layout = layout;
     desc.compute.module = shader;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint.c_str());
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 } // namespace

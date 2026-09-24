@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/cove_effects_path.hpp"
 #include "gpu/resources.hpp"
 #include <algorithm>
@@ -47,7 +48,7 @@ bool CoveEffectsPath::init(WGPUDevice device,WGPUQueue queue,WGPUTextureFormat f
     descriptor.primitive.frontFace=WGPUFrontFace_CCW;descriptor.primitive.cullMode=WGPUCullMode_None;
     descriptor.multisample.count=1;descriptor.multisample.mask=0xffffffff;
     descriptor.fragment=&fragment;
-    if(pipelineLayout_)pipeline_=wgpuDeviceCreateRenderPipeline(device,&descriptor);
+    if(pipelineLayout_)pipeline_=::voxy::gpu::createRenderPipeline(device,&descriptor);
     if(!pipeline_){shutdown();return false;}
     return true;
 }

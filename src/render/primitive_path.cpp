@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/primitive_path.hpp"
 
 #include "render/primitive_instance_packing.hpp"
@@ -441,7 +442,7 @@ bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
     desc.primitive = primitiveState;
     desc.depthStencil = &depthState;
     desc.multisample = multisample;
-    pipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
+    pipeline_ = ::voxy::gpu::createRenderPipeline(device_, &desc);
     return pipeline_ != nullptr;
 }
 
@@ -535,10 +536,10 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
     desc.primitive = primitiveState;
     desc.depthStencil = &depthState;
     desc.multisample = multisample;
-    compactPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
+    compactPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &desc);
     WGPU_SET_ENTRY_POINT(desc.vertex, "vs_lego");
     WGPU_SET_LABEL(desc, "lego_compound_pipeline");
-    legoPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
+    legoPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &desc);
     return compactPipeline_ && legoPipeline_;
 }
 

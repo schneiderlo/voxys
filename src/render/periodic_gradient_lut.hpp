@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/pipeline.hpp"
 #include "gpu/resources.hpp"
 #include "gpu/webgpu_compat.hpp"
 
@@ -131,7 +132,7 @@ public:
         pipelineDescriptor.compute.module = module.get();
         WGPU_SET_ENTRY_POINT(pipelineDescriptor.compute, "main");
         GradientBakeHandle<WGPUComputePipeline, wgpuComputePipelineRelease>
-            pipeline(wgpuDeviceCreateComputePipeline(device, &pipelineDescriptor));
+            pipeline(::voxy::gpu::createComputePipeline(device, &pipelineDescriptor));
         if (!pipeline) return false;
         const std::array<gpu::BindGroupEntry, 1> resources = {
             gpu::BindGroupEntry(0).textureView(view.get())

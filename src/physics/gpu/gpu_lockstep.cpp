@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_lockstep.hpp"
 
 #include "gpu/resources.hpp"
@@ -129,7 +130,7 @@ public:
         desc.layout = pipelineLayout_;
         desc.compute.module = shader_;
         WGPU_SET_ENTRY_POINT(desc.compute, "step_lockstep");
-        pipeline_ = wgpuDeviceCreateComputePipeline(device_, &desc);
+        pipeline_ = ::voxy::gpu::createComputePipeline(device_, &desc);
         if (!pipeline_) {
             shutdown();
             return false;

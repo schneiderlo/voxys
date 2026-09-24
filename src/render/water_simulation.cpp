@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/water_simulation.hpp"
 
 #include "core/log.hpp"
@@ -178,7 +179,7 @@ WGPUComputePipeline createComputePipeline(WGPUDevice device,
     desc.layout = layout;
     desc.compute.module = module;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint);
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 float finiteOr(float value, float fallback) {

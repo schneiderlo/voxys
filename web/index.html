@@ -1332,6 +1332,12 @@
                     console.error(
                         `WebGPU device lost (${info.reason}): ${info.message}`
                     );
+                    loading.style.display = 'none';
+                    error.style.display = 'flex';
+                    error.querySelector('h2').textContent = 'Graphics Device Lost';
+                    error.querySelector('p').textContent =
+                        'The graphics device stopped responding. Reload the page to try again.';
+                    for (const help of error.querySelectorAll('ul, .hint')) help.hidden = true;
                 });
 
                 // data_packs.js started the downloads when the page opened.
@@ -1433,6 +1439,7 @@
                 });
 
                 if(coveWorld!==null)await VoxyCoveSaves.resume(voxyModule,coveWorld,coveArguments);
+                if (!adventure) await VoxyLoader.waitForVoxyInitialization(voxyModule);
                 if(adventure) {
                     document.title=creative?'Voxys — Free Build':'Voxys — Building Adventure';
                     canvas.tabIndex=0;canvas.addEventListener('pointerdown',()=>{canvas.focus({preventScroll:true});voxyModule._adventure_action(15,0);});
@@ -1443,9 +1450,7 @@
                         if(voxyModule.ccall('adventure_stage','number',['string','string'],[store.world,hex(store.loadedBytes)])!==1)
                             throw Error('The world could not be prepared.');
                         voxyModule.callMain(coveArguments);
-                        const deadline=Date.now()+120000;
-                        while(voxyModule._voxy_is_initialized()!==1&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,50));
-                        if(voxyModule._voxy_is_initialized()!==1)throw Error('The world did not start. Your saves are kept.');
+                        await VoxyLoader.waitForVoxyInitialization(voxyModule);
                         await store.setValidator(bytes=>voxyModule.ccall('adventure_validate_hex','number',['string'],[hex(bytes)])===1);
                     }
                     catch(error){await store.close();throw error;}
@@ -1601,6 +1606,8 @@
                 // Build the large experiment only when the cover is ready to
                 // lift. This avoids spending its first simulated seconds hidden
                 // behind the loading animation.
+                // Loss can arrive while the decorative landing animation runs.
+                await VoxyLoader.waitForVoxyInitialization(voxyModule);
                 const triangleExperiment =
                     ['triangle', 'cube-triangle',
                      'pyramid', 'cube-pyramid'].includes(

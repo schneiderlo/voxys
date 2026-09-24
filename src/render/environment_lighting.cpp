@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/environment_lighting.hpp"
 
 #include "gpu/resources.hpp"
@@ -98,7 +99,7 @@ bool EnvironmentLighting::init(WGPUDevice device, WGPUQueue queue,
     pipelineDesc.layout = next->layout;
     pipelineDesc.compute.module = next->shader;
     WGPU_SET_ENTRY_POINT(pipelineDesc.compute, "bake");
-    next->pipeline = wgpuDeviceCreateComputePipeline(device, &pipelineDesc);
+    next->pipeline = ::voxy::gpu::createComputePipeline(device, &pipelineDesc);
     auto samplerDesc = gpu::SamplerDesc::linear("environment_bake_source");
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
     next->sampler = gpu::createSampler(device, samplerDesc);

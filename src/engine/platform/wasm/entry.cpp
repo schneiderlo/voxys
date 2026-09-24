@@ -2,6 +2,7 @@
 // entry.cpp (WASM) - Application Entry Point and Exports
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "app/application.hpp"
 #include "game/expedition/cove_save.hpp"
 #include "game/adventure/adventure_runtime.hpp"
@@ -1297,7 +1298,12 @@ int main(int argc, char* argv[]) {
     }
     voxy::Application* app = g_wasmAppInstance.get();
     
-    if (!app->init(appConfig)) {
+    const bool initialized = [&] {
+        voxy::gpu::StartupPipelineCompilation compilation;
+        return app->init(appConfig);
+    }();
+    if (!initialized) {
+        EM_ASM({ Module['voxyInitializationFailed'] = true; });
         LOG_ERROR("Failed to initialize application");
         voxy::log::shutdown();
         g_app = nullptr;
@@ -1316,6 +1322,10 @@ int main(int argc, char* argv[]) {
     static bool currentUncapped = false;
 
     auto mainLoop = []() {
+        if (EM_ASM_INT({ return globalThis['voxyDeviceLost'] ? 1 : 0; })) {
+            emscripten_cancel_main_loop();
+            return;
+        }
         if (!g_app) {
             emscripten_cancel_main_loop();
             return;

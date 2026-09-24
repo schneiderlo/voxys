@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 
 #include "core/log.hpp"
@@ -66,7 +67,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device,
     desc.layout = layout;
     desc.compute.module = shader;
     WGPU_SET_ENTRY_POINT(desc.compute, entryPoint.c_str());
-    return wgpuDeviceCreateComputePipeline(device, &desc);
+    return ::voxy::gpu::createComputePipeline(device, &desc);
 }
 
 template <size_t N>

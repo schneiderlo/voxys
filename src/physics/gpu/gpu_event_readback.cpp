@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "physics/gpu/gpu_event_readback.hpp"
 
 #include "gpu/resources.hpp"
@@ -124,7 +125,7 @@ public:
         desc.layout = pipelineLayout_;
         desc.compute.module = shader_;
         WGPU_SET_ENTRY_POINT(desc.compute, "pack_events");
-        pipeline_ = wgpuDeviceCreateComputePipeline(device_, &desc);
+        pipeline_ = ::voxy::gpu::createComputePipeline(device_, &desc);
         if (!pipeline_) {
             shutdown();
             return false;

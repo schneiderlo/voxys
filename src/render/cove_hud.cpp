@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/cove_hud.hpp"
 #include "gpu/resources.hpp"
 #include <algorithm>
@@ -306,7 +307,7 @@ bool CoveHudPath::init(WGPUDevice device,WGPUQueue queue,WGPUTextureFormat forma
     descriptor.primitive.frontFace=WGPUFrontFace_CCW;descriptor.primitive.cullMode=WGPUCullMode_None;
     descriptor.multisample.count=1;descriptor.multisample.mask=0xffffffff;
     descriptor.fragment=&fragment;
-    pipeline_=wgpuDeviceCreateRenderPipeline(device,&descriptor);
+    pipeline_=::voxy::gpu::createRenderPipeline(device,&descriptor);
     if(!bindings_||!pipelineLayout_||!pipeline_){shutdown();return false;}
     return true;
 }

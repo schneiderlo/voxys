@@ -2,6 +2,7 @@
 // raycast_path.cpp - Compute Ray-Caster Rendering Path Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+#include "gpu/pipeline.hpp"
 #include "render/raycast_path.hpp"
 #include "render/triangle_path.hpp"  // For CameraUniforms
 #include "gpu/resources.hpp"
@@ -798,7 +799,7 @@ bool RaycastPath::createPipeline(const RaycastPathConfig& config) {
     pipelineDesc.compute.module = shaderModule_;
     WGPU_SET_ENTRY_POINT(pipelineDesc.compute, "main");
     
-    pipeline_ = wgpuDeviceCreateComputePipeline(device_, &pipelineDesc);
+    pipeline_ = ::voxy::gpu::createComputePipeline(device_, &pipelineDesc);
     
     if (!pipeline_) {
         LOG_ERROR("Failed to create raycast compute pipeline");
@@ -830,7 +831,7 @@ bool RaycastPath::createPipeline(const RaycastPathConfig& config) {
     compositePipelineDesc.layout = compositePipelineLayout_;
     compositePipelineDesc.compute.module = compositeShaderModule_;
     WGPU_SET_ENTRY_POINT(compositePipelineDesc.compute, "main");
-    compositePipeline_ = wgpuDeviceCreateComputePipeline(
+    compositePipeline_ = ::voxy::gpu::createComputePipeline(
         device_, &compositePipelineDesc);
     if (!compositePipeline_) {
         LOG_ERROR("Failed to create water composite compute pipeline");

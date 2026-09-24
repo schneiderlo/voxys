@@ -1,3 +1,4 @@
+#include "gpu/pipeline.hpp"
 #include "render/opaque_scene.hpp"
 
 #include <array>
@@ -78,7 +79,7 @@ bool OpaqueScene::init(WGPUDevice device, const std::filesystem::path& shader) {
     pipeline.primitive.cullMode = WGPUCullMode_None;
     pipeline.multisample.count = 1;
     pipeline.multisample.mask = 0xffffffffu;
-    next->pipeline = wgpuDeviceCreateRenderPipeline(device, &pipeline);
+    next->pipeline = ::voxy::gpu::createRenderPipeline(device, &pipeline);
     if (!next->pipeline) return false;
     impl_ = std::move(next);
     return true;
