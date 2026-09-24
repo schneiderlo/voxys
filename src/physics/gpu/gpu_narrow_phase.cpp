@@ -32,10 +32,10 @@ void releaseBuffer(WGPUBuffer& buffer) {
     }
 }
 
-WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
-                                 WGPUShaderModule shader,
-                                 const std::string& entryPoint,
-                                 const char* label, int authoredPass = -1) {
+void makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
+                  WGPUShaderModule shader, const std::string& entryPoint,
+                  const char* label, WGPUComputePipeline& pipeline,
+                  gpu::ComputePipelineBatch& batch, int authoredPass = -1) {
     WGPUComputePipelineDescriptor desc{};
     WGPU_SET_LABEL(desc, label);
     desc.layout = layout;
@@ -48,7 +48,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
         desc.compute.constantCount = 1;
         desc.compute.constants = &authored;
     }
-    return ::voxy::gpu::createComputePipeline(device, &desc);
+    batch.add(device, desc, pipeline);
 }
 
 } // namespace
@@ -310,40 +310,43 @@ public:
             return false;
         }
 
+        gpu::ComputePipelineBatch pipelines;
         const std::string suffix = std::to_string(config_.workgroupSize);
-        resetBucketsPipeline_ = makePipeline(
+        makePipeline(
             device_, bucketPipelineLayout_, shaderModule_,
-            "reset_pair_buckets", "narrow_phase_reset_buckets");
-        countBucketsPipeline_ = makePipeline(
+            "reset_pair_buckets", "narrow_phase_reset_buckets",
+            resetBucketsPipeline_, pipelines);
+        makePipeline(
             device_, countPipelineLayout_, shaderModule_,
             "count_pair_classes_" + suffix,
-            "narrow_phase_count_buckets");
-        finalizeBucketsPipeline_ = makePipeline(
+            "narrow_phase_count_buckets", countBucketsPipeline_, pipelines);
+        makePipeline(
             device_, bucketPipelineLayout_, shaderModule_,
-            "finalize_pair_buckets", "narrow_phase_finalize_buckets");
-        scatterBucketsPipeline_ = makePipeline(
+            "finalize_pair_buckets", "narrow_phase_finalize_buckets",
+            finalizeBucketsPipeline_, pipelines);
+        makePipeline(
             device_, scatterPipelineLayout_, shaderModule_,
             "scatter_pair_classes_" + suffix,
-            "narrow_phase_scatter_buckets");
-        finalizePipeline_ = makePipeline(
+            "narrow_phase_scatter_buckets", scatterBucketsPipeline_, pipelines);
+        makePipeline(
             device_, finalizePipelineLayout_, shaderModule_, "finalize_narrow",
-            "narrow_phase_finalize");
-        markActivePipeline_ = makePipeline(
+            "narrow_phase_finalize", finalizePipeline_, pipelines);
+        makePipeline(
             device_, compactPipelineLayout_, shaderModule_,
             "mark_active_manifolds_" + suffix,
-            "narrow_phase_mark_active_manifolds");
-        scatterActivePipeline_ = makePipeline(
+            "narrow_phase_mark_active_manifolds", markActivePipeline_, pipelines);
+        makePipeline(
             device_, compactPipelineLayout_, shaderModule_,
             "scatter_active_manifolds_" + suffix,
-            "narrow_phase_scatter_active_manifolds");
-        finalizeActivePipeline_ = makePipeline(
+            "narrow_phase_scatter_active_manifolds", scatterActivePipeline_, pipelines);
+        makePipeline(
             device_, compactPipelineLayout_, shaderModule_,
             "finalize_active_manifolds",
-            "narrow_phase_finalize_active_manifolds");
-        commitActivePipeline_ = makePipeline(
+            "narrow_phase_finalize_active_manifolds", finalizeActivePipeline_, pipelines);
+        makePipeline(
             device_, compactPipelineLayout_, shaderModule_,
             "commit_active_manifolds_" + suffix,
-            "narrow_phase_commit_active_manifolds");
+            "narrow_phase_commit_active_manifolds", commitActivePipeline_, pipelines);
         constexpr std::array<const char*, kGpuNarrowPhasePairClassCount> names = {
             "sphere_sphere", "sphere_capsule", "capsule_capsule",
             "sphere_box", "capsule_box", "box_box", "sphere_cylinder",
@@ -351,17 +354,22 @@ public:
         for (uint32_t index = 0; index < names.size(); ++index) {
             const bool canContainAuthored = index == 3u || index == 4u
                 || index == 5u || index == 8u;
-            classPipelines_[index] = makePipeline(
+            makePipeline(
                 device_, narrowPipelineLayout_, shaderModule_,
                 std::string("narrow_") + names[index] + "_" + suffix,
-                "narrow_phase_pair_class", canContainAuthored ? 0 : -1);
+                "narrow_phase_pair_class", classPipelines_[index], pipelines,
+                canContainAuthored ? 0 : -1);
             if (canContainAuthored) {
-                authoredClassPipelines_[index] = makePipeline(
+                makePipeline(
                     device_, narrowPipelineLayout_, shaderModule_,
                     std::string("narrow_") + names[index] + "_" + suffix,
-                    "narrow_phase_authored_pair_class", 1);
-                if (!authoredClassPipelines_[index]) return false;
+                    "narrow_phase_authored_pair_class",
+                    authoredClassPipelines_[index], pipelines, 1);
             }
+        }
+        pipelines.wait();
+        for (const auto index : {3u, 4u, 5u, 8u}) {
+            if (!authoredClassPipelines_[index]) return false;
         }
         if (!resetBucketsPipeline_ || !countBucketsPipeline_
             || !finalizeBucketsPipeline_ || !scatterBucketsPipeline_
