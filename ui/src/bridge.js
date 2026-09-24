@@ -1,13 +1,13 @@
 // All accepted game state comes from C++. The UI owns presentation only.
-const modes=new Set(['build','explore','catalog','pause','settings','controls','combat-binding','binding-choice','guide']);
+const modes=new Set(['build','explore','catalog','colours','pause','settings','controls','combat-binding','binding-choice','guide']);
 // Only presentation data invalidates the DOM. The engine's observation, player
 // tick, camera and physics diagnostics change even while every control is idle.
-// Keep this projection in step with the fields read by main.jsx;
+// Keep this projection in step with the fields read by main.jsx and shared.js;
 // the full, fresh snapshot is still retained for action admission and delivery.
-const presentationFields=['ready','failed','message','mode','piece','paint','parts','rows','menuToken','menuSelected',
+const presentationFields=['ready','failed','message','mode','piece','paint','quickSlot','parts','rows','menuToken','menuSelected',
     'menuTitle','menuText','catalogCategory','status','statusEvent','saveStatus','saveFailure','dirty',
-    'preferencesStatus','textScale','highContrast','reducedMotion','colourAvailable',
-    'canUndo','canRemove','riding','swimming','interaction'];
+    'preferencesStatus','textScale','highContrast','reducedMotion','valid','previewReason','colourAvailable',
+    'canUndo','canRemove','riding','swimming','interaction','hud'];
 const cannonFields=['available','nearby','active','ready','awaitingHit','wallBusy','wallReleased','wallFailed',
     'wallMessage','error','inspectingWall','impacts'];
 const presentationSignature=state=>JSON.stringify([

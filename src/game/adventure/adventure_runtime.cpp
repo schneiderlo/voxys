@@ -25,6 +25,7 @@
 #include <numbers>
 #include <random>
 #include <sstream>
+#include <unordered_map>
 #if defined(VOXY_NATIVE)
 #include "engine/platform/native/native_adventure_saves.hpp"
 #include "engine/platform/native/adventure_preferences_store.hpp"
@@ -36,6 +37,35 @@ namespace voxy::game::adventure {
 namespace {
 struct Bootstrap {construction::WorldNamespace world;std::vector<std::byte> bytes;};
 std::optional<Bootstrap> pendingBootstrap;
+constexpr std::array<std::pair<const char*,uint32_t>,7> creativeColours{{
+    {"Original",0},{"Red",0xe53b33},{"Yellow",0xffd83d},{"Green",0x3ba85c},
+    {"Blue",0x2d91cc},{"White",0xf3f2eb},{"Graphite",0x354450}}};
+AdventureGuideCard creativeGuideCard(AdventureGuideTopic topic,const AdventurePreferences& preferences,bool gamepad) {
+    // Creative uses the same six-card menu machinery, with its own short tips.
+    // Keeping each body small preserves the full text on narrow, enlarged HUDs.
+    switch(topic) {
+    case AdventureGuideTopic::Movement:return {"Move and look",gamepad
+        ?"Left stick moves; right stick looks. A jumps. In water, triggers rise and dive."
+        :preferences.orbitToggle?"WASD moves; Shift runs. Right-click toggles look. In water, Space rises and X dives."
+        :"WASD moves; Shift runs. Right-drag looks. Space jumps. In water, Space rises and X dives."};
+    case AdventureGuideTopic::Building:return {"Build with bricks",gamepad
+        ?"View builds. Y picks pieces; shoulders change groups. A places, X rotates, B removes."
+        :"B builds. Tab picks pieces; Q/E changes groups. Click places. R rotates; Ctrl+Z undoes."};
+    case AdventureGuideTopic::Home:return {"Colour and height",gamepad
+        ?"L3 opens colours. D-pad chooses; A applies. While building, D-pad up/down changes height."
+        :"P opens colours. Arrows choose; Enter applies. Page Up/Down changes placement height."};
+    case AdventureGuideTopic::Quests:return {"Ride a motorbike",gamepad
+        ?"Menu: Ride motorbike. Left stick drives and steers; A brakes. Stop before getting off."
+        :"M rides or gets off. W/S drives and brakes. A/D steers. Space brakes. Start on dry ground."};
+    case AdventureGuideTopic::Combat:return {"Try the cannon",gamepad
+        ?"Menu: Use cannon. Left stick aims. A fires. Menu leaves. Wait for each shot to land."
+        :"C enters or leaves. A/D turns; W/S aims. Click or Space fires. Wait for each shot to land."};
+    case AdventureGuideTopic::Saving:case AdventureGuideTopic::Count:return {"Save your build",gamepad
+        ?"Menu pauses. Choose Save build. Comfort and controls has text size and contrast."
+        :"Save from Menu or press F5. Escape pauses. Comfort and controls has text size and contrast."};
+    }
+    return {};
+}
 glm::dvec3 metres(GridPosition p){return {p.x*.02,p.y*.02,p.z*.02};}
 glm::dmat4 model(const WorldPart& p,glm::dvec3 origin) {
     return glm::translate(glm::dmat4(1),metres(p.position)-origin)
@@ -389,7 +419,7 @@ bool AdventureRuntime::stageWorld(std::string_view world,std::string_view hex) {
 void AdventureRuntime::saveCompleted(std::string status) {
     if(status.starts_with("Saved")){savedRevision_=savingRevision_;migrationDirty_=false;saveFailure_.clear();if(state().revision!=savedRevision_)status="Checkpoint saved. New changes are unsaved.";}
     else saveFailure_=status;
-    saveStatus_=std::move(status);
+    saveStatus_=std::move(status);saveFeedbackSeconds_=6;
 }
 bool AdventureRuntime::applyPreferences(const AdventurePreferences& next,bool force) {
     std::string error;
@@ -471,7 +501,7 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         // Keep the existing recovery/content contract so old saves still load
         // exactly. Only a newly created world's player starts at the new vista.
         spawn=creativeSpawn(surface,AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale);
-        building_=true;selected_=PieceKind::Brick2x4;catalogCategory_=1;
+        resetQuickSlots();catalogCategory_=1;
         status_="Choose a brick, aim and build.";saveStatus_="Unsaved build";
     }
     construction::WorldNamespace world;std::random_device random;
@@ -825,6 +855,12 @@ std::string AdventureRuntime::combatLabel() const {
 }
 AdventureRuntime::PendingAction AdventureRuntime::observedAction(int action,int value,uint32_t token) const {
     PendingAction pending{action,value,token};
+    if(action==5) {
+        // Closing Pause defers its Remove command to the next input frame.
+        // Keep the displayed durable target even if the pointer then moves.
+        pending.removePart=targetPart_;
+        pending.removeScenery=freeBuild_&&isCreativeScenerySolid({observedRayHit_.structure,observedRayHit_.part,{},{}});
+    }
     // Capture the target and desired state for both native and browser buttons.
     // Match the visible Use priority: recovery, loot and residents precede
     // furniture. A nearby door must not steal a labelled conversation/pickup.
@@ -851,7 +887,7 @@ void AdventureRuntime::action(int action,int value) {
     // Focus is presentation metadata. Apply its token-validated selection
     // before the next input tick so pad Confirm cannot activate the old row.
     if(action==26){if(const auto row=menuIntents_.resolve(value))menuSelection_=static_cast<int>(*row);return;}
-    if(action>=1&&action<=37&&action!=26&&pendingActions_.size()<32) {
+    if(action>=1&&action<=39&&action!=26&&pendingActions_.size()<32) {
         // A queued door use keeps the observed target and desired state.
         // A second queued click cannot reinterpret Open as Close after commit.
         pendingActions_.push_back(observedAction(action,value,menuIntents_.token()));
@@ -1368,7 +1404,8 @@ void AdventureRuntime::toggleCannon() {
     }
     if(player_.mode()!=AdventurePlayer::Mode::Walking){status_="Stand on the ground to use the cannon.";return;}
     usingCannon_=true;building_=false;hasTarget_=false;player_.discardPendingInput();
-    status_="A/D: turn · W/S: elevation · Click or Space: fire · C: leave";
+    status_=hudHoverFromMouse_?"A/D: turn · W/S: elevation · Click or Space: fire · C: leave"
+        :"Left stick: aim · A: fire · Menu: leave";
 }
 void AdventureRuntime::fireCannon() {
     ++interactionStatusSerial_;
@@ -1451,6 +1488,7 @@ std::string_view AdventureRuntime::mode() const {
     case Menu::None:return building_?"build":"explore";
     case Menu::Main:return "pause";
     case Menu::Catalog:return "catalog";
+    case Menu::Colours:return "colours";
     case Menu::Chest:return "chest";
     case Menu::Dialogue:return "dialogue";
     case Menu::Workbench:return "workbench";
@@ -1478,6 +1516,37 @@ bool AdventureRuntime::closeCurrentMode() {
     if(building_){building_=false;if(freeBuild_)status_.clear();player_.discardPendingInput();return true;}
     return false;
 }
+void AdventureRuntime::toggleColours() {
+    if(!freeBuild_||!building_||riding_||usingCannon_||wallLocked())return;
+    if(menu_==Menu::Colours){(void)closeCurrentMode();return;}
+    if(menu_!=Menu::None)return;
+    menu_=Menu::Colours;menuSelection_=0;
+    for(size_t i=0;i<creativeColours.size();++i)
+        if(creativeColours[i].second==selectedPaint_)menuSelection_=static_cast<int>(i);
+    player_.discardPendingInput();
+}
+void AdventureRuntime::resetQuickSlots() {
+    // These are session presentation preferences. Placed parts still serialize
+    // their real kind/paint; loading a world starts a fresh six-slot tray.
+    quickSlots_={QuickSlot{PieceKind::Brick2x2,0xe53b33},QuickSlot{PieceKind::Brick2x4,0xf3f2eb},
+        QuickSlot{PieceKind::Floor,0},QuickSlot{PieceKind::Foundation,0x3ba85c},
+        QuickSlot{PieceKind::Doorway,0xf3f2eb},QuickSlot{PieceKind::HingedDoor,0}};
+    selectQuickSlot(0);
+}
+void AdventureRuntime::selectQuickSlot(size_t slot) {
+    if(slot>=quickSlots_.size())return;
+    activeQuickSlot_=slot;selected_=quickSlots_[slot].kind;selectedPaint_=quickSlots_[slot].paint;
+    blueprint_=BlueprintKind::None;heightSteps_=0;building_=true;menu_=Menu::None;
+}
+void AdventureRuntime::rememberQuickSlot() {
+    if(freeBuild_)quickSlots_[activeQuickSlot_]={selected_,selectedPaint_};
+}
+void AdventureRuntime::undoLastPlacement() {
+    if(lastBlueprint_?commit(session_->prepareRemoveStructure(stamp(),lastBlueprint_,validator(),status_))
+        :lastPlaced_&&commit(session_->prepareRemove(stamp(),lastPlaced_,validator(),status_))) {
+        lastPlaced_=0;lastBlueprint_=0;status_=freeBuild_?"Last placement undone.":"Last placement undone. Materials returned.";
+    }
+}
 void AdventureRuntime::menuRow(int row) {
     if(row<0)return;
     // Capture the displayed choice before refreshing/revalidating its context.
@@ -1500,6 +1569,24 @@ void AdventureRuntime::activateMenuIntent(int intent) {
             openGuide(false,static_cast<AdventureGuideTopic>(command.argument));
         break;
     case MenuOperation::GuideExit:(void)closeCurrentMode();break;
+    case MenuOperation::Paint:
+        if(freeBuild_&&menu_==Menu::Colours&&command.argument<=0xffffff) {
+            selectedPaint_=static_cast<uint32_t>(command.argument);rememberQuickSlot();(void)closeCurrentMode();
+        }
+        break;
+    case MenuOperation::Motorbike:menu_=Menu::None;toggleMotorbike();break;
+    case MenuOperation::Cannon:menu_=Menu::None;toggleCannon();break;
+    case MenuOperation::Undo:undoLastPlacement();break;
+    case MenuOperation::Rotate:case MenuOperation::Raise:case MenuOperation::Lower:
+    case MenuOperation::Remove:case MenuOperation::Colours:case MenuOperation::FinishBuilding: {
+        if(!freeBuild_||!building_||riding_||usingCannon_||wallLocked())break;
+        if(command.operation==MenuOperation::Remove&&targetPart_!=command.argument)break;
+        const int control=command.operation==MenuOperation::Rotate?3:command.operation==MenuOperation::Remove?5
+            :command.operation==MenuOperation::Colours?38:command.operation==MenuOperation::FinishBuilding?22:12;
+        const int value=command.operation==MenuOperation::Raise?1:command.operation==MenuOperation::Lower?-1:0;
+        (void)closeCurrentMode();refreshHud();action(control,value);
+        break;
+    }
     case MenuOperation::Controls:menu_=Menu::Controls;menuSelection_=0;break;
     case MenuOperation::ChooseCombat:
         if(command.argument<2){bindingAction_=static_cast<CombatAction>(command.argument);menu_=Menu::CombatBinding;menuSelection_=0;}break;
@@ -1548,7 +1635,7 @@ void AdventureRuntime::activateMenuIntent(int intent) {
         }
         break;
     case MenuOperation::SelectQuest:journalQuest_=static_cast<uint8_t>(command.argument);menuSelection_=0;break;
-    case MenuOperation::SelectPiece:blueprint_=BlueprintKind::None;selected_=static_cast<PieceKind>(command.argument);heightSteps_=0;building_=true;menu_=Menu::None;break;
+    case MenuOperation::SelectPiece:blueprint_=BlueprintKind::None;selected_=static_cast<PieceKind>(command.argument);rememberQuickSlot();heightSteps_=0;building_=true;menu_=Menu::None;break;
     case MenuOperation::AcceptQuest:
     case MenuOperation::CompleteQuest:{
         const auto npc=static_cast<uint8_t>(command.argument);const bool complete=command.operation==MenuOperation::CompleteQuest;
@@ -1595,16 +1682,43 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     }
     menuIntents_.beginFrame();
     const double residentSeconds=std::isfinite(seconds)?std::clamp(seconds,0.,.25):0.;
+    const auto previousInteraction=interactionStatusSerial_;
+    saveFeedbackSeconds_=std::max(0.,saveFeedbackSeconds_-residentSeconds);
+    interactionFeedbackSeconds_=std::max(0.,interactionFeedbackSeconds_-residentSeconds);
+    hudPixelScale_=1;
+    if(logicalPointerExtent.x>0&&logicalPointerExtent.y>0
+        &&std::isfinite(logicalPointerExtent.x)&&std::isfinite(logicalPointerExtent.y)) {
+        // Layout is authored in window/CSS pixels; the renderer emits physical
+        // framebuffer coordinates. Use the larger ratio so small independent
+        // dimension rounding cannot make either target axis smaller than 44px.
+        const double scale=std::max(double(width)/logicalPointerExtent.x,double(height)/logicalPointerExtent.y);
+        if(scale>0&&std::isfinite(scale)&&scale<=static_cast<double>(std::numeric_limits<float>::max()))hudPixelScale_=static_cast<float>(scale);
+    }
     framePointer_=adventurePointer(glm::dvec2(input.mousePosition()),logicalPointerExtent,{width,height});
-    bool nativeHudVisible=true;
+    bool sharedHudVisible=true;
 #if !defined(VOXY_NATIVE)
-    nativeHudVisible=!domUiAttached_;
+    // Creative play uses the same GPU HUD and hit regions on both platforms.
+    // Only the legacy adventure UI replaces the rendered controls with DOM.
+    sharedHudVisible=freeBuild_||!domUiAttached_;
 #endif
-    hudPointerOwned_=false;bool hudClicked=false;
-    if(nativeHudVisible&&framePointer_) {
-        const glm::vec2 pointer(framePointer_->framebuffer);
+    hudPointerOwned_=false;hudHover_.reset();bool hudClicked=false;
+    if(sharedHudVisible&&framePointer_) {
+        // The last encoded HUD is still the visible image during a resize.
+        // Hit-test its extent; world picking independently uses the new frame.
+        const auto hudPointer=adventurePointer(glm::dvec2(input.mousePosition()),logicalPointerExtent,
+            {hudWidth_?hudWidth_:width,hudHeight_?hudHeight_:height});
+        const glm::vec2 pointer(hudPointer?hudPointer->framebuffer:framePointer_->framebuffer);
         const auto inside=[&](glm::vec4 bounds){return pointer.x>=bounds.x&&pointer.y>=bounds.y&&pointer.x<bounds.x+bounds.z&&pointer.y<bounds.y+bounds.w;};
+        // Navigation has its own cached GPU pass. Its visible map/portrait
+        // surfaces still consume pointer input just like ordinary HUD panels.
+        hudPointerOwned_=hud_.navigationContains(pointer);
+        hudClicked=hudPointerOwned_&&input.wasMouseButtonPressed(MouseButton::Left);
         for(const auto panel:hud_.layout().panels)hudPointerOwned_=hudPointerOwned_||inside(panel);
+        // Floating creative controls have no enclosing panel. Their hit boxes
+        // still own hover, wheel and drag input, even when currently disabled.
+        for(const auto& hit:hud_.layout().hits)if(inside(hit.bounds)) {
+            hudPointerOwned_=true;if(!hudHover_)hudHover_=hit;
+        }
         if(input.wasMouseButtonPressed(MouseButton::Left))for(const auto& hit:hud_.layout().hits) {
             if(!inside(hit.bounds))continue;
             hudClicked=true;
@@ -1621,10 +1735,27 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     ++observationSerial_;
     (void)input.setGamepadDeadzones(static_cast<float>(preferences_.moveDeadzone),static_cast<float>(preferences_.lookDeadzone));
     const auto sample=expedition::sampleCoveInput(input);
-    inputRouter_.tick(adventureMovementSample(sample,building_,freeBuild_),menu_==Menu::None&&!uiInputOwned_?C::World:C::Menu,routingPreferences_);
+    const glm::dvec2 hoverPointer(input.mousePosition());
+    if(hoverPointer!=hudHoverPointer_||input.wasMouseButtonPressed(MouseButton::Left)||input.wasMouseButtonPressed(MouseButton::Right)
+        ||std::any_of(sample.pressed.begin(),sample.pressed.end(),[](bool v){return v;}))hudHoverFromMouse_=true;
+    else if(sample.padConnected&&(std::any_of(sample.padPressed.begin(),sample.padPressed.end(),[](bool v){return v;})
+        ||std::any_of(sample.axes.begin(),sample.axes.end(),[](float v){return std::abs(v)>.01f;})))hudHoverFromMouse_=false;
+    hudHoverPointer_=hoverPointer;
+    auto movementSample=adventureMovementSample(sample,building_,freeBuild_);
+    if(hudPointerOwned_){movementSample.rightPressed=false;movementSample.mouseRight=false;}
+    inputRouter_.tick(movementSample,menu_==Menu::None&&!uiInputOwned_?C::World:C::Menu,routingPreferences_);
     buildRouter_.tick(sample,menu_==Menu::None&&building_&&!uiInputOwned_?C::Workshop:C::Menu,routingPreferences_);
     const auto& pad=input.gamepad();
     auto pressed=[&](Key k){return input.wasKeyPressed(k);};
+    if(freeBuild_&&building_&&menu_==Menu::None&&input.focused()&&!uiInputOwned_&&sample.modifiers==0) {
+        // The displayed window can change with selection, text size or viewport.
+        // Consume its exact published slot; never maintain a second slot order.
+        for(const auto& hit:hud_.layout().hits)if(hit.enabled&&hit.shortcutKey>=uint32_t('1')&&hit.shortcutKey<=uint32_t('6')
+            &&hit.intent&&(hit.intent-1u)/64u==menuIntents_.token()&&pressed(static_cast<Key>(hit.shortcutKey))) {
+            if(pendingActions_.size()<32)pendingActions_.push_back(observedAction(hit.action,hit.value,(hit.intent-1u)/64u));
+            hudClicked=true;break;
+        }
+    }
     bool dismissedMenu=false;
     if(menu_==Menu::Guide||menu_==Menu::GuideTopics) {
         if(sample.padConnected&&std::any_of(sample.padPressed.begin(),sample.padPressed.end(),[](bool p){return p;}))guideGamepad_=true;
@@ -1642,6 +1773,15 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         if(usingCannon_)status_="Press C to leave the cannon first.";
         else if(riding_)status_="Press M to get off before building.";
         else {building_=!building_;if(freeBuild_&&!building_)status_.clear();heightSteps_=0;input.releaseMouse();}
+    }
+    if(freeBuild_&&input.focused()&&!uiInputOwned_&&!dismissedMenu
+        &&(pressed(Key::P)||pad.pressed(PadButton::LeftStick))) {
+        const bool wasOpen=menu_==Menu::Colours;
+        toggleColours();dismissedMenu=wasOpen&&menu_==Menu::None;
+    }
+    if(building_&&!riding_&&!usingCannon_&&menu_==Menu::None&&input.focused()&&!uiInputOwned_&&!dismissedMenu
+        &&(pressed(Key::Tab)||(freeBuild_&&pad.pressed(PadButton::Alternate)))) {
+        menu_=Menu::Catalog;menuSelection_=freeBuild_?0:int(selected_)-1;player_.discardPendingInput();
     }
     if(freeBuild_&&pressed(Key::M)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleMotorbike();
     if(freeBuild_&&pressed(Key::C)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleCannon();
@@ -1662,20 +1802,31 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     if(menu_!=Menu::None||uiInputOwned_||dismissedMenu||!input.focused()) {
         if(riding_)motorbike_.pause();
         player_.discardPendingInput();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
-        if((nativeHudVisible&&pressed(Key::Up))||pad.navigation(0))menuSelection_=std::max(0,menuSelection_-1);
-        if((nativeHudVisible&&pressed(Key::Down))||pad.navigation(1))++menuSelection_;
-        if(nativeHudVisible&&(menu_==Menu::Guide||menu_==Menu::GuideTopics)&&std::isfinite(input.scrollDelta())&&input.scrollDelta()!=0) {
+        const bool horizontal=menu_==Menu::Colours||menu_==Menu::Catalog;
+        const bool hudKeyboard=sharedHudVisible&&!uiInputOwned_;
+        if((hudKeyboard&&(pressed(Key::Up)||(horizontal&&pressed(Key::Left))))||pad.navigation(0)||(horizontal&&pad.navigation(2)))
+            menuSelection_=std::max(0,menuSelection_-1);
+        if((hudKeyboard&&(pressed(Key::Down)||(horizontal&&pressed(Key::Right))))||pad.navigation(1)||(horizontal&&pad.navigation(3)))++menuSelection_;
+        const bool previousCategory=pad.pressed(PadButton::LeftShoulder)||(hudKeyboard&&pressed(Key::Q));
+        const bool nextCategory=pad.pressed(PadButton::RightShoulder)||(hudKeyboard&&pressed(Key::E));
+        const bool changedCategory=menu_==Menu::Catalog&&(previousCategory||nextCategory);
+        if(changedCategory) {
+            catalogCategory_=static_cast<uint8_t>((catalogCategory_+(nextCategory?1:2))%3);menuSelection_=0;
+            refreshHud();
+        }
+        if(sharedHudVisible&&(menu_==Menu::Guide||menu_==Menu::GuideTopics)&&std::isfinite(input.scrollDelta())&&input.scrollDelta()!=0) {
             menuSelection_=std::max(0,menuSelection_+(input.scrollDelta()<0?1:-1));guideGamepad_=false;
         }
-        if((nativeHudVisible&&pressed(Key::Enter))||pad.pressed(PadButton::Confirm))menuRow(menuSelection_);
+        if(!changedCategory&&((hudKeyboard&&pressed(Key::Enter))||pad.pressed(PadButton::Confirm)))menuRow(menuSelection_);
         if(pad.pressed(PadButton::Back)){(void)closeCurrentMode();input.resetState();}
     } else if(usingCannon_&&cannonFeet_) {
         player_.discardPendingInput();
-        const double turn=double(input.isKeyDown(Key::A))-double(input.isKeyDown(Key::D));
-        const double elevate=double(input.isKeyDown(Key::W))-double(input.isKeyDown(Key::S));
+        const auto aim=inputRouter_.movement();
+        const double turn=-aim[0],elevate=aim[1];
         if(turn!=0||elevate!=0)inspectWall_=false;
         cannon_.aim(turn,elevate,seconds);
-        if(!hudClicked&&!hudPointerOwned_&&(input.wasMouseButtonPressed(MouseButton::Left)||pressed(Key::Space)))fireCannon();
+        if(pressed(Key::Space)||pad.pressed(PadButton::Confirm)
+            ||(!hudClicked&&!hudPointerOwned_&&input.wasMouseButtonPressed(MouseButton::Left)))fireCannon();
         camera.setAspectRatio(width,height);
         const auto direction=cannon_.direction(),muzzle=cannon_.muzzle(*cannonFeet_);
         const auto cameraAnchor=*cannonFeet_+glm::dvec3(0,6,0);
@@ -1730,25 +1881,22 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         const auto p=player_.feet();
         expedition::CoveCamera::Input orbitInput;
         const auto look=inputRouter_.look();
-        const auto mouse=inputRouter_.mouseGesturesAllowed()
+        const auto mouse=inputRouter_.mouseGesturesAllowed()&&!hudPointerOwned_
             ?(preferences_.orbitToggle?(inputRouter_.orbitDrag()?input.mouseDelta():glm::vec2(0)):input.mouseDragDelta(MouseButton::Right))
             :glm::vec2(0);
         orbitInput.orbitRadians={double(mouse.x)*.004*preferences_.mouseSensitivity*(preferences_.invertX?-1:1)+look[0]*seconds*2,
             double(mouse.y)*.004*preferences_.mouseSensitivity*(preferences_.invertY?-1:1)+look[1]*seconds*2};
         const bool brickWheel=freeBuild_&&building_&&!input.isKeyDown(Key::LeftControl)&&!input.isKeyDown(Key::RightControl);
-        if(brickWheel&&std::isfinite(input.scrollDelta())) {
+        if(brickWheel&&!hudPointerOwned_&&std::isfinite(input.scrollDelta())) {
             // One detent selects one item; accumulate smooth trackpad deltas.
-            // The order matches the pictured creative hotbar, starting with bricks.
-            constexpr std::array<uint8_t,15> hotbar{8,9,10,2,3,5,4,15,6,7,1,14,11,12,13};
+            // Each pictured slot includes both its actual piece and paint.
             brickScroll_+=input.scrollDelta();
             if(std::abs(brickScroll_)>=.5f) {
-                const auto found=std::find(hotbar.begin(),hotbar.end(),uint8_t(selected_));
-                const auto index=static_cast<size_t>(found-hotbar.begin());
-                selected_=PieceKind(hotbar[(index+(brickScroll_<0?1:hotbar.size()-1))%hotbar.size()]);
-                blueprint_=BlueprintKind::None;heightSteps_=0;brickScroll_=0;
+                selectQuickSlot((activeQuickSlot_+(brickScroll_<0?1:quickSlots_.size()-1))%quickSlots_.size());
+                brickScroll_=0;
             }
         } else brickScroll_=0;
-        orbitInput.zoomSteps=brickWheel?0:input.scrollDelta();orbitInput.active=input.focused();
+        orbitInput.zoomSteps=brickWheel||hudPointerOwned_?0:input.scrollDelta();orbitInput.active=input.focused();
         orbitInput.recenter=inputRouter_.pressed(A::Recenter);
         camera.setAspectRatio(width,height);
         const expedition::CoveCamera::Target target{p+glm::dvec3(0,1.2*player_.bodyScale()+(riding_?motorbike_.state().groundOffset:0.),0),player_.facingYaw(),queries_.revision(),{},discontinuity_,glm::length(player_.worldVelocity())>.1};
@@ -1764,13 +1912,14 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         updateTarget(camera,input,width,height);
         if(throwCount)throwBricks(throwCount);
         if(building_) {
-            if(pressed(Key::Tab)){menu_=Menu::Catalog;menuSelection_=int(selected_)-1;}
             if(buildRouter_.pressed(A::RotateY))yaw_=uint8_t((yaw_+1)%4);
             if(buildRouter_.pressed(A::PreviousPart)) {
-                selected_=PieceKind((int(selected_)+int(kBuildingPieceCount)-2)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;
+                if(freeBuild_)selectQuickSlot((activeQuickSlot_+quickSlots_.size()-1)%quickSlots_.size());
+                else {selected_=PieceKind((int(selected_)+int(kBuildingPieceCount)-2)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
             }
             if(pad.pressed(PadButton::RightShoulder)) {
-                selected_=PieceKind(int(selected_)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;
+                if(freeBuild_)selectQuickSlot((activeQuickSlot_+1)%quickSlots_.size());
+                else {selected_=PieceKind(int(selected_)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
             }
             if(pressed(static_cast<Key>(266))||pad.pressed(PadButton::Up))++heightSteps_;
             if(pressed(static_cast<Key>(267))||pad.pressed(PadButton::Down))--heightSteps_;
@@ -1787,7 +1936,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         // global; every other control must still have that published context.
         if(command!=8&&pending.menuToken!=menuIntents_.token())continue;
         if(usingCannon_&&command!=33&&command!=34&&command!=35&&command!=36&&command!=37&&command!=8&&command!=9&&command!=10&&command!=20&&command!=25&&command!=31) {status_="Press C to leave the cannon first.";continue;}
-        if(riding_&&(command==1||command==2||command==4||command==5||command==6||command==7||command==13||command==21||command==23)) {
+        if(riding_&&(command==1||command==2||command==4||command==5||command==6||command==7||command==13||command==21||command==23||command==38||command==39)) {
             status_="Press M to get off before building.";continue;
         }
         switch(command) {
@@ -1798,7 +1947,10 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         case 36:if(usingCannon_&&menu_==Menu::None)changeImportedWall(true);break;
         case 37:if(usingCannon_&&menu_==Menu::None)changeImportedWall(false,true);break;
         case 1:building_=!building_;if(freeBuild_&&!building_)status_.clear();menu_=Menu::None;break;
-        case 2:if(value>0&&pieceKindValid(uint32_t(value))){blueprint_=BlueprintKind::None;selected_=PieceKind(value);building_=true;menu_=Menu::None;heightSteps_=0;}break;
+        case 2:if(value>0&&pieceKindValid(uint32_t(value))){blueprint_=BlueprintKind::None;selected_=PieceKind(value);rememberQuickSlot();building_=true;menu_=Menu::None;heightSteps_=0;}break;
+        case 39:
+            if(freeBuild_&&!wallLocked()&&value>=1&&value<=int(quickSlots_.size()))selectQuickSlot(static_cast<size_t>(value-1));
+            break;
         case 3:yaw_=uint8_t((yaw_+1)%4);break;
         case 4:if(building_&&menu_==Menu::None) {
             updateTarget(camera,input,width,height);
@@ -1813,15 +1965,12 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             } else if(!previewValid_)status_=previewReason_;
         }break;
         case 5:
-            if(freeBuild_&&isCreativeScenerySolid({observedRayHit_.structure,observedRayHit_.part,{},{}}))status_="Place a brick here to make room for your build.";
-            else if(isVillagePartId(targetPart_))status_="Village scenery belongs to the town. Build beside it.";
-            else if(isTrailPartId(targetPart_))status_="This landmark belongs to the trail. Build beside it.";
-            else if(targetPart_&&commit(session_->prepareRemove(stamp(),targetPart_,validator(),status_)))status_=freeBuild_?"Removed.":"Removed. Materials returned.";
+            if(pending.removeScenery)status_="Place a brick here to make room for your build.";
+            else if(isVillagePartId(pending.removePart))status_="Village scenery belongs to the town. Build beside it.";
+            else if(isTrailPartId(pending.removePart))status_="This landmark belongs to the trail. Build beside it.";
+            else if(pending.removePart&&commit(session_->prepareRemove(stamp(),pending.removePart,validator(),status_)))status_=freeBuild_?"Removed.":"Removed. Materials returned.";
             break;
-        case 6:if(lastBlueprint_?commit(session_->prepareRemoveStructure(stamp(),lastBlueprint_,validator(),status_))
-            :lastPlaced_&&commit(session_->prepareRemove(stamp(),lastPlaced_,validator(),status_))) {
-            lastPlaced_=0;lastBlueprint_=0;status_=freeBuild_?"Last placement undone.":"Last placement undone. Materials returned.";
-        }break;
+        case 6:undoLastPlacement();break;
         case 7:if(!building_&&menu_==Menu::None) {
             if(pending.door)useDoor(pending.door,pending.doorOpen,pending.doorRevision);
             else use(false);
@@ -1845,8 +1994,13 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         case 27:if(!building_&&menu_==Menu::None)pendingAttack_=true;break;
         case 28:if(!building_&&menu_==Menu::None)pendingDodge_=true;break;
         case 30:
-            if(freeBuild_&&building_&&menu_==Menu::None&&value>=0&&value<=0xffffff)selectedPaint_=uint32_t(value);
+            if(freeBuild_&&building_&&(menu_==Menu::None||menu_==Menu::Colours)&&value>=0&&value<=0xffffff) {
+                selectedPaint_=uint32_t(value);
+                rememberQuickSlot();
+                if(menu_==Menu::Colours)(void)closeCurrentMode();
+            }
             break;
+        case 38:toggleColours();break;
         case 31:
             if(freeBuild_&&menu_==Menu::None){menu_=Menu::Main;menuSelection_=0;player_.discardPendingInput();}
             break;
@@ -1904,7 +2058,9 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         ?wallInspectionPoint_
         :cannon_.muzzle(*cannonFeet_)+cannon_.direction()*40.;
     observedViewProjection_=glm::dmat4(camera.projectionMatrix()*camera.viewMatrix());observedWidth_=width;observedHeight_=height;
+    if(interactionStatusSerial_!=previousInteraction)interactionFeedbackSeconds_=6;
     refreshHud();
+    refreshNavigation();
 #if defined(VOXY_NATIVE)
     observationSeconds_+=seconds;
     if(const char* path=std::getenv("VOXY_ADVENTURE_OBSERVE");path&&*path&&observationSeconds_>=.25) {
@@ -1914,13 +2070,66 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     }
 #endif
 }
+void AdventureRuntime::refreshNavigation() {
+    if(!freeBuild_)return;
+    const glm::dvec2 position(player_.feet().x,player_.feet().z);
+    // Match the renderer's logical visibility before touching terrain or
+    // compiling footprints. Small windows and paused menus need no map work.
+    const float density=std::clamp(hudPixelScale_,.125f,16.f);
+    hudNavigation_.visible=(menu_==Menu::None||menu_==Menu::Catalog||menu_==Menu::Colours)
+        &&float(observedWidth_)/density>=760&&float(observedHeight_)/density>=540;
+    const auto direction=observedTarget_-observedEye_;
+    hudNavigation_.cameraBearingDegrees=adventureNavigationBearing({direction.x,direction.z});
+    hudNavigation_.playerBearingDegrees=adventureNavigationBearing({-std::sin(player_.facingYaw()),-std::cos(player_.facingYaw())});
+    if(navigationCountEpoch_!=staticGeometryEpoch_) {
+        hudNavigation_.placedPieces=0;
+        for(const auto& structure:state().structures)hudNavigation_.placedPieces+=static_cast<uint32_t>(structure.parts.size());
+        navigationCountEpoch_=staticGeometryEpoch_;
+    }
+    hudNavigation_.playerUv=hudNavigation_.map?navigationCache_.playerUv(position):glm::vec2(.5f);
+    if(!hudNavigation_.visible){hud_.setNavigation(hudNavigation_);return;}
+    const auto& terrain=queries_.terrain();
+    const float water=installedWorld().waterHeight;
+    if(navigationCache_.needsUpdate(terrain,water,position,staticGeometryEpoch_)) {
+        std::vector<AdventureNavigationFootprint> footprints;
+        // The admitted village is derived scenery. Suppressed groups are absent
+        // here, so the map cannot resurrect a building displaced by a player.
+        for(const auto& group:scenery_.village().groups())
+            footprints.push_back({{group.minimum.x,group.minimum.z},{group.maximum.x,group.maximum.z},0xb89568});
+        // Reuse accepted collision bounds for the installed blacksmith. Dynamic
+        // fragments are deliberately not represented as a still-standing house.
+        if(blacksmithVisible())for(const auto& solid:walkQueries_.solids())
+            if(solid.part.counter==blacksmithPartId||solid.part.counter==blacksmithWallPartId)
+                footprints.push_back({{solid.minimum.x,solid.minimum.z},{solid.maximum.x,solid.maximum.z},0xa68163});
+        std::unordered_map<uint64_t,uint32_t> paints;paints.reserve(hudNavigation_.placedPieces);
+        for(const auto& structure:state().structures)for(const auto& part:structure.parts)
+            paints.emplace(part.id,part.paint?part.paint:0xe8c98c);
+        std::vector<AdventureSpatialQueries::Solid> owned;std::string ignored;
+        if(compileSolids(state(),owned,ignored))for(const auto& solid:owned) {
+            const auto paint=paints.find(solid.part.counter);
+            footprints.push_back({{solid.minimum.x,solid.minimum.z},{solid.maximum.x,solid.maximum.z},paint!=paints.end()?paint->second:0xe8c98c});
+        }
+        auto map=std::make_shared<render::AdventureHudMap>();
+        map->revision=hudNavigation_.map?hudNavigation_.map->revision+1:1;
+        map->width=AdventureNavigationCache::size;map->height=AdventureNavigationCache::size;
+        map->rgba=navigationCache_.rasterize(terrain,water,position,staticGeometryEpoch_,footprints);
+        hudNavigation_.map=std::move(map);
+    }
+    // Only tiny uniforms change while walking or orbiting; the raster and the
+    // main HUD's glyph/brick layout remain cached independently of player ticks.
+    hudNavigation_.playerUv=navigationCache_.playerUv(position);
+    hud_.setNavigation(hudNavigation_);
+}
 void AdventureRuntime::refreshHud() {
     render::AdventureHudContent hud;
+    hud.creative=freeBuild_;hud.paint=selectedPaint_;hud.quickSlot=freeBuild_?static_cast<uint8_t>(activeQuickSlot_+1):0;
+    hud.colourPickerOpen=menu_==Menu::Colours;hud.pixelScale=freeBuild_?hudPixelScale_:1;
     using H=render::AdventureHudMode;using O=MenuOperation;
     switch(menu_) {
     case Menu::None:hud.mode=building_?H::Build:H::Explore;break;
     case Menu::Main:hud.mode=H::Pause;break;
     case Menu::Catalog:hud.mode=H::Catalog;break;
+    case Menu::Colours:hud.mode=H::Build;break;
     case Menu::Chest:hud.mode=H::Chest;break;
     case Menu::Dialogue:hud.mode=H::Dialogue;break;
     case Menu::Workbench:hud.mode=H::Workbench;break;
@@ -1943,6 +2152,7 @@ void AdventureRuntime::refreshHud() {
     hud.objective=freeBuild_?"":trailObjective(state(),readiness,fieldHome);
     if(freeBuild_) {
         hud.title="Free build";
+        if(interactionFeedbackSeconds_>0&&!status_.empty())hud.status=status_;
         hud.context=saveFailure_.empty()?(player_.mode()==AdventurePlayer::Mode::Swimming
             ?"Space: Rise   X: Dive   Right-drag: Steer":"B: Build / walk"):saveFailure_;
     }
@@ -1968,29 +2178,36 @@ void AdventureRuntime::refreshHud() {
     };
     if(menu_==Menu::Main) {
         menuTitle_="Paused";menuText_=saveStatus_;menuStatus_=status_;
-        add(freeBuild_?"Return to building":"Return to adventure",true,{O::Close});add("Building pieces",true,{O::Catalog});
+        add(freeBuild_?(building_?"Return to building":"Return to exploring"):"Return to adventure",true,{O::Close});add("Building pieces",true,{O::Catalog});
         add(freeBuild_?"Save build":"Save adventure",true,{O::Save});add(freeBuild_?"Return to start":"Return to home / town",true,{O::Recover});
         add("Comfort and controls",true,{O::Settings});
         add("How to play",true,{O::GuideTopics});
+        if(freeBuild_) {
+            if(building_) {
+                const bool canBuild=!riding_&&!usingCannon_&&!wallLocked();
+                add("Rotate piece",canBuild,{O::Rotate});
+                add("Raise piece",canBuild&&heightSteps_<32,{O::Raise});
+                add("Lower piece",canBuild&&heightSteps_>-32,{O::Lower});
+                add("Remove aimed piece",canBuild&&targetPart_&&AdventureSession::findPart(state(),targetPart_),{O::Remove,targetPart_});
+                add("Choose colour",canBuild,{O::Colours});
+                add("Finish building",canBuild,{O::FinishBuilding});
+            }
+            add("Undo last placement",!riding_&&!usingCannon_&&!wallLocked()&&(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_),{O::Undo});
+            add(riding_?"Get off motorbike":"Ride motorbike",!usingCannon_&&!wallLocked(),{O::Motorbike});
+            add(usingCannon_?"Leave cannon":"Use cannon",!riding_&&cannonVisible()&&!wallLocked()&&!cannon_.liveShots(),{O::Cannon});
+        }
         if(!freeBuild_){add("Starter room",true,{O::Starter});add("Quest journal",true,{O::Journal});add("Open bag",true,{O::Bag});}
-    } else if(freeBuild_&&(menu_==Menu::GuideTopics||menu_==Menu::Guide)) {
-        menuTitle_="Build at your own pace";
-        menuText_="Choose a piece, aim and place. R rotates; Ctrl+Z undoes the last placement. ";
-        menuText_+=preferences_.orbitToggle?"Right-click to start or stop looking. ":"Right-drag to look. ";
-        menuText_+="Scroll chooses a piece; Ctrl+scroll zooms while building. B switches between building and walking. Hold Shift while moving to run. ";
-        menuText_+="While walking, scroll to zoom. Left-click throws one 2×1 brick; right-click throws 100. Right-drag still looks around. ";
-        menuText_+="In water, hold Space to rise or X to dive. Right-drag while moving to steer underwater. Controller triggers rise and dive. Save from Menu.";
-        add(guideReturnMenu_==Menu::Main?"Back to menu":"Return to building",true,{O::GuideExit});
     } else if(menu_==Menu::GuideTopics||menu_==Menu::Guide) {
-        const auto exitLabel=guideReturnMenu_==Menu::Main?"Back to menu":building_?"Return to building":"Return to adventure";
+        const auto exitLabel=guideReturnMenu_==Menu::Main?"Back to menu":building_?"Return to building":freeBuild_?"Return to exploring":"Return to adventure";
+        const auto guideCard=[&](AdventureGuideTopic topic){return freeBuild_?creativeGuideCard(topic,preferences_,guideGamepad_):adventureGuideCard(topic,preferences_,guideGamepad_);};
         if(menu_==Menu::GuideTopics) {
             menuTitle_="How to play";menuText_="Choose a short tip. Read at your own pace.";
             for(uint64_t i=0;i<static_cast<uint64_t>(AdventureGuideTopic::Count);++i) {
-                const auto card=adventureGuideCard(static_cast<AdventureGuideTopic>(i),preferences_,guideGamepad_);
+                const auto card=guideCard(static_cast<AdventureGuideTopic>(i));
                 add(card.title,true,{O::GuideTopic,i});
             }
         } else {
-            const auto card=adventureGuideCard(guideTopic_,preferences_,guideGamepad_);
+            const auto card=guideCard(guideTopic_);
             menuTitle_=card.title;menuText_=card.text;
             const auto topic=static_cast<uint64_t>(guideTopic_);
             if(topic+1<static_cast<uint64_t>(AdventureGuideTopic::Count))add("Next tip",true,{O::GuideTopic,topic+1});
@@ -2041,6 +2258,11 @@ void AdventureRuntime::refreshHud() {
             add(label,valid,{O::SetBinding,static_cast<uint64_t>(value+1)});hud.rows.back().detail=valid?(candidate==preferences_?"Current binding":""):reason;
         }
         add("Back",true,{O::Close});
+    } else if(menu_==Menu::Colours) {
+        menuTitle_="Brick colours";menuText_="Colour your next bricks.";
+        for(const auto& [name,paint]:creativeColours) {
+            add(name,true,{O::Paint,paint});hud.rows.back().value=static_cast<int>(paint);
+        }
     } else if(menu_==Menu::Catalog) {
         menuTitle_="Building pieces";menuText_="Choose a piece, then aim at a suitable place.";
         // The first home blueprint must be discoverable without scrolling
@@ -2145,16 +2367,19 @@ void AdventureRuntime::refreshHud() {
         }
         add("Close bag",true,{O::Close});
     }
-    const auto context=std::string(mode())+":"+std::to_string(usingCannon_)+":"+std::to_string(dialogueNpc_)+":"+std::to_string(bench_)+":"+std::to_string(chest_)+":"+std::to_string(catalogCategory_)+":"+std::to_string(journalQuest_)
+    auto context=std::string(mode())+":"+std::to_string(usingCannon_)+":"+std::to_string(riding_)+":"+std::to_string(dialogueNpc_)+":"+std::to_string(bench_)+":"+std::to_string(chest_)+":"+std::to_string(catalogCategory_)+":"+std::to_string(journalQuest_)
         +":"+std::to_string(static_cast<int>(bindingAction_))+":"+std::to_string(bindingDevice_)+":"+std::to_string(preferencesRevision_)
         +":"+std::to_string(static_cast<int>(menu_))+":"+std::to_string(static_cast<int>(guideTopic_))+":"+std::to_string(static_cast<int>(guideReturnMenu_));
+    // A visible slot's identity includes its real payload. Editing a preset
+    // invalidates old card/key events instead of reinterpreting an old picture.
+    if(freeBuild_)for(const auto& slot:quickSlots_)context+=":"+std::to_string(int(slot.kind))+":"+std::to_string(slot.paint);
     if(!menuIntents_.publish(context,std::move(identities)))menuStatus_="Menu unavailable. Save and reopen the adventure.";
     for(size_t i=0;i<hud.rows.size();++i)hud.rows[i].intent=static_cast<uint32_t>(menuIntents_.intent(i));
     menuSelection_=std::clamp(menuSelection_,0,std::max(0,int(hud.rows.size())-1));hud.selectedRow=static_cast<size_t>(menuSelection_);
     if(menu_!=Menu::None)hud.title=menuTitle_;
     hud.menuText=menuText_;hud.menuStatus=menuStatus_;
-    const uint32_t contextIntent=menuIntents_.token()*64u+1u;
-    const auto button=[&](const char* label,int action,int value=0){return render::AdventureHudRow{label,"",true,action,value,contextIntent,0};};
+    const uint32_t contextIntent=menuIntents_.token()?menuIntents_.token()*64u+1u:0;
+    const auto button=[&](std::string_view label,int action,int value=0){return render::AdventureHudRow{std::string(label),"",true,action,value,contextIntent,0};};
     hud.quickActions=state().health?std::vector<render::AdventureHudRow>{button("Use",7),button("Build",21),button("Bag",24),button("Attack",27),button("Dodge",28),button("Pause",9)}
         :std::vector<render::AdventureHudRow>{button("Return home",11),button("Save",8)};
     if(freeBuild_)hud.quickActions={button("Use",7),button("Build",21),button("Pause",9)};
@@ -2163,7 +2388,8 @@ void AdventureRuntime::refreshHud() {
         if(row.action==28)row.enabled=state().combat.tick>=state().combat.player.dodgeReadyTick;
     }
     if(usingCannon_) {
-        hud.context="A/D: turn · W/S: elevation · Click/Space: fire · C: leave";
+        hud.context=hudHoverFromMouse_?"A/D: turn · W/S: elevation · Click/Space: fire · C: leave"
+            :"Left stick: aim · A: fire · Menu: leave";
         auto fire=button("Fire",34);
         fire.enabled=cannonPhysics_&&cannonPhysics_->ready(cannonGeometryEpoch_)
             &&(!wall_||wall_->ready())&&!wallQueryFailure_&&cannonEventsReady_&&!cannon_.liveShots();
@@ -2177,6 +2403,52 @@ void AdventureRuntime::refreshHud() {
     if(menu_!=Menu::None)hud.buildControls={button("Previous",25,-1),button("Next",25,1),button("Close",20)};
     if(menu_==Menu::Guide||menu_==Menu::GuideTopics)hud.buildControls.clear();
     hud.categories={button("Structure",13,1),button("Bricks",13,2),button("Furniture",13,3)};
+    if(freeBuild_) {
+        const bool canBuild=!riding_&&!usingCannon_&&!wallLocked();
+        hud.topActions={button(riding_?"Get off":"Motorbike",32),button(usingCannon_?"Leave cannon":"Cannon",33),
+            button(saveStatus_=="Saving..."?"Saving...":"Save",8),button("Menu",31)};
+        hud.topActions[0].enabled=!usingCannon_&&!wallLocked();
+        hud.topActions[1].enabled=!riding_&&cannonVisible()&&!wallLocked()&&!cannon_.liveShots();
+        if(saveStatus_=="Saving..."||!saveFailure_.empty()||saveFeedbackSeconds_>0)hud.topActions[2].detail=saveStatus_;
+        hud.topActions[2].enabled=saveStatus_!="Saving..."&&(!wall_||!wall_->released());
+        for(size_t i=0;i<quickSlots_.size();++i) {
+            const auto& slot=quickSlots_[i];
+            auto row=button(buildingDefinition(slot.kind)->name,39,static_cast<int>(i+1));
+            row.pieceKind=static_cast<uint8_t>(slot.kind);row.paint=slot.paint;row.enabled=canBuild&&menu_==Menu::None;
+            hud.hotbar.push_back(std::move(row));
+        }
+        for(size_t i=0;i<creativeColours.size();++i) {
+            const auto& [name,paint]=creativeColours[i];
+            hud.colours[i]=menu_==Menu::Colours?hud.rows[i]:button(name,30,static_cast<int>(paint));
+            hud.colours[i].enabled=canBuild&&building_&&(menu_==Menu::None||menu_==Menu::Colours);
+        }
+        if(menu_==Menu::None) {
+            hud.buildControls={button("Pieces",23),button("Rotate",3),button("Undo",6),button("Colour",38),
+                button("Raise",12,1),button("Lower",12,-1),button("Remove",5),button("Help",29,1),button("Done",22)};
+            hud.buildControls[0].detail=padAim_?"Y":"Tab";
+            hud.buildControls[1].detail=padAim_?"X":"R";
+            hud.buildControls[2].detail="Ctrl+Z";
+            hud.buildControls[3].detail=padAim_?"L3":"P";
+            hud.buildControls[8].detail=padAim_?"View":"B";
+            for(auto& row:hud.buildControls)row.enabled=canBuild;
+            hud.buildControls[2].enabled=canBuild&&(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_);
+            hud.buildControls[6].enabled=canBuild&&targetPart_&&targetPart_!=blacksmithPartId&&targetPart_!=blacksmithWallPartId
+                &&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_);
+        }
+        if(!usingCannon_) {
+            hud.quickActions.clear();
+            const auto useLabel=interactionLabel();
+            if(!riding_&&!useLabel.empty()) {
+                auto useAction=button("Use",7);useAction.detail=useLabel;hud.quickActions.push_back(std::move(useAction));
+            }
+            auto build=button("Build",21);build.enabled=canBuild;build.detail=padAim_?"View":"B";
+            hud.quickActions.push_back(std::move(build));
+        }
+        if(hudHoverFromMouse_&&hudHover_&&hudHover_->intent&&(hudHover_->intent-1u)/64u==menuIntents_.token()
+            &&hudWidth_==observedWidth_&&hudHeight_==observedHeight_) {
+            hud.hoverLabel=hudHover_->label;hud.hoverBounds=hudHover_->bounds;
+        }
+    }
     hudContent_=hud;hud_.setContent(std::move(hud));
 }
 bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,
@@ -2596,9 +2868,11 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
 }
 bool AdventureRuntime::renderHud(WGPUCommandEncoder encoder,WGPUTextureView view,uint32_t width,uint32_t height){
 #if !defined(VOXY_NATIVE)
-    if(domUiAttached_){hud_.clearEncodedObservation();return true;}
+    if(domUiAttached_&&!freeBuild_){hud_.clearEncodedObservation();return true;}
 #endif
-    return hud_.render(encoder,view,width,height);
+    const bool rendered=hud_.render(encoder,view,width,height);
+    if(rendered){hudWidth_=width;hudHeight_=height;}
+    return rendered;
 }
 std::string AdventureRuntime::json() const {
     size_t parts=0;for(const auto& s:state().structures)parts+=s.parts.size();
@@ -2663,9 +2937,38 @@ std::string AdventureRuntime::json() const {
         <<",\"nearby\":"<<(cannonVisible()&&glm::length(player_.feet()-*cannonFeet_)<12?"true":"false")<<'}';
     if(freeBuild_&&blacksmithFeet_)out<<",\"blacksmith\":{\"available\":"<<(blacksmithVisible()?"true":"false")
         <<",\"x\":"<<blacksmithFeet_->x<<",\"y\":"<<blacksmithFeet_->y<<",\"z\":"<<blacksmithFeet_->z<<'}';
-    out<<",\"paint\":"<<selectedPaint_<<",\"colourAvailable\":"<<(freeBuild_?"true":"false")
+    out<<",\"paint\":"<<selectedPaint_<<",\"quickSlot\":"<<(freeBuild_?activeQuickSlot_+1:0)<<",\"quickSlots\":[";
+    if(freeBuild_)for(size_t i=0;i<quickSlots_.size();++i) {
+        if(i)out<<',';
+        out<<"{\"piece\":"<<int(quickSlots_[i].kind)<<",\"paint\":"<<quickSlots_[i].paint<<'}';
+    }
+    out<<"],\"colourAvailable\":"<<(freeBuild_?"true":"false")
+        <<",\"colourPickerOpen\":"<<(menu_==Menu::Colours?"true":"false")
         <<",\"canUndo\":"<<(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_?"true":"false")
         <<",\"canRemove\":"<<(targetPart_&&targetPart_!=blacksmithPartId&&targetPart_!=blacksmithWallPartId&&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_)?"true":"false");
+    if(freeBuild_) {
+        out<<",\"hud\":{\"width\":"<<hudWidth_<<",\"height\":"<<hudHeight_<<",\"controls\":[";
+        bool first=true;
+        for(const auto& hit:hud_.layout().hits) {
+            // A frame may publish new state before its GPU HUD is encoded.
+            // Never expose a keyboard peer for a previously rendered context.
+            if(!hit.intent||(hit.intent-1u)/64u!=menuIntents_.token())continue;
+            if(!first)out<<',';
+            first=false;
+            out<<"{\"x\":"<<hit.bounds.x<<",\"y\":"<<hit.bounds.y<<",\"width\":"<<hit.bounds.z<<",\"height\":"<<hit.bounds.w
+                <<",\"action\":"<<hit.action<<",\"value\":"<<hit.value<<",\"intent\":"<<hit.intent
+                <<",\"row\":"<<(hit.row==SIZE_MAX?-1:static_cast<int64_t>(hit.row))
+                <<",\"enabled\":"<<(hit.enabled?"true":"false")<<",\"label\":"<<quote(hit.label)<<",\"shortcutKey\":"<<hit.shortcutKey<<'}';
+        }
+        out<<"]}";
+        out<<",\"navigation\":{\"visible\":"<<(hudNavigation_.visible?"true":"false")
+            <<",\"mapRevision\":"<<(hudNavigation_.map?hudNavigation_.map->revision:0)
+            <<",\"terrainRasterizations\":"<<navigationCache_.terrainRasterizations()
+            <<",\"cameraBearingDegrees\":"<<hudNavigation_.cameraBearingDegrees
+            <<",\"playerBearingDegrees\":"<<hudNavigation_.playerBearingDegrees
+            <<",\"playerUv\":["<<hudNavigation_.playerUv.x<<','<<hudNavigation_.playerUv.y<<']'
+            <<",\"placedPieces\":"<<hudNavigation_.placedPieces<<'}';
+    }
     out<<",\"observation\":"<<quote(std::to_string(observationSerial_))<<",\"revision\":"<<quote(std::to_string(state().revision))<<",\"menuSelected\":"<<menuSelection_;
     const auto p=player_.feet();out<<",\"player\":{\"x\":"<<p.x<<",\"y\":"<<p.y<<",\"z\":"<<p.z<<",\"yaw\":"<<player_.facingYaw()<<",\"tick\":"<<quote(std::to_string(player_.tick()))<<"}";
     out<<",\"swimming\":"<<(player_.mode()==AdventurePlayer::Mode::Swimming?"true":"false");
@@ -2810,7 +3113,9 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     motorbike_.reset();riding_=false;usingCannon_=false;inspectWall_=false;
     if(physics_){cannon_.clear(*physics_);brickThrower_.retire(*physics_,true);playerPhysics_.clear(*physics_);}
     (void)brickThrower_.input(false,false,false,false,{});
+    saveFeedbackSeconds_=0;interactionFeedbackSeconds_=0;
     selectedPaint_=0;brickScroll_=0;building_=freeBuild_;blueprint_=BlueprintKind::None;selected_=freeBuild_?PieceKind::Brick2x4:PieceKind::Foundation;
+    if(freeBuild_)resetQuickSlots();
     menu_=Menu::None;menuSelection_=0;heightSteps_=0;lastPlaced_=0;lastBlueprint_=0;
     guideReturnMenu_=Menu::None;guideReturnSelection_=0;guideTopic_=AdventureGuideTopic::Movement;guideGamepad_=false;
     bench_=0;chest_=0;dialogueNpc_=0;journalQuest_=1;targetPart_=0;

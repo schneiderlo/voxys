@@ -1339,7 +1339,7 @@ cc_test(
     name = "adventure_hud_layout",
     srcs = ["test_adventure_hud.cpp"],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
-    deps = ["//src/render:render", "//src/game:adventure_core", "//src/gpu:gpu", "@googletest//:gtest_main"],
+    deps = ["//src/render:render", "//src/game:adventure_core", "//src/game:adventure_navigation", "//src/gpu:gpu", "@googletest//:gtest_main"],
     data = ["//shaders:shaders"],
 )
 
@@ -1465,6 +1465,13 @@ cc_test(
     srcs = ["test_native_adventure_saves.cpp"],
     copts = PROJECT_TEST_COPTS,
     deps = ["//src/engine/platform:native_adventure_saves", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "adventure_minimap",
+    srcs = ["test_adventure_minimap.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_navigation", "@googletest//:gtest_main"],
 )
 
 cc_test(

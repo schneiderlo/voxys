@@ -1,0 +1,29 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = *Gpu*
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from CoveRecoveryGuidance
+[ RUN      ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds
+[       OK ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds (0 ms)
+[----------] 1 test from CoveRecoveryGuidance (0 ms total)
+
+[----------] 1 test from CoveHudGpu
+[ RUN      ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+[32m[INFO ] [08:08:48.148] [GPU] GPU Adapter: llvmpipe (LLVM 21.1.8, 256 bits)[0m
+[32m[INFO ] [08:08:48.148] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [08:08:48.148] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:08:48.148] [GPU]   Type: CPU[0m
+[32m[INFO ] [08:08:48.163] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak (108 ms)
+[----------] 1 test from CoveHudGpu (108 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (109 ms total)
+[  PASSED  ] 2 tests.

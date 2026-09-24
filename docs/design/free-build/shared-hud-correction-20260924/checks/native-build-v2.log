@@ -1,0 +1,39 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 5 targets (1 packages loaded, 182 targets configured).
+[524 / 558] Compiling tests/test_adventure_hud.cpp; 1s linux-sandbox ... (3 actions running)
+[529 / 558] Compiling tests/test_adventure_hud.cpp; 5s linux-sandbox ... (3 actions, 2 running)
+[529 / 558] Compiling tests/test_adventure_hud.cpp; 7s linux-sandbox ... (3 actions running)
+[534 / 561] Compiling tests/test_adventure_hud.cpp; 8s linux-sandbox ... (3 actions, 2 running)
+[534 / 561] Compiling tests/test_adventure_hud.cpp; 10s linux-sandbox ... (3 actions running)
+[535 / 561] Compiling tests/test_adventure_runtime.cpp; 5s linux-sandbox ... (3 actions, 2 running)
+[536 / 561] Compiling tests/test_adventure_runtime.cpp; 6s linux-sandbox ... (3 actions, 2 running)
+[536 / 561] Compiling tests/test_adventure_runtime.cpp; 8s linux-sandbox ... (3 actions running)
+[537 / 561] Compiling tests/test_adventure_runtime.cpp; 11s linux-sandbox ... (3 actions, 2 running)
+[548 / 561] Compiling tests/test_adventure_runtime.cpp; 12s linux-sandbox ... (3 actions, 2 running)
+[548 / 561] Compiling tests/test_adventure_runtime.cpp; 13s linux-sandbox ... (3 actions running)
+[549 / 561] Compiling tests/test_adventure_runtime.cpp; 15s linux-sandbox ... (3 actions, 2 running)
+[552 / 561] Compiling tests/test_adventure_runtime.cpp; 16s linux-sandbox ... (3 actions running)
+[554 / 561] Compiling tests/test_adventure_runtime.cpp; 18s linux-sandbox ... (3 actions running)
+[555 / 561] Compiling src/app/application.cpp; 12s linux-sandbox ... (2 actions running)
+[556 / 561] Compiling src/app/application.cpp; 22s linux-sandbox ... (2 actions, 1 running)
+[559 / 561] Compiling src/app/application.cpp; 23s linux-sandbox
+[560 / 561] [Prepa] Linking voxy_native
+INFO: Found 5 targets...
+[561 / 561] no actions running
+INFO: Elapsed time: 56.243s, Critical Path: 34.29s
+INFO: 19 processes: 544 action cache hit, 3 internal, 16 linux-sandbox.
+INFO: Build completed successfully, 19 total actions

@@ -1,0 +1,24 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FreeBuildRuntimeIntegration
+[ RUN      ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+[32m[INFO ] [08:09:26.837] [GPU] GPU Adapter: llvmpipe (LLVM 21.1.8, 256 bits)[0m
+[32m[INFO ] [08:09:26.837] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [08:09:26.837] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:09:26.837] [GPU]   Type: CPU[0m
+[32m[INFO ] [08:09:26.854] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore (61265 ms)
+[----------] 1 test from FreeBuildRuntimeIntegration (61265 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (61265 ms total)
+[  PASSED  ] 1 test.

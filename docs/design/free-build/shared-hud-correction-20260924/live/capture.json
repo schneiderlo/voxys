@@ -1,0 +1,441 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "method": "Live game; real CDP pointer clicks on runtime-published shared GPU HUD hits; all DOM left intact",
+  "started": "2026-09-24T23:00:50.155Z",
+  "viewport": {
+    "width": 1600,
+    "height": 900,
+    "dpr": 1
+  },
+  "captures": [
+    {
+      "name": "build",
+      "file": "build.png",
+      "state": "build.json",
+      "sha256": "d4a3947273564ec51d310b14989a99f9aed8ceea627f1b53a5a54c6ca1143b7f",
+      "frame": 91,
+      "mode": "build",
+      "hits": 14,
+      "semanticButtons": 14,
+      "piece": 9,
+      "paint": 15022899,
+      "parts": 0
+    },
+    {
+      "name": "catalog",
+      "file": "catalog.png",
+      "state": "catalog.json",
+      "sha256": "6c3ac836f285ba5a3f6a9891127e0278aec9ee3c1cfc2d237052ba772eed65f2",
+      "frame": 152,
+      "mode": "catalog",
+      "hits": 21,
+      "semanticButtons": 21,
+      "piece": 9,
+      "paint": 15022899,
+      "parts": 0
+    },
+    {
+      "name": "palette",
+      "file": "palette.png",
+      "state": "palette.json",
+      "sha256": "5372394003e91d9a54ccb9dfdff28aa2531919a09073d04247369c448908587d",
+      "frame": 252,
+      "mode": "colours",
+      "hits": 18,
+      "semanticButtons": 18,
+      "piece": 3,
+      "paint": 2986444,
+      "parts": 0
+    },
+    {
+      "name": "explore",
+      "file": "explore.png",
+      "state": "explore.json",
+      "sha256": "5e84417c2e8e76da3bb8cd3db1c18f2431749c6f525fe0c8809c146fe438d8ea",
+      "frame": 354,
+      "mode": "explore",
+      "hits": 6,
+      "semanticButtons": 6,
+      "piece": 3,
+      "paint": 2986444,
+      "parts": 0
+    }
+  ],
+  "actions": [
+    {
+      "label": "White brick preset",
+      "control": {
+        "x": 617,
+        "y": 760,
+        "width": 84,
+        "height": 94,
+        "action": 39,
+        "value": 2,
+        "intent": 65,
+        "row": -1,
+        "enabled": true,
+        "label": "Brick 2 × 4",
+        "shortcutKey": 50
+      },
+      "position": {
+        "x": 659,
+        "y": 807
+      },
+      "before": {
+        "frame": 71,
+        "mode": "build",
+        "token": 1
+      },
+      "after": {
+        "frame": 78,
+        "mode": "build",
+        "token": 1,
+        "piece": 10,
+        "paint": 15987435,
+        "quickSlot": 2,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Red brick preset",
+      "control": {
+        "x": 523,
+        "y": 760,
+        "width": 84,
+        "height": 94,
+        "action": 39,
+        "value": 1,
+        "intent": 65,
+        "row": -1,
+        "enabled": true,
+        "label": "Brick 2 × 2",
+        "shortcutKey": 49
+      },
+      "position": {
+        "x": 565,
+        "y": 807
+      },
+      "before": {
+        "frame": 79,
+        "mode": "build",
+        "token": 1
+      },
+      "after": {
+        "frame": 84,
+        "mode": "build",
+        "token": 1,
+        "piece": 9,
+        "paint": 15022899,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Open pieces",
+      "control": {
+        "x": 576,
+        "y": 855,
+        "width": 112,
+        "height": 44,
+        "action": 23,
+        "value": 0,
+        "intent": 65,
+        "row": -1,
+        "enabled": true,
+        "label": "Pieces",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 632,
+        "y": 877
+      },
+      "before": {
+        "frame": 127,
+        "mode": "build",
+        "token": 1
+      },
+      "after": {
+        "frame": 133,
+        "mode": "catalog",
+        "token": 2,
+        "piece": 9,
+        "paint": 15022899,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Structure category",
+      "control": {
+        "x": 1344,
+        "y": 552,
+        "width": 76.66666412353516,
+        "height": 44,
+        "action": 13,
+        "value": 1,
+        "intent": 129,
+        "row": -1,
+        "enabled": true,
+        "label": "Structure",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 1382.3333320617676,
+        "y": 574
+      },
+      "before": {
+        "frame": 135,
+        "mode": "catalog",
+        "token": 2
+      },
+      "after": {
+        "frame": 144,
+        "mode": "catalog",
+        "token": 3,
+        "piece": 9,
+        "paint": 15022899,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Choose wall",
+      "control": {
+        "x": 1365,
+        "y": 658,
+        "width": 44,
+        "height": 44,
+        "action": 10,
+        "value": 0,
+        "intent": 195,
+        "row": 2,
+        "enabled": true,
+        "label": "Wall",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 1387,
+        "y": 680
+      },
+      "before": {
+        "frame": 197,
+        "mode": "catalog",
+        "token": 3
+      },
+      "after": {
+        "frame": 205,
+        "mode": "build",
+        "token": 4,
+        "piece": 3,
+        "paint": 15022899,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Open colours",
+      "control": {
+        "x": 800,
+        "y": 855,
+        "width": 112,
+        "height": 44,
+        "action": 38,
+        "value": 0,
+        "intent": 257,
+        "row": -1,
+        "enabled": true,
+        "label": "Colour",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 856,
+        "y": 877
+      },
+      "before": {
+        "frame": 207,
+        "mode": "build",
+        "token": 4
+      },
+      "after": {
+        "frame": 217,
+        "mode": "colours",
+        "token": 5,
+        "piece": 3,
+        "paint": 15022899,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Choose blue",
+      "control": {
+        "x": 1401.4215087890625,
+        "y": 773.8794555664062,
+        "width": 44,
+        "height": 44,
+        "action": 10,
+        "value": 2986444,
+        "intent": 325,
+        "row": 4,
+        "enabled": true,
+        "label": "Blue",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 1423.4215087890625,
+        "y": 795.8794555664062
+      },
+      "before": {
+        "frame": 219,
+        "mode": "colours",
+        "token": 5
+      },
+      "after": {
+        "frame": 229,
+        "mode": "build",
+        "token": 6,
+        "piece": 3,
+        "paint": 2986444,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Reopen colours",
+      "control": {
+        "x": 800,
+        "y": 855,
+        "width": 112,
+        "height": 44,
+        "action": 38,
+        "value": 0,
+        "intent": 385,
+        "row": -1,
+        "enabled": true,
+        "label": "Colour",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 856,
+        "y": 877
+      },
+      "before": {
+        "frame": 230,
+        "mode": "build",
+        "token": 6
+      },
+      "after": {
+        "frame": 240,
+        "mode": "colours",
+        "token": 7,
+        "piece": 3,
+        "paint": 2986444,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Close colours",
+      "control": {
+        "x": 1530,
+        "y": 588,
+        "width": 44,
+        "height": 44,
+        "action": 20,
+        "value": 0,
+        "intent": 449,
+        "row": -1,
+        "enabled": true,
+        "label": "Close",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 1552,
+        "y": 610
+      },
+      "before": {
+        "frame": 329,
+        "mode": "colours",
+        "token": 7
+      },
+      "after": {
+        "frame": 339,
+        "mode": "build",
+        "token": 8,
+        "piece": 3,
+        "paint": 2986444,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Walk",
+      "control": {
+        "x": 912,
+        "y": 855,
+        "width": 112,
+        "height": 44,
+        "action": 22,
+        "value": 0,
+        "intent": 513,
+        "row": -1,
+        "enabled": true,
+        "label": "Done",
+        "shortcutKey": 0
+      },
+      "position": {
+        "x": 968,
+        "y": 877
+      },
+      "before": {
+        "frame": 340,
+        "mode": "build",
+        "token": 8
+      },
+      "after": {
+        "frame": 347,
+        "mode": "explore",
+        "token": 9,
+        "piece": 3,
+        "paint": 2986444,
+        "quickSlot": 1,
+        "parts": 0
+      }
+    }
+  ],
+  "consoleExceptions": [],
+  "siteFiles": {
+    "index.html": {
+      "bytes": 104330,
+      "sha256": "6b68b0e0a27fdda5475e995847f0e7d638ecb0635e55721298947203478abd5f"
+    },
+    "voxy_wasm.js": {
+      "bytes": 243822,
+      "sha256": "fc8f5887d84d3a2cbb9c83362817aa7accbfb371f372413c6ab99f9a07cdf5b3"
+    },
+    "voxy_wasm.wasm": {
+      "bytes": 9855714,
+      "sha256": "d5ab9e8131b4a9c4449d76713603c578a136e79ec3f1b8a013427d345fd948ee"
+    },
+    "build_ui.js": {
+      "bytes": 49880,
+      "sha256": "a9cc822a76f352363431c1ce8c0aefe789fd657bd621610dd08299908706d69f"
+    },
+    "build_ui.css": {
+      "bytes": 20961,
+      "sha256": "750f000bfa4e9a35850b03b0dbedc019165169878d72ce798d4144e4d4c4094f"
+    }
+  },
+  "profile": "C:\\Users\\m3ndag\\AppData\\Local\\Temp\\voxys-shared-hud-5dFdSd",
+  "url": "http://127.0.0.1:50517/index.html?experience=build&new=1&telemetry=0",
+  "last": {
+    "frame": 354,
+    "ready": true,
+    "mode": "explore",
+    "hits": 6,
+    "lost": null
+  },
+  "initialParts": 0,
+  "finished": "2026-09-24T23:04:01.898Z"
+}

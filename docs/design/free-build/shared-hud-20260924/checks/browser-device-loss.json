@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "method": "Live game; real CDP pointer clicks on runtime-published shared GPU HUD hits; all DOM left intact",
+  "started": "2026-09-24T20:47:50.255Z",
+  "viewport": {
+    "width": 1066,
+    "height": 600,
+    "dpr": 1.5
+  },
+  "captures": [],
+  "actions": [],
+  "consoleExceptions": [],
+  "siteFiles": {
+    "index.html": {
+      "bytes": 104330,
+      "sha256": "3a321920f2724eab365da9fe1556834dacb0f95543c1550fba074185c01d7067"
+    },
+    "voxy_wasm.js": {
+      "bytes": 242899,
+      "sha256": "24682a6647f61bcf239e96e9a2593269bb9e6eb248036475fb89c181cb5f7981"
+    },
+    "voxy_wasm.wasm": {
+      "bytes": 9590240,
+      "sha256": "eadc390117f4b96fbc1d8eadd438e5014b1c22d14b7916fd568231bd093fdf19"
+    },
+    "build_ui.js": {
+      "bytes": 49620,
+      "sha256": "cf9074a1f39aad708a18808e2dab0f801d1d03f9915faeaa5780b8bb7a53fa2e"
+    },
+    "build_ui.css": {
+      "bytes": 20961,
+      "sha256": "750f000bfa4e9a35850b03b0dbedc019165169878d72ce798d4144e4d4c4094f"
+    }
+  },
+  "profile": "C:\\Users\\m3ndag\\AppData\\Local\\Temp\\voxys-shared-hud-VEvsb7",
+  "url": "http://127.0.0.1:49972/index.html?experience=build&new=1&telemetry=0",
+  "last": {
+    "frame": 17,
+    "ready": true,
+    "mode": "build",
+    "hits": 20,
+    "lost": {
+      "reason": "unknown",
+      "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+    }
+  },
+  "error": "Error: WebGPU device lost: {\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"}\n    at checkHealth (file:///C:/Users/m3ndag/AppData/Local/Temp/voxys-gpu-diagnostic/capture-shared-hud.mjs:84:28)\n    at until (file:///C:/Users/m3ndag/AppData/Local/Temp/voxys-gpu-diagnostic/capture-shared-hud.mjs:90:31)\n    at async file:///C:/Users/m3ndag/AppData/Local/Temp/voxys-gpu-diagnostic/capture-shared-hud.mjs:193:17",
+  "finished": "2026-09-24T20:52:02.046Z"
+}

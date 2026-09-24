@@ -646,10 +646,19 @@ cc_library(
 )
 
 cc_library(
+    name = "adventure_navigation",
+    srcs = ["adventure/adventure_navigation.cpp"],
+    hdrs = ["adventure/adventure_navigation.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//src/terrain:lego_surface", "//third_party:glm"],
+)
+
+cc_library(
     name = "adventure_runtime",
     srcs = ["adventure/adventure_runtime.cpp"],
     hdrs = ["adventure/adventure_runtime.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":adventure_core", ":cannon_physics_scene", ":imported_assembly", ":imported_wall_physics", ":robot_asset", ":cove_character", ":cove_input_preferences", "//src/camera:camera", "//src/render:render", "//src/engine/platform:input"] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_adventure_saves", "//src/engine/platform:native_adventure_preferences"]}),
+    deps = [":adventure_core", ":adventure_navigation", ":cannon_physics_scene", ":imported_assembly", ":imported_wall_physics", ":robot_asset", ":cove_character", ":cove_input_preferences", "//src/camera:camera", "//src/render:render", "//src/engine/platform:input"] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_adventure_saves", "//src/engine/platform:native_adventure_preferences"]}),
 )

@@ -1,0 +1,993 @@
+{
+  "ready": true,
+  "presentationReady": true,
+  "frame": 152,
+  "state": {
+    "costText": "Unlimited pieces",
+    "creative": true,
+    "build": true,
+    "selected": "Brick 2 × 2",
+    "blueprintKind": 0,
+    "piece": 9,
+    "status": "Choose a brick, aim and build.",
+    "previewReason": "Aim at nearby ground or a building.",
+    "interaction": "Use nearby",
+    "statusEvent": "0",
+    "valid": false,
+    "wood": 0,
+    "stone": 0,
+    "scrap": 0,
+    "parts": 0,
+    "menu": "Building pieces",
+    "saveFailure": "",
+    "saveStatus": "Unsaved build",
+    "dirty": true,
+    "textScale": 1,
+    "highContrast": false,
+    "rows": [
+      {
+        "label": "Foundation",
+        "enabled": true,
+        "intent": 193,
+        "pieceKind": 1,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Floor",
+        "enabled": true,
+        "intent": 194,
+        "pieceKind": 2,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Wall",
+        "enabled": true,
+        "intent": 195,
+        "pieceKind": 3,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Open doorway",
+        "enabled": true,
+        "intent": 196,
+        "pieceKind": 4,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Flat roof",
+        "enabled": true,
+        "intent": 197,
+        "pieceKind": 5,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Stairs",
+        "enabled": true,
+        "intent": 198,
+        "pieceKind": 6,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Beam",
+        "enabled": true,
+        "intent": 199,
+        "pieceKind": 7,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Pier",
+        "enabled": true,
+        "intent": 200,
+        "pieceKind": 14,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      },
+      {
+        "label": "Hinged door",
+        "enabled": true,
+        "intent": 201,
+        "pieceKind": 15,
+        "blueprintKind": 0,
+        "detail": "Unlimited"
+      }
+    ],
+    "mode": "catalog",
+    "menuTitle": "Building pieces",
+    "menuText": "Choose a piece, then aim at a suitable place.",
+    "menuStatus": "",
+    "menuToken": 3,
+    "catalogCategory": 0,
+    "preferencesRevision": "1",
+    "preferencesStatus": "Default settings.",
+    "attackControl": "Left mouse",
+    "dodgeControl": "Q",
+    "lookControl": "Hold the right mouse button to look around, or use the right stick.",
+    "forest": {
+      "seed": 9665061,
+      "recipe": 3,
+      "drawDistance": 2000,
+      "nearProps": 61,
+      "distantTrees": 51836,
+      "horizonDraws": 28,
+      "visitedTrees": 10127,
+      "visibleTrees": 3001,
+      "selectionMs": 0.7,
+      "instanceUploadBytes": 216480,
+      "meshColorTriangles": 531910,
+      "meshShadowTriangles": 642864
+    },
+    "riding": false,
+    "bikeSpeed": 0,
+    "cannon": {
+      "available": true,
+      "x": 1240,
+      "y": 0.18500000715255738,
+      "z": -1027,
+      "distanceStuds": 102,
+      "active": false,
+      "ready": true,
+      "error": "",
+      "shots": 0,
+      "impacts": 0,
+      "live": 0,
+      "yaw": -0.0360332748563,
+      "elevation": 0.0726767584712,
+      "awaitingHit": false,
+      "contacts": 0,
+      "contactFeature": 0,
+      "contactBody": 0,
+      "contactSpeed": 0,
+      "contactImpulse": 0,
+      "releasedParts": 0,
+      "sourceParts": 20,
+      "partDisplacement": 0.0000026976122938639395,
+      "impactDirection": [
+        0,
+        0,
+        0
+      ],
+      "impactSource": "0",
+      "impactEnergy": 0,
+      "wallReady": true,
+      "wallReleased": false,
+      "inspectingWall": false,
+      "wallBusy": false,
+      "wallPhase": 2,
+      "wallMessage": "",
+      "wallFailed": false,
+      "nearby": false
+    },
+    "blacksmith": {
+      "available": true,
+      "x": 1208,
+      "y": 0.18500000715255738,
+      "z": -1032
+    },
+    "paint": 15022899,
+    "quickSlot": 1,
+    "quickSlots": [
+      {
+        "piece": 9,
+        "paint": 15022899
+      },
+      {
+        "piece": 10,
+        "paint": 15987435
+      },
+      {
+        "piece": 2,
+        "paint": 0
+      },
+      {
+        "piece": 1,
+        "paint": 3909724
+      },
+      {
+        "piece": 4,
+        "paint": 15987435
+      },
+      {
+        "piece": 15,
+        "paint": 0
+      }
+    ],
+    "colourAvailable": true,
+    "colourPickerOpen": false,
+    "canUndo": false,
+    "canRemove": false,
+    "hud": {
+      "width": 1600,
+      "height": 900,
+      "controls": [
+        {
+          "x": 523,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 1,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Brick 2 × 2",
+          "shortcutKey": 49
+        },
+        {
+          "x": 617,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 2,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Brick 2 × 4",
+          "shortcutKey": 50
+        },
+        {
+          "x": 711,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 3,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Floor",
+          "shortcutKey": 51
+        },
+        {
+          "x": 805,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 4,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Foundation",
+          "shortcutKey": 52
+        },
+        {
+          "x": 899,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 5,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Open doorway",
+          "shortcutKey": 53
+        },
+        {
+          "x": 993,
+          "y": 760,
+          "width": 84,
+          "height": 94,
+          "action": 39,
+          "value": 6,
+          "intent": 193,
+          "row": -1,
+          "enabled": false,
+          "label": "Hinged door",
+          "shortcutKey": 54
+        },
+        {
+          "x": 1374,
+          "y": 250,
+          "width": 44,
+          "height": 44,
+          "action": 32,
+          "value": 0,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Motorbike",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1426,
+          "y": 250,
+          "width": 44,
+          "height": 44,
+          "action": 33,
+          "value": 0,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Cannon",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1478,
+          "y": 250,
+          "width": 44,
+          "height": 44,
+          "action": 8,
+          "value": 0,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Save",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1530,
+          "y": 250,
+          "width": 44,
+          "height": 44,
+          "action": 31,
+          "value": 0,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Menu",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1344,
+          "y": 552,
+          "width": 76.66666412353516,
+          "height": 44,
+          "action": 13,
+          "value": 1,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Structure",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1420.6666259765625,
+          "y": 552,
+          "width": 76.66666412353516,
+          "height": 44,
+          "action": 13,
+          "value": 2,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Bricks",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1497.3333740234375,
+          "y": 552,
+          "width": 76.66666412353516,
+          "height": 44,
+          "action": 13,
+          "value": 3,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Furniture",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1437,
+          "y": 616,
+          "width": 44,
+          "height": 44,
+          "action": 10,
+          "value": 0,
+          "intent": 194,
+          "row": 1,
+          "enabled": true,
+          "label": "Floor",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1365,
+          "y": 658,
+          "width": 44,
+          "height": 44,
+          "action": 10,
+          "value": 0,
+          "intent": 195,
+          "row": 2,
+          "enabled": true,
+          "label": "Wall",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1509,
+          "y": 658,
+          "width": 44,
+          "height": 44,
+          "action": 10,
+          "value": 0,
+          "intent": 196,
+          "row": 3,
+          "enabled": true,
+          "label": "Open doorway",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1509,
+          "y": 742,
+          "width": 44,
+          "height": 44,
+          "action": 10,
+          "value": 0,
+          "intent": 197,
+          "row": 4,
+          "enabled": true,
+          "label": "Flat roof",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1365,
+          "y": 804,
+          "width": 44,
+          "height": 44,
+          "action": 25,
+          "value": -1,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Previous",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1365,
+          "y": 742,
+          "width": 44,
+          "height": 44,
+          "action": 25,
+          "value": 1,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Next",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1509,
+          "y": 804,
+          "width": 44,
+          "height": 44,
+          "action": 20,
+          "value": 0,
+          "intent": 193,
+          "row": -1,
+          "enabled": true,
+          "label": "Close",
+          "shortcutKey": 0
+        },
+        {
+          "x": 1431,
+          "y": 694,
+          "width": 56,
+          "height": 56,
+          "action": 10,
+          "value": 0,
+          "intent": 193,
+          "row": 0,
+          "enabled": true,
+          "label": "Foundation",
+          "shortcutKey": 0
+        }
+      ]
+    },
+    "navigation": {
+      "visible": true,
+      "mapRevision": 2,
+      "terrainRasterizations": 1,
+      "cameraBearingDegrees": 317.0281677246094,
+      "playerBearingDegrees": 317.0281677246094,
+      "playerUv": [
+        0.53125,
+        0.5208333134651184
+      ],
+      "placedPieces": 0
+    },
+    "observation": "152",
+    "revision": "1",
+    "menuSelected": 0,
+    "player": {
+      "x": 1200,
+      "y": 0.1849999475479126,
+      "z": -1120,
+      "yaw": 0.75,
+      "tick": "305"
+    },
+    "swimming": false,
+    "thrownBricks": {
+      "total": 0,
+      "live": 0,
+      "playerCollider": true,
+      "playerContacts": 0
+    },
+    "camera": {
+      "yaw": 0.75,
+      "distance": 10.5,
+      "requestedDistance": 10.5,
+      "width": 1600,
+      "height": 900,
+      "eye": [
+        1206.7938766479492,
+        6.847949028015137,
+        -1112.707275390625
+      ],
+      "viewTarget": [
+        1200,
+        3.544999947547913,
+        -1120
+      ],
+      "origin": [
+        1280,
+        0,
+        -1024
+      ],
+      "viewProjection": [
+        -0.5082525014877319,
+        -0.26478853821754456,
+        -0.647042453289032,
+        -0.6470359563827515,
+        1.656126045190831e-7,
+        1.1722078323364258,
+        -0.3145708441734314,
+        -0.3145676851272583,
+        0.4734868109226227,
+        -0.2842309772968292,
+        -0.6945512890815735,
+        -0.6945443153381348,
+        4.794529914855957,
+        -52.62471389770508,
+        -106.925048828125,
+        -106.82398223876953
+      ]
+    },
+    "aimInput": {
+      "pointer": [
+        632,
+        877
+      ],
+      "usedPointer": [
+        24.00000000000002,
+        110.00000000000001
+      ],
+      "mouseCaptured": false,
+      "gamepadConnected": false,
+      "padOwnsAim": false
+    },
+    "aimRay": {
+      "from": [
+        1206.7938766479492,
+        6.847949028015137,
+        -1112.707275390625
+      ],
+      "to": [
+        1210.1330255658686,
+        10.497831033934242,
+        -1137.2129573000684
+      ],
+      "complete": true,
+      "hit": false,
+      "distance": 25
+    },
+    "preview": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "kind": 1,
+      "yaw": 0
+    },
+    "world": "0445e6f412c2648c663352845af03c9a",
+    "registeredBed": "0",
+    "health": 100,
+    "combatLabel": "Use nearby",
+    "staffEquipped": false,
+    "attackReady": true,
+    "dodgeReady": true,
+    "combatTick": "0",
+    "enemies": [
+      {
+        "id": 0,
+        "health": 0,
+        "phase": "Waiting for a clear trail",
+        "phaseCode": 0,
+        "phaseTicks": 0,
+        "attackSerial": "0",
+        "available": false,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "yaw": 0,
+        "deathRevision": "0",
+        "lootClaimRevision": "0"
+      },
+      {
+        "id": 0,
+        "health": 0,
+        "phase": "Waiting for a clear trail",
+        "phaseCode": 0,
+        "phaseTicks": 0,
+        "attackSerial": "0",
+        "available": false,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "yaw": 0,
+        "deathRevision": "0",
+        "lootClaimRevision": "0"
+      }
+    ],
+    "hammerEquipped": false,
+    "quest": {
+      "phase": "not-accepted",
+      "ready": false,
+      "objective": "Meet Moss in the meadow square.",
+      "recipeUnlocked": false,
+      "rewardRevision": "0"
+    },
+    "objective": "Meet Moss in the meadow square.",
+    "trailQuests": [
+      {
+        "id": 2,
+        "phase": 0,
+        "title": "Prepare for the trail",
+        "objective": "Help Moss finish A Place to Return.",
+        "ready": false,
+        "rewardRevision": "0"
+      },
+      {
+        "id": 3,
+        "phase": 0,
+        "title": "Recover the relay component",
+        "objective": "Finish Prepare for the trail with Rivet.",
+        "ready": false,
+        "rewardRevision": "0"
+      },
+      {
+        "id": 4,
+        "phase": 0,
+        "title": "Restore the relay",
+        "objective": "Finish Recover relay component with Lumen.",
+        "ready": false,
+        "rewardRevision": "0"
+      }
+    ],
+    "sideQuest": null,
+    "wideStoneStepUnlocked": false,
+    "discoveries": [
+      {
+        "id": 1,
+        "discoveredRevision": "0",
+        "rewardClaimRevision": "0"
+      },
+      {
+        "id": 2,
+        "discoveredRevision": "0",
+        "rewardClaimRevision": "0"
+      }
+    ],
+    "trailSites": [
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    ],
+    "relayActivationRevision": "0",
+    "equippedUtility": {
+      "kind": 0,
+      "quantity": 0
+    },
+    "compass": {
+      "equipped": false,
+      "target": "relay",
+      "label": "Meadow beacon",
+      "bearing": 0,
+      "distance": 0,
+      "direction": "",
+      "available": false,
+      "reason": "Equip a Trail Compass to see a bearing.",
+      "backpackSlot": null
+    },
+    "dialogue": null,
+    "residents": [
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      },
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      },
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      }
+    ],
+    "metNpcMask": 0,
+    "saveSchema": 6,
+    "migrationDirty": false,
+    "structures": [],
+    "components": []
+  },
+  "lost": null,
+  "gpuErrors": [],
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "x": 0,
+    "y": 0,
+    "cssWidth": 1600,
+    "cssHeight": 900,
+    "dpr": 1
+  },
+  "semantics": {
+    "present": true,
+    "mode": "catalog",
+    "role": "dialog",
+    "peers": [
+      {
+        "label": "Brick 2 × 2",
+        "disabled": true,
+        "action": 39,
+        "value": 1,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "true",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Brick 2 × 4",
+        "disabled": true,
+        "action": 39,
+        "value": 2,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Floor",
+        "disabled": true,
+        "action": 39,
+        "value": 3,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Foundation",
+        "disabled": true,
+        "action": 39,
+        "value": 4,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Open doorway",
+        "disabled": true,
+        "action": 39,
+        "value": 5,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Hinged door",
+        "disabled": true,
+        "action": 39,
+        "value": 6,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Motorbike",
+        "disabled": false,
+        "action": 32,
+        "value": 0,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Cannon",
+        "disabled": false,
+        "action": 33,
+        "value": 0,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Save",
+        "disabled": false,
+        "action": 8,
+        "value": 0,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Menu",
+        "disabled": false,
+        "action": 31,
+        "value": 0,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Structure",
+        "disabled": false,
+        "action": 13,
+        "value": 1,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "true",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Bricks",
+        "disabled": false,
+        "action": 13,
+        "value": 2,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Furniture",
+        "disabled": false,
+        "action": 13,
+        "value": 3,
+        "row": -1,
+        "shortcut": null,
+        "pressed": "false",
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Floor",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Wall",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 2,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Open doorway",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 3,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Flat roof",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 4,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Previous",
+        "disabled": false,
+        "action": 25,
+        "value": -1,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Next",
+        "disabled": false,
+        "action": 25,
+        "value": 1,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Close",
+        "disabled": false,
+        "action": 20,
+        "value": 0,
+        "row": -1,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Foundation",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 0,
+        "shortcut": null,
+        "pressed": null,
+        "pointerEvents": "none"
+      }
+    ],
+    "legacyBuildUi": false
+  },
+  "buildId": "free-build-3ef92387ac1372ca"
+}

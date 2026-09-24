@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace voxy::render {
@@ -52,7 +53,7 @@ struct CoveHudContent {
 
 struct CoveHudQuad {
     glm::vec4 bounds; // Pixel x,y,width,height, converted to NDC before upload.
-    glm::vec4 uv;
+    glm::vec4 uv; // Font UV; sprite x>=2; {-1,radius,w,h} fill; {-3-stroke,radius,w,h} outline.
     glm::vec4 color;
 };
 struct CoveHudLayout {
@@ -86,6 +87,12 @@ public:
     void setContent(CoveHudContent);
     // Optional presentation only. setContent restores the original Cove layout.
     void setLayoutFactory(std::function<CoveHudLayout(uint32_t,uint32_t)>);
+    // Optional RGBA sprites share the existing ordered quad pass. Glyphs keep
+    // the original R8 atlas. Navigation can bind the same sprite texture.
+    bool setSpriteAtlas(uint32_t width,uint32_t height,std::span<const uint8_t> rgba);
+    bool useSpriteAtlas(WGPUTextureView);
+    bool updateSpriteRegion(uint32_t x,uint32_t y,uint32_t width,uint32_t height,std::span<const uint8_t> rgba);
+    WGPUTextureView spriteAtlasView() const noexcept {return spritesView_;}
     [[nodiscard]] bool render(WGPUCommandEncoder,WGPUTextureView,uint32_t width,uint32_t height);
     void clearEncodedObservation() noexcept { lastEncodedQuads_=0; }
     [[nodiscard]] uint32_t lastEncodedQuads() const noexcept {return lastEncodedQuads_;}
@@ -99,6 +106,9 @@ private:
     WGPUQueue queue_=nullptr;
     WGPUTexture atlas_=nullptr;
     WGPUTextureView atlasView_=nullptr;
+    WGPUTexture sprites_=nullptr;
+    WGPUTextureView spritesView_=nullptr;
+    uint32_t spriteWidth_=0,spriteHeight_=0;
     WGPUSampler sampler_=nullptr;
     WGPUBuffer quads_=nullptr;
     WGPUShaderModule shader_=nullptr;

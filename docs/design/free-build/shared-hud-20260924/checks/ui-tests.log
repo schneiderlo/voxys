@@ -1,0 +1,188 @@
+
+> test
+> node --test test-ui.mjs test-shared.mjs
+
+TAP version 13
+# Subtest: shared browser controls mirror framebuffer geometry without a second visual HUD
+ok 1 - shared browser controls mirror framebuffer geometry without a second visual HUD
+  ---
+  duration_ms: 650.402308
+  type: 'test'
+  ...
+# Subtest: live engine ticks leave the semantic DOM untouched until a control changes
+ok 2 - live engine ticks leave the semantic DOM untouched until a control changes
+  ---
+  duration_ms: 90.035681
+  type: 'test'
+  ...
+# Subtest: shared menu peers refuse stale intents and carry accepted opaque identities
+ok 3 - shared menu peers refuse stale intents and carry accepted opaque identities
+  ---
+  duration_ms: 82.562533
+  type: 'test'
+  ...
+# Subtest: canvas Tab enters the accepted catalogue before Emscripten consumes the key
+ok 4 - canvas Tab enters the accepted catalogue before Emscripten consumes the key
+  ---
+  duration_ms: 87.212347
+  type: 'test'
+  ...
+# Subtest: opening a palette retains keyboard focus across the first-render hitbox gap
+ok 5 - opening a palette retains keyboard focus across the first-render hitbox gap
+  ---
+  duration_ms: 97.726815
+  type: 'test'
+  ...
+# Subtest: a fresher raw observation cannot consume menu focus before its queued action is accepted
+ok 6 - a fresher raw observation cannot consume menu focus before its queued action is accepted
+  ---
+  duration_ms: 86.209495
+  type: 'test'
+  ...
+# Subtest: menu focus waits for accepted controls after many unpublished engine observations
+ok 7 - menu focus waits for accepted controls after many unpublished engine observations
+  ---
+  duration_ms: 65.37866
+  type: 'test'
+  ...
+# Subtest: radial selection keeps the same focused peer when a petal moves to the centre
+ok 8 - radial selection keeps the same focused peer when a petal moves to the centre
+  ---
+  duration_ms: 87.336555
+  type: 'test'
+  ...
+# Subtest: repeated semantic actions remain separate peers when surrounding controls reorder
+ok 9 - repeated semantic actions remain separate peers when surrounding controls reorder
+  ---
+  duration_ms: 127.697754
+  type: 'test'
+  ...
+# Subtest: a replaced menu context restores published selection without selecting row zero first
+ok 10 - a replaced menu context restores published selection without selecting row zero first
+  ---
+  duration_ms: 136.8634
+  type: 'test'
+  ...
+# Subtest: shared menu keyboard focus wraps, Escape returns to canvas, and input stays owned
+ok 11 - shared menu keyboard focus wraps, Escape returns to canvas, and input stays owned
+  ---
+  duration_ms: 112.262688
+  type: 'test'
+  ...
+# Subtest: shared HUD keeps preferences, dirty-world protection, failures and cleanup
+ok 12 - shared HUD keeps preferences, dirty-world protection, failures and cleanup
+  ---
+  duration_ms: 114.625435
+  type: 'test'
+  ...
+# Subtest: gameplay announcements are not masked by persistent save status or repeated after priority updates
+ok 13 - gameplay announcements are not masked by persistent save status or repeated after priority updates
+  ---
+  duration_ms: 65.441354
+  type: 'test'
+  ...
+# Subtest: bridge rejects stale menu events and guards pending actions without blocking focus metadata
+ok 14 - bridge rejects stale menu events and guards pending actions without blocking focus metadata
+  ---
+  duration_ms: 642.306192
+  type: 'test'
+  ...
+# Subtest: bridge publishes only changed snapshots so an idle poll does not re-render
+ok 15 - bridge publishes only changed snapshots so an idle poll does not re-render
+  ---
+  duration_ms: 59.539498
+  type: 'test'
+  ...
+# Subtest: engine ticks do not publish unchanged controls, but pending completion and preferences stay current
+ok 16 - engine ticks do not publish unchanged controls, but pending completion and preferences stay current
+  ---
+  duration_ms: 72.573605
+  type: 'test'
+  ...
+# Subtest: pending input publishes the next accepted frame without idle animation work
+ok 17 - pending input publishes the next accepted frame without idle animation work
+  ---
+  duration_ms: 41.144594
+  type: 'test'
+  ...
+# Subtest: invalid runtime state fails closed; unsaved builds keep unload protection
+ok 18 - invalid runtime state fails closed; unsaved builds keep unload protection
+  ---
+  duration_ms: 61.990655
+  type: 'test'
+  ...
+# Subtest: minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+ok 19 - minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+  ---
+  duration_ms: 1072.183075
+  type: 'test'
+  ...
+# Subtest: swimming hints follow water state in building and explore modes
+ok 20 - swimming hints follow water state in building and explore modes
+  ---
+  duration_ms: 528.091591
+  type: 'test'
+  ...
+# Subtest: modal uses authoritative intents, traps focus, and does not block click after row focus
+ok 21 - modal uses authoritative intents, traps focus, and does not block click after row focus
+  ---
+  duration_ms: 415.344896
+  type: 'test'
+  ...
+# Subtest: motorbike button routes mount and mounted HUD replaces building controls
+ok 22 - motorbike button routes mount and mounted HUD replaces building controls
+  ---
+  duration_ms: 497.430175
+  type: 'test'
+  ...
+# Subtest: cannon mode owns firing controls and disables fire until physical collision is ready
+ok 23 - cannon mode owns firing controls and disables fire until physical collision is ready
+  ---
+  duration_ms: 583.03419
+  type: 'test'
+  ...
+# Subtest: cannon impact controls show shot and damage state without exposing manual test actions
+ok 24 - cannon impact controls show shot and damage state without exposing manual test actions
+  ---
+  duration_ms: 1626.672372
+  type: 'test'
+  ...
+# Subtest: repeated cannon refusals show feedback again without extending it on ordinary frames
+ok 25 - repeated cannon refusals show feedback again without extending it on ordinary frames
+  ---
+  duration_ms: 416.38373
+  type: 'test'
+  ...
+# Subtest: distant cannon offers explicit travel while wall inspection explains aiming controls
+ok 26 - distant cannon offers explicit travel while wall inspection explains aiming controls
+  ---
+  duration_ms: 475.102869
+  type: 'test'
+  ...
+# Subtest: catalog search retains original row intent and exposes an empty state
+ok 27 - catalog search retains original row intent and exposes an empty state
+  ---
+  duration_ms: 560.787742
+  type: 'test'
+  ...
+# Subtest: palette keyboard dismissal restores its trigger and keeps gameplay input owned
+ok 28 - palette keyboard dismissal restores its trigger and keeps gameplay input owned
+  ---
+  duration_ms: 515.384287
+  type: 'test'
+  ...
+# Subtest: quick tools dispatch existing commands and accessibility preferences reach the root
+ok 29 - quick tools dispatch existing commands and accessibility preferences reach the root
+  ---
+  duration_ms: 581.108489
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13584.583277

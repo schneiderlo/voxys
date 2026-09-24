@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node test-ui.mjs"
+    "test": "node --test test-ui.mjs test-shared.mjs",
+    "test:browser": "node test-browser.mjs",
+    "test:shared-browser": "node test-shared-browser.mjs"
   },
   "dependencies": {
     "lucide-preact": "1.46.0",

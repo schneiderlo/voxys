@@ -1,0 +1,46 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = -*Gpu*
+[==========] Running 14 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 9 tests from CoveHud
+[ RUN      ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear
+[       OK ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear (0 ms)
+[ RUN      ] CoveHud.AdventureDialogueRetainsInstructionsAndChoicesAtLargeText
+[       OK ] CoveHud.AdventureDialogueRetainsInstructionsAndChoicesAtLargeText (0 ms)
+[ RUN      ] CoveHud.MenuKeepsSelectedRowsVisibleWithinViewportAndGlyphBudget
+[       OK ] CoveHud.MenuKeepsSelectedRowsVisibleWithinViewportAndGlyphBudget (20 ms)
+[ RUN      ] CoveHud.ImportFolderAndRefusalRemainReadableTogether
+[       OK ] CoveHud.ImportFolderAndRefusalRemainReadableTogether (0 ms)
+[ RUN      ] CoveHud.LargeTextNamingScrollsEveryLetterAndSelectedButtonWithoutShrinking
+[       OK ] CoveHud.LargeTextNamingScrollsEveryLetterAndSelectedButtonWithoutShrinking (14 ms)
+[ RUN      ] CoveHud.ActualControllerGuidanceTitleAndHintsWrapAtSupportedTextScales
+[       OK ] CoveHud.ActualControllerGuidanceTitleAndHintsWrapAtSupportedTextScales (0 ms)
+[ RUN      ] CoveHud.ActualGameAndAccessibilityMenusKeepLargeTextAndNavigationVisible
+[       OK ] CoveHud.ActualGameAndAccessibilityMenusKeepLargeTextAndNavigationVisible (1 ms)
+[ RUN      ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[       OK ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking (0 ms)
+[ RUN      ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts
+[       OK ] CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts (4 ms)
+[----------] 9 tests from CoveHud (41 ms total)
+
+[----------] 5 tests from CoveRecoveryGuidance
+[ RUN      ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry
+[       OK ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry (0 ms)
+[ RUN      ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries
+[       OK ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries (0 ms)
+[ RUN      ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook
+[       OK ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess
+[       OK ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess
+[       OK ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess (0 ms)
+[----------] 5 tests from CoveRecoveryGuidance (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 14 tests from 2 test suites ran. (41 ms total)
+[  PASSED  ] 14 tests.

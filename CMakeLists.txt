@@ -120,6 +120,7 @@ if(VOXY_BUILD_NATIVE)
         src/geometry/orthogonal_geometry.hpp
         src/gpu/context.cpp
         src/gpu/context.hpp
+        src/gpu/pipeline.hpp
         src/gpu/resources.cpp
         src/gpu/resources.hpp
         src/gpu/shader_source.hpp

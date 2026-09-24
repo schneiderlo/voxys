@@ -273,17 +273,24 @@ bool CoveHudPath::init(WGPUDevice device,WGPUQueue queue,WGPUTextureFormat forma
         gpu::TextureDesc::tex2D(512,256,WGPUTextureFormat_R8Unorm,
             WGPUTextureUsage_TextureBinding|WGPUTextureUsage_CopyDst,"cove_hud_font"),std::as_bytes(std::span(bytes)),512);
     if(atlas_)atlasView_=gpu::createTextureView(atlas_);
+    const std::array<uint8_t,4> emptySprite{};
+    sprites_=gpu::createTextureWithData(device,queue,
+        gpu::TextureDesc::tex2D(1,1,WGPUTextureFormat_RGBA8Unorm,
+            WGPUTextureUsage_TextureBinding|WGPUTextureUsage_CopyDst,"hud_empty_sprite"),std::as_bytes(std::span(emptySprite)),4);
+    if(sprites_)spritesView_=gpu::createTextureView(sprites_);
+    spriteWidth_=spriteHeight_=1;
     sampler_=gpu::createSampler(device,gpu::SamplerDesc::linear("cove_hud_font_sampler"));
     quads_=gpu::createBuffer(device,gpu::BufferDesc::vertex(CoveHudLayout::maximumQuads*sizeof(CoveHudQuad),"cove_hud_quads"));
     shader_=gpu::loadShaderModule(device,shader,"cove_hud_shader");
     const std::array entries{
         gpu::BindGroupLayoutEntry(0).fragmentVisible().texture(WGPUTextureSampleType_Float),
-        gpu::BindGroupLayoutEntry(1).fragmentVisible().sampler(WGPUSamplerBindingType_Filtering)};
+        gpu::BindGroupLayoutEntry(1).fragmentVisible().sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(2).fragmentVisible().texture(WGPUTextureSampleType_Float)};
     bindingsLayout_=gpu::createBindGroupLayout(device,entries,"cove_hud_bindings");
-    if(!atlas_||!atlasView_||!sampler_||!quads_||!shader_||!bindingsLayout_){shutdown();return false;}
+    if(!atlas_||!atlasView_||!sprites_||!spritesView_||!sampler_||!quads_||!shader_||!bindingsLayout_){shutdown();return false;}
     const std::array groups{bindingsLayout_};
     pipelineLayout_=gpu::createPipelineLayout(device,groups,"cove_hud_pipeline_layout");
-    const std::array bindings{gpu::BindGroupEntry(0).textureView(atlasView_),gpu::BindGroupEntry(1).sampler(sampler_)};
+    const std::array bindings{gpu::BindGroupEntry(0).textureView(atlasView_),gpu::BindGroupEntry(1).sampler(sampler_),gpu::BindGroupEntry(2).textureView(spritesView_)};
     bindings_=gpu::createBindGroup(device,bindingsLayout_,bindings,"cove_hud_bind_group");
     std::array<WGPUVertexAttribute,3> attributes{};
     for(uint32_t i=0;i<attributes.size();++i){
@@ -324,8 +331,11 @@ void CoveHudPath::shutdown() noexcept {
     if(sampler_)wgpuSamplerRelease(sampler_);
     if(atlasView_)wgpuTextureViewRelease(atlasView_);
     if(atlas_)wgpuTextureRelease(atlas_);
+    if(spritesView_)wgpuTextureViewRelease(spritesView_);
+    if(sprites_)wgpuTextureRelease(sprites_);
     pipeline_=nullptr;bindings_=nullptr;pipelineLayout_=nullptr;bindingsLayout_=nullptr;
     shader_=nullptr;quads_=nullptr;sampler_=nullptr;atlasView_=nullptr;atlas_=nullptr;device_=nullptr;queue_=nullptr;
+    sprites_=nullptr;spritesView_=nullptr;spriteWidth_=spriteHeight_=0;
     width_=height_=lastEncodedQuads_=0;uploadCount_=0;dirty_=true;layout_={};contentUpdated_={};
 }
 bool CoveHudPath::needsContentUpdate() const noexcept {
@@ -339,6 +349,31 @@ void CoveHudPath::setContent(CoveHudContent content) {
 void CoveHudPath::setLayoutFactory(std::function<CoveHudLayout(uint32_t,uint32_t)> factory) {
     layoutFactory_=std::move(factory);dirty_=true;
     contentUpdated_=std::chrono::steady_clock::now();
+}
+bool CoveHudPath::useSpriteAtlas(WGPUTextureView view) {
+    if(!device_||!bindingsLayout_||!view)return false;
+    const std::array entries{gpu::BindGroupEntry(0).textureView(atlasView_),gpu::BindGroupEntry(1).sampler(sampler_),gpu::BindGroupEntry(2).textureView(view)};
+    auto group=gpu::createBindGroup(device_,bindingsLayout_,entries,"hud_sprite_bindings");
+    if(!group)return false;
+    if(bindings_)wgpuBindGroupRelease(bindings_);
+    bindings_=group;return true;
+}
+bool CoveHudPath::setSpriteAtlas(uint32_t width,uint32_t height,std::span<const uint8_t> rgba) {
+    if(!device_||!width||!height||width>2048||height>2048||rgba.size()!=size_t{width}*height*4)return false;
+    auto texture=gpu::createTextureWithData(device_,queue_,
+        gpu::TextureDesc::tex2D(width,height,WGPUTextureFormat_RGBA8Unorm,
+            WGPUTextureUsage_TextureBinding|WGPUTextureUsage_CopyDst,"adventure_hud_art"),std::as_bytes(rgba),width*4);
+    if(!texture)return false;
+    auto view=gpu::createTextureView(texture);
+    if(!view||!useSpriteAtlas(view)) {if(view)wgpuTextureViewRelease(view);wgpuTextureRelease(texture);return false;}
+    if(spritesView_)wgpuTextureViewRelease(spritesView_);
+    if(sprites_)wgpuTextureRelease(sprites_);
+    sprites_=texture;spritesView_=view;spriteWidth_=width;spriteHeight_=height;return true;
+}
+bool CoveHudPath::updateSpriteRegion(uint32_t x,uint32_t y,uint32_t width,uint32_t height,std::span<const uint8_t> rgba) {
+    if(!sprites_||!width||!height||x>spriteWidth_||y>spriteHeight_||width>spriteWidth_-x||height>spriteHeight_-y
+        ||rgba.size()!=size_t{width}*height*4)return false;
+    return gpu::writeTexture(queue_,sprites_,std::as_bytes(rgba),width,height,width*4,0,{x,y,0});
 }
 bool CoveHudPath::render(WGPUCommandEncoder encoder,WGPUTextureView target,uint32_t width,uint32_t height) {
     clearEncodedObservation();

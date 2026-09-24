@@ -1,0 +1,330 @@
+{
+  "schema": 1,
+  "status": "native and live-browser verification passed",
+  "scope": "Final v3 native HUD/build/captures; unchanged Cove, minimap and creative runtime behavior verified by v2 runs.",
+  "summary": {
+    "cpuOnlyRunTests": 41,
+    "gpuFilteredRunTests": 5,
+    "gpuContextTests": 4,
+    "cpuTestsSelectedByGpuFilter": 1,
+    "creativeRuntimeTests": 1,
+    "totalPassed": 47,
+    "failures": 0,
+    "skipped": 0
+  },
+  "gpuFilterNote": "CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds is CPU-only but selected by *Gpu*. The four GPU-context tests include the opt-in native capture.",
+  "environment": {
+    "backend": "Vulkan",
+    "adapter": "llvmpipe (LLVM21.1.8,256bits)",
+    "deviceType": "CPU",
+    "shell": "repository Nix shell"
+  },
+  "runs": [
+    {
+      "target": "layout",
+      "revision": "v3",
+      "category": "cpu",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:55:33.514",
+      "seconds": 0.755,
+      "files": {
+        "log": {
+          "file": "checks/native-layout-v3.log",
+          "sha256": "9253413519a64d45cb8ff4e10f665da13a2503664d11361a6e8af95ba37d46f4"
+        },
+        "xml": {
+          "file": "checks/native-layout-v3.xml",
+          "sha256": "97fed1302d1d9274e6b833e172a5d5cf60a1082a2b876599dc2d815733050e57"
+        }
+      },
+      "cases": [
+        "AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity",
+        "AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize",
+        "AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible",
+        "AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize",
+        "AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls",
+        "AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable",
+        "AdventureHud.CreativeGuideUsesItsMeasuredFontForEveryBodyGlyph",
+        "AdventureHud.CreativeLayoutsRemainBoundedAndKeepRuntimeActionIdentityAtSmallSizes",
+        "AdventureHud.CreativeSelectionStaysReachableWhenItsShelfMustPage",
+        "AdventureHud.CreativeColourPickerKeepsEverySwatchIdentityAndClearsWhenWalking",
+        "AdventureHud.CreativeRadialCatalogHandlesEveryCategorySizeWithoutOverlappingTargets",
+        "AdventureHud.CreativeBuildAndExploreLeaveTheAimingRegionUncovered",
+        "AdventureHud.CreativePaintSelectsTintedSpritesWithoutChangingTheirArtOrGeometry",
+        "AdventureHud.NumberKeysReferToTheExactVisibleSlotsAndPickerRetainsTheirDisabledPeers",
+        "AdventureHud.DuplicatePresetsHighlightTheChosenSlotRatherThanTheFirstMatchingPiece",
+        "AdventureHud.NavigationBlocksOnlyItsVisiblePortraitAndActualMapBounds",
+        "AdventureHud.CreativePixelDensityPreservesLogicalGeometryTextAndHitIdentity",
+        "AdventureHud.FractionalFramebufferRoundingCannotHideA320CssPixelHud",
+        "AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis",
+        "AdventureHud.AdventureTypographyIsMeasuredClippedAndBoundedIndependentlyOfLegacyAtlas",
+        "AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity",
+        "AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders",
+        "AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent"
+      ]
+    },
+    {
+      "target": "cove",
+      "revision": "v2",
+      "category": "cpu",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:45:18.052",
+      "seconds": 0.041,
+      "files": {
+        "log": {
+          "file": "checks/native-cove-v2.log",
+          "sha256": "fd157d4a14b37a762576de0de609913bbb014f9b9aaea5970546c9537a08ae5c"
+        },
+        "xml": {
+          "file": "checks/native-cove-v2.xml",
+          "sha256": "2b704accc86b4a68c181f7765cf58f0061e15d1ea45f97b52e3b614af37ce37d"
+        }
+      },
+      "cases": [
+        "CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear",
+        "CoveHud.AdventureDialogueRetainsInstructionsAndChoicesAtLargeText",
+        "CoveHud.MenuKeepsSelectedRowsVisibleWithinViewportAndGlyphBudget",
+        "CoveHud.ImportFolderAndRefusalRemainReadableTogether",
+        "CoveHud.LargeTextNamingScrollsEveryLetterAndSelectedButtonWithoutShrinking",
+        "CoveHud.ActualControllerGuidanceTitleAndHintsWrapAtSupportedTextScales",
+        "CoveHud.ActualGameAndAccessibilityMenusKeepLargeTextAndNavigationVisible",
+        "CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking",
+        "CoveHud.AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts",
+        "CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry",
+        "CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries",
+        "CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook",
+        "CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess",
+        "CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess"
+      ]
+    },
+    {
+      "target": "minimap",
+      "revision": "v2",
+      "category": "cpu",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:45:17.793",
+      "seconds": 0.224,
+      "files": {
+        "log": {
+          "file": "checks/native-minimap-v2.log",
+          "sha256": "034a3df5edd10b54eab7f601af4eda20528456c1a8455ba86b4ad7a9474c11a5"
+        },
+        "xml": {
+          "file": "checks/native-minimap-v2.xml",
+          "sha256": "dfe0a67e763f2ac95a45b4d050fca60d4159df3fcd0712f1c2bba5b28b4d736c"
+        }
+      },
+      "cases": [
+        "AdventureMinimap.BearingsUseWorldNorthAndRemainFinite",
+        "AdventureMinimap.NorthUpCoastlineUsesActualWaterHeightAndTerrainPalette",
+        "AdventureMinimap.PlayerTicksReuseRasterAndGeometryChangesOnlyRepaintAcceptedFootprints",
+        "AdventureMinimap.FootprintsClipToMapAndMissingTerrainStaysOpaque"
+      ]
+    },
+    {
+      "target": "gpu",
+      "revision": "v3",
+      "category": "gpu-filter",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:55:49.719",
+      "seconds": 5.746,
+      "files": {
+        "log": {
+          "file": "checks/native-gpu-v3.log",
+          "sha256": "d2d46cc82157da83b9c56f531aee29ceb24f0c290f83b7383d070cb16189c568"
+        },
+        "xml": {
+          "file": "checks/native-gpu-v3.xml",
+          "sha256": "948f1c8fd6b2a4ff29afa0aaa5986b63555b98ce18569a0667ea76b0a4762d67"
+        }
+      },
+      "cases": [
+        "AdventureHudGpu.ActualMeshColorsSurviveDiscardAndSubmittedShutdownAtMaximumCapacity",
+        "AdventureHudGpu.CreativeContentCachesUploadsAndCannotKeepStaleBuildGeometry",
+        "AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested"
+      ]
+    },
+    {
+      "target": "cove-gpu",
+      "revision": "v2",
+      "category": "gpu-filter",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:46:13.035",
+      "seconds": 0.109,
+      "files": {
+        "log": {
+          "file": "checks/native-cove-gpu-v2.log",
+          "sha256": "7e7a380a27fb2ef6e33880c0a4d190372f2cba474d8a296fbd48a71cdb5acf28"
+        },
+        "xml": {
+          "file": "checks/native-cove-gpu-v2.xml",
+          "sha256": "a7793be158d6bda9f5bdf3c822b35ae6c9947f859bf4fc4be1ca14904a13b290"
+        }
+      },
+      "cases": [
+        "CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds",
+        "CoveHudGpu.TextBlendsAndSurvivesSubmittedShutdownWhileDiscardDoesNotLeak"
+      ]
+    },
+    {
+      "target": "runtime",
+      "revision": "v2",
+      "category": "runtime",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-09-24T18:46:51.454",
+      "seconds": 61.265,
+      "files": {
+        "log": {
+          "file": "checks/native-runtime-v2.log",
+          "sha256": "e95502ca31c140d3a9d6abdce1142f4031378aa87a59215640901fb515aab05d"
+        },
+        "xml": {
+          "file": "checks/native-runtime-v2.xml",
+          "sha256": "2a576f89fe983e37e948a1cb5b9935fc22513ef7309f4cad7836024cf7d03af3"
+        }
+      },
+      "cases": [
+        "FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore"
+      ]
+    }
+  ],
+  "buildLogs": [
+    {
+      "file": "checks/native-build-v2.log",
+      "sha256": "a838653bf88ba33c95cb25c5f2c3165d09b361fd693967b5ecafae343ff2a539"
+    },
+    {
+      "file": "checks/native-build-v3.log",
+      "sha256": "cded3685a20afd2807bccbf47556e6d1f1ef72a3db0c629feb1d0947d2cc24c8"
+    }
+  ],
+  "capture": {
+    "kind": "Native GPU HUD render over a recorded game background; not a live native gameplay screenshot",
+    "renderer": "AdventureHudPath and shipped shaders",
+    "background": {
+      "file": "../hud-concepts-20260924/game-no-ui.png",
+      "sha256": "d118beb60f32eeba15fa7d754c8ae8f7f5132e9514efec1174a1e58a26812f1e"
+    },
+    "fixture": {
+      "terrain": "decoded installed8192x8192 heightfield",
+      "heightScale": 600,
+      "cellScale": 1,
+      "waterHeight": -200,
+      "positionXZ": [
+        1200,
+        -1120
+      ],
+      "cameraBearingDegrees": 0,
+      "ownedFootprints": [],
+      "placedPieces": 0
+    },
+    "images": [
+      {
+        "file": "explore.png",
+        "width": 1600,
+        "height": 900,
+        "sha256": "4b2dfb0d2cd8788ee8409e651dc39a4f6027da12f9421913b3ca5e4c2216ea08"
+      },
+      {
+        "file": "build.png",
+        "width": 1600,
+        "height": 900,
+        "sha256": "2adb391bba5e8bdd70c960d45885cfbee797c0127648df3654779f46d0a08028"
+      },
+      {
+        "file": "catalog.png",
+        "width": 1600,
+        "height": 900,
+        "sha256": "29169f1c7b639701ec62be119e58a1db8fd3baad29bef839a5093035e8fc431c"
+      },
+      {
+        "file": "catalog-bricks.png",
+        "width": 1600,
+        "height": 900,
+        "sha256": "13095f623f9e130b86f495e34bf7d4bbf2bffab0c3a01e9c16cf7066b0c19685"
+      },
+      {
+        "file": "palette.png",
+        "width": 1600,
+        "height": 900,
+        "sha256": "15cb37ae4d77c5d7004c8a6645bd508cec5e92ac8f62526d321ca5c9ac39b352"
+      }
+    ],
+    "counts": {
+      "file": "renderer-capture.tsv",
+      "sha256": "bd7351dbcde83a852566b51a62ffc79b494930ce8446250c6f212a419f7f5cdd"
+    }
+  },
+  "artProvenance": "../../../../data/art/adventure-hud-r01/provenance.json",
+  "browser": {
+    "status": "passed",
+    "uiTests": {
+      "tests": 30,
+      "status": "passed",
+      "file": "checks/ui-tests.log",
+      "sha256": "8ca4d3d9ea4a93b224e92e5608fa120738f67798d2f3db2d813510f1ed712b7c"
+    },
+    "uiBuild": {
+      "status": "passed",
+      "file": "checks/ui-build.log",
+      "sha256": "c7b38c31664fbcfa98e2a01a8eb3dcfb8acd8ef1f2039ba1c491dc4213bea945"
+    },
+    "adapter": {
+      "status": "passed",
+      "file": "checks/browser-adapter.log",
+      "sha256": "c496af69b231c0eb8ca6c0e027412edf4817c850b732536eec05ff4f4f6061d1"
+    },
+    "wasmBuild": {
+      "status": "passed",
+      "file": "checks/wasm-build.log",
+      "sha256": "8dbb43b23b0cf0262d2c490258d294e4741cf9003884b37c1b0f182cecc54bed"
+    },
+    "packageBuildId": "free-build-3ef92387ac1372ca",
+    "live": {
+      "status": "passed",
+      "report": "live/capture.json",
+      "reportSha256": "270142e9d7891ce66b2c2875ee6c56bafa2483ef0cb8a2e9165fd3b2893e5532",
+      "log": "checks/live-browser.log",
+      "harness": "checks/capture-live.mjs",
+      "viewport": {
+        "width": 1600,
+        "height": 900,
+        "dpr": 1
+      },
+      "realPointerActions": 10,
+      "lastFrame": 354,
+      "deviceLoss": null,
+      "uncapturedGpuErrors": 0,
+      "consoleExceptions": 0,
+      "capturedModes": [
+        "build",
+        "catalog",
+        "colours",
+        "explore"
+      ]
+    }
+  },
+  "limitations": [
+    "Functional and GPU correctness tests are not gameplay performance measurements.",
+    "Cannon integration was not rerun; prior GPU-watchdog failure is retained in the earlier revision.",
+    "No controller hardware session or multiplayer systems are claimed."
+  ]
+}

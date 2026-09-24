@@ -1,0 +1,22 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from AdventureMinimap
+[ RUN      ] AdventureMinimap.BearingsUseWorldNorthAndRemainFinite
+[       OK ] AdventureMinimap.BearingsUseWorldNorthAndRemainFinite (0 ms)
+[ RUN      ] AdventureMinimap.NorthUpCoastlineUsesActualWaterHeightAndTerrainPalette
+[       OK ] AdventureMinimap.NorthUpCoastlineUsesActualWaterHeightAndTerrainPalette (122 ms)
+[ RUN      ] AdventureMinimap.PlayerTicksReuseRasterAndGeometryChangesOnlyRepaintAcceptedFootprints
+[       OK ] AdventureMinimap.PlayerTicksReuseRasterAndGeometryChangesOnlyRepaintAcceptedFootprints (89 ms)
+[ RUN      ] AdventureMinimap.FootprintsClipToMapAndMissingTerrainStaysOpaque
+[       OK ] AdventureMinimap.FootprintsClipToMapAndMissingTerrainStaysOpaque (12 ms)
+[----------] 4 tests from AdventureMinimap (224 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (224 ms total)
+[  PASSED  ] 4 tests.

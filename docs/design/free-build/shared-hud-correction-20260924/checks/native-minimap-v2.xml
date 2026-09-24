@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="0.224" timestamp="2026-09-24T18:45:17.793" name="AllTests">
+  <testsuite name="AdventureMinimap" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.224" timestamp="2026-09-24T18:45:17.793">
+    <testcase name="BearingsUseWorldNorthAndRemainFinite" file="tests/test_adventure_minimap.cpp" line="17" status="run" result="completed" time="0." timestamp="2026-09-24T18:45:17.793" classname="AdventureMinimap" />
+    <testcase name="NorthUpCoastlineUsesActualWaterHeightAndTerrainPalette" file="tests/test_adventure_minimap.cpp" line="26" status="run" result="completed" time="0.122" timestamp="2026-09-24T18:45:17.793" classname="AdventureMinimap" />
+    <testcase name="PlayerTicksReuseRasterAndGeometryChangesOnlyRepaintAcceptedFootprints" file="tests/test_adventure_minimap.cpp" line="41" status="run" result="completed" time="0.089" timestamp="2026-09-24T18:45:17.916" classname="AdventureMinimap" />
+    <testcase name="FootprintsClipToMapAndMissingTerrainStaysOpaque" file="tests/test_adventure_minimap.cpp" line="60" status="run" result="completed" time="0.012" timestamp="2026-09-24T18:45:18.005" classname="AdventureMinimap" />
+  </testsuite>
+</testsuites>

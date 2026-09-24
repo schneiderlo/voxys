@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="3" failures="0" disabled="0" errors="0" time="5.746" timestamp="2026-09-24T18:55:49.719" name="AllTests">
+  <testsuite name="AdventureHudGpu" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="5.746" timestamp="2026-09-24T18:55:49.719">
+    <testcase name="ActualMeshColorsSurviveDiscardAndSubmittedShutdownAtMaximumCapacity" file="tests/test_adventure_hud.cpp" line="590" status="run" result="completed" time="0.658" timestamp="2026-09-24T18:55:49.719" classname="AdventureHudGpu">
+      <properties>
+        <property name="matchedMeshColorSamples" value="458"/>
+        <property name="triangleInstances" value="5684"/>
+        <property name="maximumBufferBytes" value="159152"/>
+      </properties>
+    </testcase>
+    <testcase name="CreativeContentCachesUploadsAndCannotKeepStaleBuildGeometry" file="tests/test_adventure_hud.cpp" line="679" status="run" result="completed" time="0.069" timestamp="2026-09-24T18:55:50.377" classname="AdventureHudGpu" />
+    <testcase name="CaptureSharedRendererOverCleanGameScreenshotWhenRequested" file="tests/test_adventure_hud.cpp" line="724" status="run" result="completed" time="5.018" timestamp="2026-09-24T18:55:50.447" classname="AdventureHudGpu" />
+  </testsuite>
+</testsuites>

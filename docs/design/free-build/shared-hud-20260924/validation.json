@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "scope": "Actual native offscreen AdventureHudPath over an unchanged pre-recorded browser gameplay screenshot; fixed content fixture, not a live native gameplay capture.",
+  "backend": "Vulkan",
+  "adapter": "llvmpipe (LLVM 21.1.8, 256 bits)",
+  "tests": [
+    {
+      "target": "//tests:adventure_hud_layout",
+      "tests": 21,
+      "passed": 20,
+      "skipped": 1,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "target": "//tests:cove_hud_layout",
+      "tests": 16,
+      "passed": 16,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "binary_sha256": "0544dee323cd07b292b41b66146d1b96055cb98736f3a1dac2a3ae5f5e90ee83",
+  "source_sha256": {
+    "src/render/adventure_hud.hpp": "d7a1185bcf38b01cd52b690500723143dd2f077ef9f6889437a8a901be05c8c4",
+    "src/render/adventure_hud.cpp": "4208b56ce162a62d9afdb27b02ff68c622fdff6ddb0115098b232f38be85d5be",
+    "src/render/cove_hud.cpp": "50846ef39b96ec70dca435d5f46fcb8abcd97aecccb1a21eb1588ac1b25f3ad2",
+    "shaders/cove_hud.wgsl": "cf2e15ff94d7a594bbb81a01e4739fb3cca75773f6f38662e282cbb750832f12",
+    "shaders/adventure_hud_triangles.wgsl": "8db8e718f106de487c8d32e4a497c37166659289750fc9650ee2824374e39ab2",
+    "tests/test_adventure_hud.cpp": "1cc520a083c8a9c37c2d74f3d0de77a5d7f102aee1b5ea9fa9dec971aabd7f80",
+    "src/render/generated/adventure_piece_thumbnails.hpp": "df61dfef2b3683e40e7f83ca67691ec96f25525aaa6decc94427488ab5ea49b5",
+    "docs/design/free-build/hud-concepts-20260924/game-no-ui.png": "d118beb60f32eeba15fa7d754c8ae8f7f5132e9514efec1174a1e58a26812f1e"
+  },
+  "capture": {
+    "test": "AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested",
+    "passed": true,
+    "gpu_errors": 0,
+    "views": [
+      {
+        "name": "explore",
+        "width": 1600,
+        "height": 900,
+        "quads": 68,
+        "triangles": 0,
+        "uploads": 1,
+        "png_sha256": "d839586da8559f3ea4878b830b57fe4859106c04283d622887f6d99558120f3e"
+      },
+      {
+        "name": "build",
+        "width": 1600,
+        "height": 900,
+        "quads": 112,
+        "triangles": 1802,
+        "uploads": 3,
+        "png_sha256": "9840ba0837c2f6166efe14162b0bc98bdf3f28b7c6a3725f84f1980c6cedd5aa"
+      },
+      {
+        "name": "catalog",
+        "width": 1600,
+        "height": 900,
+        "quads": 79,
+        "triangles": 996,
+        "uploads": 5,
+        "png_sha256": "46cf9a25f46e248a433d43a6a5f4d87ca197cffd9c197f8dd98f5fc9828e4630"
+      },
+      {
+        "name": "catalog-bricks",
+        "width": 1600,
+        "height": 900,
+        "quads": 75,
+        "triangles": 1496,
+        "uploads": 7,
+        "png_sha256": "b4d91bb5d2e6ca0af34b93740f854cae6789809b486bddad1dc163a88f461d74"
+      },
+      {
+        "name": "palette",
+        "width": 1600,
+        "height": 900,
+        "quads": 42,
+        "triangles": 436,
+        "uploads": 9,
+        "png_sha256": "4f1d30d82729d3f0f1d4ea48d8343c172c0c6079ba22d1c549fae4f2a2789805"
+      }
+    ]
+  },
+  "source_hash_scope": "Working tree at capture time; binary_sha256 identifies the exact executable used for the captures."
+}

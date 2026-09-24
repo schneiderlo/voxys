@@ -18,7 +18,7 @@ DOOR_SOURCE = ROOT / 'data/adventure/door-r01/cooked/door-leaf-lod0.vmesh'
 COLORS = {'adventure_cream': 'E8D8B8', 'adventure_teal': '627052',
           'adventure_wood': 'A5784F', 'adventure_coral': 'B76343', 'adventure_slate': '494D48'}
 NATIVE = ROOT / 'src/render/generated/adventure_piece_thumbnails.hpp'
-RECIPE = 'adventure-installed-mesh-thumbnails-r02'
+RECIPE = 'adventure-installed-mesh-thumbnails-r03'
 DOOR_COLORS = {'adventure_door_terracotta': 'B85C45', 'adventure_door_brass': 'C69A49'}
 
 def dot(a, b):
@@ -28,9 +28,17 @@ def unit(v):
     length = math.sqrt(dot(v, v))
     return tuple(x/length for x in v)
 
+def camera_basis():
+    camera = unit((6, 4.5, -7))
+    right = unit((-camera[2], 0, camera[0]))
+    # right × camera points toward world +Y. SVG's downward screen Y is
+    # applied once, in the projection below; camera × right inverted every icon.
+    up = (-right[2]*camera[1], right[2]*camera[0]-right[0]*camera[2], right[0]*camera[1])
+    return camera, right, up
+
 def door_triangles(camera, right, up, material_offset):
-    # Keep the legacy14 path byte-identical. Only the added picture combines
-    # the actual frozen frame triangles with this checked, closed leaf mesh.
+    # The door picture combines the actual frame triangles with this checked,
+    # closed leaf mesh, using the same camera basis as the other pieces.
     inspect_door(DOOR_SOURCE)
     raw = DOOR_SOURCE.read_bytes()
     h = struct.unpack_from('<14I13Q', raw, 8)
@@ -69,9 +77,7 @@ def render_outputs():
     normals = [struct.unpack_from('<3f', raw, vo+i*vs+12) for i in range(nv)]
     indices = struct.unpack_from('<'+('H' if stride == 2 else 'I')*ni, raw, io)
     subs = [struct.unpack_from('<4I', raw, so+i*16) for i in range(ns)]
-    camera = unit((6, 4.5, -7))
-    right = unit((-camera[2], 0, camera[0]))
-    up = (camera[1]*right[2], camera[2]*right[0]-camera[0]*right[2], -camera[1]*right[0])
+    camera, right, up = camera_basis()
     light = unit((-3, 7, -5))
     door_colors,leaf_triangles=door_triangles(camera,right,up,len(colors));colors+=door_colors
     outputs = [];files = {};native_triangles = [];native_pieces = []
@@ -164,7 +170,7 @@ def main():
         print('Verified browser and native thumbnails against the installed triangle mesh.')
     else:
         for path,text in files.items():path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text)
-        print('Wrote 15 browser thumbnails and the matching compact native triangle table; legacy14 pictures unchanged.')
+        print('Wrote 15 upright browser thumbnails and the matching compact native triangle table.')
 
 if __name__ == '__main__':
     main()

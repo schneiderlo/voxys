@@ -1,0 +1,21 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (1 packages loaded, 179 targets configured).
+[404 / 416] Compiling src/render/adventure_hud_art.cpp; 0s linux-sandbox ... (2 actions, 1 running)
+[516 / 522] Compiling src/render/adventure_hud_art.cpp; 2s linux-sandbox ... (2 actions running)
+[517 / 522] Compiling src/render/adventure_hud.cpp; 2s linux-sandbox
+INFO: Found 2 targets...
+INFO: Elapsed time: 8.006s, Critical Path: 4.83s
+INFO: 7 processes: 516 action cache hit, 2 internal, 5 linux-sandbox.
+INFO: Build completed successfully, 7 total actions

@@ -1,0 +1,5 @@
+
+> test:shared-browser
+> node test-shared-browser.mjs --playwright=/home/lschneid/.cache/ms-playwright-go/1.57.0/package/index.mjs --browser=/home/lschneid/.cache/ms-playwright/chromium-1244/chrome-linux64/chrome
+
+Shared HUD browser checks passed: pointer ownership, keyboard entry, focus, modal Tab, Escape, resize and cleanup.

@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "scope": "Local shared creative HUD implementation; no deployment or hardware performance claim.",
+  "builds": {
+    "native": {
+      "status": "passed",
+      "targets": [
+        "//:voxy_native",
+        "//tests:adventure_runtime",
+        "//tests:adventure_hud_layout",
+        "//tests:cove_hud_layout"
+      ],
+      "compiler": "GCC 15 in Nix; fixture_registry.cpp existing warning exempted with -Wno-error=null-dereference"
+    },
+    "wasm": {
+      "status": "passed",
+      "target": "//:voxy_wasm",
+      "sha256": "eadc390117f4b96fbc1d8eadd438e5014b1c22d14b7916fd568231bd093fdf19"
+    }
+  },
+  "checks": {
+    "native_hud": {
+      "status": "passed",
+      "passed": 36,
+      "capture_passed": 1,
+      "details": "validation.json"
+    },
+    "native_creative": {
+      "status": "passed",
+      "test": "FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore",
+      "milliseconds": 144996,
+      "evidence": "checks/native-creative.xml",
+      "covers": [
+        "2x DPI rendering and pointer hit boxes",
+        "keyboard and controller selection",
+        "colour menu",
+        "undo",
+        "save and exact restore"
+      ]
+    },
+    "native_cannon": {
+      "status": "failed",
+      "test": "SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact",
+      "evidence": "checks/native-cannon.log",
+      "reason": "The existing five-active-second GPU tick watchdog fired during imported-world admission, before the new cannon control assertions. Repeated with other tests/builds stopped. Teardown stalled; this failed test process was terminated. Cannon integration is not verified."
+    },
+    "ui": {
+      "status": "passed",
+      "passed": 29,
+      "evidence": "checks/ui-tests.log"
+    },
+    "browser_adapter": {
+      "status": "passed",
+      "evidence": "checks/browser-adapter.log",
+      "scope": "Chromium test of the browser adapter with a synthetic engine; not live game rendering."
+    },
+    "thumbnail_camera": {
+      "status": "passed",
+      "passed": 2
+    },
+    "live_browser": {
+      "status": "passed",
+      "scope": "Fresh local WebAssembly package, hardware Chrome, actual CDP mouse clicks.",
+      "attempts": [
+        {
+          "status": "failed",
+          "evidence": "checks/browser-device-loss.json",
+          "reason": "Intel D3D12 DXGI_ERROR_DEVICE_HUNG after 17 engine frames; no interaction checks completed."
+        },
+        {
+          "status": "harness-failure",
+          "evidence": "checks/browser-loading-race.json",
+          "reason": "First capture still showed the loading overlay. The script did not wait for the overlay to leave before clicking. Engine remained healthy through 3584 frames. Harness now requires presentation readiness and canvas pointer ownership."
+        }
+      ],
+      "evidence": "live/capture.json",
+      "log": "checks/browser-live.log",
+      "captures": 4,
+      "actions": 8,
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "dpr": 1
+      },
+      "uncaptured_gpu_errors": 0,
+      "console_exceptions": 0,
+      "build_id": "free-build-ffd7863b48810f32",
+      "harness_sha256": "ee7d2dc5a736beff826a190f57343e32276bd2863944bee2c5422afb5ef33e48"
+    }
+  },
+  "source_sha256": {
+    "src/game/adventure/adventure_runtime.cpp": "bca80cf28ef6f62fae21b713292bde35505c6f0e4bc09d9f028d0fd65ea0255e",
+    "src/game/adventure/adventure_runtime.hpp": "25620d778930f03146caa2b4b8f203679c0797adc2f0a1d7a93c6a7ce902d2e1",
+    "src/render/adventure_hud.cpp": "4208b56ce162a62d9afdb27b02ff68c622fdff6ddb0115098b232f38be85d5be",
+    "src/render/adventure_hud.hpp": "d7a1185bcf38b01cd52b690500723143dd2f077ef9f6889437a8a901be05c8c4",
+    "src/render/cove_hud.hpp": "c2fde6033002e3b37fc1f0214748c0c7036d4c86706a7c0975bcbb2968587a17",
+    "shaders/cove_hud.wgsl": "cf2e15ff94d7a594bbb81a01e4739fb3cca75773f6f38662e282cbb750832f12",
+    "ui/src/shared.js": "f78dd3448bd1b14bceb96f4415490b197a3b53458560babab2399156f77ebcce",
+    "ui/src/bridge.js": "18485d9035697f465963108e8da4cf25086c9dfaaee8347f4ba34b24b02cc0a4",
+    "ui/src/main.jsx": "264292545ffe53b58a49ca716f3f2d8571a34333fa825a56011437ce8ba6e99b",
+    "ui/src/style.css": "0cafe074d8b621b0597ed6475d1009156f9898846e7116b317ce33b6bd1f9336",
+    "web/index.html": "741d58c60742a831b791c9d81a7a06a4213bdd50558653fc35121f508549d251",
+    "web/build_ui.js": "cf9074a1f39aad708a18808e2dab0f801d1d03f9915faeaa5780b8bb7a53fa2e",
+    "web/build_ui.css": "750f000bfa4e9a35850b03b0dbedc019165169878d72ce798d4144e4d4c4094f",
+    "tests/test_adventure_runtime.cpp": "9da1e3b1a6348bf37156d1767a0211a80ab2bb4d4297c335b7934560b6c7cf9c"
+  }
+}

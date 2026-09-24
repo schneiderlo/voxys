@@ -1,0 +1,235 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --compilation_mode, --copt, --features, and 3 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //:voxy_wasm (0 packages loaded, 0 targets configured)
+Analyzing: target //:voxy_wasm (0 packages loaded, 0 targets configured)
+
+Analyzing: target //:voxy_wasm (1 packages loaded, 14341 targets configured)
+
+Analyzing: target //:voxy_wasm (1 packages loaded, 14341 targets configured)
+
+INFO: Analyzed target //:voxy_wasm (2 packages loaded, 14365 targets configured).
+[155 / 299] Compiling src/engine/platform/wasm/entry.cpp; 1s local ... (2 actions running)
+[395 / 464] Compiling src/engine/platform/wasm/entry.cpp; 3s local ... (3 actions, 2 running)
+[395 / 464] Compiling src/engine/platform/wasm/entry.cpp; 5s local ... (3 actions running)
+[396 / 464] Compiling src/engine/platform/wasm/entry.cpp; 6s local ... (3 actions, 2 running)
+[396 / 464] Compiling src/engine/platform/wasm/entry.cpp; 8s local ... (3 actions running)
+[399 / 466] Compiling src/render/triangle_path.cpp; 6s linux-sandbox ... (3 actions, 2 running)
+[400 / 466] Compiling src/app/application.cpp; 4s linux-sandbox ... (3 actions running)
+INFO: From Compiling src/render/primitive_path.cpp:
+src/render/primitive_path.cpp:623:68: warning: implicit conversion changes signedness: 'const uint32_t' (aka 'const unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+  623 |     if (count == legoCount_ && std::equal(ids.begin(), ids.begin()+count, legoIds_.begin())) return;
+      |                                                                   ~^~~~~
+1 warning generated.
+[401 / 466] Compiling src/app/application.cpp; 10s linux-sandbox ... (3 actions, 2 running)
+[401 / 466] Compiling src/app/application.cpp; 11s linux-sandbox ... (3 actions running)
+[402 / 466] Compiling src/app/application.cpp; 15s linux-sandbox ... (3 actions, 2 running)
+[402 / 466] Compiling src/app/application.cpp; 16s linux-sandbox ... (3 actions running)
+[403 / 466] Compiling src/app/application.cpp; 20s linux-sandbox ... (3 actions, 2 running)
+INFO: From Compiling src/game/adventure/adventure_runtime.cpp:
+src/game/adventure/adventure_runtime.cpp:493:52: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  493 |         content_.resourceNodes.push_back({i+1,{p.x,y,p.y,0},{ItemKind(1+i%3),uint16_t(i%3==0?12:8)}});
+      |                                               ~    ^
+src/game/adventure/adventure_runtime.cpp:532:63: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  532 |         ||!player_.initialize(queries_,spawn,installedWorld().waterHeight,freeBuild_?creativeStartYaw:0,
+      |                    ~~~~~~~~~~                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:579:20: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  579 |         double low=INFINITY,high=-INFINITY;
+      |                ~~~ ^~~~~~~~
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/math.h:16:19: note: expanded from macro 'INFINITY'
+   16 | #define INFINITY  __builtin_inff()
+      |                   ^~~~~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:579:34: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  579 |         double low=INFINITY,high=-INFINITY;
+      |                             ~~~~ ^~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:581:36: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  581 |             const double y=surface.heightAt(float(blacksmithPlot.x+x),float(blacksmithPlot.y+z));
+      |                          ~ ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:602:26: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  602 |         double cannonLow=INFINITY,cannonHigh=-INFINITY;
+      |                ~~~~~~~~~ ^~~~~~~~
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/math.h:16:19: note: expanded from macro 'INFINITY'
+   16 | #define INFINITY  __builtin_inff()
+      |                   ^~~~~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:602:46: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  602 |         double cannonLow=INFINITY,cannonHigh=-INFINITY;
+      |                                   ~~~~~~~~~~ ^~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:604:36: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  604 |             const double y=surface.heightAt(float(cannonPlot.x+x),float(cannonPlot.y+z));
+      |                          ~ ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:628:80: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  628 |     if(!freeBuild_&&!combat_.initialize(content_,walkQueries_,installedWorld().waterHeight)) {error="The trail navigation is unavailable.";return false;}
+      |                              ~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:632:80: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+  632 |         (void)motorbike_.place(queries_,p,player_.facingYaw(),installedWorld().waterHeight);
+      |                          ~~~~~                                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1298:44: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1298 |                 impact.normalImpulse=event.impulse;impact.closingSpeed=event.impactSpeed;
+      |                                     ~~~~~~~^~~~~~~
+src/game/adventure/adventure_runtime.cpp:1298:78: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1298 |                 impact.normalImpulse=event.impulse;impact.closingSpeed=event.impactSpeed;
+      |                                                                       ~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1300:65: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1300 |                 impact.projectileEnergy=BuilderCannon::shotSpeed*BuilderCannon::shotSpeed;
+      |                                        ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1440:74: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1440 |         const auto landing=motorbike_.dismount(queries_,installedWorld().waterHeight);
+      |                                       ~~~~~~~~          ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1449:85: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1449 |         if(!next.place(queries_,player_.feet(),player_.facingYaw(),installedWorld().waterHeight)) {
+      |                  ~~~~~                                             ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1478:64: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1478 |     if(!checked.initialize(queries_,pose.feet,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())) {
+      |                 ~~~~~~~~~~                    ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1860:150: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 1860 |             motorbike_.advance(queries_,seconds,{movement[1],movement[0],input.isKeyDown(Key::Space)||pad.down(PadButton::Confirm)},installedWorld().waterHeight);
+      |                        ~~~~~~~                                                                                                      ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1899:67: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1899 |         orbitInput.zoomSteps=brickWheel||hudPointerOwned_?0:input.scrollDelta();orbitInput.active=input.focused();
+      |                             ~                               ~~~~~~^~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1903:90: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1903 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~                                   ~~~~~~~^~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1903:69: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1903 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~              ~~~~~~~^~~~~~~~~~~~~
+src/game/adventure/adventure_runtime.cpp:1903:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1903 |         (void)orbit_.update(target,orbitInput,{camera.fovY(),camera.aspectRatio(),camera.nearPlane()},queries_.cameraSweep(),seconds);
+      |                                               ~~~~~~~~^~~~~~
+src/game/adventure/adventure_runtime.cpp:3103:73: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 3103 |     if(!start||!checkedPlayer.initialize(actors,*start,installedWorld().waterHeight,pose.facingYaw,player_.bodyScale(),player_.bodyRadius()/player_.bodyScale())
+      |                               ~~~~~~~~~~               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+22 warnings generated.
+[404 / 466] Compiling src/app/application.cpp; 22s linux-sandbox ... (3 actions running)
+[405 / 467] Compiling src/app/application.cpp; 23s linux-sandbox ... (3 actions running)
+[406 / 467] Compiling src/app/application.cpp; 26s linux-sandbox ... (3 actions, 2 running)
+[406 / 467] Compiling src/app/application.cpp; 27s linux-sandbox ... (3 actions running)
+[421 / 475] Compiling src/app/application.cpp; 28s linux-sandbox ... (3 actions running)
+[422 / 475] Compiling src/app/application.cpp; 30s linux-sandbox ... (3 actions running)
+[451 / 491] Compiling src/app/application.cpp; 31s linux-sandbox ... (3 actions running)
+INFO: From Compiling src/app/application.cpp:
+src/app/application.cpp:1508:61: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 1508 |     rendererSettings_.dayHour = render::wrapDayHour(config_.dayStartHour);
+      |                                 ~~~~~~              ~~~~~~~~^~~~~~~~~~~~
+src/app/application.cpp:2462:28: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 2462 |         adventure_->update(simulationDeltaTime,*input_,*camera_,gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight(),pointerExtent);
+      |                     ~~~~~~ ^~~~~~~~~~~~~~~~~~~
+src/app/application.cpp:3557:40: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 3556 |         rendererSettings_.dayHour = render::advanceDayHour(rendererSettings_.dayHour,
+      |                                     ~~~~~~
+ 3557 |             seconds, rendererSettings_.dayCycleMinutes);
+      |                      ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+src/app/application.cpp:3557:13: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 3556 |         rendererSettings_.dayHour = render::advanceDayHour(rendererSettings_.dayHour,
+      |                                     ~~~~~~
+ 3557 |             seconds, rendererSettings_.dayCycleMinutes);
+      |             ^~~~~~~
+src/app/application.cpp:6401:79: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 6401 |         if (config_.salvageAssetFixtureWaterAnchor) asset->origin.y = config_.waterHeight;
+      |                                                                     ~ ~~~~~~~~^~~~~~~~~~~
+src/app/application.cpp:6656:87: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 6656 |                 ||!asset->characterCamera.restoreOrbit(asset->restorePhysical->player.viewYaw,
+      |                                           ~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+src/app/application.cpp:7189:81: warning: implicit conversion changes signedness: 'const size_t' (aka 'const unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 7189 |             && std::all_of(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                         ~~~~~~~~^~~~~~~~~~~
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:74:47: note: in instantiation of function template specialization 'voxy::Application::configureCoveLaunch()::(lambda)::operator()<voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+   74 | struct __invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...> {
+      |                                               ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: during template argument deduction for class template partial specialization '__invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...>' [with _Args = <(lambda at src/app/application.cpp:7184:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   82 | using __invoke_result_t _LIBCPP_NODEBUG = typename __invoke_result<_Args...>::type;
+      | ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: in instantiation of template class 'std::__invoke_result_impl<void, (lambda at src/app/application.cpp:7184:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:94:48: note: in instantiation of template type alias '__invoke_result_t' requested here
+   94 | inline const bool __is_invocable_impl<__void_t<__invoke_result_t<_Args...> >, _Args...> = true;
+      |                                                ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:97:38: note: during template argument deduction for variable template partial specialization '__is_invocable_impl<__void_t<__invoke_result_t<_Args...>>, _Args...>' [with _Args = <(lambda at src/app/application.cpp:7184:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   97 | inline const bool __is_invocable_v = __is_invocable_impl<void, _Args...>;
+      |                                      ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:100:49: note: (skipping 3 contexts in backtrace; use -ftemplate-backtrace-limit=0 to see all)
+  100 | struct __is_invocable : integral_constant<bool, __is_invocable_v<_Args...> > {};
+      |                                                 ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:619:20: note: in instantiation of template type alias '_And' requested here
+  619 |             bool = _And<_IsNotSame<__remove_cvref_t<_Fp>, function>, __is_invocable<_Fp, _ArgTypes...> >::value>
+      |                    ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:632:65: note: in instantiation of default argument for '__callable<(lambda at src/app/application.cpp:7184:37) &>' required here
+  632 |   using _EnableIfLValueCallable _LIBCPP_NODEBUG = __enable_if_t<__callable<_Fp&>::value>;
+      |                                                                 ^~~~~~~~~~~~~~~~
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:642:32: note: in instantiation of template type alias '_EnableIfLValueCallable' requested here
+  642 |   template <class _Fp, class = _EnableIfLValueCallable<_Fp>>
+      |                                ^
+external/emsdk++emscripten_deps+emscripten_bin_linux/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:643:25: note: in instantiation of default argument for 'function<(lambda at src/app/application.cpp:7184:37)>' required here
+  643 |   _LIBCPP_HIDE_FROM_ABI function(_Fp);
+      |                         ^~~~~~~~~~~~~
+src/app/application.cpp:7184:37: note: while substituting deduced template arguments into function template 'function' [with _Fp = (lambda at src/app/application.cpp:7184:37), $1 = (no value)]
+ 7184 |     local.preparation.observedBuild=[asset](auto tick) {
+      |                                     ^
+src/app/application.cpp:7331:124: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 7331 |         const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                      ~~~~~~~~~~~~~~~~~~~                                                                ~~~~~~~~~~~~~~~~~~~^
+src/app/application.cpp:7331:103: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 7331 |         const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                      ~~~~~~~~~~~~~~~~~~~                                           ~~~~~~~~~~~~~~~~~~~^
+src/app/application.cpp:7331:82: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 7331 |         const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                      ~~~~~~~~~~~~~~~~~~~                      ~~~~~~~~~~~~~~~~~~~^
+src/app/application.cpp:7331:61: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 7331 |         const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                      ~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~^
+src/app/application.cpp:9066:115: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 9066 |     const auto status=asset->characterCamera.update(target,input,{camera_->fovY(),camera_->aspectRatio(),camera_->nearPlane()},sweep,double(deltaTime));
+      |                                                                  ~                                       ~~~~~~~~~^~~~~~~~~~~
+src/app/application.cpp:9066:92: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 9066 |     const auto status=asset->characterCamera.update(target,input,{camera_->fovY(),camera_->aspectRatio(),camera_->nearPlane()},sweep,double(deltaTime));
+      |                                                                  ~                ~~~~~~~~~^~~~~~~~~~~~~
+src/app/application.cpp:9066:76: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 9066 |     const auto status=asset->characterCamera.update(target,input,{camera_->fovY(),camera_->aspectRatio(),camera_->nearPlane()},sweep,double(deltaTime));
+      |                                                                  ~~~~~~~~~~^~~~~~
+src/app/application.cpp:9337:27: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 9337 |         view.zoom(input_->scrollDelta());
+      |              ~~~~ ~~~~~~~~^~~~~~~~~~~~~
+src/app/application.cpp:10403:101: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 10403 |                 const auto parent=std::find_if(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+       |                                                                                             ~~~~~~~~^~~~~~~~~~~
+src/app/application.cpp:10405:58: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 10405 |                 if(parent!=launch.parents.begin()+launch.parentCount) {
+       |                                                  ~~~~~~~~^~~~~~~~~~~
+17 warnings generated.
+[506 / 520] Compiling src/render/debug_visualizer.cpp; 1s linux-sandbox ... (3 actions, 2 running)
+[506 / 520] Compiling src/render/debug_visualizer.cpp; 3s linux-sandbox ... (3 actions running)
+[507 / 520] Compiling src/render/cove_dock_markings.cpp; 4s linux-sandbox ... (3 actions, 2 running)
+[508 / 520] Compiling src/render/blit_path.cpp; 4s linux-sandbox ... (3 actions running)
+[509 / 520] Compiling src/render/blit_path.cpp; 5s linux-sandbox ... (3 actions, 2 running)
+[510 / 520] Compiling src/render/blit_path.cpp; 7s linux-sandbox ... (3 actions, 2 running)
+[511 / 520] Compiling src/render/adventure_hud_navigation.cpp; 2s linux-sandbox ... (3 actions, 2 running)
+[512 / 520] Compiling src/render/salvage_asset_fixture.cpp; 2s linux-sandbox ... (3 actions running)
+[513 / 520] Compiling src/render/salvage_asset_fixture.cpp; 6s linux-sandbox ... (3 actions, 2 running)
+[516 / 520] Compiling src/render/adventure_hud.cpp; 1s linux-sandbox
+INFO: From Compiling src/render/adventure_hud.cpp:
+src/render/adventure_hud.cpp:522:12: warning: implicit conversion turns floating-point number into integer: 'const float' to 'bool' [-Wfloat-conversion]
+  522 |         if(statusHeight){p.text(c.menuStatus,{px+pad,y,inner,pitch},gold);y+=statusHeight;}
+      |         ~~ ^~~~~~~~~~~~
+1 warning generated.
+[517 / 520] [Prepa] Linking src/render/librender.a
+[518 / 520] Linking voxy_wasm_cc; 1s local
+[518 / 520] Linking voxy_wasm_cc; 11s local
+[518 / 520] Linking voxy_wasm_cc; 41s local
+[519 / 520] [Prepa] Action voxy_wasm/voxy_wasm_cc.js
+INFO: Found 1 target...
+Target //:voxy_wasm up-to-date:
+  bazel-bin/voxy_wasm/voxy_wasm_cc.js
+  bazel-bin/voxy_wasm/voxy_wasm_cc.wasm
+  bazel-bin/voxy_wasm/voxy_wasm_cc.wasm.map
+  bazel-bin/voxy_wasm/voxy_wasm_cc.data
+  bazel-bin/voxy_wasm/voxy_wasm_cc.js.symbols
+  bazel-bin/voxy_wasm/voxy_wasm_cc.wasm.debug.wasm
+  bazel-bin/voxy_wasm/voxy_wasm_cc.html
+INFO: Elapsed time: 125.485s, Critical Path: 95.19s
+INFO: 30 processes: 491 action cache hit, 2 internal, 25 linux-sandbox, 3 local.
+INFO: Build completed successfully, 30 total actions

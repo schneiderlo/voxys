@@ -595,7 +595,14 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         ASSERT_TRUE(runtime.initialize(surface,context.getDevice(),context.getQueue(),resources/"shaders",WGPUTextureFormat_RGBA8Unorm,error))<<error;
         ASSERT_TRUE(runtime.content().freeBuilding);EXPECT_TRUE(runtime.content().resourceNodes.empty());EXPECT_FALSE(runtime.content().enableTrailProgress);
         auto read=[&]{return nlohmann::json::parse(runtime.json());};
-        auto startup=read();EXPECT_EQ(startup.at("mode"),"build");EXPECT_EQ(startup.at("piece"),10);EXPECT_EQ(startup.at("costText"),"Unlimited pieces");
+        auto startup=read();EXPECT_EQ(startup.at("mode"),"build");EXPECT_EQ(startup.at("piece"),9);EXPECT_EQ(startup.at("costText"),"Unlimited pieces");
+        EXPECT_EQ(startup.at("paint"),0xe53b33);EXPECT_EQ(startup.at("quickSlot"),1);
+        ASSERT_EQ(startup.at("quickSlots").size(),6u);
+        const std::array<std::pair<int,int>,6> presetDefaults{{{9,0xe53b33},{10,0xf3f2eb},{2,0},{1,0x3ba85c},{4,0xf3f2eb},{15,0}}};
+        for(size_t i=0;i<presetDefaults.size();++i) {
+            EXPECT_EQ(startup.at("quickSlots")[i].at("piece"),presetDefaults[i].first);
+            EXPECT_EQ(startup.at("quickSlots")[i].at("paint"),presetDefaults[i].second);
+        }
         EXPECT_TRUE(startup.at("creative"));
         EXPECT_EQ(startup.at("forest").at("drawDistance"),2000);
         EXPECT_GT(startup.at("forest").at("distantTrees").get<size_t>(),1000u);
@@ -704,9 +711,19 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         const auto empty=runtime.state().backpack;
         Input input;input.onFocusChanged(true);input.onMouseMove(640,400);Camera camera;
         const auto frame=[&]{input.beginFrame();input.computeDeltas();runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{1280,800});input.endFrame();};
+        input.beginFrame();input.computeDeltas();runtime.update(AdventurePlayer::fixedStep,input,camera,640,400,{640,400});input.endFrame();
+        EXPECT_FALSE(read().at("navigation").at("visible"));EXPECT_EQ(read().at("navigation").at("mapRevision"),0);
+        EXPECT_EQ(read().at("navigation").at("terrainRasterizations"),0);
         for(int i=0;i<10;++i)frame();
         EXPECT_EQ(runtime.state().combat.tick,0u);
         const auto scaledView=read();
+        const auto navigation=scaledView.at("navigation");
+        EXPECT_TRUE(navigation.at("visible"));EXPECT_GT(navigation.at("mapRevision").get<uint64_t>(),0u);
+        EXPECT_EQ(navigation.at("placedPieces"),0);
+        EXPECT_NEAR(navigation.at("playerBearingDegrees").get<double>(),360-creativeStartYaw*180/std::numbers::pi,.001);
+        for(int i=0;i<5;++i)frame();
+        EXPECT_EQ(read().at("navigation").at("mapRevision"),navigation.at("mapRevision"));
+        EXPECT_EQ(read().at("navigation").at("terrainRasterizations"),navigation.at("terrainRasterizations"));
         EXPECT_NEAR(scaledView.at("camera").at("viewTarget")[1].get<double>()
             -scaledView.at("player").at("y").get<double>(),1.2*AdventurePlayer::creativeScale,.01);
         // Real Shift events alter on-foot pace, including when the brick
@@ -814,14 +831,211 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         ASSERT_TRUE(runtime.restore(openingBytes,opening.world,error))<<error;
         for(int i=0;i<10;++i)frame();
         // Wheel selects a pictured piece without rotating or zooming the camera.
-        input.onScroll(-1);frame();EXPECT_EQ(read().at("piece"),2);
-        input.onScroll(1);frame();EXPECT_EQ(read().at("piece"),10);
+        runtime.action(39,2);frame();EXPECT_EQ(read().at("piece"),10);EXPECT_EQ(read().at("paint"),0xf3f2eb);
+        input.onScroll(-1);frame();EXPECT_EQ(read().at("piece"),2);EXPECT_EQ(read().at("paint"),0);
+        input.onScroll(1);frame();EXPECT_EQ(read().at("piece"),10);EXPECT_EQ(read().at("paint"),0xf3f2eb);
         input.onKeyDown(int(Key::LeftControl));input.onScroll(-1);frame();EXPECT_EQ(read().at("piece"),10);
         input.onKeyUp(int(Key::LeftControl));frame();
-        runtime.action(30,0x86a789);frame();EXPECT_EQ(read().at("paint"),0x86a789);
-        runtime.action(30,-1);frame();EXPECT_EQ(read().at("paint"),0x86a789);
-        runtime.action(30,0x1000000);frame();EXPECT_EQ(read().at("paint"),0x86a789);
+        runtime.action(30,0x3ba85c);frame();EXPECT_EQ(read().at("paint"),0x3ba85c);
+        runtime.action(30,-1);frame();EXPECT_EQ(read().at("paint"),0x3ba85c);
+        runtime.action(30,0x1000000);frame();EXPECT_EQ(read().at("paint"),0x3ba85c);
+        // The colour picker is an engine menu on both platforms. Keyboard and
+        // controller confirm consume the same displayed, scoped intent.
+        runtime.action(38);frame();ASSERT_EQ(read().at("mode"),"colours");
+        EXPECT_TRUE(read().at("colourPickerOpen"));EXPECT_TRUE(runtime.isPaused());
+        ASSERT_EQ(read().at("rows").size(),7u);EXPECT_EQ(read().at("menuSelected"),3);
+        const auto red=menuRow(runtime.json(),"Red");ASSERT_TRUE(red);
+        input.onKeyDown(int(Key::Right));frame();input.onKeyUp(int(Key::Right));frame();
+        EXPECT_EQ(read().at("menuSelected"),4);EXPECT_EQ(read().at("paint"),0x3ba85c);
+        input.onKeyDown(int(Key::Enter));frame();input.onKeyUp(int(Key::Enter));frame();
+        EXPECT_EQ(read().at("mode"),"build");EXPECT_EQ(read().at("paint"),0x2d91cc);
+        runtime.action(10,red->intent);frame();EXPECT_EQ(read().at("paint"),0x2d91cc);
+        EXPECT_TRUE(runtime.state().structures.empty());
+
+        input.onKeyDown(int(Key::P));frame();input.onKeyUp(int(Key::P));frame();
+        ASSERT_EQ(read().at("mode"),"colours");
+        // Closing the picker and clicking in the same frame cannot place.
+        input.onKeyDown(int(Key::P));input.onMouseDown(int(MouseButton::Left));frame();
+        EXPECT_EQ(read().at("mode"),"build");EXPECT_TRUE(runtime.state().structures.empty());
+        input.onKeyUp(int(Key::P));input.onMouseUp(int(MouseButton::Left));frame();
+        auto& colourPad=const_cast<GamepadInput&>(input.gamepad());
+        GamepadSample neutralColourPad;neutralColourPad.connected=true;neutralColourPad.device=17;
+        double colourPadSeconds=0;
+        const auto padFrame=[&](std::optional<PadButton> button,std::optional<PadButton> second=std::nullopt) {
+            input.beginFrame();input.computeDeltas();
+            colourPad.update(neutralColourPad,true,colourPadSeconds+=AdventurePlayer::fixedStep);
+            if(button) {
+                auto sample=neutralColourPad;sample.buttons[static_cast<size_t>(*button)]=true;
+                if(second)sample.buttons[static_cast<size_t>(*second)]=true;
+                colourPad.update(sample,true,colourPadSeconds+=AdventurePlayer::fixedStep);
+            }
+            runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{1280,800});input.endFrame();
+        };
+        padFrame(PadButton::LeftStick);ASSERT_EQ(read().at("mode"),"colours");
+        padFrame(PadButton::Left);EXPECT_EQ(read().at("menuSelected"),3);
+        padFrame(PadButton::Confirm);EXPECT_EQ(read().at("mode"),"build");EXPECT_EQ(read().at("paint"),0x3ba85c);
+        EXPECT_TRUE(runtime.state().structures.empty());
+        padFrame(PadButton::Alternate);EXPECT_EQ(read().at("mode"),"catalog");
+        const int previousCategory=read().at("catalogCategory");
+        const int oldCategoryIntent=read().at("rows")[0].at("intent");
+        padFrame(PadButton::RightShoulder,PadButton::Confirm);EXPECT_EQ(read().at("catalogCategory"),(previousCategory+1)%3);
+        EXPECT_EQ(read().at("mode"),"catalog");EXPECT_EQ(read().at("piece"),10);
+        runtime.action(10,oldCategoryIntent);frame();EXPECT_EQ(read().at("mode"),"catalog");EXPECT_EQ(read().at("piece"),10);
+        padFrame(PadButton::Back);EXPECT_EQ(read().at("mode"),"build");
+        colourPad.update({},true,colourPadSeconds+=AdventurePlayer::fixedStep);frame();
+        // Catalog edits replace only the active preset. Switching away/back
+        // must preserve that slot's exact piece and paint, including duplicates.
+        runtime.action(13,3);frame();const auto workbench=menuRow(runtime.json(),"Workbench");ASSERT_TRUE(workbench);
+        runtime.action(10,workbench->intent);frame();EXPECT_EQ(read().at("piece"),13);EXPECT_EQ(read().at("paint"),0x3ba85c);
+        EXPECT_EQ(read().at("quickSlots")[1].at("piece"),13);EXPECT_EQ(read().at("quickSlot"),2);
+        runtime.action(39,1);frame();EXPECT_EQ(read().at("piece"),9);EXPECT_EQ(read().at("paint"),0xe53b33);
+        runtime.action(39,2);frame();EXPECT_EQ(read().at("piece"),13);EXPECT_EQ(read().at("paint"),0x3ba85c);
+        runtime.action(2,10);frame();EXPECT_EQ(read().at("quickSlots")[1].at("piece"),10);
+        runtime.action(39,1);frame();runtime.action(2,10);frame();runtime.action(30,0x3ba85c);frame();
+        EXPECT_EQ(read().at("quickSlots")[0],read().at("quickSlots")[1]);EXPECT_EQ(read().at("quickSlot"),1);
+        runtime.action(39,2);frame();EXPECT_EQ(read().at("quickSlot"),2);
+        runtime.action(39,1);frame();runtime.action(2,9);frame();runtime.action(30,0xe53b33);frame();
+        runtime.action(39,2);frame();
+        runtime.action(39,0);runtime.action(39,7);frame();EXPECT_EQ(read().at("quickSlot"),2);EXPECT_EQ(read().at("piece"),10);
+        RecordProperty("creativeHudNavigation","real runtime keyboard events and synthetic standard controller samples; no controller hardware");
+
+        // Hit boxes come from the actual GPU HUD, including its disabled
+        // controls. The browser accessibility adapter mirrors this same JSON.
+        struct HudTarget {
+            WGPUTexture texture=nullptr;
+            WGPUTextureView view=nullptr;
+            ~HudTarget(){if(view)wgpuTextureViewRelease(view);if(texture)wgpuTextureRelease(texture);}
+        } hudTarget;
+        WGPUTextureDescriptor hudTexture{};
+        hudTexture.usage=WGPUTextureUsage_RenderAttachment;hudTexture.dimension=WGPUTextureDimension_2D;
+        hudTexture.size={1280,800,1};hudTexture.format=WGPUTextureFormat_RGBA8Unorm;
+        hudTexture.mipLevelCount=1;hudTexture.sampleCount=1;
+        hudTarget.texture=wgpuDeviceCreateTexture(context.getDevice(),&hudTexture);ASSERT_TRUE(hudTarget.texture);
+        hudTarget.view=wgpuTextureCreateView(hudTarget.texture,nullptr);ASSERT_TRUE(hudTarget.view);
+        const auto drawHud=[&] {
+            WGPUCommandEncoderDescriptor descriptor{};
+            const auto encoder=wgpuDeviceCreateCommandEncoder(context.getDevice(),&descriptor);
+            const bool drawn=runtime.renderHud(encoder,hudTarget.view,1280,800);
+            WGPUCommandBufferDescriptor commandDescriptor{};
+            const auto command=wgpuCommandEncoderFinish(encoder,&commandDescriptor);wgpuCommandEncoderRelease(encoder);
+            if(command){wgpuQueueSubmit(context.getQueue(),1,&command);wgpuCommandBufferRelease(command);}
+            return drawn&&command;
+        };
+        runtime.action(19,1);ASSERT_TRUE(drawHud());
+        auto controls=read().at("hud").at("controls");ASSERT_FALSE(controls.empty());
+        EXPECT_EQ(read().at("hud").at("width"),1280);EXPECT_EQ(read().at("hud").at("height"),800);
+        // The digits select the cards actually drawn, including a shifted
+        // window after selection. Hidden/disabled slots never become shortcuts.
+        for(const auto key:{Key::Num1,Key::Num6}) {
+            const auto slot=std::find_if(controls.begin(),controls.end(),[&](const auto& row){return row.at("shortcutKey")==uint32_t(key);});
+            ASSERT_NE(slot,controls.end());const int selectedSlot=slot->at("value");
+            const auto preset=read().at("quickSlots")[size_t(selectedSlot-1)];
+            input.onKeyDown(int(key));frame();input.onKeyUp(int(key));frame();
+            EXPECT_EQ(read().at("piece"),preset.at("piece"));EXPECT_EQ(read().at("paint"),preset.at("paint"));
+            EXPECT_EQ(read().at("quickSlot"),selectedSlot);EXPECT_TRUE(runtime.state().structures.empty());
+            ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        }
+        runtime.action(39,2);frame();ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        const auto colourControl=std::find_if(controls.begin(),controls.end(),[](const auto& row){return row.at("action")==38;});
+        ASSERT_NE(colourControl,controls.end());EXPECT_EQ(colourControl->at("label"),"Colour");
+        const auto pointAt=[&](const auto& row,float pointerScale=1) {
+            input.onMouseMove((row.at("x").template get<float>()+row.at("width").template get<float>()*.5f)*pointerScale,
+                (row.at("y").template get<float>()+row.at("height").template get<float>()*.5f)*pointerScale);
+        };
+        render::AdventureHudContent navigationContent;navigationContent.creative=true;navigationContent.mode=render::AdventureHudMode::Build;
+        render::AdventureHudNavigation navigationBounds;navigationBounds.visible=true;navigationBounds.map=std::make_shared<render::AdventureHudMap>();
+        const auto navigationLayout=render::layoutAdventureNavigation(navigationBounds,navigationContent,1280,800);
+        ASSERT_EQ(navigationLayout.menuHits.size(),2u);
+        for(const auto& surfaceHit:navigationLayout.menuHits) {
+            const auto bounds=surfaceHit.bounds;
+            input.onMouseMove(bounds.x+bounds.z*.5f,bounds.y+bounds.w*.5f);
+            input.onScroll(-1);input.onMouseDown(int(MouseButton::Left));frame();
+            input.onMouseUp(int(MouseButton::Left));frame();
+            EXPECT_EQ(read().at("piece"),10);EXPECT_TRUE(runtime.state().structures.empty());
+        }
+        // The old 1280x800 image is still visible while the next framebuffer
+        // becomes 960x600 inside a 640x400 logical window. The rendered control
+        // must retain its identity across both scale and resize boundaries.
+        pointAt(*colourControl,.5f);input.onMouseDown(int(MouseButton::Left));
+        input.beginFrame();input.computeDeltas();
+        runtime.update(AdventurePlayer::fixedStep,input,camera,960,600,{640,400});input.endFrame();
+        input.onMouseUp(int(MouseButton::Left));frame();
+        ASSERT_EQ(read().at("mode"),"colours");EXPECT_TRUE(runtime.state().structures.empty());
+        ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        const auto greenControl=std::find_if(controls.begin(),controls.end(),[](const auto& row){return row.at("label")=="Green";});
+        ASSERT_NE(greenControl,controls.end());EXPECT_EQ(greenControl->at("row"),3);
+        pointAt(*greenControl);input.onMouseDown(int(MouseButton::Left));frame();
+        input.onMouseUp(int(MouseButton::Left));frame();
+        EXPECT_EQ(read().at("mode"),"build");EXPECT_EQ(read().at("paint"),0x3ba85c);
+        EXPECT_TRUE(runtime.state().structures.empty());
+        runtime.action(23);frame();ASSERT_EQ(read().at("mode"),"catalog");
+        ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        const auto disabledSlot=std::find_if(controls.begin(),controls.end(),[](const auto& row){return row.at("action")==39;});
+        ASSERT_NE(disabledSlot,controls.end());EXPECT_FALSE(disabledSlot->at("enabled"));
+        pointAt(*disabledSlot);input.onScroll(-1);frame();EXPECT_EQ(read().at("piece"),10);
+        input.onMouseDown(int(MouseButton::Left));frame();input.onMouseUp(int(MouseButton::Left));frame();
+        input.onKeyDown(int(Key::Num1));frame();input.onKeyUp(int(Key::Num1));frame();
+        EXPECT_EQ(read().at("piece"),10);EXPECT_EQ(read().at("mode"),"catalog");
+        EXPECT_TRUE(runtime.state().structures.empty());
+        runtime.action(20);frame();ASSERT_TRUE(drawHud());
+        const auto retinaFrame=[&] {
+            input.beginFrame();input.computeDeltas();
+            runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{640,400});input.endFrame();
+        };
+        retinaFrame();ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        ASSERT_FALSE(controls.empty());
+        for(const auto& control:controls) {
+            EXPECT_GE(control.at("width").get<double>()/2,44.-1e-4)<<control.at("label");
+            EXPECT_GE(control.at("height").get<double>()/2,44.-1e-4)<<control.at("label");
+        }
+        const auto retinaColour=std::find_if(controls.begin(),controls.end(),[](const auto& row){return row.at("action")==38;});
+        ASSERT_NE(retinaColour,controls.end());
+        pointAt(*retinaColour,.5f);input.onMouseDown(int(MouseButton::Left));retinaFrame();
+        input.onMouseUp(int(MouseButton::Left));retinaFrame();
+        EXPECT_EQ(read().at("mode"),"colours");EXPECT_TRUE(runtime.state().structures.empty());
+        ASSERT_TRUE(drawHud());controls=read().at("hud").at("controls");
+        for(const auto& control:controls) {
+            EXPECT_GE(control.at("width").get<double>()/2,44.-1e-4)<<control.at("label");
+            EXPECT_GE(control.at("height").get<double>()/2,44.-1e-4)<<control.at("label");
+        }
+        runtime.action(20);frame();ASSERT_TRUE(drawHud());
+        input.onMouseMove(640,400);frame();
+        RecordProperty("creativeHudPointer","encoded offscreen shared HUD; authoritative hit boxes; no presented surface or screenshot");
+        runtime.action(29,0);frame();ASSERT_EQ(read().at("mode"),"guide");
+        const auto guideStructures=runtime.state().structures;
+        for(const bool controller:{false,true}) {
+            if(controller)padFrame(PadButton::RightStick);
+            else {input.onKeyDown(int(Key::G));frame();input.onKeyUp(int(Key::G));frame();}
+            for(size_t topic=0;topic<6;++topic) {
+                const auto topics=read().at("rows");ASSERT_EQ(topics.size(),7u);
+                runtime.action(10,topics[topic].at("intent"));frame();
+                const auto card=read();render::AdventureHudContent guide;
+                guide.creative=true;guide.mode=render::AdventureHudMode::Guide;
+                guide.title=card.at("menuTitle");guide.menuText=card.at("menuText");
+                for(const auto& row:card.at("rows"))guide.rows.push_back({row.at("label"),"",true,10,0,row.at("intent"),0});
+                for(float scale:{1.f,1.25f,1.5f})for(auto size:{glm::uvec2(320,568),glm::uvec2(480,480),glm::uvec2(1280,800)}) {
+                    SCOPED_TRACE(::testing::Message()<<guide.title<<" pad "<<controller<<" scale "<<scale<<" "<<size.x<<"x"<<size.y);
+                    guide.textScale=scale;const auto layout=render::layoutAdventureHud(guide,size.x,size.y);
+                    EXPECT_TRUE(layout.guideBodyComplete);EXPECT_FALSE(layout.canvas.truncated);EXPECT_TRUE(layout.selectedVisible);
+                }
+                const auto allTopics=menuRow(runtime.json(),"All topics");ASSERT_TRUE(allTopics);
+                runtime.action(10,allTopics->intent);frame();
+            }
+        }
+        colourPad.update({},true,colourPadSeconds+=AdventurePlayer::fixedStep);
+        runtime.action(20);frame();EXPECT_EQ(read().at("mode"),"build");
+        EXPECT_EQ(runtime.state().structures,guideStructures);
         runtime.action(31);frame();EXPECT_EQ(read().at("mode"),"pause");
+        for(const auto* label:{"Rotate piece","Raise piece","Lower piece","Choose colour","Finish building"}) {
+            const auto row=menuRow(runtime.json(),label);ASSERT_TRUE(row)<<label;EXPECT_TRUE(row->enabled)<<label;
+        }
+        const auto removeRow=menuRow(runtime.json(),"Remove aimed piece");ASSERT_TRUE(removeRow);EXPECT_FALSE(removeRow->enabled);
+        // Menu height actions use the same commands as the former toolbar.
+        const auto raise=menuRow(runtime.json(),"Raise piece");ASSERT_TRUE(raise);
+        runtime.action(10,raise->intent);frame();frame();EXPECT_EQ(read().at("mode"),"build");
+        runtime.action(31);frame();const auto lower=menuRow(runtime.json(),"Lower piece");ASSERT_TRUE(lower);
+        runtime.action(10,lower->intent);frame();frame();EXPECT_EQ(read().at("mode"),"build");
+        runtime.action(31);frame();
         runtime.action(20);frame();EXPECT_EQ(read().at("mode"),"build");
         // Pick a safe location for the rotated brick: rotation near the wider
         // character can correctly invalidate a previously clear long edge.
@@ -841,11 +1055,20 @@ TEST(FreeBuildRuntimeIntegration, CreativeStartupPlacementAndExactRestore) {
         ASSERT_EQ(runtime.state().structures[0].parts.size(),1u);
         EXPECT_EQ(runtime.state().structures[0].parts[0].kind,PieceKind::Brick2x4);
         EXPECT_EQ(runtime.state().structures[0].parts[0].yawQuarterTurns,1);
-        EXPECT_EQ(runtime.state().structures[0].parts[0].paint,0x86a789u);
+        EXPECT_EQ(runtime.state().structures[0].parts[0].paint,0x3ba85cu);
+        EXPECT_EQ(read().at("navigation").at("placedPieces"),1);
         EXPECT_TRUE(read().at("canUndo"));
         EXPECT_EQ(runtime.state().backpack,empty);
         const auto saved=runtime.state();std::vector<std::byte> bytes;
         ASSERT_TRUE(runtime.snapshot(bytes,error))<<error;
+        runtime.action(31);frame();
+        const auto pausedMapRevision=read().at("navigation").at("mapRevision");
+        EXPECT_FALSE(read().at("navigation").at("visible"));
+        const auto undoRow=menuRow(runtime.json(),"Undo last placement");ASSERT_TRUE(undoRow);EXPECT_TRUE(undoRow->enabled);
+        runtime.action(10,undoRow->intent);frame();EXPECT_TRUE(runtime.state().structures.empty());
+        EXPECT_EQ(read().at("navigation").at("placedPieces"),0);
+        EXPECT_EQ(read().at("navigation").at("mapRevision"),pausedMapRevision);
+        runtime.action(10,undoRow->intent);frame();EXPECT_TRUE(runtime.state().structures.empty());
         runtime.action(6);frame();EXPECT_TRUE(runtime.state().structures.empty());EXPECT_EQ(runtime.state().backpack,empty);
         ASSERT_TRUE(runtime.restore(bytes,saved.world,error))<<error;EXPECT_EQ(runtime.state(),saved);
         std::vector<std::byte> after;ASSERT_TRUE(runtime.snapshot(after,error));EXPECT_EQ(after,bytes);
@@ -1141,11 +1364,32 @@ TEST_P(ImportedWallRuntimeIntegration, CannonInputAndFullWorldGpuAdmission) {
         EXPECT_NEAR(read().at("cannon").at("yaw").get<double>(),yaw,1e-6);
         EXPECT_NEAR(read().at("cannon").at("elevation").get<double>(),elevation,1e-6);
         EXPECT_EQ(runtime.state().player,player); // Aiming does not walk/jump.
+        auto& cannonPad=const_cast<GamepadInput&>(input.gamepad());
+        GamepadSample cannonNeutral;cannonNeutral.connected=true;cannonNeutral.device=27;
+        double cannonPadSeconds=0;
+        const auto cannonPadFrame=[&](const GamepadSample& sample) {
+            input.beginFrame();input.computeDeltas();
+            cannonPad.update(sample,true,cannonPadSeconds+=AdventurePlayer::fixedStep);
+            runtime.update(AdventurePlayer::fixedStep,input,camera,1280,800,{1280,800});input.endFrame();
+            return frame(false);
+        };
+        ASSERT_TRUE(cannonPadFrame(cannonNeutral));ASSERT_TRUE(cannonPadFrame(cannonNeutral));
+        auto turnUp=cannonNeutral;turnUp.axes[0]=-.6f;turnUp.axes[1]=-.6f;
+        ASSERT_TRUE(cannonPadFrame(turnUp));ASSERT_TRUE(cannonPadFrame(turnUp));
+        EXPECT_GT(read().at("cannon").at("yaw").get<double>(),yaw);
+        EXPECT_GT(read().at("cannon").at("elevation").get<double>(),elevation);
+        auto turnDown=cannonNeutral;turnDown.axes[0]=.6f;turnDown.axes[1]=.6f;
+        ASSERT_TRUE(cannonPadFrame(turnDown));ASSERT_TRUE(cannonPadFrame(turnDown));ASSERT_TRUE(cannonPadFrame(cannonNeutral));
+        EXPECT_NEAR(read().at("cannon").at("yaw").get<double>(),yaw,1e-6);
+        EXPECT_NEAR(read().at("cannon").at("elevation").get<double>(),elevation,1e-6);
+        EXPECT_EQ(runtime.state().player,player);
         const auto readyDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(40);
         while(!read().at("cannon").at("ready").get<bool>()&&std::chrono::steady_clock::now()<readyDeadline)
             ASSERT_TRUE(frame());
         ASSERT_TRUE(read().at("cannon").at("ready"))<<runtime.json();
-        ASSERT_TRUE(press(Key::Space));
+        ASSERT_TRUE(cannonPadFrame(cannonNeutral));ASSERT_TRUE(cannonPadFrame(cannonNeutral));
+        auto padFire=cannonNeutral;padFire.buttons[static_cast<size_t>(PadButton::Confirm)]=true;
+        ASSERT_TRUE(cannonPadFrame(padFire));ASSERT_TRUE(cannonPadFrame(cannonNeutral));
         ASSERT_EQ(read().at("cannon").at("shots"),1)<<runtime.json();
         EXPECT_EQ(read().at("cannon").at("live"),1);
         ASSERT_TRUE(press(Key::Space));EXPECT_EQ(read().at("cannon").at("shots"),1);

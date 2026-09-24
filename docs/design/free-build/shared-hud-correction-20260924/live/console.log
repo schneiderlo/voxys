@@ -1,0 +1,51 @@
+[INFO ] [00:00:00.010] Loading config: free_build.cfg
+[INFO ] [00:00:00.018] SwiftShader physics compatibility: disabled
+[INFO ] [00:00:00.022] ═══════════════════════════════════════════════════════════════
+[INFO ] [00:00:00.023]   Voxy - Terrain Renderer
+[INFO ] [00:00:00.023]   Build target: wasm
+[INFO ] [00:00:00.023]   Render path: raycast
+[INFO ] [00:00:00.024] ═══════════════════════════════════════════════════════════════
+[INFO ] [00:00:00.028] [Application::init::GPU] WASM GPU context initialized from canvas: #voxy-canvas
+[INFO ] [00:02:13.514] [Application::init] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 2 MiB scratch
+[INFO ] [00:02:13.515] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)
+[INFO ] [00:02:14.735] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (1188.70 ms)
+[INFO ] [00:02:14.736] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 1188.70 ms)
+[INFO ] [00:02:14.736] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh
+[INFO ] [00:02:15.342] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)
+[INFO ] [00:02:15.747] [Application::init] Coastal refraction field initialized: 1024x1024
+[INFO ] [00:02:16.388] [Application::init] FFT water simulation initialized: 2 cascades at 256x256
+[INFO ] [00:02:16.845] [Application::init::TrianglePath::init] TrianglePath initialized successfully
+[INFO ] [00:02:18.832] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1600x900 output)
+[INFO ] [00:02:23.655] [Application::init] Baked shadow height field: 4096x4096 (4822.1 ms)
+[INFO ] [00:02:24.157] [Application::init::TerrainTextures::init::TerrainTextures::loadSeabedMaterial] Loaded seabed material from 'data/materials' (1024x1024); other layers are procedural
+[INFO ] [00:02:24.158] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4
+[INFO ] [00:02:42.736] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [00:02:42.737] [Application::init::BlitPath::init] Using procedural sky bake (day/night: true)
+[INFO ] [00:02:46.758] [Application::init::BlitPath::init] BlitPath initialized successfully
+[INFO ] [00:02:46.760] [Application::init] LEGO layout: streamed world (4194304 bytes)
+[INFO ] [00:02:51.126] Application initialized successfully
+[INFO ] [00:02:51.127]   Window: 1600x900
+[INFO ] [00:02:51.127]   Terrain: 8192x8192 (mips: 14)
+[INFO ] [00:02:51.127]   Render path: raycast
+[INFO ] [00:02:51.127] 
+[INFO ] [00:02:51.128] Controls:
+[INFO ] [00:02:51.128]   WASD / left stick - Walk; Space / A - Jump
+[INFO ] [00:02:51.128]   B / View - Build; F2 / Menu - Options; F5 - Save
+[INFO ] [00:02:51.128]   E / X - Use; Right drag / right stick - Look
+[INFO ] [00:02:51.129]   F1        - Toggle debug overlay
+[INFO ] [00:02:51.129]   F2        - Toggle wireframe mode
+[INFO ] [00:02:51.129]   F3        - Toggle render path
+[INFO ] [00:02:51.129]   F4        - Toggle depth visualization
+[INFO ] [00:02:51.130]   F5        - Toggle normal visualization
+[INFO ] [00:02:51.130]   F6        - Toggle mip level heat map
+[INFO ] [00:02:51.130]   F7        - Toggle benchmark mode
+[INFO ] [00:02:51.130]   F8        - Toggle controller (free-fly/character)
+[INFO ] [00:02:51.130]   F9        - Toggle uncapped/VSync presentation
+[INFO ] [00:02:51.131]   Escape    - Release mouse / Exit
+[INFO ] [00:02:51.131]   Wheel     - Select throwable object
+[INFO ] [00:02:51.131]   Left click- Capture mouse / throw selected object
+[INFO ] [00:02:51.131]   Right click- Throw 128 selected objects
+[INFO ] [00:02:51.131] 
+[INFO ] [00:02:51.132] Starting Emscripten main loop...
+[INFO ] [00:02:51.132] Started Capped Loop (RAF)
+Building adventure initialized successfully

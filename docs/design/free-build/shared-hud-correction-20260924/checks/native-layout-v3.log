@@ -1,0 +1,61 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureHud.*
+[==========] Running 23 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 23 tests from AdventureHud
+[ RUN      ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity
+[       OK ] AdventureHud.ExploreLeavesWorldClearAndCarriesExactActionIdentity (0 ms)
+[ RUN      ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize
+[       OK ] AdventureHud.EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize (163 ms)
+[ RUN      ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible
+[       OK ] AdventureHud.FocusedModesReplaceQuickbarAndKeepSelectedDisabledChoicesVisible (23 ms)
+[ RUN      ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize
+[       OK ] AdventureHud.CompleteActualGuideCardsRetainTheirTailAndNavigationAtEveryTextSize (427 ms)
+[ RUN      ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls
+[       OK ] AdventureHud.GuideTopicPickerKeepsEverySelectionAndDoesNotBorrowGenericControls (13 ms)
+[ RUN      ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable
+[       OK ] AdventureHud.CompactBuildKeepsItsTrayBelowTheAimAndAllInputsReachable (0 ms)
+[ RUN      ] AdventureHud.CreativeGuideUsesItsMeasuredFontForEveryBodyGlyph
+[       OK ] AdventureHud.CreativeGuideUsesItsMeasuredFontForEveryBodyGlyph (0 ms)
+[ RUN      ] AdventureHud.CreativeLayoutsRemainBoundedAndKeepRuntimeActionIdentityAtSmallSizes
+[       OK ] AdventureHud.CreativeLayoutsRemainBoundedAndKeepRuntimeActionIdentityAtSmallSizes (12 ms)
+[ RUN      ] AdventureHud.CreativeSelectionStaysReachableWhenItsShelfMustPage
+[       OK ] AdventureHud.CreativeSelectionStaysReachableWhenItsShelfMustPage (15 ms)
+[ RUN      ] AdventureHud.CreativeColourPickerKeepsEverySwatchIdentityAndClearsWhenWalking
+[       OK ] AdventureHud.CreativeColourPickerKeepsEverySwatchIdentityAndClearsWhenWalking (6 ms)
+[ RUN      ] AdventureHud.CreativeRadialCatalogHandlesEveryCategorySizeWithoutOverlappingTargets
+[       OK ] AdventureHud.CreativeRadialCatalogHandlesEveryCategorySizeWithoutOverlappingTargets (32 ms)
+[ RUN      ] AdventureHud.CreativeBuildAndExploreLeaveTheAimingRegionUncovered
+[       OK ] AdventureHud.CreativeBuildAndExploreLeaveTheAimingRegionUncovered (0 ms)
+[ RUN      ] AdventureHud.CreativePaintSelectsTintedSpritesWithoutChangingTheirArtOrGeometry
+[       OK ] AdventureHud.CreativePaintSelectsTintedSpritesWithoutChangingTheirArtOrGeometry (0 ms)
+[ RUN      ] AdventureHud.NumberKeysReferToTheExactVisibleSlotsAndPickerRetainsTheirDisabledPeers
+[       OK ] AdventureHud.NumberKeysReferToTheExactVisibleSlotsAndPickerRetainsTheirDisabledPeers (3 ms)
+[ RUN      ] AdventureHud.DuplicatePresetsHighlightTheChosenSlotRatherThanTheFirstMatchingPiece
+[       OK ] AdventureHud.DuplicatePresetsHighlightTheChosenSlotRatherThanTheFirstMatchingPiece (0 ms)
+[ RUN      ] AdventureHud.NavigationBlocksOnlyItsVisiblePortraitAndActualMapBounds
+[       OK ] AdventureHud.NavigationBlocksOnlyItsVisiblePortraitAndActualMapBounds (0 ms)
+[ RUN      ] AdventureHud.CreativePixelDensityPreservesLogicalGeometryTextAndHitIdentity
+[       OK ] AdventureHud.CreativePixelDensityPreservesLogicalGeometryTextAndHitIdentity (11 ms)
+[ RUN      ] AdventureHud.FractionalFramebufferRoundingCannotHideA320CssPixelHud
+[       OK ] AdventureHud.FractionalFramebufferRoundingCannotHideA320CssPixelHud (1 ms)
+[ RUN      ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis
+[       OK ] AdventureHud.SharedAtlasTextClipsGeometryAndUsesMeasuredEllipsis (0 ms)
+[ RUN      ] AdventureHud.AdventureTypographyIsMeasuredClippedAndBoundedIndependentlyOfLegacyAtlas
+[       OK ] AdventureHud.AdventureTypographyIsMeasuredClippedAndBoundedIndependentlyOfLegacyAtlas (0 ms)
+[ RUN      ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity
+[       OK ] AdventureHud.MeshThumbnailsHaveCompleteVersionedGeometryAndBrowserSourceIdentity (4 ms)
+[ RUN      ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders
+[       OK ] AdventureHud.WorstVisibleMeshPageFitsDedicatedBufferAndNeverCoversLabelsOrHitBorders (36 ms)
+[ RUN      ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent
+[       OK ] AdventureHud.ThumbnailPassRefusesUninitializedUseAndShutdownIsIdempotent (0 ms)
+[----------] 23 tests from AdventureHud (755 ms total)
+
+[----------] Global test environment tear-down
+[==========] 23 tests from 1 test suite ran. (755 ms total)
+[  PASSED  ] 23 tests.

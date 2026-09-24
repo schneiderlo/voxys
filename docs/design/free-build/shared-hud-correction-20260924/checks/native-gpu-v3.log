@@ -1,0 +1,42 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = AdventureHudGpu.*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from AdventureHudGpu
+[ RUN      ] AdventureHudGpu.ActualMeshColorsSurviveDiscardAndSubmittedShutdownAtMaximumCapacity
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+[32m[INFO ] [08:18:24.819] [GPU] GPU Adapter: llvmpipe (LLVM 21.1.8, 256 bits)[0m
+[32m[INFO ] [08:18:24.819] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [08:18:24.819] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:18:24.819] [GPU]   Type: CPU[0m
+[32m[INFO ] [08:18:24.835] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] AdventureHudGpu.ActualMeshColorsSurviveDiscardAndSubmittedShutdownAtMaximumCapacity (658 ms)
+[ RUN      ] AdventureHudGpu.CreativeContentCachesUploadsAndCannotKeepStaleBuildGeometry
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+[32m[INFO ] [08:18:25.447] [GPU] GPU Adapter: llvmpipe (LLVM 21.1.8, 256 bits)[0m
+[32m[INFO ] [08:18:25.448] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [08:18:25.448] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:18:25.448] [GPU]   Type: CPU[0m
+[32m[INFO ] [08:18:25.460] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] AdventureHudGpu.CreativeContentCachesUploadsAndCannotKeepStaleBuildGeometry (69 ms)
+[ RUN      ] AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+[32m[INFO ] [08:18:25.718] [GPU] GPU Adapter: llvmpipe (LLVM 21.1.8, 256 bits)[0m
+[32m[INFO ] [08:18:25.718] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [08:18:25.718] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:18:25.718] [GPU]   Type: CPU[0m
+[32m[INFO ] [08:18:25.730] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested (5018 ms)
+[----------] 3 tests from AdventureHudGpu (5746 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (5746 ms total)
+[  PASSED  ] 3 tests.

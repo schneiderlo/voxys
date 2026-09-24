@@ -32,6 +32,7 @@ set(GAME_SOURCES
     game/adventure/imported_assembly.cpp
     game/adventure/cannon_physics_scene.cpp
     game/adventure/adventure_runtime.cpp
+    game/adventure/adventure_navigation.cpp
     game/adventure/quests.cpp
     game/adventure/town_residents.cpp
     game/adventure/creative_village.cpp
@@ -97,7 +98,7 @@ set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
-list(APPEND RENDER_SOURCES render/cove_hud.cpp render/adventure_hud.cpp)
+list(APPEND RENDER_SOURCES render/cove_hud.cpp render/adventure_hud.cpp render/adventure_hud_art.cpp render/adventure_hud_navigation.cpp)
 set(CAMERA_SOURCES "")
 set(PHYSICS_SOURCES "")
 set(NETWORK_SOURCES "")

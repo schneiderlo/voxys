@@ -522,8 +522,8 @@
     <script src="adventure_saves.js"></script>
     <script src="adventure_preferences.js"></script>
     <script src="adventure_ui.js"></script>
-    <script src="build_ui.js"></script>
-    <link rel="stylesheet" href="build_ui.css">
+    <script src="build_ui.js?v=__VOXY_BUILD_ID__"></script>
+    <link rel="stylesheet" href="build_ui.css?v=__VOXY_BUILD_ID__">
     <link rel="stylesheet" href="adventure_ui.css">
     <script src="controller_menu.js"></script>
     <script src="design_library.js"></script>
@@ -1475,7 +1475,8 @@
                         }
                     };
                     VoxyCoveSaves.installContinue();
-                    (creative ? window.VoxyBuildUI : window.VoxyAdventureUI).install(voxyModule,window);
+                    if(creative)window.VoxyBuildUI.installShared(voxyModule,window);
+                    else window.VoxyAdventureUI.install(voxyModule,window);
                 }
 
                 setupPhysicsBackendSwitcher();

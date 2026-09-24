@@ -11,6 +11,7 @@
 #include "game/adventure/imported_wall_physics.hpp"
 #include "game/adventure/adventure_presentation.hpp"
 #include "game/adventure/adventure_pointer.hpp"
+#include "game/adventure/adventure_navigation.hpp"
 #include "game/adventure/menu_intent.hpp"
 #include "game/adventure/town_residents.hpp"
 #include "game/adventure/village_layout.hpp"
@@ -59,15 +60,16 @@ public:
     const AdventureSpatialQueries& spatialQueries() const noexcept {return queries_;}
     std::span<const uint32_t> thrownBrickBodyIds() const noexcept {return brickThrower_.bodyIds();}
 private:
-    enum class Menu {None,Main,Catalog,Chest,Dialogue,Workbench,Journal,Bag,Settings,Controls,CombatBinding,BindingChoice,GuideTopics,Guide};
+    enum class Menu {None,Main,Catalog,Chest,Dialogue,Workbench,Journal,Bag,Settings,Controls,CombatBinding,BindingChoice,GuideTopics,Guide,Colours};
     enum class MenuOperation {Close,Catalog,Save,Recover,TextScale,Contrast,Motion,Starter,Journal,
         EquipUtility,CompassTarget,SelectPiece,AcceptQuest,CompleteQuest,CraftHammer,CraftCompass,Transfer,EquipTool,Bag,CraftStaff,AcceptTrailQuest,CompleteTrailQuest,SelectQuest,BuildRecipe,
         Settings,Controls,ChooseCombat,BindingDevice,SetBinding,InvertX,InvertY,OrbitToggle,MouseSensitivity,PadSensitivity,MoveDeadzone,LookDeadzone,ResetPreferences,RetryPreferences,
-        GuideTopics,GuideTopic,GuideExit};
+        GuideTopics,GuideTopic,GuideExit,Paint,Motorbike,Cannon,Undo,Rotate,Raise,Lower,Remove,Colours,FinishBuilding};
     struct MenuCommand {MenuOperation operation;uint64_t argument=0;TransferItems transfer{};};
     struct PendingAction {
         int action=0,value=0;uint32_t menuToken=0;
         uint64_t door=0,doorRevision=0;bool doorOpen=false;
+        uint64_t removePart=0;bool removeScenery=false;
     };
     PendingAction observedAction(int action,int value,uint32_t menuToken) const;
     CommandStamp stamp() const;
@@ -84,6 +86,11 @@ private:
     void recover();
     void toggleMotorbike();
     void toggleCannon();
+    void toggleColours();
+    void resetQuickSlots();
+    void selectQuickSlot(size_t);
+    void rememberQuickSlot();
+    void undoLastPlacement();
     void fireCannon();
     void throwBricks(uint32_t count);
     void updateCannonPhysics();
@@ -108,6 +115,7 @@ private:
     bool applyPreferences(const AdventurePreferences&,bool force=false);
     std::string combatLabel() const;
     void refreshHud();
+    void refreshNavigation();
     uint64_t nearbyComponent() const;
     std::string interactionLabel() const;
     bool prepareGeometry(const AdventureState&,AdventureSpatialQueries&,TownResidents&,VillageLayout&,TrailSites&,CreativeScenery&,std::string&,bool preserveInstalled=true,bool validate=true) const;
@@ -181,6 +189,15 @@ private:
     double forestSelectionMs_=0;
     render::AdventureHudPath hud_;
     render::AdventureHudContent hudContent_;
+    render::AdventureHudNavigation hudNavigation_;
+    AdventureNavigationCache navigationCache_;
+    uint64_t navigationCountEpoch_=0;
+    uint32_t hudWidth_=0,hudHeight_=0;
+    float hudPixelScale_=1;
+    double saveFeedbackSeconds_=0,interactionFeedbackSeconds_=0;
+    std::optional<render::AdventureHudHit> hudHover_;
+    glm::dvec2 hudHoverPointer_{};
+    bool hudHoverFromMouse_=true;
     uint64_t savedRevision_=0;
     bool migrationDirty_=false;
     CompassTarget compassTarget_=CompassTarget::Relay;
@@ -221,6 +238,9 @@ private:
     PieceKind selected_=PieceKind::Foundation;
     uint8_t yaw_=0;
     uint32_t selectedPaint_=0;
+    struct QuickSlot {PieceKind kind=PieceKind::Brick2x4;uint32_t paint=0;};
+    std::array<QuickSlot,6> quickSlots_{};
+    size_t activeQuickSlot_=0;
     float brickScroll_=0;
     uint8_t catalogCategory_=0;
     int heightSteps_=0,menuSelection_=0;

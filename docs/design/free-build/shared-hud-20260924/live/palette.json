@@ -1,0 +1,615 @@
+{
+  "ready": true,
+  "presentationReady": true,
+  "frame": 249,
+  "state": {
+    "costText": "Unlimited pieces",
+    "creative": true,
+    "build": true,
+    "selected": "Wall",
+    "blueprintKind": 0,
+    "piece": 3,
+    "status": "Choose a brick, aim and build.",
+    "previewReason": "Ready to place",
+    "interaction": "Use nearby",
+    "statusEvent": "0",
+    "valid": true,
+    "wood": 0,
+    "stone": 0,
+    "scrap": 0,
+    "parts": 0,
+    "menu": "Brick colours",
+    "saveFailure": "",
+    "saveStatus": "Unsaved build",
+    "dirty": true,
+    "textScale": 1,
+    "highContrast": false,
+    "rows": [
+      {
+        "label": "Original",
+        "enabled": true,
+        "intent": 449,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Coral",
+        "enabled": true,
+        "intent": 450,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Sunflower",
+        "enabled": true,
+        "intent": 451,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Sage",
+        "enabled": true,
+        "intent": 452,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Lagoon",
+        "enabled": true,
+        "intent": 453,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Cloud",
+        "enabled": true,
+        "intent": 454,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      },
+      {
+        "label": "Ink",
+        "enabled": true,
+        "intent": 455,
+        "pieceKind": 0,
+        "blueprintKind": 0,
+        "detail": ""
+      }
+    ],
+    "mode": "colours",
+    "menuTitle": "Brick colours",
+    "menuText": "Colour your next bricks.",
+    "menuStatus": "",
+    "menuToken": 7,
+    "catalogCategory": 0,
+    "preferencesRevision": "1",
+    "preferencesStatus": "Default settings.",
+    "attackControl": "Left mouse",
+    "dodgeControl": "Q",
+    "lookControl": "Hold the right mouse button to look around, or use the right stick.",
+    "forest": {
+      "seed": 9665061,
+      "recipe": 3,
+      "drawDistance": 2000,
+      "nearProps": 61,
+      "distantTrees": 51836,
+      "horizonDraws": 28,
+      "visitedTrees": 10127,
+      "visibleTrees": 3001,
+      "selectionMs": 0.9,
+      "instanceUploadBytes": 216480,
+      "meshColorTriangles": 531910,
+      "meshShadowTriangles": 642864
+    },
+    "riding": false,
+    "bikeSpeed": 0,
+    "cannon": {
+      "available": true,
+      "x": 1240,
+      "y": 0.18500000715255738,
+      "z": -1027,
+      "distanceStuds": 102,
+      "active": false,
+      "ready": true,
+      "error": "",
+      "shots": 0,
+      "impacts": 0,
+      "live": 0,
+      "yaw": -0.0360332748563,
+      "elevation": 0.0726767584712,
+      "awaitingHit": false,
+      "contacts": 0,
+      "contactFeature": 0,
+      "contactBody": 0,
+      "contactSpeed": 0,
+      "contactImpulse": 0,
+      "releasedParts": 0,
+      "sourceParts": 20,
+      "partDisplacement": 0.0000026976122938639395,
+      "impactDirection": [
+        0,
+        0,
+        0
+      ],
+      "impactSource": "0",
+      "impactEnergy": 0,
+      "wallReady": true,
+      "wallReleased": false,
+      "inspectingWall": false,
+      "wallBusy": false,
+      "wallPhase": 2,
+      "wallMessage": "",
+      "wallFailed": false,
+      "nearby": false
+    },
+    "blacksmith": {
+      "available": true,
+      "x": 1208,
+      "y": 0.18500000715255738,
+      "z": -1032
+    },
+    "paint": 15039334,
+    "colourAvailable": true,
+    "colourPickerOpen": true,
+    "canUndo": false,
+    "canRemove": false,
+    "hud": {
+      "width": 1280,
+      "height": 720,
+      "controls": [
+        {
+          "x": 732,
+          "y": 406,
+          "width": 44,
+          "height": 44,
+          "action": 20,
+          "value": 0,
+          "intent": 449,
+          "row": -1,
+          "enabled": true,
+          "label": "Close"
+        },
+        {
+          "x": 617,
+          "y": 450,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 0,
+          "intent": 449,
+          "row": 0,
+          "enabled": true,
+          "label": "Original"
+        },
+        {
+          "x": 681.8920288085938,
+          "y": 481.2503662109375,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 15039334,
+          "intent": 450,
+          "row": 1,
+          "enabled": true,
+          "label": "Coral"
+        },
+        {
+          "x": 697.9190063476562,
+          "y": 551.46923828125,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 15318357,
+          "intent": 451,
+          "row": 2,
+          "enabled": true,
+          "label": "Sunflower"
+        },
+        {
+          "x": 653.0123291015625,
+          "y": 607.7803955078125,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 8824713,
+          "intent": 452,
+          "row": 3,
+          "enabled": true,
+          "label": "Sage"
+        },
+        {
+          "x": 580.9876708984375,
+          "y": 607.7803955078125,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 7776688,
+          "intent": 453,
+          "row": 4,
+          "enabled": true,
+          "label": "Lagoon"
+        },
+        {
+          "x": 536.0809936523438,
+          "y": 551.4691772460938,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 15855332,
+          "intent": 454,
+          "row": 5,
+          "enabled": true,
+          "label": "Cloud"
+        },
+        {
+          "x": 552.1079711914062,
+          "y": 481.2503662109375,
+          "width": 46,
+          "height": 46,
+          "action": 10,
+          "value": 4279632,
+          "intent": 455,
+          "row": 6,
+          "enabled": true,
+          "label": "Ink"
+        }
+      ]
+    },
+    "observation": "249",
+    "revision": "1",
+    "menuSelected": 1,
+    "player": {
+      "x": 1200,
+      "y": 0.1849999475479126,
+      "z": -1120,
+      "yaw": 0.75,
+      "tick": "283"
+    },
+    "swimming": false,
+    "thrownBricks": {
+      "total": 0,
+      "live": 0,
+      "playerCollider": true,
+      "playerContacts": 0
+    },
+    "camera": {
+      "yaw": 0.75,
+      "distance": 10.5,
+      "requestedDistance": 10.5,
+      "width": 1280,
+      "height": 720,
+      "eye": [
+        1206.7938766479492,
+        6.847949028015137,
+        -1112.707275390625
+      ],
+      "viewTarget": [
+        1200,
+        3.544999947547913,
+        -1120
+      ],
+      "origin": [
+        1280,
+        0,
+        -1024
+      ],
+      "viewProjection": [
+        -0.5082525014877319,
+        -0.26478853821754456,
+        -0.647042453289032,
+        -0.6470359563827515,
+        1.656126045190831e-7,
+        1.1722078323364258,
+        -0.3145708441734314,
+        -0.3145676851272583,
+        0.4734868109226227,
+        -0.2842309772968292,
+        -0.6945512890815735,
+        -0.6945443153381348,
+        4.794529914855957,
+        -52.62471389770508,
+        -106.925048828125,
+        -106.82398223876953
+      ]
+    },
+    "aimInput": {
+      "pointer": [
+        590,
+        686
+      ],
+      "usedPointer": [
+        704,
+        503.99999999999994
+      ],
+      "mouseCaptured": false,
+      "gamepadConnected": false,
+      "padOwnsAim": false
+    },
+    "aimRay": {
+      "from": [
+        1206.7938766479492,
+        6.847949028015137,
+        -1112.707275390625
+      ],
+      "to": [
+        1190.7022954575539,
+        -7.809974485747057,
+        -1125.0038721985882
+      ],
+      "complete": true,
+      "hit": true,
+      "distance": 11.679585825348413
+    },
+    "preview": {
+      "x": 1199,
+      "y": 0.2,
+      "z": -1118,
+      "kind": 3,
+      "yaw": 0
+    },
+    "world": "b6361805c045c74c77fb1391dad72534",
+    "registeredBed": "0",
+    "health": 100,
+    "combatLabel": "Use nearby",
+    "staffEquipped": false,
+    "attackReady": true,
+    "dodgeReady": true,
+    "combatTick": "0",
+    "enemies": [
+      {
+        "id": 0,
+        "health": 0,
+        "phase": "Waiting for a clear trail",
+        "phaseCode": 0,
+        "phaseTicks": 0,
+        "attackSerial": "0",
+        "available": false,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "yaw": 0,
+        "deathRevision": "0",
+        "lootClaimRevision": "0"
+      },
+      {
+        "id": 0,
+        "health": 0,
+        "phase": "Waiting for a clear trail",
+        "phaseCode": 0,
+        "phaseTicks": 0,
+        "attackSerial": "0",
+        "available": false,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "yaw": 0,
+        "deathRevision": "0",
+        "lootClaimRevision": "0"
+      }
+    ],
+    "hammerEquipped": false,
+    "quest": {
+      "phase": "not-accepted",
+      "ready": false,
+      "objective": "Meet Moss in the meadow square.",
+      "recipeUnlocked": false,
+      "rewardRevision": "0"
+    },
+    "objective": "Meet Moss in the meadow square.",
+    "trailQuests": [
+      {
+        "id": 2,
+        "phase": 0,
+        "title": "Prepare for the trail",
+        "objective": "Help Moss finish A Place to Return.",
+        "ready": false,
+        "rewardRevision": "0"
+      },
+      {
+        "id": 3,
+        "phase": 0,
+        "title": "Recover the relay component",
+        "objective": "Finish Prepare for the trail with Rivet.",
+        "ready": false,
+        "rewardRevision": "0"
+      },
+      {
+        "id": 4,
+        "phase": 0,
+        "title": "Restore the relay",
+        "objective": "Finish Recover relay component with Lumen.",
+        "ready": false,
+        "rewardRevision": "0"
+      }
+    ],
+    "sideQuest": null,
+    "wideStoneStepUnlocked": false,
+    "discoveries": [
+      {
+        "id": 1,
+        "discoveredRevision": "0",
+        "rewardClaimRevision": "0"
+      },
+      {
+        "id": 2,
+        "discoveredRevision": "0",
+        "rewardClaimRevision": "0"
+      }
+    ],
+    "trailSites": [
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      {
+        "id": 0,
+        "available": false,
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    ],
+    "relayActivationRevision": "0",
+    "equippedUtility": {
+      "kind": 0,
+      "quantity": 0
+    },
+    "compass": {
+      "equipped": false,
+      "target": "relay",
+      "label": "Meadow beacon",
+      "bearing": 0,
+      "distance": 0,
+      "direction": "",
+      "available": false,
+      "reason": "Equip a Trail Compass to see a bearing.",
+      "backpackSlot": null
+    },
+    "dialogue": null,
+    "residents": [
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      },
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      },
+      {
+        "id": 0,
+        "name": "",
+        "role": "",
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "available": false
+      }
+    ],
+    "metNpcMask": 0,
+    "saveSchema": 6,
+    "migrationDirty": false,
+    "structures": [],
+    "components": []
+  },
+  "lost": null,
+  "gpuErrors": [],
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "x": 0,
+    "y": 0,
+    "cssWidth": 1280,
+    "cssHeight": 720,
+    "dpr": 1
+  },
+  "semantics": {
+    "present": true,
+    "mode": "colours",
+    "role": "dialog",
+    "peers": [
+      {
+        "label": "Close",
+        "disabled": false,
+        "action": 20,
+        "value": 0,
+        "row": -1,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Original",
+        "disabled": false,
+        "action": 10,
+        "value": 0,
+        "row": 0,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Coral",
+        "disabled": false,
+        "action": 10,
+        "value": 15039334,
+        "row": 1,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Sunflower",
+        "disabled": false,
+        "action": 10,
+        "value": 15318357,
+        "row": 2,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Sage",
+        "disabled": false,
+        "action": 10,
+        "value": 8824713,
+        "row": 3,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Lagoon",
+        "disabled": false,
+        "action": 10,
+        "value": 7776688,
+        "row": 4,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Cloud",
+        "disabled": false,
+        "action": 10,
+        "value": 15855332,
+        "row": 5,
+        "pointerEvents": "none"
+      },
+      {
+        "label": "Ink",
+        "disabled": false,
+        "action": 10,
+        "value": 4279632,
+        "row": 6,
+        "pointerEvents": "none"
+      }
+    ],
+    "legacyBuildUi": false
+  },
+  "buildId": "free-build-ffd7863b48810f32"
+}

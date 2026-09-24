@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "recipe": "installed-mesh-cpu-studio-hud-r01",
+  "atlas": {
+    "file": "atlas.png",
+    "width": 1024,
+    "height": 512,
+    "sha256": "dd430dc367f60b3d12b206cf68aeff6f5a417f3c1e1840ed022e18ff68bfa443"
+  },
+  "renderer": {
+    "blender": "4.1.1",
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 64,
+    "seed": 19,
+    "splitNormals": "installed VMESH normals",
+    "builderBasis": "render-to-canonical12; flip X/Z"
+  },
+  "sources": {
+    "data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh": "08ce2ff933bdc9d86d68d62e29b15f62d7f22984753f20b51fdb89348fd3236b",
+    "data/adventure/door-r01/cooked/door-leaf-lod0.vmesh": "be59bb6888aacc94c345fa3aebf0ebf1df1cacc1c3082e55c01eff16753b1e5f",
+    "data/adventure/builder-r01/human.vmesh": "3311a80c2d4fcff0d95a965a1667eacf3eb893a470458bb79b7edfe0e62a56dd"
+  },
+  "generator": {
+    "file": "tools/adventure_assets/bake_hud_art.py",
+    "sha256": "adcf29bd96d552cee265dfdef913ea31e637106189202c653a9391d911c8c2dd"
+  },
+  "font": {
+    "file": "data/fonts/adventure-hud/DMSans.ttf",
+    "sha256": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+    "pixels": 32,
+    "weight": 550,
+    "opticalSize": 32,
+    "glyphs": "ASCII32..126",
+    "region": [
+      512,
+      256,
+      512,
+      256
+    ],
+    "license": "data/fonts/adventure-hud/OFL.txt"
+  },
+  "paletteSrgb": {
+    "adventure_cream": "e8d8b8",
+    "adventure_teal": "627052",
+    "adventure_wood": "a5784f",
+    "adventure_coral": "b76343",
+    "adventure_slate": "494d48"
+  },
+  "materialPolicy": "Exact installed materials; building runtime warm palette/roughness override. No mesh changes.",
+  "filtering": {
+    "renderPixels": 384,
+    "portraitRenderPixels": 576,
+    "filter": "Pillow LANCZOS premultiplied RGBA",
+    "pillow": "11.1.0"
+  },
+  "pieces": [
+    {
+      "name": "piece-01",
+      "rect": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "sha256": "3525686ec14fec9b4eb1ca0ec59c30057fe4df7375bb81d1c7b28a6929ec78f4"
+    },
+    {
+      "name": "piece-02",
+      "rect": [
+        128,
+        0,
+        128,
+        128
+      ],
+      "sha256": "3ec20a911b757397f9aa3b184f73e131c531087f872f6233580e4706ce7dc5fa"
+    },
+    {
+      "name": "piece-03",
+      "rect": [
+        256,
+        0,
+        128,
+        128
+      ],
+      "sha256": "af40affdd3d60344103e73abcb04d437a530d83508b4ad82326f45dabe8135c5"
+    },
+    {
+      "name": "piece-04",
+      "rect": [
+        384,
+        0,
+        128,
+        128
+      ],
+      "sha256": "504f0f5631131344b702f1fd514a4e70c452a8ce9a71c05b11a04656d9a4e6c8"
+    },
+    {
+      "name": "piece-05",
+      "rect": [
+        512,
+        0,
+        128,
+        128
+      ],
+      "sha256": "3525686ec14fec9b4eb1ca0ec59c30057fe4df7375bb81d1c7b28a6929ec78f4"
+    },
+    {
+      "name": "piece-06",
+      "rect": [
+        640,
+        0,
+        128,
+        128
+      ],
+      "sha256": "fdba282e28e7a9b98acdc9e3c8076c54ff0af8bf6fb544bcb9c4c34157cf9089"
+    },
+    {
+      "name": "piece-07",
+      "rect": [
+        768,
+        0,
+        128,
+        128
+      ],
+      "sha256": "c427854196512b0fba2f1dfe66bd16d446a703bcb983c70fc2dc78d4b8983077"
+    },
+    {
+      "name": "piece-08",
+      "rect": [
+        896,
+        0,
+        128,
+        128
+      ],
+      "sha256": "1c6d1fd3c1342f411171fc61d29fcd6e0759c9755562a5958ad16a4befb61cf1"
+    },
+    {
+      "name": "piece-09",
+      "rect": [
+        0,
+        128,
+        128,
+        128
+      ],
+      "sha256": "52a1403e0fd05bed6e579082087ea9382af73bbecfebb86b79d312b20b972549"
+    },
+    {
+      "name": "piece-10",
+      "rect": [
+        128,
+        128,
+        128,
+        128
+      ],
+      "sha256": "63987bf8b8706147548461a6cd4fecc8fd2508cf0ff14193a5f09dd3c6f4deaf"
+    },
+    {
+      "name": "piece-11",
+      "rect": [
+        256,
+        128,
+        128,
+        128
+      ],
+      "sha256": "04385b5c0092b3fbd2295049d1aafec9318aba10c06f1220cbceeaf88d4a72df"
+    },
+    {
+      "name": "piece-12",
+      "rect": [
+        384,
+        128,
+        128,
+        128
+      ],
+      "sha256": "7a70eca95a0ef5df5ec28302687a6b5917613316a0eeb3f6acc7db03c9fe410d"
+    },
+    {
+      "name": "piece-13",
+      "rect": [
+        512,
+        128,
+        128,
+        128
+      ],
+      "sha256": "4e55d2db0ec8921629822026499b5d2f66e50f65e6a36924be89ba2113b8bc55"
+    },
+    {
+      "name": "piece-14",
+      "rect": [
+        640,
+        128,
+        128,
+        128
+      ],
+      "sha256": "ac778e115e8bcc2541e51f34ff6205747f92ff972510534353d06202d75802ab"
+    },
+    {
+      "name": "piece-15",
+      "rect": [
+        768,
+        128,
+        128,
+        128
+      ],
+      "sha256": "d809244b8837962d928aac17194541c72447afbc545cf17a5bcc9fce7d5f92a2"
+    }
+  ],
+  "portrait": {
+    "name": "builder-portrait",
+    "rect": [
+      0,
+      288,
+      192,
+      192
+    ],
+    "sha256": "9019fafd558b025ee73e018aa9542a17d1e41d1961dccf02ec528ea4360854af"
+  },
+  "reservedMinimap": [
+    256,
+    256,
+    256,
+    256
+  ],
+  "controls": [
+    {
+      "name": "motorbike",
+      "rect": [
+        896,
+        128,
+        64,
+        64
+      ],
+      "source": "data/art/adventure-hud-r01/generated-controls/motorbike-original.png",
+      "sourceSha256": "3caf9399a2a1d732da2accec4b5cf234fdc7b736fdad45b651f3324a9b2ff5d3",
+      "file": "sprites/control-motorbike.png",
+      "sha256": "bcffbf7f22d7a9a9555c3578d1c2a65c38b982eeb2d65f682780d3170277d091"
+    },
+    {
+      "name": "cannon",
+      "rect": [
+        960,
+        128,
+        64,
+        64
+      ],
+      "source": "data/art/adventure-hud-r01/generated-controls/cannon-original.png",
+      "sourceSha256": "d04b08183715b8b8224e17b1f870bfbf53cf15eb5f5a2236eddeb3e2ba1e7f38",
+      "file": "sprites/control-cannon.png",
+      "sha256": "cba3abc9a5c376923eafb94b0edaef9a2b0ec064de376b2134dbd89f51c8364e"
+    },
+    {
+      "name": "save-building",
+      "rect": [
+        896,
+        192,
+        64,
+        64
+      ],
+      "source": "data/art/adventure-hud-r01/generated-controls/save-building-original.png",
+      "sourceSha256": "29867947b3f27c9a63c2ddc71390eccded3e695cf5996d6b7d7aba3719843b85",
+      "file": "sprites/control-save-building.png",
+      "sha256": "3ee2e4395c81c9ddb6ae0eafeb9a4053d85800d5c57fdef3dd6702251154d49b"
+    }
+  ],
+  "controlPromptsSha256": "b6858a1b580b51dcfcf416c03652a7afe79131da7ecc9fd51db9e259499c072f",
+  "header": {
+    "file": "src/render/generated/adventure_hud_art.hpp",
+    "sha256": "f1fdb99de6a506209731345fff7d7a37f9c6a0be88ecde60cbd9b1f26daf978f"
+  },
+  "reviewSha256": "14819a6c443f76adf7fcb435319f91921443363a31ba3c401447b94c7387f0b4",
+  "reproduction": "python3 tools/adventure_assets/bake_hud_art.py --blender <Blender4.1 executable> --samples 64 --threads 3"
+}

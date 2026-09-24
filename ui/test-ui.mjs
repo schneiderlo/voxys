@@ -1,16 +1,19 @@
-import {test} from 'node:test';
+import {test,afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import {createBridge} from './src/bridge.js';
 const bundle=await readFile(new URL('../web/build_ui.js',import.meta.url),'utf8');
+const openFixtures=new Set();
+afterEach(()=>{for(const dom of openFixtures)dom.window.close();openFixtures.clear();});
+async function waitFor(predicate){const end=Date.now()+5000;while(!predicate()){if(Date.now()>end)throw Error('UI did not reach the expected state');await new Promise(r=>setTimeout(r,10));}}
 const wait=()=>new Promise(resolve=>setTimeout(resolve,70));
 function fixture(){
     const dom=new JSDOM('<!doctype html><canvas id="voxy-canvas" tabindex="0"></canvas>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
-    const w=dom.window;w.requestAnimationFrame=fn=>w.setTimeout(fn,0);w.cancelAnimationFrame=id=>w.clearTimeout(id);
+    openFixtures.add(dom);const w=dom.window;w.requestAnimationFrame=fn=>w.setTimeout(fn,0);w.cancelAnimationFrame=id=>w.clearTimeout(id);
     let state={creative:true,ready:true,mode:'build',piece:10,menuToken:1,observation:'1',rows:[],parts:0,paint:0,colourAvailable:true,canUndo:false,canRemove:false,valid:true,status:'Ready',dirty:true,saveStatus:'Unsaved build'};
     const calls=[];const engine={_get_adventure_state_json:()=>1,UTF8ToString:()=>JSON.stringify(state),_adventure_action:(id,value)=>calls.push([id,value])};
-    return {w,engine,calls,get state(){return state;},set state(value){state=value;},advance(changes={}){state={...state,...changes,observation:String(Number(state.observation)+1)};},close(){dom.window.close();}};
+    return {w,engine,calls,get state(){return state;},set state(value){state=value;},advance(changes={}){state={...state,...changes,observation:String(Number(state.observation)+1)};},ready(){return waitFor(()=>w.document.querySelector('#build-ui')?.dataset.mode===state.mode);},close(){dom.window.close();openFixtures.delete(dom);}};
 }
 test('bridge rejects stale menu events and guards pending actions without blocking focus metadata',()=>{
     const f=fixture();let published;const b=createBridge(f.engine,f.w,s=>published=s);
@@ -89,7 +92,7 @@ test('invalid runtime state fails closed; unsaved builds keep unload protection'
     b.cleanup();f.close();
 });
 test('minimal HUD cycles real pieces, opens colour only on demand, and cleans up',async()=>{
-    const f=fixture();f.state={...f.state,dirty:false};f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    const f=fixture();f.state={...f.state,dirty:false};f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const doc=f.w.document;assert.equal(doc.querySelector('[aria-label="Save build"]').textContent,'Save');assert.equal(doc.querySelectorAll('.bb-piece').length,15);
     assert.equal(doc.querySelector('.bb-popup'),null);assert.equal(doc.querySelector('[aria-label="Brick 2 × 4"]').getAttribute('aria-pressed'),'true');
     const wheel=new f.w.WheelEvent('wheel',{deltaY:100,bubbles:true,cancelable:true});doc.querySelector('.bb-hotbar').dispatchEvent(wheel);assert.equal(wheel.defaultPrevented,true);
@@ -103,7 +106,7 @@ test('minimal HUD cycles real pieces, opens colour only on demand, and cleans up
     app.cleanup();assert.equal(doc.querySelector('#build-ui'),null);assert.deepEqual(f.calls.at(-1),[19,0]);f.close();
 });
 test('swimming hints follow water state in building and explore modes',async()=>{
-    const f=fixture();f.state={...f.state,swimming:true};f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    const f=fixture();f.state={...f.state,swimming:true};f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const doc=f.w.document;assert.match(doc.querySelector('.bb-hints').textContent,/Space · riseX · diveRight-drag · steer/);
     f.advance({mode:'explore'});await new Promise(r=>setTimeout(r,140));
     assert.match(doc.querySelector('.bb-walk-dock').textContent,/Space · rise/);assert.match(doc.querySelector('.bb-walk-dock').textContent,/X · dive/);
@@ -113,7 +116,7 @@ test('swimming hints follow water state in building and explore modes',async()=>
 });
 test('modal uses authoritative intents, traps focus, and does not block click after row focus',async()=>{
     const f=fixture();f.state={...f.state,mode:'pause',menuSelected:0,rows:[{label:'Return to building',enabled:true,intent:65},{label:'Save build',enabled:true,intent:66}]};
-    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const doc=f.w.document,second=doc.querySelector('[data-row="1"]');second.focus();second.click();await wait();
     assert.ok(f.calls.some(([id,v])=>id===26&&v===66));assert.ok(f.calls.some(([id,v])=>id===10&&v===66));
     f.advance();await new Promise(r=>setTimeout(r,140));
@@ -122,7 +125,7 @@ test('modal uses authoritative intents, traps focus, and does not block click af
 });
 
 test('motorbike button routes mount and mounted HUD replaces building controls',async()=>{
-    const f=fixture();f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    const f=fixture();f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const button=[...f.w.document.querySelectorAll('button')].find(b=>b.textContent==='MotorbikeM');
     assert.ok(button);button.click();await wait();assert.deepEqual(f.calls.filter(([id])=>id===32).at(-1),[32,0]);
     f.advance({riding:true,mode:'explore',build:false});await new Promise(r=>setTimeout(r,140));
@@ -134,7 +137,7 @@ test('motorbike button routes mount and mounted HUD replaces building controls',
 
 test('cannon mode owns firing controls and disables fire until physical collision is ready',async()=>{
     const f=fixture();f.state={...f.state,mode:'explore',cannon:{available:true,active:true,ready:false}};
-    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const doc=f.w.document,controls=doc.querySelector('[aria-label="Cannon controls"]');assert.ok(controls);
     assert.equal(doc.querySelector('.bb-hotbar'),null);
     assert.equal([...doc.querySelectorAll('button')].some(b=>b.textContent==='MotorbikeM'),false);
@@ -152,7 +155,7 @@ test('cannon mode owns firing controls and disables fire until physical collisio
 
 test('cannon impact controls show shot and damage state without exposing manual test actions',async()=>{
     const f=fixture();f.state={...f.state,mode:'explore',cannon:{available:true,active:true,ready:true,wallReady:true,wallReleased:false,wallBusy:false,impacts:0}};
-    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const find=text=>[...f.w.document.querySelectorAll('button')].find(b=>b.textContent===text);
     const controls=()=>f.w.document.querySelector('[aria-label="Cannon controls"]');
     assert.equal(find('Release wall'),undefined);assert.equal(find('Remove support brick'),undefined);
@@ -203,22 +206,24 @@ test('repeated cannon refusals show feedback again without extending it on ordin
         return nativeTimeout(callback,delay,...args);
     };
     f.w.clearTimeout=id=>{if(id>=0)nativeClear(id);};
-    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
+    // Let the initial status effect establish its baseline before the event.
+    await wait();
     const message='Walk to the red cannon, then press C.';
-    f.advance({status:message,statusEvent:'1'});await new Promise(r=>setTimeout(r,140));
+    f.advance({status:message,statusEvent:'1'});await waitFor(()=>f.w.document.querySelector('.bb-toast').textContent===message&&toastTimers===1);
     assert.equal(f.w.document.querySelector('.bb-toast').textContent,message);
-    assert.equal(toastTimers,1);expire();await wait();
+    assert.equal(toastTimers,1);expire();await waitFor(()=>f.w.document.querySelector('.bb-toast').textContent==='');
     assert.equal(f.w.document.querySelector('.bb-toast').textContent,'');
     f.advance();await new Promise(r=>setTimeout(r,140));
     assert.equal(toastTimers,1);assert.equal(f.w.document.querySelector('.bb-toast').textContent,'');
-    f.advance({statusEvent:'2'});await new Promise(r=>setTimeout(r,140));
+    f.advance({statusEvent:'2'});await waitFor(()=>f.w.document.querySelector('.bb-toast').textContent===message&&toastTimers===2);
     assert.equal(f.w.document.querySelector('.bb-toast').textContent,message);
     assert.equal(toastTimers,2);app.cleanup();f.close();
 });
 
 test('distant cannon offers explicit travel while wall inspection explains aiming controls',async()=>{
     const f=fixture();f.state={...f.state,mode:'explore',cannon:{available:true,active:false,nearby:false,distanceStuds:23.2}};
-    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await wait();
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();
     const visit=f.w.document.querySelector('button[aria-label="Visit cannon"]');
     assert.ok(visit);visit.click();await wait();
     assert.deepEqual(f.calls.filter(([id])=>id===33).at(-1),[33,0]);
@@ -227,5 +232,42 @@ test('distant cannon offers explicit travel while wall inspection explains aimin
     f.advance({cannon:{available:true,active:true,ready:true,wallReady:true,nearby:true,inspectingWall:true}});await new Promise(r=>setTimeout(r,140));
     assert.ok(f.w.document.querySelector('button[aria-label="Leave cannon"]'));
     assert.match(f.w.document.querySelector('[aria-label="Cannon controls"]').textContent,/Wall close-up · A\/D or W\/S to return to aiming/);
+    app.cleanup();f.close();
+});
+
+test('catalog search retains original row intent and exposes an empty state',async()=>{
+    const f=fixture();f.state={...f.state,mode:'catalog',catalogCategory:1,menuSelected:0,
+        rows:[{label:'Brick 1 × 2',pieceKind:8,enabled:true,intent:81},{label:'Brick 2 × 4',pieceKind:10,enabled:true,intent:94}]};
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();const doc=f.w.document;
+    assert.equal([...doc.querySelectorAll('.bb-filters button')].find(b=>b.getAttribute('aria-pressed')==='true').textContent,'Bricks');
+    const input=doc.querySelector('input[type=search]');input.focus();input.value='2 × 4';input.dispatchEvent(new f.w.Event('input',{bubbles:true}));await wait();
+    assert.equal(doc.querySelectorAll('.bb-catalog-piece').length,1);assert.equal(doc.querySelector('.bb-catalog-piece').dataset.row,'1');
+    assert.equal(doc.activeElement,input);
+    doc.querySelector('.bb-catalog-piece').click();await wait();assert.deepEqual(f.calls.filter(([id])=>id===10).at(-1),[10,94]);
+    f.advance();await new Promise(r=>setTimeout(r,140));input.value='no such piece';input.dispatchEvent(new f.w.Event('input',{bubbles:true}));await wait();
+    assert.match(doc.querySelector('.bb-empty').textContent,/No pieces found/);doc.querySelector('.bb-empty button').click();await wait();
+    assert.equal(doc.querySelectorAll('.bb-catalog-piece').length,2);
+    app.cleanup();f.close();
+});
+
+test('palette keyboard dismissal restores its trigger and keeps gameplay input owned',async()=>{
+    const f=fixture();f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();const doc=f.w.document;
+    const trigger=doc.querySelector('[data-popup-toggle="colour"]');trigger.click();await wait();
+    assert.equal(doc.activeElement.getAttribute('aria-label'),'Close colour palette');
+    doc.activeElement.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await wait();
+    assert.equal(doc.querySelector('.bb-popup'),null);assert.equal(doc.activeElement,trigger);assert.equal(trigger.getAttribute('aria-expanded'),'false');
+
+    app.cleanup();f.close();
+});
+
+test('quick tools dispatch existing commands and accessibility preferences reach the root',async()=>{
+    const f=fixture();f.state={...f.state,canUndo:false,textScale:1.5,highContrast:true,reducedMotion:true};
+    f.w.eval(bundle);const app=f.w.VoxyBuildUI.install(f.engine,f.w);await f.ready();const doc=f.w.document;
+    assert.equal(doc.querySelector('[aria-label="Undo last piece"]').disabled,true);
+    assert.equal(doc.querySelector('#build-ui').dataset.contrast,'true');assert.equal(doc.querySelector('#build-ui').dataset.motion,'reduced');
+    assert.equal(doc.querySelector('#build-ui').style.getPropertyValue('--bb-scale'),'1.5');
+    doc.querySelector('[aria-label="Rotate piece"]').click();await wait();assert.deepEqual(f.calls.filter(([id])=>id===3).at(-1),[3,0]);
+    f.advance({canUndo:true});await new Promise(r=>setTimeout(r,140));doc.querySelector('[aria-label="Undo last piece"]').click();await wait();
+    assert.deepEqual(f.calls.filter(([id])=>id===6).at(-1),[6,0]);
     app.cleanup();f.close();
 });

@@ -24,6 +24,7 @@ set(TEST_SOURCES
     test_adventure_pointer.cpp
     test_adventure_walkable.cpp
     test_adventure_navigation.cpp
+    test_adventure_minimap.cpp
     test_adventure_encounters.cpp
     test_adventure_combat.cpp
     test_adventure_combat_session.cpp
@@ -1126,6 +1127,12 @@ target_link_libraries(adventure_navigation_tests PRIVATE voxy_core gtest gtest_m
 set_project_warnings(adventure_navigation_tests)
 gtest_discover_tests(adventure_navigation_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_navigation.")
+
+add_executable(adventure_minimap_tests test_adventure_minimap.cpp)
+target_link_libraries(adventure_minimap_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(adventure_minimap_tests)
+gtest_discover_tests(adventure_minimap_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "adventure_minimap.")
 
 if(NOT EMSCRIPTEN)
 add_executable(native_adventure_save_tests test_native_adventure_saves.cpp)

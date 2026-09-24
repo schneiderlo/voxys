@@ -1,0 +1,357 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "method": "Live game; real CDP pointer clicks on runtime-published shared GPU HUD hits; all DOM left intact",
+  "started": "2026-09-24T21:13:52.698Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720,
+    "dpr": 1
+  },
+  "captures": [
+    {
+      "name": "build",
+      "file": "build.png",
+      "state": "build.json",
+      "sha256": "41ddee3bc8772edaa5c3206012d20e87ab281751e5b0227258f7f0b899464b22",
+      "frame": 90,
+      "mode": "build",
+      "hits": 20,
+      "semanticButtons": 20,
+      "piece": 10,
+      "paint": 0,
+      "parts": 0
+    },
+    {
+      "name": "catalog",
+      "file": "catalog.png",
+      "state": "catalog.json",
+      "sha256": "7f9bd5bdc8d3b3adc14abadf73c68757d2a756f9c3d8bb1938cbc3e986619611",
+      "frame": 160,
+      "mode": "catalog",
+      "hits": 13,
+      "semanticButtons": 13,
+      "piece": 10,
+      "paint": 0,
+      "parts": 0
+    },
+    {
+      "name": "palette",
+      "file": "palette.png",
+      "state": "palette.json",
+      "sha256": "544ad2f1af288677daa4eaca11c21cb1817c7bc3cb96ec93890014a90cd44621",
+      "frame": 249,
+      "mode": "colours",
+      "hits": 8,
+      "semanticButtons": 8,
+      "piece": 3,
+      "paint": 15039334,
+      "parts": 0
+    },
+    {
+      "name": "explore",
+      "file": "explore.png",
+      "state": "explore.json",
+      "sha256": "4c5201f81c412bd524b8d5a36cf576a36ec61cd3edfc6c26075df21878ccc5df",
+      "frame": 315,
+      "mode": "explore",
+      "hits": 6,
+      "semanticButtons": 6,
+      "piece": 3,
+      "paint": 15039334,
+      "parts": 0
+    }
+  ],
+  "actions": [
+    {
+      "label": "Open pieces",
+      "control": {
+        "x": 418,
+        "y": 664,
+        "width": 44,
+        "height": 44,
+        "action": 23,
+        "value": 0,
+        "intent": 65,
+        "row": -1,
+        "enabled": true,
+        "label": "Pieces"
+      },
+      "position": {
+        "x": 440,
+        "y": 686
+      },
+      "before": {
+        "frame": 127,
+        "mode": "build",
+        "token": 1
+      },
+      "after": {
+        "frame": 138,
+        "mode": "catalog",
+        "token": 2,
+        "piece": 10,
+        "paint": 0,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Structure category",
+      "control": {
+        "x": 888,
+        "y": 386,
+        "width": 120,
+        "height": 44,
+        "action": 13,
+        "value": 1,
+        "intent": 129,
+        "row": -1,
+        "enabled": true,
+        "label": "Structure"
+      },
+      "position": {
+        "x": 948,
+        "y": 408
+      },
+      "before": {
+        "frame": 139,
+        "mode": "catalog",
+        "token": 2
+      },
+      "after": {
+        "frame": 149,
+        "mode": "catalog",
+        "token": 3,
+        "piece": 10,
+        "paint": 0,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Choose wall",
+      "control": {
+        "x": 1122.5404052734375,
+        "y": 411.5,
+        "width": 64,
+        "height": 64,
+        "action": 10,
+        "value": 0,
+        "intent": 195,
+        "row": 2,
+        "enabled": true,
+        "label": "Wall"
+      },
+      "position": {
+        "x": 1154.5404052734375,
+        "y": 443.5
+      },
+      "before": {
+        "frame": 197,
+        "mode": "catalog",
+        "token": 3
+      },
+      "after": {
+        "frame": 207,
+        "mode": "build",
+        "token": 4,
+        "piece": 3,
+        "paint": 0,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Open colours",
+      "control": {
+        "x": 568,
+        "y": 664,
+        "width": 44,
+        "height": 44,
+        "action": 38,
+        "value": 0,
+        "intent": 257,
+        "row": -1,
+        "enabled": true,
+        "label": "Colour"
+      },
+      "position": {
+        "x": 590,
+        "y": 686
+      },
+      "before": {
+        "frame": 208,
+        "mode": "build",
+        "token": 4
+      },
+      "after": {
+        "frame": 217,
+        "mode": "colours",
+        "token": 5,
+        "piece": 3,
+        "paint": 0,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Choose coral",
+      "control": {
+        "x": 681.8920288085938,
+        "y": 481.2503662109375,
+        "width": 46,
+        "height": 46,
+        "action": 10,
+        "value": 15039334,
+        "intent": 322,
+        "row": 1,
+        "enabled": true,
+        "label": "Coral"
+      },
+      "position": {
+        "x": 704.8920288085938,
+        "y": 504.2503662109375
+      },
+      "before": {
+        "frame": 219,
+        "mode": "colours",
+        "token": 5
+      },
+      "after": {
+        "frame": 227,
+        "mode": "build",
+        "token": 6,
+        "piece": 3,
+        "paint": 15039334,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Reopen colours",
+      "control": {
+        "x": 568,
+        "y": 664,
+        "width": 44,
+        "height": 44,
+        "action": 38,
+        "value": 0,
+        "intent": 385,
+        "row": -1,
+        "enabled": true,
+        "label": "Colour"
+      },
+      "position": {
+        "x": 590,
+        "y": 686
+      },
+      "before": {
+        "frame": 230,
+        "mode": "build",
+        "token": 6
+      },
+      "after": {
+        "frame": 239,
+        "mode": "colours",
+        "token": 7,
+        "piece": 3,
+        "paint": 15039334,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Close colours",
+      "control": {
+        "x": 732,
+        "y": 406,
+        "width": 44,
+        "height": 44,
+        "action": 20,
+        "value": 0,
+        "intent": 449,
+        "row": -1,
+        "enabled": true,
+        "label": "Close"
+      },
+      "position": {
+        "x": 754,
+        "y": 428
+      },
+      "before": {
+        "frame": 285,
+        "mode": "colours",
+        "token": 7
+      },
+      "after": {
+        "frame": 293,
+        "mode": "build",
+        "token": 8,
+        "piece": 3,
+        "paint": 15039334,
+        "parts": 0
+      }
+    },
+    {
+      "label": "Walk",
+      "control": {
+        "x": 818,
+        "y": 664,
+        "width": 44,
+        "height": 44,
+        "action": 22,
+        "value": 0,
+        "intent": 513,
+        "row": -1,
+        "enabled": true,
+        "label": "Done"
+      },
+      "position": {
+        "x": 840,
+        "y": 686
+      },
+      "before": {
+        "frame": 296,
+        "mode": "build",
+        "token": 8
+      },
+      "after": {
+        "frame": 305,
+        "mode": "explore",
+        "token": 9,
+        "piece": 3,
+        "paint": 15039334,
+        "parts": 0
+      }
+    }
+  ],
+  "consoleExceptions": [],
+  "siteFiles": {
+    "index.html": {
+      "bytes": 104330,
+      "sha256": "3a321920f2724eab365da9fe1556834dacb0f95543c1550fba074185c01d7067"
+    },
+    "voxy_wasm.js": {
+      "bytes": 242899,
+      "sha256": "24682a6647f61bcf239e96e9a2593269bb9e6eb248036475fb89c181cb5f7981"
+    },
+    "voxy_wasm.wasm": {
+      "bytes": 9590240,
+      "sha256": "eadc390117f4b96fbc1d8eadd438e5014b1c22d14b7916fd568231bd093fdf19"
+    },
+    "build_ui.js": {
+      "bytes": 49620,
+      "sha256": "cf9074a1f39aad708a18808e2dab0f801d1d03f9915faeaa5780b8bb7a53fa2e"
+    },
+    "build_ui.css": {
+      "bytes": 20961,
+      "sha256": "750f000bfa4e9a35850b03b0dbedc019165169878d72ce798d4144e4d4c4094f"
+    }
+  },
+  "profile": "C:\\Users\\m3ndag\\AppData\\Local\\Temp\\voxys-shared-hud-YpBw9N",
+  "url": "http://127.0.0.1:51352/index.html?experience=build&new=1&telemetry=0",
+  "last": {
+    "frame": 315,
+    "ready": true,
+    "mode": "explore",
+    "hits": 6,
+    "lost": null
+  },
+  "initialParts": 0,
+  "finished": "2026-09-24T21:17:41.684Z"
+}
