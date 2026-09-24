@@ -338,7 +338,9 @@ try{
             if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
             const pointer=voxyModule._voxy_get_telemetry_json();const moto=voxyModule._voxy_get_moto_hud_json?.();
-            const buildImages=Array.from(document.querySelectorAll('#build-ui .bb-hotbar img'));
+            // The GPU draws the Free Build HUD; the page carries one
+            // transparent accessible peer button per published control.
+            const sharedHud=document.getElementById('shared-hud-accessibility');
             const isCreativeState=()=>{
                 if(!document.body.classList.contains('voxy-build'))return null;
                 const statePointer=voxyModule._get_adventure_state_json?.();
@@ -352,9 +354,8 @@ try{
                 heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
                 creative:isCreativeState(),
-                buildHotbarVisible:!!document.querySelector('#build-ui .bb-hotbar'),
-                buildImagesReady:buildImages.length>0&&buildImages.every(img=>img.complete&&img.naturalWidth>0),
-                buildUIFailed:!!document.querySelector('#build-ui .bb-error'),
+                buildHotbarVisible:!!sharedHud?.querySelector('.shared-hud-peer'),
+                buildUIFailed:sharedHud?.dataset.mode==='unavailable',
                 legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false,
                 salvageControlsVisible:document.getElementById('salvage-preview')?.hidden===false,
                 salvage:voxyModule._voxy_get_salvage_preview_json
@@ -365,7 +366,7 @@ try{
         if(sample?.errors?.length||sample?.lost)throw new Error('GPU device error: '+JSON.stringify(sample.lost||sample.errors));
         // Passing the eight-frame queue limit requires a completion callback.
         // A timestamp sample additionally proves that GPU work/readback retired.
-        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible&&(!isCreative||sample.buildImagesReady))break;
+        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible&&(!isCreative||sample.buildHotbarVisible))break;
         await delay(500);
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
@@ -483,9 +484,10 @@ try{
         assert.equal(sample.title,'Voxys — Free Build');
         assert.equal(sample.creative?.creative,true,'default route must use creative authority');
         assert.equal(sample.creative?.mode,'build','default route must start building');
-        assert.equal(sample.creative?.piece,10,'default brick selection changed');
-        assert.equal(sample.buildHotbarVisible,true,'creative hotbar failed to mount');
-        assert.equal(sample.buildImagesReady,true,'creative brick thumbnails failed to load');
+        // The shared HUD starts on quick slot 1: the red 2x2 brick.
+        assert.equal(sample.creative?.quickSlot,1,'default quick slot changed');
+        assert.equal(sample.creative?.piece,9,'default brick selection changed');
+        assert.equal(sample.buildHotbarVisible,true,'creative HUD controls failed to mount');
         assert.equal(sample.buildUIFailed,false,'creative UI failed to read runtime');
         assert.equal(sample.telemetry.render.terrain_width,8192);
         assert.equal(sample.telemetry.render.terrain_height,8192);
