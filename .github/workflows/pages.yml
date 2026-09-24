@@ -149,7 +149,7 @@ jobs:
           fi
           ls -lah docs/
       - name: Loading animation timing regression
-        run: node --test scripts/test_loading_roller.mjs scripts/test_data_packs.mjs
+        run: node --test scripts/test_loading_roller.mjs scripts/test_data_packs.mjs scripts/test_webgpu_startup.mjs scripts/test_startup_budget.mjs
       - name: Start the main page through the full browser application
         id: main_page_smoke
         env:

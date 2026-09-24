@@ -9,6 +9,8 @@ import http from 'node:http';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {startupBudget} from './startup_budget.mjs';
+const {startupMs:startupTimeoutMs,totalMs:timeoutMs}=startupBudget();
 const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
 if(!selected){
@@ -166,10 +168,6 @@ const startBrowserMemory=call=>{
     memoryTimer=setInterval(()=>{void sample();},memoryIntervalMs);
     void sample();
 };
-const softwareGpu=String(process.env.VOXY_SMOKE_GPU||'').startsWith('swiftshader');
-const startupTimeoutMs=softwareGpu?360000:180000;
-const timeoutMs=Number(process.env.VOXY_SMOKE_TIMEOUT_MS||(softwareGpu?480000:240000));
-assert(Number.isInteger(timeoutMs)&&timeoutMs>=60000&&timeoutMs<=1800000,'smoke timeout must be 60..1800 seconds');
 report.timeout_ms=timeoutMs;
 report.startup_timeout_ms=startupTimeoutMs;
 const timer=setTimeout(()=>{report.timeout_expired=true;chrome.kill('SIGKILL');},timeoutMs);
@@ -255,7 +253,7 @@ try{
                 return original.apply(this,arguments);
             };
         }
-        for(const name of ['createShaderModule','createComputePipeline','createRenderPipeline']){
+        for(const name of ['createShaderModule','createComputePipeline','createRenderPipeline','createComputePipelineAsync','createRenderPipelineAsync']){
             const original=GPUDevice.prototype[name];
             GPUDevice.prototype[name]=function(descriptor){
                 d.pipelineCalls.push({name,label:descriptor?.label||'',time:performance.now()});
