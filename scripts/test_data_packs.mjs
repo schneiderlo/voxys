@@ -44,12 +44,12 @@ test('manifest parsing accepts only a written release manifest',()=>{
     assert.deepEqual(Object.keys(api.parseManifest('{"voxy_wasm.data":{"sha256":"'+hash('a')+'","size":4}}')),['voxy_wasm.data']);
 });
 
-test('only salvage and RIDGEBREAK experiences request optional packs',()=>{
+test('LEGO-terrain experiences need no optional pack; others request theirs',()=>{
     const api=load();
-    assert.deepEqual([...api.packsFor('build')],[]);
-    assert.deepEqual([...api.packsFor('lego-world')],[]);
-    assert.deepEqual([...api.packsFor('ridgebreak')],['moto']);
+    for(const experience of ['build','adventure','lego','lego-world'])assert.deepEqual([...api.packsFor(experience)],[]);
     assert.deepEqual([...api.packsFor('salvage-cove')],['salvage']);
+    assert.deepEqual([...api.packsFor('ridgebreak')],['moto','materials']);
+    assert.deepEqual([...api.packsFor('terrain')],['materials']);
 });
 
 test('first visit downloads, a later visit with the same hashes reads the cache',async()=>{

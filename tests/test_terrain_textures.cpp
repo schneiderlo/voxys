@@ -215,6 +215,44 @@ TEST_F(TerrainTexturesTest, MissingMaterialPackUsesCompleteFallback) {
         gpu::calculateMipLevelCount(64u, 64u));
 }
 
+TEST_F(TerrainTexturesTest, SeabedOnlyNeedsJustTheSandAlbedo) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+    const std::filesystem::path sand =
+        "data/materials/Ground054_1K-JPG_Color.jpg";
+    if (!std::filesystem::exists(sand)) {
+        GTEST_SKIP() << "terrain material pack not available";
+    }
+    // A web build ships only the sand albedo for LEGO terrain.
+    const auto directory = std::filesystem::path(::testing::TempDir())
+        / "seabed_only_material_pack";
+    std::filesystem::remove_all(directory);
+    std::filesystem::create_directories(directory);
+    std::filesystem::copy_file(sand, directory / sand.filename());
+
+    terrain::TerrainTextureConfig config;
+    config.placeholderWidth = 8u;
+    config.placeholderHeight = 8u;
+    config.materialDirectory = directory;
+    config.seabedAlbedoOnly = true;
+    ASSERT_TRUE(textures_.init(
+        gpuContext_.getDevice(), gpuContext_.getQueue(), config));
+    std::filesystem::remove_all(directory);
+
+    EXPECT_GT(textures_.getMaterialWidth(), 64u)
+        << "the sand layer must keep its source resolution";
+    EXPECT_EQ(
+        wgpuTextureGetDepthOrArrayLayers(
+            textures_.getMaterialAlbedoTexture()),
+        terrain::TerrainTextures::kMaterialLayerCount);
+    EXPECT_EQ(
+        wgpuTextureGetMipLevelCount(
+            textures_.getMaterialNormalRoughnessTexture()),
+        gpu::calculateMipLevelCount(
+            textures_.getMaterialWidth(), textures_.getMaterialHeight()));
+}
+
 TEST_F(TerrainTexturesTest, SamplerCreated) {
     if (!gpuContextInitialized_) {
         GTEST_SKIP() << "GPU context not available";

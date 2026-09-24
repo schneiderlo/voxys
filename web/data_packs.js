@@ -23,11 +23,15 @@
     }
 
     // Optional packs (see scripts/build_wasm_data_pack.py) hold content that
-    // only these experiences read. Everything else is in voxy_wasm.data.
+    // only some experiences read. Everything else is in voxy_wasm.data.
+    // LEGO-terrain experiences need only the seabed albedo from the terrain
+    // materials; the procedural terrain (voxy.cfg) and RIDGEBREAK need all.
+    const legoTerrain=new Set(['build','adventure','lego','lego-world']);
     function packsFor(experience){
-        if(experience==='ridgebreak')return ['moto'];
-        if(String(experience).startsWith('salvage'))return ['salvage'];
-        return [];
+        experience=String(experience);
+        if(experience.startsWith('salvage'))return ['salvage'];
+        if(legoTerrain.has(experience))return [];
+        return experience==='ridgebreak'?['moto','materials']:['materials'];
     }
 
     const fileUrl=(name,entry)=>`${name}?h=${entry.sha256}`;

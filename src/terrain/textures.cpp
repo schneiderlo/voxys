@@ -207,6 +207,48 @@ constexpr std::array<MaterialSource, TerrainTextures::kMaterialLayerCount>
         {"Rock050_1K-JPG"},   // exposed rock
     }};
 
+// Procedural stand-in texels for one material layer: a hashed variation of a
+// flat base colour, an up-facing normal and a constant roughness.
+void fillFallbackMaterialLayer(uint32_t layer, uint32_t width, uint32_t height,
+                               std::vector<uint8_t>& albedo,
+                               std::vector<uint8_t>& normalRoughness) {
+    constexpr std::array<std::array<uint8_t, 3>, TerrainTextures::kMaterialLayerCount>
+        baseColor{{
+            {166u, 145u, 108u},
+            {112u, 101u, 72u},
+            {62u, 94u, 43u},
+            {84u, 85u, 82u},
+        }};
+    constexpr std::array<uint8_t, TerrainTextures::kMaterialLayerCount> roughness{
+        194u, 210u, 220u, 184u,
+    };
+    const size_t byteCount = static_cast<size_t>(width) * height * 4u;
+    albedo.resize(byteCount);
+    normalRoughness.resize(byteCount);
+    for (uint32_t y = 0u; y < height; ++y) {
+        for (uint32_t x = 0u; x < width; ++x) {
+            const size_t index =
+                (static_cast<size_t>(y) * width + x) * 4u;
+            const uint32_t hash =
+                (x * 1'664'525u + y * 1'013'904'223u
+                 + layer * 747'796'405u) >> 27u;
+            const int variation = static_cast<int>(hash) - 16;
+            for (size_t channel = 0u; channel < 3u; ++channel) {
+                albedo[index + channel] =
+                    static_cast<uint8_t>(std::clamp(
+                        static_cast<int>(baseColor[layer][channel])
+                            + variation,
+                        0, 255));
+            }
+            albedo[index + 3u] = 255u;
+            normalRoughness[index + 0u] = 128u;
+            normalRoughness[index + 1u] = 128u;
+            normalRoughness[index + 2u] = 255u;
+            normalRoughness[index + 3u] = roughness[layer];
+        }
+    }
+}
+
 } // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -409,7 +451,9 @@ bool TerrainTextures::init(WGPUDevice device, WGPUQueue queue,
         !config.materialDirectory.empty()
         && std::filesystem::exists(config.materialDirectory);
     if (!materialAssetsPresent
-        || !loadTerrainMaterials(config.materialDirectory)) {
+        || !(config.seabedAlbedoOnly
+                 ? loadSeabedMaterial(config.materialDirectory)
+                 : loadTerrainMaterials(config.materialDirectory))) {
         if (materialAssetsPresent) {
             LOG_WARN(
                 "Terrain material pack is incomplete; using bounded fallback");
@@ -659,6 +703,40 @@ bool TerrainTextures::loadTerrainMaterials(
     return true;
 }
 
+bool TerrainTextures::loadSeabedMaterial(
+    const std::filesystem::path& directory) {
+    LOG_SCOPE("TerrainTextures::loadSeabedMaterial");
+    if (directory.empty()) return false;
+    const std::string stem(kMaterialSources[0].stem);
+    auto color = decodeImage(directory / (stem + "_Color.jpg"), 4);
+    if (!color) {
+        LOG_WARN("Missing or invalid seabed material '{}'", stem);
+        return false;
+    }
+    const uint32_t width = color->width;
+    const uint32_t height = color->height;
+    size_t byteCount = 0u;
+    uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(width, height, 4u, byteCount, bytesPerRow)
+        || color->pixels.size() != byteCount) {
+        LOG_WARN("Seabed material '{}' has an invalid layout", stem);
+        return false;
+    }
+    std::array<std::vector<uint8_t>, kMaterialLayerCount> albedo;
+    std::array<std::vector<uint8_t>, kMaterialLayerCount> normalRoughness;
+    for (uint32_t layer = 0u; layer < kMaterialLayerCount; ++layer) {
+        fillFallbackMaterialLayer(layer, width, height,
+                                  albedo[layer], normalRoughness[layer]);
+    }
+    albedo[0] = std::move(color->pixels);
+    if (!uploadTerrainMaterialArrays(albedo, normalRoughness, width, height)) {
+        return false;
+    }
+    LOG_INFO("Loaded seabed material from '{}' ({}x{}); other layers are "
+             "procedural", directory.string(), width, height);
+    return true;
+}
+
 bool TerrainTextures::createFallbackTerrainMaterials(
     uint32_t width, uint32_t height) {
     size_t byteCount = 0u;
@@ -667,44 +745,11 @@ bool TerrainTextures::createFallbackTerrainMaterials(
             width, height, 4u, byteCount, bytesPerRow)) {
         return false;
     }
-
-    constexpr std::array<std::array<uint8_t, 3>, kMaterialLayerCount>
-        baseColor{{
-            {166u, 145u, 108u},
-            {112u, 101u, 72u},
-            {62u, 94u, 43u},
-            {84u, 85u, 82u},
-        }};
-    constexpr std::array<uint8_t, kMaterialLayerCount> roughness{
-        194u, 210u, 220u, 184u,
-    };
     std::array<std::vector<uint8_t>, kMaterialLayerCount> albedo;
     std::array<std::vector<uint8_t>, kMaterialLayerCount> normalRoughness;
     for (uint32_t layer = 0u; layer < kMaterialLayerCount; ++layer) {
-        albedo[layer].resize(byteCount);
-        normalRoughness[layer].resize(byteCount);
-        for (uint32_t y = 0u; y < height; ++y) {
-            for (uint32_t x = 0u; x < width; ++x) {
-                const size_t index =
-                    (static_cast<size_t>(y) * width + x) * 4u;
-                const uint32_t hash =
-                    (x * 1'664'525u + y * 1'013'904'223u
-                     + layer * 747'796'405u) >> 27u;
-                const int variation = static_cast<int>(hash) - 16;
-                for (size_t channel = 0u; channel < 3u; ++channel) {
-                    albedo[layer][index + channel] =
-                        static_cast<uint8_t>(std::clamp(
-                            static_cast<int>(baseColor[layer][channel])
-                                + variation,
-                            0, 255));
-                }
-                albedo[layer][index + 3u] = 255u;
-                normalRoughness[layer][index + 0u] = 128u;
-                normalRoughness[layer][index + 1u] = 128u;
-                normalRoughness[layer][index + 2u] = 255u;
-                normalRoughness[layer][index + 3u] = roughness[layer];
-            }
-        }
+        fillFallbackMaterialLayer(layer, width, height,
+                                  albedo[layer], normalRoughness[layer]);
     }
     return uploadTerrainMaterialArrays(
         albedo, normalRoughness, width, height);

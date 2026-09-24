@@ -5132,6 +5132,9 @@ bool Application::initRenderers() {
     terrain::TerrainTextureConfig textureConfig;
     textureConfig.albedoPath = config_.albedoPath;
     textureConfig.lightmapPath = config_.lightmapPath;
+    // LEGO terrain is shaded by sampleLegoSurface; only the deep-water seabed
+    // reads a material (sand albedo), so the web build ships just that file.
+    textureConfig.seabedAlbedoOnly = config_.legoTerrainEnabled;
     // This fallback is a smooth UV color pattern, not per-sample terrain data.
     // Bound it independently of terrain resolution (256 KiB instead of a
     // possible 256 MiB allocation for an 8K map with missing albedo).

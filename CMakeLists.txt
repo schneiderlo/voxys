@@ -797,9 +797,22 @@ if(VOXY_BUILD_WASM)
         if(NOT EXISTS "${CMAKE_SOURCE_DIR}/data/materials")
             message(FATAL_ERROR "Required terrain material directory not found")
         endif()
+        # LEGO terrain (every default experience) reads only the sand albedo
+        # for the deep-water seabed; the full PBR set is an optional pack for
+        # the procedural terrain and RIDGEBREAK.
+        set(VOXY_WASM_SEABED_MATERIAL "data/materials/Ground054_1K-JPG_Color.jpg")
+        if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_SEABED_MATERIAL}")
+            message(FATAL_ERROR "Seabed material not found: ${VOXY_WASM_SEABED_MATERIAL}")
+        endif()
         list(APPEND WASM_LINK_FLAGS
-            "--preload-file ${CMAKE_SOURCE_DIR}/data/materials@/data/materials"
+            "--preload-file ${CMAKE_SOURCE_DIR}/${VOXY_WASM_SEABED_MATERIAL}@/${VOXY_WASM_SEABED_MATERIAL}"
         )
+        foreach(VOXY_WASM_MATERIAL ${VOXY_WASM_MATERIAL_SOURCES})
+            file(RELATIVE_PATH VOXY_WASM_MATERIAL "${CMAKE_SOURCE_DIR}" "${VOXY_WASM_MATERIAL}")
+            if(NOT VOXY_WASM_MATERIAL STREQUAL VOXY_WASM_SEABED_MATERIAL)
+                list(APPEND VOXY_WASM_PACK_materials_FILES "${VOXY_WASM_MATERIAL}")
+            endif()
+        endforeach()
 
         # Optional packs: voxy_<pack>.data plus a --pre-js mount script that
         # runs only when index.html lists the pack in Module.voxyDataPacks.
@@ -811,7 +824,7 @@ if(VOXY_BUILD_WASM)
             message(FATAL_ERROR "Emscripten file packager not found: ${VOXY_WASM_FILE_PACKAGER}")
         endif()
         set(VOXY_WASM_PACK_OUTPUTS)
-        foreach(VOXY_WASM_PACK salvage moto)
+        foreach(VOXY_WASM_PACK salvage moto materials)
             set(VOXY_WASM_PACK_DATA "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/voxy_${VOXY_WASM_PACK}.data")
             set(VOXY_WASM_PACK_PRE_JS "${CMAKE_CURRENT_BINARY_DIR}/voxy_${VOXY_WASM_PACK}.pre.js")
             set(VOXY_WASM_PACK_ENTRIES)

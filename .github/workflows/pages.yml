@@ -119,6 +119,7 @@ jobs:
           test -s docs/voxy_wasm.data
           test -s docs/voxy_salvage.data
           test -s docs/voxy_moto.data
+          test -s docs/voxy_materials.data
           if grep -q __VOXY_BUILD_ID__ docs/index.html; then
             echo 'ERROR: deployment build ID was not substituted'; exit 1
           fi
@@ -135,12 +136,12 @@ jobs:
             }
           done
           # Optional packs mount their files from voxy_wasm.js as well.
-          for asset in /data/moto/bike.vmesh /data/salvage/robot-r01/robot.vmesh; do
+          for asset in /data/moto/bike.vmesh /data/salvage/robot-r01/robot.vmesh /data/materials/Rock050_1K-JPG_Color.jpg; do
             grep -a -q "$asset" docs/voxy_wasm.js || {
               echo "ERROR: optional pack manifest missing $asset"; exit 1;
             }
           done
-          python3 scripts/write_release_manifest.py docs --max-core-mib 112
+          python3 scripts/write_release_manifest.py docs --max-core-mib 97
           if test -f salvage.cfg; then
             grep -a -q /salvage.cfg docs/voxy_wasm.js || {
               echo 'ERROR: preload manifest missing /salvage.cfg'; exit 1;

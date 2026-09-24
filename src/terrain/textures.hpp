@@ -37,6 +37,10 @@ struct TerrainTextureConfig {
     /// Missing or invalid assets fall back to a small procedural array so the
     /// renderer never binds an incomplete material set.
     std::filesystem::path materialDirectory = "data/materials";
+    /// LEGO terrain shades its ground procedurally; the only material texel it
+    /// reads is the sand albedo under deep water. Load just that image and
+    /// fill the unused layers procedurally, so web builds can ship one file.
+    bool seabedAlbedoOnly = false;
     uint32_t placeholderWidth = 256;     ///< Width for placeholder textures
     uint32_t placeholderHeight = 256;    ///< Height for placeholder textures
     
@@ -126,6 +130,11 @@ public:
     /// Load sand, soil, grass, and rock PBR maps into two bounded texture
     /// arrays. The source names and layer order are fixed by the CC0 pack.
     [[nodiscard]] bool loadTerrainMaterials(
+        const std::filesystem::path& directory);
+
+    /// Load only the sand albedo (layer 0) from the pack; every other layer
+    /// and all normal/roughness data use the procedural fallback texels.
+    [[nodiscard]] bool loadSeabedMaterial(
         const std::filesystem::path& directory);
 
     /// Create a complete four-layer fallback when the optional source pack is
