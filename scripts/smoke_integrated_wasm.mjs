@@ -10,6 +10,7 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {startupBudget} from './startup_budget.mjs';
+import {cdpProtocolError,waitForStartupCommit,observeStartup} from './startup_observation.mjs';
 const {startupMs:startupTimeoutMs,totalMs:timeoutMs}=startupBudget();
 const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
@@ -104,12 +105,13 @@ const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
-let logs='',spawnError,socket,chromeClosed=false;
+let logs='',spawnError,socket,chromeClosed=false,targetFailure=null;
 chrome.once('close',()=>{chromeClosed=true;});
 const browserErrors=[],consoleMessages=[];
 const diagnostics={allocationSemantics:'cumulative creation calls/requested buffer bytes; not live memory',allocations:{buffers:0,textures:0,bufferBytes:0,largeBuffers:[]},pipelineCalls:[],destroyCalls:[]};
 chrome.stderr.on('data',d=>logs+=d);chrome.on('error',e=>spawnError=e);
 const report={kind:'application startup, no FPS acceptance',experience:selected,gpuMode:process.env.VOXY_SMOKE_GPU||'hardware',flags:gpuFlags};
+report.navigations=[];
 let memoryObserver,memoryObserverClosed,memoryObserverError,memoryObserverStderr='';
 let memoryTimer,memoryActive=false,memoryBusy=false,memoryPhase='browser-startup';
 const memoryOutput=path.join(directory,'process-memory.json');
@@ -218,24 +220,35 @@ try{
     socket=new WebSocket(target.webSocketDebuggerUrl);
     const pending=new Map();let id=0;
     socket.addEventListener('message',e=>{const m=JSON.parse(e.data),p=pending.get(m.id);
+        if(m.method==='Inspector.targetCrashed'||m.method==='Inspector.detached'){
+            targetFailure={method:m.method,details:m.params};report.targetFailure=targetFailure;
+            for(const request of pending.values())request.reject(new Error(`Chrome target unavailable during ${request.method}: ${m.method}`));
+            pending.clear();
+        }
+        if(m.method==='Page.frameNavigated'&&!m.params.frame.parentId){
+            const {id:frameId,url,urlFragment='',loaderId}=m.params.frame;
+            report.navigations.push({frameId,url:url+urlFragment,loaderId,at_unix_ms:Date.now()});
+        }
         if(m.method==='Runtime.consoleAPICalled')consoleMessages.push(m.params);
         if(m.method==='Runtime.exceptionThrown')browserErrors.push(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text);
         if(m.method==='Runtime.consoleAPICalled'&&m.params.type==='error')browserErrors.push(m.params.args.map(a=>a.value??a.description??'').join(' '));
-        if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
+        if(p){pending.delete(m.id);m.error?p.reject(cdpProtocolError(p.method,m.error)):p.resolve(m.result);}});
     socket.addEventListener('close',()=>{for(const p of pending.values())p.reject(new Error('Chrome closed'));pending.clear();});
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
     const call=(method,params={},requestTimeoutMs=30000)=>new Promise((resolve,reject)=>{
+        if(targetFailure){reject(new Error(`Chrome target unavailable: ${method}: ${targetFailure.method}`));return;}
         if(socket.readyState!==WebSocket.OPEN){reject(new Error(`Chrome connection is closed: ${method}`));return;}
         const n=++id;
         const timeout=setTimeout(()=>{pending.delete(n);reject(new Error(`Chrome request timed out: ${method}`));},requestTimeoutMs);
         pending.set(n,{
+            method,
             resolve:value=>{clearTimeout(timeout);resolve(value);},
             reject:error=>{clearTimeout(timeout);reject(error);},
         });
         try{socket.send(JSON.stringify({id:n,method,params}));}
         catch(error){pending.get(n)?.reject(error);pending.delete(n);}
     });
-    await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
+    await call('Inspector.enable');await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
     if(memoryEnabled)startBrowserMemory(call);
     report.browser=await call('Browser.getVersion');
     await call('Page.addScriptToEvaluateOnNewDocument',{source:`(() => {
@@ -286,15 +299,26 @@ try{
     const url=process.env.VOXY_SMOKE_URL||(localUrl+(resumeWorld?'&world='+resumeWorld:''));
     report.url=url;
     if(retainedProfile)report.retained_profile=directory;
-    const navigationStarted=Date.now();
-    if(memoryEnabled)await setMemoryPhase('cold-startup');
-    await call('Page.navigate',{url});
+    // Focus the stable blank document before the directory-entry redirect can
+    // replace its execution context. Focus emulation belongs to the page target.
     await call('Page.bringToFront');
     await call('Emulation.setFocusEmulationEnabled',{enabled:true});
+    const navigationStarted=Date.now();
+    const startupDeadline=navigationStarted+(selected==='presentation'?30000:startupTimeoutMs);
+    const observationOptions={
+        isOpen:()=>socket.readyState===WebSocket.OPEN&&!chromeClosed&&!targetFailure,
+        onRetry:error=>{
+            report.startupNavigationRetries=(report.startupNavigationRetries||0)+1;
+            report.lastStartupNavigationRetry={method:error.method,code:error.code,message:error.protocolMessage};
+        },
+    };
+    if(memoryEnabled)await setMemoryPhase('cold-startup');
+    const navigation=await call('Page.navigate',{url});
+    assert(!navigation.errorText,`Navigation failed: ${navigation.errorText}`);
+    await waitForStartupCommit(report.navigations,url,startupDeadline,observationOptions);
     if(selected==='presentation'){
-        const start=Date.now();
-        while(Date.now()-start<30000){
-            const r=await call('Runtime.evaluate',{expression:'globalThis.probe',returnByValue:true});
+        while(Date.now()<startupDeadline){
+            const r=await observeStartup(call,{expression:'globalThis.probe',returnByValue:true},startupDeadline,observationOptions);
             report.probe=r.result?.value;
             if(report.probe)break;
             await delay(100);
@@ -306,10 +330,10 @@ try{
     // Software shader compilation can block the first observation beyond one
     // ordinary RPC timeout. Bound observations by the remaining startup budget;
     // retain the rendered-frame, GPU-completion, UI, error and image gates.
-    let sample;const started=Date.now();
-    while(Date.now()-started<startupTimeoutMs){
+    let sample;
+    while(Date.now()<startupDeadline){
         assert.equal(browserErrors.length,0,browserErrors.join('\n'));
-        const r=await call('Runtime.evaluate',{returnByValue:true,expression:`(() => {
+        const r=await observeStartup(call,{returnByValue:true,expression:`(() => {
             const error=document.getElementById('error');
             if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
@@ -335,7 +359,7 @@ try{
                 salvageControlsVisible:document.getElementById('salvage-preview')?.hidden===false,
                 salvage:voxyModule._voxy_get_salvage_preview_json
                     ? JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json())) : null};
-        })()`},Math.max(1,startupTimeoutMs-(Date.now()-started)));
+        })()`},startupDeadline,observationOptions);
         if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails));
         sample=r.result?.value;report.sample=sample;
         if(sample?.errors?.length||sample?.lost)throw new Error('GPU device error: '+JSON.stringify(sample.lost||sample.errors));
