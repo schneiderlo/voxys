@@ -109,12 +109,16 @@ jobs:
           sed -i "s/__VOXY_BUILD_ID__/${VOXY_BUILD_ID}/g" docs/index.html
           cp build-wasm/bin/voxy_wasm.js docs/
           cp build-wasm/bin/voxy_wasm.wasm docs/
-          cp build-wasm/bin/voxy_wasm.data docs/
+          # voxy_wasm.data is the core pack; voxy_<pack>.data are optional
+          # packs that only some experiences download.
+          cp build-wasm/bin/voxy_*.data docs/
           touch docs/.nojekyll
           test -s docs/index.html
           test -s docs/voxy_wasm.js
           test -s docs/voxy_wasm.wasm
           test -s docs/voxy_wasm.data
+          test -s docs/voxy_salvage.data
+          test -s docs/voxy_moto.data
           if grep -q __VOXY_BUILD_ID__ docs/index.html; then
             echo 'ERROR: deployment build ID was not substituted'; exit 1
           fi
@@ -130,6 +134,13 @@ jobs:
               echo "ERROR: preload manifest missing $asset"; exit 1;
             }
           done
+          # Optional packs mount their files from voxy_wasm.js as well.
+          for asset in /data/moto/bike.vmesh /data/salvage/robot-r01/robot.vmesh; do
+            grep -a -q "$asset" docs/voxy_wasm.js || {
+              echo "ERROR: optional pack manifest missing $asset"; exit 1;
+            }
+          done
+          python3 scripts/write_release_manifest.py docs --max-core-mib 112
           if test -f salvage.cfg; then
             grep -a -q /salvage.cfg docs/voxy_wasm.js || {
               echo 'ERROR: preload manifest missing /salvage.cfg'; exit 1;
@@ -137,7 +148,7 @@ jobs:
           fi
           ls -lah docs/
       - name: Loading animation timing regression
-        run: node --test scripts/test_loading_roller.mjs
+        run: node --test scripts/test_loading_roller.mjs scripts/test_data_packs.mjs
       - name: Start the main page through the full browser application
         id: main_page_smoke
         env:

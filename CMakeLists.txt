@@ -774,6 +774,16 @@ if(VOXY_BUILD_WASM)
             if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")
                 message(FATAL_ERROR "Required WASM data file not found: ${VOXY_WASM_DATA_FILE}")
             endif()
+            # Salvage fixtures and RIDGEBREAK read their own content only.
+            # Those files go to optional packs that the page downloads just
+            # for those experiences; everything else is in voxy_wasm.data.
+            if(VOXY_WASM_DATA_FILE MATCHES "^data/salvage/")
+                list(APPEND VOXY_WASM_PACK_salvage_FILES "${VOXY_WASM_DATA_FILE}")
+                continue()
+            elseif(VOXY_WASM_DATA_FILE MATCHES "^data/moto/")
+                list(APPEND VOXY_WASM_PACK_moto_FILES "${VOXY_WASM_DATA_FILE}")
+                continue()
+            endif()
             list(APPEND WASM_LINK_FLAGS
                 "--preload-file ${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}@/${VOXY_WASM_DATA_FILE}"
             )
@@ -790,6 +800,48 @@ if(VOXY_BUILD_WASM)
         list(APPEND WASM_LINK_FLAGS
             "--preload-file ${CMAKE_SOURCE_DIR}/data/materials@/data/materials"
         )
+
+        # Optional packs: voxy_<pack>.data plus a --pre-js mount script that
+        # runs only when index.html lists the pack in Module.voxyDataPacks.
+        if(NOT Python3_Interpreter_FOUND)
+            find_package(Python3 REQUIRED COMPONENTS Interpreter)
+        endif()
+        set(VOXY_WASM_FILE_PACKAGER "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py")
+        if(NOT EXISTS "${VOXY_WASM_FILE_PACKAGER}")
+            message(FATAL_ERROR "Emscripten file packager not found: ${VOXY_WASM_FILE_PACKAGER}")
+        endif()
+        set(VOXY_WASM_PACK_OUTPUTS)
+        foreach(VOXY_WASM_PACK salvage moto)
+            set(VOXY_WASM_PACK_DATA "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/voxy_${VOXY_WASM_PACK}.data")
+            set(VOXY_WASM_PACK_PRE_JS "${CMAKE_CURRENT_BINARY_DIR}/voxy_${VOXY_WASM_PACK}.pre.js")
+            set(VOXY_WASM_PACK_ENTRIES)
+            set(VOXY_WASM_PACK_SOURCES)
+            foreach(VOXY_WASM_DATA_FILE ${VOXY_WASM_PACK_${VOXY_WASM_PACK}_FILES})
+                list(APPEND VOXY_WASM_PACK_ENTRIES
+                    "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}@/${VOXY_WASM_DATA_FILE}")
+                list(APPEND VOXY_WASM_PACK_SOURCES "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")
+            endforeach()
+            add_custom_command(
+                OUTPUT "${VOXY_WASM_PACK_DATA}" "${VOXY_WASM_PACK_PRE_JS}"
+                COMMAND "${Python3_EXECUTABLE}"
+                    "${CMAKE_SOURCE_DIR}/scripts/build_wasm_data_pack.py"
+                    --packager "${VOXY_WASM_FILE_PACKAGER}"
+                    --name ${VOXY_WASM_PACK}
+                    --data "${VOXY_WASM_PACK_DATA}"
+                    --pre-js "${VOXY_WASM_PACK_PRE_JS}"
+                    ${VOXY_WASM_PACK_ENTRIES}
+                DEPENDS
+                    ${VOXY_WASM_PACK_SOURCES}
+                    "${CMAKE_SOURCE_DIR}/scripts/build_wasm_data_pack.py"
+                COMMENT "Packaging optional WASM data pack: ${VOXY_WASM_PACK}"
+                VERBATIM
+            )
+            list(APPEND VOXY_WASM_PACK_OUTPUTS "${VOXY_WASM_PACK_DATA}" "${VOXY_WASM_PACK_PRE_JS}")
+            list(APPEND WASM_LINK_FLAGS "--pre-js ${VOXY_WASM_PACK_PRE_JS}")
+            set_property(TARGET voxy_wasm APPEND PROPERTY LINK_DEPENDS "${VOXY_WASM_PACK_PRE_JS}")
+        endforeach()
+        add_custom_target(voxy_wasm_data_packs DEPENDS ${VOXY_WASM_PACK_OUTPUTS})
+        add_dependencies(voxy_wasm voxy_wasm_data_packs)
 
         string(JOIN " " WASM_LINK_FLAGS_STR ${WASM_LINK_FLAGS})
         set_target_properties(voxy_wasm PROPERTIES

@@ -24,6 +24,17 @@ test('bridge rejects stale menu events and guards pending actions without blocki
     assert.deepEqual(f.calls.at(-1),[15,0]);
     b.cleanup();assert.deepEqual(f.calls.at(-1),[19,0]);assert.equal(b.action(8),false);f.close();
 });
+test('bridge publishes only changed snapshots so an idle poll does not re-render',()=>{
+    const f=fixture();const published=[];const b=createBridge(f.engine,f.w,s=>published.push(s));
+    assert.equal(published.length,1);b.refresh();b.refresh();assert.equal(published.length,1);
+    f.advance({piece:8});b.refresh();assert.equal(published.length,2);assert.equal(published.at(-1).piece,8);
+    assert.equal(b.action(2,9),true);assert.equal(published.at(-1).pending,true);
+    const count=published.length;b.refresh();assert.equal(published.length,count);
+    f.advance({piece:9});b.refresh();assert.equal(published.at(-1).pending,false);assert.equal(published.at(-1).piece,9);
+    f.state={...f.state,creative:false};b.refresh();b.refresh();assert.equal(published.at(-1).failed,true);
+    f.state={...f.state,creative:true};b.refresh();assert.equal(published.at(-1).failed,undefined);
+    b.cleanup();f.close();
+});
 test('invalid runtime state fails closed; unsaved builds keep unload protection',()=>{
     const f=fixture();let published;const b=createBridge(f.engine,f.w,s=>published=s);
     const event=new f.w.Event('beforeunload',{cancelable:true});f.w.dispatchEvent(event);assert.equal(event.defaultPrevented,true);

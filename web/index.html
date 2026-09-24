@@ -25,6 +25,12 @@
             new URLSearchParams(location.search).get('debug')?.toLowerCase());
         document.documentElement.classList.toggle('debug-enabled', window.voxyDebugEnabled);
     </script>
+    <script>
+        // Content hashes of the release's WASM and data packs, written by the
+        // Pages build. data_packs.js starts those downloads right away.
+        window.voxyReleaseFiles = '__VOXY_RELEASE_FILES__';
+    </script>
+    <script src="data_packs.js?v=__VOXY_BUILD_ID__"></script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVBHPYQCGP"></script>
@@ -1328,11 +1334,22 @@
                     );
                 });
 
-                updateProgress(15, 'Loading WASM module...');
-
-                // Track total loading progress
-                let dataProgress = 0;
-                let wasmProgress = 0;
+                // data_packs.js started the downloads when the page opened.
+                const startupDownloads = window.voxyStartupDownloads;
+                if (startupDownloads) {
+                    const showDownload = ({loaded, total, cachedFiles}) => {
+                        const label = cachedFiles ? 'Loading game data' : 'Downloading game data';
+                        updateProgress(15 + (loaded / total) * 70,
+                            `${label}... (${formatBytes(loaded)} / ${formatBytes(total)})`);
+                    };
+                    showDownload(startupDownloads);
+                    startupDownloads.onProgress = showDownload;
+                    await startupDownloads.ready;
+                    startupDownloads.onProgress = null;
+                }
+                updateProgress(startupDownloads ? 85 : 15, 'Loading WASM module...');
+                const releaseFiles = VoxyDataPacks.parseManifest(window.voxyReleaseFiles);
+                const compiledWasm = startupDownloads?.wasmModule;
 
                 const coveArguments = (() => {
                         const params = new URLSearchParams(location.search);
@@ -1363,7 +1380,18 @@
                     canvas: canvas,
                     preinitializedWebGPUDevice: device,
                     locateFile: (path, prefix) =>
-                        `${prefix}${path}?v=${encodeURIComponent(window.voxyBuildId)}`,
+                        VoxyDataPacks.locate(path, prefix, releaseFiles, window.voxyBuildId),
+                    voxyDataPacks: VoxyDataPacks.packsFor(experience),
+                    getPreloadedPackage: (name, size) => startupDownloads?.take(name, size) ?? null,
+                    instantiateWasm: compiledWasm ? (imports, receive) => {
+                        WebAssembly.instantiate(compiledWasm, imports)
+                            .then(instance => receive(instance, compiledWasm))
+                            .catch(error => {
+                                console.error('WASM instantiation failed:', error);
+                                updateProgress(0, `WASM instantiation failed: ${error.message}`);
+                            });
+                        return {};
+                    } : undefined,
                     arguments: coveArguments,
 
                     // Track WASM/data download progress
