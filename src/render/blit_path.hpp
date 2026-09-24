@@ -269,7 +269,8 @@ private:
     bool createBindGroupLayout();
     bool createPipeline(const BlitPathConfig& config);
     bool createWaterClipmapResources(const BlitPathConfig& config);
-    bool renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows);
+    bool renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows,
+                            WGPUQuerySet query, uint32_t beginQuery);
     bool createBindGroup();
     bool createBackgroundTexture(uint32_t width, uint32_t height);
     bool createSkyLut(const BlitPathConfig& config);

@@ -3894,10 +3894,15 @@ public:
             return previousTick == 0u || currentTick < previousTick
                 || currentTick - previousTick >= interval;
         };
-        // Body mutations are exactly when an interactive diagnostic sample is
-        // most useful. Do not make an overloaded world wait for the cadence.
+        // Discrete mutations deserve an immediate diagnostic sample. Routine
+        // kinematic targets arrive every player tick; letting them override the
+        // interval turns low-rate profiling/readback into an every-tick stall.
         const bool forceDiagnosticsSample =
-            !upload.empty() || !attachmentUpload.empty();
+            !attachmentUpload.empty()
+            || std::any_of(upload.begin(), upload.end(), [](const GpuCommand& command) {
+                return command.header.x != static_cast<uint32_t>(
+                    PhysicsCommandType::SetKinematicTarget);
+            });
         const bool profileThisBatch = stageProfilingEnabled_
             && !idleOnlyBatch
             && (forceDiagnosticsSample

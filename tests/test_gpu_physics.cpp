@@ -1741,6 +1741,48 @@ TEST_F(GpuPhysicsTest, KinematicTargetsCarryVelocityIntoContactsThenStop) {
     EXPECT_EQ(retireTelemetry(world.encodedTick()).kinematicBodies, 1u);
 }
 
+TEST_F(GpuPhysicsTest, KinematicTargetsRespectTelemetryCadenceButDiscreteMutationsSampleImmediately) {
+    world.shutdown();
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = context.maxActiveBodies = 16u;
+    context.maxPairs = context.maxContacts = context.maxManifolds = 64u;
+    context.gpu.commandCapacity = 64u;
+    context.gpu.debugReadbackBodyCapacity = 16u;
+    context.gpu.telemetryReadbackIntervalTicks = 4u;
+    ASSERT_TRUE(world.initialize(context));
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Cube;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = glm::vec3(1.0f);
+    desc.inverseMass = 0.0f;
+    const auto body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+    EXPECT_GT(world.stats().gpuReadbackBytes, 0u);
+    ASSERT_EQ(retireTelemetry(1u).telemetryTick, 1u);
+    PhysicsCommand target;
+    target.type = PhysicsCommandType::SetKinematicTarget;
+    target.body = body;
+    target.b = glm::vec4(0, 0, 0, 1);
+    for (uint64_t tick = 2u; tick <= 5u; ++tick) {
+        target.a = glm::vec4(static_cast<float>(tick) * .01f, 20, 0, 0);
+        world.enqueue(std::span<const PhysicsCommand>(&target, 1u));
+        stepTicks(1u);
+        ASSERT_EQ(world.encodedTick(), tick);
+        if (tick == 5u) EXPECT_GT(world.stats().gpuReadbackBytes, 0u);
+        else EXPECT_EQ(world.stats().gpuReadbackBytes, 0u);
+    }
+    ASSERT_EQ(retireTelemetry(5u).telemetryTick, 5u);
+    target.type = PhysicsCommandType::Wake;
+    world.enqueue(std::span<const PhysicsCommand>(&target, 1u));
+    stepTicks(1u);
+    EXPECT_GT(world.stats().gpuReadbackBytes, 0u);
+    EXPECT_EQ(retireTelemetry(6u).telemetryTick, 6u);
+}
+
 TEST_F(GpuPhysicsTest, LastSameTickKinematicTargetUsesWholeTickVelocity) {
     BodySpawnDesc desc;
     desc.shape = ThrowableShape::Cube;

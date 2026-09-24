@@ -3,6 +3,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "physics/gpu/gpu_body_metadata.hpp"
+#include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 #include "physics/gpu/gpu_event_readback.hpp"
 #include "physics/gpu/gpu_islands.hpp"
@@ -10,7 +11,10 @@
 
 #include <glm/vec3.hpp>
 
+#include <algorithm>
 #include <array>
+#include <cstring>
+#include <limits>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -256,6 +260,62 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     releaseBuffer(islandBuffer);
     releaseBuffer(contactTelemetryBuffer);
     releaseBuffer(contactBuffer);
+}
+
+TEST(GpuEventReadback, CountedPacketsCopyOnlyLiveRecordsAndPreserveMalformedHeaders) {
+    gpu::Context context;
+    gpu::ContextConfig config;
+    config.enableValidation = true;
+    if (!context.initHeadless(config)) GTEST_SKIP() << "Headless WebGPU is unavailable";
+    context.setErrorCallback([](WGPUErrorType, const char* message) { ADD_FAILURE() << message; });
+    constexpr size_t headerBytes = 16u, recordBytes = 96u, capacity = 5u;
+    std::array<uint32_t, (headerBytes + recordBytes * capacity) / 4u> packet{};
+    for (size_t i = 0; i < packet.size(); ++i) packet[i] = static_cast<uint32_t>(i + 17u);
+    auto source = makeStorage<uint32_t>(context, packet, "counted_packet");
+    ASSERT_NE(source, nullptr);
+    DebugReadbackRing ring;
+    ASSERT_TRUE(ring.initialize(context.getDevice(), 1u, sizeof(packet)));
+    const auto read = [&](std::optional<CountedReadbackLayout> layout) {
+        EXPECT_TRUE(gpu::writeBuffer(context.getQueue(), source, 0, packet));
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
+        EXPECT_TRUE(ring.encodeCopy(encoder, source, 0, sizeof(packet), 42u, 3u, 5u,
+                                   std::nullopt, 91u));
+        WGPUCommandBufferDescriptor commandDesc{};
+        auto command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+        const auto index = wgpuQueueSubmitForIndex(context.getQueue(), 1, &command);
+        const WGPUWrappedSubmissionIndex submission{context.getQueue(), index};
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+        auto result = ring.poll(layout);
+        for (uint32_t attempt = 0; !result && ring.availableSlots() == 0u && attempt < 64u; ++attempt) {
+            static_cast<void>(wgpuDevicePoll(context.getDevice(), true, &submission));
+            result = ring.poll(layout);
+        }
+        return result;
+    };
+    for (const uint32_t count : {0u, 1u, 5u, std::numeric_limits<uint32_t>::max(), 0u}) {
+        packet[0] = count;
+        const auto result = read(CountedReadbackLayout{headerBytes, recordBytes});
+        ASSERT_TRUE(result);
+        EXPECT_EQ(result->tick, 42u);
+        EXPECT_EQ(result->submissionSerial, 91u);
+        EXPECT_EQ(result->firstBody, 3u);
+        EXPECT_EQ(result->bodyCount, 5u);
+        EXPECT_EQ(result->bytes.size(), headerBytes + std::min(size_t{count}, capacity) * recordBytes);
+        EXPECT_EQ(std::memcmp(result->bytes.data(), packet.data(), result->bytes.size()), 0);
+        EXPECT_EQ(ring.availableSlots(), 1u);
+    }
+    // A bad caller layout fails safely and releases the slot. Full snapshots
+    // still use their complete range, even with a zero first word.
+    EXPECT_FALSE(read(CountedReadbackLayout{12u, recordBytes}));
+    EXPECT_EQ(ring.failedReadbacks(), 1u);
+    const auto full = read(std::nullopt);
+    ASSERT_TRUE(full);
+    EXPECT_EQ(full->bytes.size(), sizeof(packet));
+    EXPECT_EQ(std::memcmp(full->bytes.data(), packet.data(), sizeof(packet)), 0);
+    ring.shutdown();
+    releaseBuffer(source);
 }
 
 TEST(GpuEventReadback, BatchedCopiesKeepTheirOwnTickParameters) {

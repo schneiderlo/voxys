@@ -2228,18 +2228,28 @@ bool BlitPath::bindSceneEnvironment(const FilteredEnvironmentViews& views) {
     return true;
 }
 
-bool BlitPath::renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows) {
+bool BlitPath::renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows,
+                                WGPUQuerySet query, uint32_t beginQuery) {
     if (!opaqueScene_ || !sceneTerrainPipeline_ || !sceneTerrainBindings_ || !shadows
         || (config_.coveVisuals && !sceneEnvironmentBindings_)) return false;
     std::array<WGPURenderPassColorAttachment, 2> targets{};
     targets[0].view = opaqueScene_->colorView(); targets[1].view = opaqueScene_->depthView();
     for (auto& target : targets) {
         target.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
-        target.loadOp = WGPULoadOp_Load; target.storeOp = WGPUStoreOp_Store;
+        // Both scene-terrain entry points write color and linear depth for
+        // every pixel, including sky. There is no preceding image to retain.
+        target.loadOp = WGPULoadOp_Clear; target.storeOp = WGPUStoreOp_Store;
     }
     WGPURenderPassDescriptor descriptor{};
     WGPU_SET_LABEL(descriptor, "scene_terrain_current_sun");
     descriptor.colorAttachmentCount = targets.size(); descriptor.colorAttachments = targets.data();
+    gpu::CompatRenderPassTimestampWrites timestamps{};
+    if (query && beginQuery != WGPU_QUERY_SET_INDEX_UNDEFINED) {
+        timestamps.querySet = query;
+        timestamps.beginningOfPassWriteIndex = beginQuery;
+        timestamps.endOfPassWriteIndex = WGPU_QUERY_SET_INDEX_UNDEFINED;
+        descriptor.timestampWrites = &timestamps;
+    }
     auto pass = wgpuCommandEncoderBeginRenderPass(encoder, &descriptor);
     if (!pass) return false;
     wgpuRenderPassEncoderSetPipeline(pass, sceneTerrainPipeline_);
@@ -2991,11 +3001,13 @@ bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 state.encoded = true;
                 state.shadows = shadows;
                 auto& path = *state.path;
-                // Seed first for the timestamp boundary and the no-shadow path.
-                // Both inputs stay immutable while the separate opaque target
-                // receives current terrain lighting, object color, then water.
-                return path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin)
-                    && (!shadows || path.renderSceneTerrain(commands, shadows));
+                // The live terrain pass already copies cached color/depth for
+                // unshadowed pixels and sky. Seeding before it only writes the
+                // same full-resolution targets twice. Keep the seed fallback
+                // for admission/Leave frames with no shadow-producing scene.
+                return shadows
+                    ? path.renderSceneTerrain(commands, shadows, state.query, state.begin)
+                    : path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin);
             }, [](void* context, const FilteredEnvironmentViews& views) {
                 return static_cast<SceneBackground*>(context)->path->bindSceneEnvironment(views);
             }};

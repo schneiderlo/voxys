@@ -4682,9 +4682,8 @@ bool Application::initCamera() {
         config_.benchmarkBodyCount != 0u
             ? 1u : kInteractiveStageProfilingIntervalTicks;
     const uint32_t telemetryInterval =
-        config_.gpuPhysicsStageProfiling
-            || config_.benchmarkBodyCount != 0u
-        ? 1u : kInteractiveTelemetryIntervalTicks;
+        config_.benchmarkBodyCount != 0u
+            ? 1u : kInteractiveTelemetryIntervalTicks;
     physicsContext.gpu.stageProfilingIntervalTicks = profilingInterval;
     physicsContext.gpu.enableTelemetryReadback = true;
     physicsContext.gpu.telemetryReadbackIntervalTicks = telemetryInterval;

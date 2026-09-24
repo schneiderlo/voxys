@@ -255,11 +255,14 @@ public:
     }
 
     std::optional<GpuEventBatch> poll() {
-        auto raw = readback_.poll();
-        if (!raw || raw->bytes.size() != packetBytes_) return std::nullopt;
+        auto raw = readback_.poll(CountedReadbackLayout{
+            kPacketHeaderBytes, sizeof(GpuPhysicsEvent)});
+        if (!raw || raw->bytes.size() < kPacketHeaderBytes) return std::nullopt;
         std::array<uint32_t, 4> header{};
         std::memcpy(header.data(), raw->bytes.data(), kPacketHeaderBytes);
         const uint32_t count = std::min(header[0], config_.eventCapacity);
+        if (raw->bytes.size() != kPacketHeaderBytes + size_t{count} * sizeof(GpuPhysicsEvent))
+            return std::nullopt;
         GpuEventBatch result;
         result.tick = raw->tick;
         result.submissionSerial=raw->submissionSerial;

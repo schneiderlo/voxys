@@ -31,6 +31,13 @@ struct DebugReadbackRange {
     uint32_t firstAttachment = 0, attachmentCount = 0;
 };
 
+// A packet whose first uint32_t is its record count. The GPU copy/map still
+// covers the full capacity; only the initialized prefix crosses into CPU memory.
+struct CountedReadbackLayout {
+    size_t headerBytes = 0;
+    size_t recordBytes = 0;
+};
+
 class DebugReadbackRing {
 public:
     static constexpr uint32_t kMaximumSlots = 64u;
@@ -62,7 +69,8 @@ public:
         std::span<const DebugReadbackCopy> copies, uint64_t tick,
         DebugReadbackRange range, std::optional<size_t> slotIndex = std::nullopt,
         uint64_t submissionSerial = 0);
-    [[nodiscard]] std::optional<RawDebugReadback> poll();
+    [[nodiscard]] std::optional<RawDebugReadback> poll(
+        std::optional<CountedReadbackLayout> counted = std::nullopt);
     [[nodiscard]] size_t allocatedBytes() const noexcept {
         return slots_.size() * slotBytes_;
     }

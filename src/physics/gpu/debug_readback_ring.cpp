@@ -153,7 +153,8 @@ void DebugReadbackRing::mapCallback(WGPUBufferMapAsyncStatus status,
 }
 #endif
 
-std::optional<RawDebugReadback> DebugReadbackRing::poll() {
+std::optional<RawDebugReadback> DebugReadbackRing::poll(
+    std::optional<CountedReadbackLayout> counted) {
     for (auto& slot : slots_) {
         if (slot.state == State::CopyEncoded) {
             slot.state = State::Mapping;
@@ -205,16 +206,42 @@ std::optional<RawDebugReadback> DebugReadbackRing::poll() {
         result.bodyCount = oldest->bodyCount;
         result.firstAttachment = oldest->firstAttachment;
         result.attachmentCount = oldest->attachmentCount;
-        result.bytes.resize(oldest->byteCount);
-        const void* mapped = wgpuBufferGetConstMappedRange(
-            oldest->buffer, 0, oldest->byteCount);
-        if (!mapped) {
-            if(failedReadbacks_!=UINT64_MAX) ++failedReadbacks_;
+        const auto fail = [&]() -> std::optional<RawDebugReadback> {
+            if (failedReadbacks_ != UINT64_MAX) ++failedReadbacks_;
             wgpuBufferUnmap(oldest->buffer);
             oldest->state = State::Idle;
             return std::nullopt;
+        };
+        // Mapped ranges must be non-overlapping, with 8-byte offsets and
+        // 4-byte sizes. Bound GPU-provided counts before multiplying them.
+        if (counted && (counted->headerBytes < sizeof(uint32_t)
+            || counted->headerBytes % 8u != 0u
+            || counted->headerBytes > oldest->byteCount
+            || counted->recordBytes == 0u || counted->recordBytes % 4u != 0u
+            || (oldest->byteCount - counted->headerBytes) % counted->recordBytes != 0u)) {
+            return fail();
         }
-        std::memcpy(result.bytes.data(), mapped, oldest->byteCount);
+        const size_t prefixBytes = counted ? counted->headerBytes : oldest->byteCount;
+        result.bytes.resize(prefixBytes);
+        const void* mapped = wgpuBufferGetConstMappedRange(
+            oldest->buffer, 0, prefixBytes);
+        if (!mapped) return fail();
+        std::memcpy(result.bytes.data(), mapped, prefixBytes);
+        if (counted) {
+            uint32_t count = 0;
+            std::memcpy(&count, result.bytes.data(), sizeof(count));
+            const size_t capacity = (oldest->byteCount - prefixBytes) / counted->recordBytes;
+            const size_t payloadBytes = std::min(size_t{count}, capacity) * counted->recordBytes;
+            // Keep the original count/overflow header, including corrupt counts,
+            // so the packet consumer retains its existing validation contract.
+            if (payloadBytes != 0u) {
+                const void* payload = wgpuBufferGetConstMappedRange(
+                    oldest->buffer, prefixBytes, payloadBytes);
+                if (!payload) return fail();
+                result.bytes.resize(prefixBytes + payloadBytes);
+                std::memcpy(result.bytes.data() + prefixBytes, payload, payloadBytes);
+            }
+        }
         wgpuBufferUnmap(oldest->buffer);
         oldest->state = State::Idle;
         return result;

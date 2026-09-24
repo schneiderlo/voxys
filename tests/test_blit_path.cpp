@@ -64,6 +64,13 @@ protected:
     
     void movingCasterScene(bool coveVisuals);
 
+    std::chrono::seconds readbackTimeout() const {
+        // Software adapters may JIT a cold shader at the first draw. This is
+        // a pixel-correctness oracle, not a performance deadline.
+        return std::chrono::seconds(
+            gpuContext_.getAdapterInfo().adapterType == WGPUAdapterType_CPU ? 120 : 10);
+    }
+
     render::BlitPathConfig getConfig() {
         render::BlitPathConfig config = render::BlitPathConfig::defaults();
         if (!shaderPath_.empty()) {
@@ -470,7 +477,7 @@ TEST_F(BlitPathTest, CycleToggleRestoresTheFixedSkyAndCanResume) {
                 std::unique_ptr<Completion> completion(static_cast<Completion*>(context));
                 (*completion)->store(status == WGPUBufferMapAsyncStatus_Success ? 1 : 2);
             }, new Completion(done));
-        const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        const auto until = std::chrono::steady_clock::now() + readbackTimeout();
         while (!done->load() && std::chrono::steady_clock::now() < until) {
             gpuContext_.tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -478,6 +485,8 @@ TEST_F(BlitPathTest, CycleToggleRestoresTheFixedSkyAndCanResume) {
         EXPECT_EQ(done->load(), 1);
         if (done->load() == 1) {
             std::memcpy(result.data(), wgpuBufferGetConstMappedRange(readback.buffer, 0, 256), 4);
+            wgpuBufferUnmap(readback.buffer);
+        } else {
             wgpuBufferUnmap(readback.buffer);
         }
         return result;
@@ -893,9 +902,9 @@ void BlitPathTest::movingCasterScene(bool coveVisuals) {
                 std::unique_ptr<Completion> completion(static_cast<Completion*>(context));
                 (*completion)->store(status==WGPUBufferMapAsyncStatus_Success?1:2);
             },new Completion(done));
-        const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+        const auto until=std::chrono::steady_clock::now()+readbackTimeout();
         while(!done->load()&&std::chrono::steady_clock::now()<until){gpuContext_.tick();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
-        if(done->load()!=1)return -2;
+        if(done->load()!=1){wgpuBufferUnmap(owned.readback);return -2;}
         const auto* bytes=static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(owned.readback,0,1024));
         std::array<uint16_t,4> hdr{};std::memcpy(hdr.data(),bytes+768,sizeof(hdr));
         for(int c=0;c<3;++c)opaqueRadiance[c]=glm::unpackHalf1x16(hdr[static_cast<size_t>(c)]);
