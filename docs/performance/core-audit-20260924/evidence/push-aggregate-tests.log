@@ -1,0 +1,131 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --per_file_copt has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 1859 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (1 packages loaded, 4265 targets configured).
+[827 / 829] 1 / 2 tests; Compiling tests/test_design_library.cpp; 1s linux-sandbox
+INFO: From Compiling tests/test_design_library.cpp:
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/array:45,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/span:46,
+                 from src/game/expedition/design_library.hpp:6,
+                 from tests/test_design_library.cpp:1:
+In function 'constexpr _OutIter std::__copy_move_a2(_InIter, _Sent, _OutIter) [with bool _IsMove = false; _InIter = const byte*; _Sent = const byte*; _OutIter = byte*]',
+    inlined from 'constexpr _OI std::__copy_move_a1(_II, _II, _OI) [with bool _IsMove = false; _II = const byte*; _OI = byte*]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:492:42,
+    inlined from 'constexpr _OI std::__copy_move_a(_II, _II, _OI) [with bool _IsMove = false; _II = const byte*; _OI = __gnu_cxx::__normal_iterator<byte*, vector<byte> >]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:500:31,
+    inlined from 'constexpr _OI std::copy(_II, _II, _OI) [with _II = const byte*; _OI = __gnu_cxx::__normal_iterator<byte*, vector<byte> >]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:642:7,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::_M_range_insert(iterator, _ForwardIterator, _ForwardIterator, std::forward_iterator_tag) [with _ForwardIterator = const std::byte*; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/vector.tcc:908:16,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::iterator std::vector<_Tp, _Alloc>::insert(const_iterator, _InputIterator, _InputIterator) [with _InputIterator = const std::byte*; <template-parameter-2-2> = void; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:1621:19,
+    inlined from 'std::vector<std::byte> {anonymous}::blueprint(uint8_t)' at tests/test_design_library.cpp:15:62:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:426:32: warning: writing 32 bytes into a region of size 0 [-Wstringop-overflow=]
+  426 |               __builtin_memmove(_GLIBCXX_TO_ADDR(__result),
+      |               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  427 |                                 _GLIBCXX_TO_ADDR(__first),
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  428 |                                 __n * sizeof(*__first));
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0//x86_64-unknown-linux-gnu/bits/c++allocator.h:33,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/allocator.h:46,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/string:45,
+                 from src/game/expedition/design_library.hpp:7:
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = std::byte]',
+    inlined from 'constexpr _Tp* std::allocator< <template-parameter-1-1> >::allocate(std::size_t) [with _Tp = std::byte]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/allocator.h:203:40,
+    inlined from 'static constexpr _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = std::byte]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/alloc_traits.h:614:28,
+    inlined from 'constexpr std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:387:33,
+    inlined from 'constexpr void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:405:44,
+    inlined from 'constexpr std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:341:26,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::vector(size_type, const value_type&, const allocator_type&) [with _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:601:47,
+    inlined from 'std::vector<std::byte> {anonymous}::blueprint(uint8_t)' at tests/test_design_library.cpp:12:55:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/new_allocator.h:151:73: note: at offset 75 into destination object of size 75 allocated by 'operator new'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                                         ^
+In function 'constexpr _BI2 std::__copy_move_backward_a2(_BI1, _BI1, _BI2) [with bool _IsMove = true; _BI1 = byte*; _BI2 = byte*]',
+    inlined from 'constexpr _BI2 std::__copy_move_backward_a1(_BI1, _BI1, _BI2) [with bool _IsMove = true; _BI1 = byte*; _BI2 = byte*]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:753:51,
+    inlined from 'constexpr _OI std::__copy_move_backward_a(_II, _II, _OI) [with bool _IsMove = true; _II = byte*; _OI = byte*]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:783:31,
+    inlined from 'constexpr _BI2 std::move_backward(_BI1, _BI1, _BI2) [with _BI1 = byte*; _BI2 = byte*]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:882:47,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::_M_range_insert(iterator, _ForwardIterator, _ForwardIterator, std::forward_iterator_tag) [with _ForwardIterator = const std::byte*; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/vector.tcc:906:7,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::iterator std::vector<_Tp, _Alloc>::insert(const_iterator, _InputIterator, _InputIterator) [with _InputIterator = const std::byte*; <template-parameter-2-2> = void; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:1621:19,
+    inlined from 'std::vector<std::byte> {anonymous}::blueprint(uint8_t)' at tests/test_design_library.cpp:15:62:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:704:32: warning: 'void* __builtin_memmove(void*, const void*, long unsigned int)' offset [75, 76] is out of the bounds [0, 75] [-Warray-bounds=]
+  704 |               __builtin_memmove(_GLIBCXX_TO_ADDR(__result),
+      |               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  705 |                                 _GLIBCXX_TO_ADDR(__first),
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  706 |                                 __n * sizeof(*__first));
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~
+In function 'constexpr _OutIter std::__copy_move_a2(_InIter, _Sent, _OutIter) [with bool _IsMove = false; _InIter = const byte*; _Sent = const byte*; _OutIter = byte*]',
+    inlined from 'constexpr _OI std::__copy_move_a1(_II, _II, _OI) [with bool _IsMove = false; _II = const byte*; _OI = byte*]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:492:42,
+    inlined from 'constexpr _OI std::__copy_move_a(_II, _II, _OI) [with bool _IsMove = false; _II = const byte*; _OI = __gnu_cxx::__normal_iterator<byte*, vector<byte> >]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:500:31,
+    inlined from 'constexpr _OI std::copy(_II, _II, _OI) [with _II = const byte*; _OI = __gnu_cxx::__normal_iterator<byte*, vector<byte> >]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:642:7,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::_M_range_insert(iterator, _ForwardIterator, _ForwardIterator, std::forward_iterator_tag) [with _ForwardIterator = const std::byte*; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/vector.tcc:926:16,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::iterator std::vector<_Tp, _Alloc>::insert(const_iterator, _InputIterator, _InputIterator) [with _InputIterator = const std::byte*; <template-parameter-2-2> = void; _Tp = std::byte; _Alloc = std::allocator<std::byte>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:1621:19,
+    inlined from 'std::vector<std::byte> {anonymous}::blueprint(uint8_t)' at tests/test_design_library.cpp:15:62:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:426:32: warning: 'void* __builtin_memcpy(void*, const void*, long unsigned int)' offset [75, 76] is out of the bounds [0, 75] [-Warray-bounds=]
+  426 |               __builtin_memmove(_GLIBCXX_TO_ADDR(__result),
+      |               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  427 |                                 _GLIBCXX_TO_ADDR(__first),
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  428 |                                 __n * sizeof(*__first));
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~
+In file included from src/game/expedition/design_library.hpp:3:
+In function 'constexpr std::byte& std::operator^=(byte&, byte)',
+    inlined from 'virtual void {anonymous}::DesignLibrary_CollectionCorruptionTruncationAndInvalidIdentityNeverPublish_Test::TestBody()' at tests/test_design_library.cpp:72:53:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/cstddef:184:22: warning: null pointer dereference [-Wnull-dereference]
+  184 |   { return __l = __l ^ __r; }
+      |                  ~~~~^~~~~
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/cstddef:184:16: warning: null pointer dereference [-Wnull-dereference]
+  184 |   { return __l = __l ^ __r; }
+      |            ~~~~^~~~~~~~~~~
+[828 / 829] 1 / 2 tests; [Prepa] Linking tests/voxy_tests
+[828 / 829] 1 / 2 tests; Linking tests/voxy_tests; 1s linux-sandbox
+[829 / 830] 1 / 2 tests; [Prepa] Testing //tests:voxy_tests
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 11s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 41s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 101s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 161s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 221s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 281s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 341s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 401s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 461s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 521s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 581s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 641s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 701s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 761s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 821s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 881s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 941s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1001s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1062s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1122s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1182s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1242s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1302s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1362s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1422s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1482s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1542s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1602s linux-sandbox
+FAIL: //tests:voxy_tests (Exit 1) (see /tmp/voxys-core-audit-20260924/opt-bazel/execroot/_main/bazel-out/k8-opt/testlogs/tests/voxy_tests/test.log)
+[829 / 830] 2 / 2 tests, 1 failed; Testing //tests:voxy_tests; 1649s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 1659.898s, Critical Path: 1658.19s
+INFO: 4 processes: 827 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 4 total actions
+//tools:terrain_diffusion_import_test                           (cached) PASSED in 0.2s
+//tests:voxy_tests                                                       FAILED in 1649.5s
+  /tmp/voxys-core-audit-20260924/opt-bazel/execroot/_main/bazel-out/k8-opt/testlogs/tests/voxy_tests/test.log
+
+Executed 1 out of 2 tests: 1 test passes and 1 fails locally.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

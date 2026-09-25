@@ -1,0 +1,26 @@
+File: membership-runner
+Type: cpu
+Showing nodes accounting for 574ms, 19.94% of 2879ms total
+Dropped 333 nodes (cum <= 14.39ms)
+Showing top 20 nodes out of 157
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     2879ms   100%  __libc_start_call_main
+         0     0%     0%     2879ms   100%  __libc_start_main_alias_2
+         0     0%     0%     2879ms   100%  _start
+         0     0%     0%     2879ms   100%  main
+       8ms  0.28%  0.28%     2550ms 88.57%  voxy::game::adventure::AdventureRuntime::update
+         0     0%  0.28%     1220ms 42.38%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+         0     0%  0.28%     1096ms 38.07%  voxy::game::adventure::AdventureRuntime::commit
+      24ms  0.83%  1.11%     1089ms 37.83%  voxy::game::adventure::CreativeScenery::admit
+      22ms  0.76%  1.88%      906ms 31.47%  voxy::game::adventure::CreativeVillage::admit
+     185ms  6.43%  8.30%      841ms 29.21%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()
+      18ms  0.63%  8.93%      836ms 29.04%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  8.93%      750ms 26.05%  voxy::game::adventure::AdventureSession::finish
+     127ms  4.41% 13.34%      734ms 25.49%  voxy::game::adventure::validateConstruction
+         0     0% 13.34%      724ms 25.15%  voxy::game::adventure::AdventureSession::preparePlace
+         0     0% 13.34%      694ms 24.11%  __invoke_impl (inline)
+         0     0% 13.34%      694ms 24.11%  __invoke_r (inline)
+         0     0% 13.34%      694ms 24.11%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0% 13.34%      694ms 24.11%  std::function::operator() (inline)
+     190ms  6.60% 19.94%      668ms 23.20%  voxy::game::adventure::(anonymous namespace)::overlap
+         0     0% 19.94%      545ms 18.93%  voxy::game::adventure::AdventureRuntime::undoLastPlacement

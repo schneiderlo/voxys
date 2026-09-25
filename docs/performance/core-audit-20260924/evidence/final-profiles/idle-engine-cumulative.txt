@@ -1,0 +1,33 @@
+File: membership-runner
+Type: cpu
+Active filters:
+   show=voxy::
+Showing nodes accounting for 518ms, 63.02% of 822ms total
+Dropped 28 nodes (cum <= 4.11ms)
+Showing top 25 nodes out of 43
+      flat  flat%   sum%        cum   cum%
+       5ms  0.61%  0.61%      405ms 49.27%  voxy::game::adventure::AdventureRuntime::update
+     163ms 19.83% 20.44%      176ms 21.41%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+       4ms  0.49% 20.92%      153ms 18.61%  voxy::game::expedition::CoveCamera::update
+         0     0% 20.92%      148ms 18.00%  voxy::game::adventure::AdventureSpatialQueries::cameraSweep() const::{lambda(void const*, glm::vec, glm::vec, double, unsigned long)#1}::_FUN
+       3ms  0.36% 21.29%      148ms 18.00%  voxy::game::adventure::AdventureSpatialQueries::sweepCapsule
+         0     0% 21.29%      148ms 18.00%  voxy::game::adventure::AdventureSpatialQueries::sweepSphere (inline)
+     121ms 14.72% 36.01%      140ms 17.03%  voxy::game::expedition::sweepCoveTerrainSphere
+      21ms  2.55% 38.56%       64ms  7.79%  voxy::game::adventure::AdventureRuntime::refreshHud
+      48ms  5.84% 44.40%       54ms  6.57%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0% 44.40%       48ms  5.84%  voxy::game::adventure::AdventurePlayer::advance
+       1ms  0.12% 44.53%       48ms  5.84%  voxy::game::adventure::AdventurePlayer::step
+         0     0% 44.53%       48ms  5.84%  voxy::game::adventure::AdventureRuntime::advanceCombat
+      42ms  5.11% 49.64%       42ms  5.11%  voxy::game::expedition::CoveInputRouter::tick
+      27ms  3.28% 52.92%       27ms  3.28%  voxy::game::adventure::AdventureSpatialQueries::candidates
+       8ms  0.97% 53.89%       25ms  3.04%  voxy::game::adventure::AdventureSpatialQueries::supportHeight
+      18ms  2.19% 56.08%       24ms  2.92%  voxy::game::expedition::sampleCoveInput
+       5ms  0.61% 56.69%       21ms  2.55%  voxy::game::adventure::AdventureSpatialQueries::clearCapsule
+      15ms  1.82% 58.52%       15ms  1.82%  voxy::game::expedition::sweepCoveTerrainSphere()::{lambda(voxy::game::expedition::CoveCamera::SweepResult)#1}::operator()
+       8ms  0.97% 59.49%       10ms  1.22%  voxy::game::adventure::AdventureCombatInputRouter::tick
+       1ms  0.12% 59.61%       10ms  1.22%  voxy::game::adventure::AdventureRuntime::interactionLabel[abi:cxx11]
+       7ms  0.85% 60.46%       10ms  1.22%  voxy::terrain::lego::supportHeight
+       7ms  0.85% 61.31%        7ms  0.85%  voxy::game::adventure::AdventureRuntime::refreshHud()::{lambda(std::basic_string_view, int, int)#1}::operator()
+       1ms  0.12% 61.44%        7ms  0.85%  voxy::render::AdventureHudContent::operator= (inline)
+       7ms  0.85% 62.29%        7ms  0.85%  voxy::render::AdventureHudRow::operator= (partial-inline)
+       6ms  0.73% 63.02%        6ms  0.73%  voxy::game::adventure::(anonymous namespace)::quote

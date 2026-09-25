@@ -1,0 +1,26 @@
+File: baseline-runner
+Type: cpu
+Showing nodes accounting for 998ms, 75.78% of 1317ms total
+Dropped 209 nodes (cum <= 6.58ms)
+Showing top 20 nodes out of 101
+      flat  flat%   sum%        cum   cum%
+     243ms 18.45% 18.45%      317ms 24.07%  operator (inline)
+     166ms 12.60% 31.06%      166ms 12.60%  __memchr_evex
+     117ms  8.88% 39.94%      117ms  8.88%  __memmove_avx512_unaligned_erms
+      76ms  5.77% 45.71%      323ms 24.53%  voxy::game::adventure::AdventureRuntime::cannonVisible (inline)
+      75ms  5.69% 51.40%       78ms  5.92%  std::char_traits::compare (inline)
+      52ms  3.95% 55.35%       57ms  4.33%  voxy::game::expedition::CoveInputRouter::tick
+      37ms  2.81% 58.16%       81ms  6.15%  castConvex (inline)
+      36ms  2.73% 60.90%      132ms 10.02%  voxy::game::expedition::sweepCoveTerrainSphere
+      24ms  1.82% 62.72%       32ms  2.43%  voxy::game::expedition::sampleCoveInput
+      23ms  1.75% 64.46%       32ms  2.43%  hack_digit
+      22ms  1.67% 66.14%       58ms  4.40%  voxy::game::adventure::AdventureRuntime::updateTarget
+      21ms  1.59% 67.73%       61ms  4.63%  __printf_fp_buffer_1.isra.0
+      20ms  1.52% 69.25%       21ms  1.59%  glm::operator* (inline)
+      19ms  1.44% 70.69%       19ms  1.44%  __memset_avx512_unaligned_erms
+      13ms  0.99% 71.68%       13ms  0.99%  __gnu_cxx::__normal_iterator::operator++ (inline)
+      12ms  0.91% 72.59%       12ms  0.91%  std::__cxx11::basic_string::_M_local_data
+      11ms  0.84% 73.42%       11ms  0.84%  __sqrt_finite@GLIBC_2.15
+      11ms  0.84% 74.26%      253ms 19.21%  std::__cxx11::basic_string::find
+      11ms  0.84% 75.09%       38ms  2.89%  std::__ostream_insert
+       9ms  0.68% 75.78%        9ms  0.68%  __GI___libc_malloc

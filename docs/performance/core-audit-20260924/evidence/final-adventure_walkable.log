@@ -1,0 +1,27 @@
+Running main() from gmock_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from AdventureWalkable
+[ RUN      ] AdventureWalkable.GroundAndRaisedBridgeAreDistinctDescendingPhysicalSpans
+[       OK ] AdventureWalkable.GroundAndRaisedBridgeAreDistinctDescendingPhysicalSpans (0 ms)
+[ RUN      ] AdventureWalkable.LowBridgeCeilingBlocksGroundButItsDeckRemainsUsable
+[       OK ] AdventureWalkable.LowBridgeCeilingBlocksGroundButItsDeckRemainsUsable (0 ms)
+[ RUN      ] AdventureWalkable.PhysicalStairTreadsUseTheirActualSupportHeights
+[       OK ] AdventureWalkable.PhysicalStairTreadsUseTheirActualSupportHeights (0 ms)
+[ RUN      ] AdventureWalkable.InclusiveFeetLimitsExcludeOutOfRangeSupportAndPreserveEmptyResults
+[       OK ] AdventureWalkable.InclusiveFeetLimitsExcludeOutOfRangeSupportAndPreserveEmptyResults (0 ms)
+[ RUN      ] AdventureWalkable.ExactDistinctLevelsAreNotLostToTheSupportQueryTolerance
+[       OK ] AdventureWalkable.ExactDistinctLevelsAreNotLostToTheSupportQueryTolerance (0 ms)
+[ RUN      ] AdventureWalkable.OutputOverflowIsIncompleteAndCannotPublishPartialLayers
+[       OK ] AdventureWalkable.OutputOverflowIsIncompleteAndCannotPublishPartialLayers (0 ms)
+[ RUN      ] AdventureWalkable.SixtyFourDistinctSupportsFitButTheNextOneMakesTheColumnIncomplete
+[       OK ] AdventureWalkable.SixtyFourDistinctSupportsFitButTheNextOneMakesTheColumnIncomplete (0 ms)
+[ RUN      ] AdventureWalkable.DuplicatePrimitivesDoNotSpendTheDistinctSurfaceBudget
+[       OK ] AdventureWalkable.DuplicatePrimitivesDoNotSpendTheDistinctSurfaceBudget (0 ms)
+[ RUN      ] AdventureWalkable.InvalidArgumentsAndUnsupportedTerrainExtentsNeverPublishFeet
+[       OK ] AdventureWalkable.InvalidArgumentsAndUnsupportedTerrainExtentsNeverPublishFeet (0 ms)
+[----------] 9 tests from AdventureWalkable (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 9 tests.

@@ -94,6 +94,7 @@ int main(int argc,char** argv)try {
     if(const char* path=std::getenv("VOXY_BENCH_CPU")){require(cpuStart&&cpuStop,"CPU profiler not preloaded");require(cpuStart(path)!=0,"CPU profile start failed");}
     if(const char* path=std::getenv("VOXY_BENCH_HEAP")){require(heapStart&&heapDump&&heapStop,"Heap profiler not preloaded");heapStart(path);}
     std::vector<double> updates,serializations;updates.reserve(frames);serializations.reserve(frames/6+1);
+    std::vector<double> acceptedEditUpdates;acceptedEditUpdates.reserve(frames/300+1);
     std::vector<std::string> observations;observations.reserve(frames/6+1);
     size_t accepted=0,removed=0,valid=0,invalid=0,goldenBytes=0;
     std::cerr<<"VOXY_REPLAY_BEGIN\n";
@@ -119,8 +120,9 @@ int main(int argc,char** argv)try {
             }
         }
         const auto before=partCount(runtime.state());
-        auto start=Clock::now();frame();updates.push_back(microseconds(start));
+        auto start=Clock::now();frame();const double updateUs=microseconds(start);updates.push_back(updateUs);
         const auto after=partCount(runtime.state());if(after>before)accepted+=after-before;if(after<before)removed+=before-after;
+        if(after!=before)acceptedEditUpdates.push_back(updateUs);
         if(i%6==0){
             start=Clock::now();auto json=runtime.json();serializations.push_back(microseconds(start));
             if(json.find("\"valid\":true")!=std::string::npos)++valid;else ++invalid;
@@ -142,6 +144,7 @@ int main(int argc,char** argv)try {
     std::ofstream snapshot(output+".save",std::ios::binary);snapshot.write(reinterpret_cast<const char*>(archive.data()),std::streamsize(archive.size()));require(bool(snapshot),"Snapshot write failed");
     nlohmann::json result={{"scope","native optimized creative CPU component; no rendered FPS"},{"parts",parts},{"frames",frames},{"workload",workload},
         {"update",distribution(std::move(updates))},{"serialization",distribution(std::move(serializations))},
+        {"accepted_edit_update",acceptedEditUpdates.empty()?nlohmann::json(nullptr):distribution(std::move(acceptedEditUpdates))},
         {"replay_us",replayUs},{"updates_per_second",double(frames)*1e6/replayUs},{"peak_rss_kib",usage.ru_maxrss},{"retained_golden_bytes",goldenBytes},
         {"startup_ms",startupMs},{"accepted_placements",accepted},{"removed_parts",removed},{"valid_observations",valid},{"invalid_observations",invalid},
         {"archive_sha256",core::sha256Hex(core::sha256(archive))},{"terrain_sha256",installedWorld().samplesSha256}};

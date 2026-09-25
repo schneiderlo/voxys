@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "begin": "115465 01:23:48.422012 write(2, \"VOXY_REPLAY_BEGIN\\n\", 18) = 18 <0.000032>",
+    "end": "115465 01:23:48.918604 write(2, \"VOXY_REPLAY_END\\n\", 16) = 16 <0.000033>",
+    "syscalls_excluding_markers": {
+      "ioctl": 60,
+      "brk": 6
+    },
+    "gpu_queries": 60
+  },
+  "final-profiles": {
+    "begin": "136750 01:50:28.710200 write(2, \"VOXY_REPLAY_BEGIN\\n\", 18) = 18 <0.000007>",
+    "end": "136750 01:50:29.103759 write(2, \"VOXY_REPLAY_END\\n\", 16) = 16 <0.000014>",
+    "syscalls_excluding_markers": {
+      "ioctl": 60,
+      "brk": 5
+    },
+    "gpu_queries": 60
+  }
+}

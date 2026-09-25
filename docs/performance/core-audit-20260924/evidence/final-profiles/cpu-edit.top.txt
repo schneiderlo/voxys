@@ -1,0 +1,26 @@
+File: membership-runner
+Type: cpu
+Showing nodes accounting for 1811ms, 62.90% of 2879ms total
+Dropped 333 nodes (cum <= 14.39ms)
+Showing top 20 nodes out of 157
+      flat  flat%   sum%        cum   cum%
+     190ms  6.60%  6.60%      668ms 23.20%  voxy::game::adventure::(anonymous namespace)::overlap
+     188ms  6.53% 13.13%      188ms  6.53%  glm::operator- (inline)
+     185ms  6.43% 19.56%      841ms 29.21%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()
+     171ms  5.94% 25.49%      175ms  6.08%  partFor (inline)
+     137ms  4.76% 30.25%      140ms  4.86%  glm::operator+ (inline)
+     127ms  4.41% 34.66%      734ms 25.49%  voxy::game::adventure::validateConstruction
+     116ms  4.03% 38.69%      116ms  4.03%  glm::all (inline)
+     109ms  3.79% 42.48%      109ms  3.79%  __memchr_evex
+      72ms  2.50% 44.98%       72ms  2.50%  glm::greaterThan (inline)
+      67ms  2.33% 47.31%       82ms  2.85%  _int_malloc
+      62ms  2.15% 49.46%       69ms  2.40%  std::construct_at (inline)
+      53ms  1.84% 51.30%      138ms  4.79%  castConvex (inline)
+      49ms  1.70% 53.00%       54ms  1.88%  voxy::game::expedition::CoveInputRouter::tick
+      47ms  1.63% 54.64%      129ms  4.48%  __libc_malloc2
+      47ms  1.63% 56.27%      204ms  7.09%  voxy::game::expedition::sweepCoveTerrainSphere (inline)
+      43ms  1.49% 57.76%       43ms  1.49%  __memmove_avx512_unaligned_erms
+      43ms  1.49% 59.26%       43ms  1.49%  std::_Rb_tree::_S_right (inline)
+      36ms  1.25% 60.51%       62ms  2.15%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      36ms  1.25% 61.76%       48ms  1.67%  voxy::game::expedition::sampleCoveInput
+      33ms  1.15% 62.90%       39ms  1.35%  glm::operator* (inline)

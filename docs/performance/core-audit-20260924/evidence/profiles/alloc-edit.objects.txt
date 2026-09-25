@@ -1,0 +1,26 @@
+File: baseline-runner
+Type: alloc_objects
+Showing nodes accounting for 1064878, 100% of 1065107 total
+Dropped 82 nodes (cum <= 5325)
+Showing top 20 nodes out of 88
+      flat  flat%   sum%        cum   cum%
+   1064878   100%   100%    1064878   100%  std::__new_allocator::allocate (inline)
+         0     0%   100%     620276 58.24%  __invoke_impl (inline)
+         0     0%   100%     620276 58.24%  __invoke_r (inline)
+         0     0%   100%    1065107   100%  __libc_start_call_main
+         0     0%   100%    1065107   100%  __libc_start_main_alias_2
+         0     0%   100%    1065107   100%  _start
+         0     0%   100%    1065107   100%  main
+         0     0%   100%     620276 58.24%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%   100%      18514  1.74%  std::_Hashtable::_M_emplace_uniq
+         0     0%   100%       9957  0.93%  std::_Hashtable::emplace (inline)
+         0     0%   100%       8557   0.8%  std::_Hashtable::insert (inline)
+         0     0%   100%     438226 41.14%  std::_Rb_tree::_Alloc_node::operator() (inline)
+         0     0%   100%     256363 24.07%  std::_Rb_tree::_Auto_node::_Auto_node (inline)
+         0     0%   100%      13330  1.25%  std::_Rb_tree::_M_clone_node (inline)
+         0     0%   100%      13330  1.25%  std::_Rb_tree::_M_copy (inline)
+         0     0%   100%     707791 66.45%  std::_Rb_tree::_M_create_node (inline)
+         0     0%   100%     245803 23.08%  std::_Rb_tree::_M_emplace_hint_unique
+         0     0%   100%      10560  0.99%  std::_Rb_tree::_M_emplace_unique (inline)
+         0     0%   100%     706470 66.33%  std::_Rb_tree::_M_get_node (inline)
+         0     0%   100%     438226 41.14%  std::_Rb_tree::_M_insert_ (inline)

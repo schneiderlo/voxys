@@ -28,6 +28,7 @@ class AcceptanceGuard(unittest.TestCase):
                                        valid_observations=285, invalid_observations=315,
                                        archive_sha256='fixture', terrain_sha256='fixture',
                                        update=distribution, serialization=distribution,
+                                       accepted_edit_update=dict(distribution, count=10) if workload == 'edit' else None,
                                        peak_rss_kib=100000, updates_per_second=10000)
                         pathlib.Path(str(stem) + '.metrics.json').write_text(json.dumps(metrics))
                         pathlib.Path(str(stem) + '.jsonl').write_bytes(b'{"valid":true}\n')
@@ -59,12 +60,12 @@ class AcceptanceGuard(unittest.TestCase):
     def test_each_performance_limit_fails(self):
         paths = [self.candidate / f'768-edit-{repeat}.metrics.json' for repeat in (1, 2, 3)]
         original = [path.read_text() for path in paths]
-        for field in ('update', 'serialization', 'peak_rss_kib', 'updates_per_second'):
+        for field in ('update', 'serialization', 'accepted_edit_update', 'peak_rss_kib', 'updates_per_second'):
             with self.subTest(field=field):
                 for path, text in zip(paths, original):
                     value = json.loads(text)
-                    if field in ('update', 'serialization'):
-                        value[field] = dict(p50_us=1000, p95_us=1500, p99_us=2000)
+                    if field in ('update', 'serialization', 'accepted_edit_update'):
+                        value[field].update(p50_us=1000, p95_us=1500, p99_us=2000)
                     else:
                         value[field] = 200000 if field == 'peak_rss_kib' else 1000
                     path.write_text(json.dumps(value))
@@ -73,6 +74,18 @@ class AcceptanceGuard(unittest.TestCase):
                 self.assertTrue(json.loads(result.stdout)['failures'])
         for path, text in zip(paths, original):
             path.write_text(text)
+
+    def test_missing_or_changed_accepted_edit_samples_fail(self):
+        path = self.candidate / '768-edit-1.metrics.json'
+        original = json.loads(path.read_text())
+        for samples in (None, dict(original['accepted_edit_update'], count=0),
+                        dict(original['accepted_edit_update'], count=9)):
+            with self.subTest(samples=samples):
+                value = dict(original, accepted_edit_update=samples)
+                path.write_text(json.dumps(value))
+                result = self.compare()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('accepted edit', result.stdout)
 
 
 if __name__ == '__main__':

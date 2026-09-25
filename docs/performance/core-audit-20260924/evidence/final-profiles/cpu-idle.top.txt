@@ -1,0 +1,26 @@
+File: membership-runner
+Type: cpu
+Showing nodes accounting for 610ms, 74.21% of 822ms total
+Dropped 140 nodes (cum <= 4.11ms)
+Showing top 20 nodes out of 104
+      flat  flat%   sum%        cum   cum%
+     181ms 22.02% 22.02%      181ms 22.02%  __memchr_evex
+      61ms  7.42% 29.44%       61ms  7.42%  __memmove_avx512_unaligned_erms
+      50ms  6.08% 35.52%       50ms  6.08%  std::char_traits::compare (inline)
+      42ms  5.11% 40.63%      140ms 17.03%  voxy::game::expedition::sweepCoveTerrainSphere (inline)
+      36ms  4.38% 45.01%       42ms  5.11%  voxy::game::expedition::CoveInputRouter::tick
+      32ms  3.89% 48.91%       80ms  9.73%  castConvex (inline)
+      27ms  3.28% 52.19%       27ms  3.28%  __memset_avx512_unaligned_erms
+      22ms  2.68% 54.87%       22ms  2.68%  glm::operator* (inline)
+      21ms  2.55% 57.42%       21ms  2.55%  __gnu_cxx::__normal_iterator::operator++ (inline)
+      20ms  2.43% 59.85%       35ms  4.26%  hack_digit
+      20ms  2.43% 62.29%       54ms  6.57%  voxy::game::adventure::AdventureRuntime::updateTarget
+      18ms  2.19% 64.48%       24ms  2.92%  voxy::game::expedition::sampleCoveInput
+      15ms  1.82% 66.30%       53ms  6.45%  __printf_fp_buffer_1.isra.0
+      15ms  1.82% 68.13%       15ms  1.82%  voxy::game::expedition::sweepCoveTerrainSphere()::{lambda(voxy::game::expedition::CoveCamera::SweepResult)#1}::operator()
+       9ms  1.09% 69.22%        9ms  1.09%  __mpn_mul_1
+       9ms  1.09% 70.32%      238ms 28.95%  std::__cxx11::basic_string::find
+       8ms  0.97% 71.29%        8ms  0.97%  __mpn_divrem
+       8ms  0.97% 72.26%        8ms  0.97%  __sqrt
+       8ms  0.97% 73.24%        8ms  0.97%  __sqrt_finite@GLIBC_2.15
+       8ms  0.97% 74.21%        8ms  0.97%  glm::operator/ (inline)

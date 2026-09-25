@@ -44,14 +44,20 @@ Archive decoding must exactly recover the accepted state; creative inventory and
 combat invariants are checked. The comparison requires byte-identical observations
 and save archives, equal outcome counters, and matching workload parameters.
 
-Latency uses nearest-rank p50/p95/p99 in microseconds. Throughput covers the whole
+Latency uses nearest-rank p50/p95/p99 in microseconds. `accepted_edit_update`
+separately measures updates whose accepted part count changes, using the same
+update timer. Rare placement/removal commits can otherwise disappear below the
+aggregate p99 cutoff. This field is null for idle runs; edit runs must have a
+nonzero, matching sample count. Rebuild and rerun older baselines that lack it.
+Throughput covers the whole
 replay loop, including the benchmark's observation bookkeeping. Peak RSS includes
 terrain, native GPU initialization and retained golden strings; their byte count
 is reported separately. Do not describe this as browser heap usage. Golden file
 writes happen after the measured replay, so they do not masquerade as game I/O.
 
 The same-host guard allows median-of-three regressions of at most 10% / 15% / 20%
-for p50 / p95 / p99, with a 25 μs noise allowance for small workloads. Peak RSS may
+for p50 / p95 / p99 of updates, serialization, and accepted-edit updates, with a
+25 μs noise allowance for small workloads. Peak RSS may
 grow by at most the larger of 10% or 10 MiB; replay throughput may fall by at
 most 15%. Both inputs must contain the complete 24-run workload matrix. These are opt-in comparison guards,
 not a universal machine-independent CI speed threshold. Never compare profiled

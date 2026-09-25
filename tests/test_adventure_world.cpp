@@ -37,6 +37,46 @@ TEST(AdventureSpatialQueries, PublicationIsAtomicBoundedAndRejectsStaleRevision)
     EXPECT_FALSE(scene.queries.publish(overflow,3));EXPECT_EQ(scene.queries.solidCount(),1u);
     EXPECT_FALSE(scene.queries.sweepSphere({0,2,-3},{0,2,3},.2,1).complete);
 }
+TEST(AdventureSpatialQueries, PartCounterMembershipMatchesAcceptedSolidsThroughReplacementCopyAndMove) {
+    Scene scene;
+    const std::array<uint64_t,6> counters{0,1,2,3,55,UINT64_MAX};
+    const auto check=[&](const AdventureSpatialQueries& queries) {
+        for(const auto structure:counters)for(const auto part:counters) {
+            const bool expected=std::any_of(queries.solids().begin(),queries.solids().end(),[&](const auto& solid){
+                return solid.structure.counter==structure&&solid.part.counter==part;
+            });
+            EXPECT_EQ(queries.containsPartCounters(structure,part),expected)<<structure<<":"<<part;
+        }
+    };
+    check(scene.queries);
+    std::vector<AdventureSpatialQueries::Solid> solids{box(2,{-1,0,-1},{1,1,1}),box(UINT64_MAX,{2,0,2},{3,1,3}),box(55,{4,0,4},{5,1,5})};
+    solids[1].structure.counter=3;solids[2].structure.counter=2;
+    solids.push_back(solids[0]); // Several boxes may belong to the same part.
+    solids.back().structure.world.bytes[1]=23;solids.back().part.world=solids.back().structure.world;
+    for(size_t order=0;order<solids.size();++order) {
+        ASSERT_TRUE(scene.queries.publish(solids,scene.queries.revision()+1));check(scene.queries);
+        for(size_t i=0;i<solids.size();++i) {
+            EXPECT_EQ(scene.queries.solids()[i].structure,solids[i].structure);
+            EXPECT_EQ(scene.queries.solids()[i].part,solids[i].part);
+            EXPECT_EQ(scene.queries.solids()[i].minimum,solids[i].minimum);
+            EXPECT_EQ(scene.queries.solids()[i].maximum,solids[i].maximum);
+        }
+        std::rotate(solids.begin(),solids.begin()+1,solids.end());
+    }
+    auto invalid=box(3,{0,0,0},{1,1,1});invalid.maximum.x=invalid.minimum.x;
+    const std::array replacement{box(55,{0,0,0},{1,1,1}),invalid};
+    const auto revision=scene.queries.revision();
+    EXPECT_FALSE(scene.queries.publish(replacement,revision+1));
+    EXPECT_FALSE(scene.queries.publish(std::span(replacement).first(1),revision));
+    EXPECT_EQ(scene.queries.revision(),revision);check(scene.queries);
+    EXPECT_TRUE(scene.queries.containsPartCounters(1,2));EXPECT_FALSE(scene.queries.containsPartCounters(1,55));
+    auto copy=scene.queries;check(copy);auto moved=std::move(copy);check(moved);
+    copy=scene.queries;check(copy);copy=std::move(moved);check(copy);
+    ASSERT_TRUE(copy.publish({},revision+1));check(copy);
+    EXPECT_TRUE(scene.queries.containsPartCounters(1,2));
+    ASSERT_TRUE(scene.queries.publish(std::span(replacement).first(1),revision+1));check(scene.queries);
+    EXPECT_FALSE(scene.queries.containsPartCounters(1,2));EXPECT_TRUE(scene.queries.containsPartCounters(1,55));
+}
 TEST(AdventureSpatialQueries, BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead) {
     Scene scene;const std::array solids{box(2,{-4,3,-4},{4,3.32,4}),box(3,{-4,6,-4},{4,6.32,4})};
     ASSERT_TRUE(scene.queries.publish(solids,2));
@@ -551,6 +591,46 @@ TEST(CreativeScenery, SavedPlayerAndLegacyIdentityTakePriority) {
     s.state.structures.push_back({creativeSceneryStructureId,1,0,{}, {}});
     EXPECT_TRUE(CreativeScenery::admit(s.state,s.surface,{}).props().empty());
     voxy::terrain::lego::Surface invalid;EXPECT_TRUE(CreativeScenery::admit(s.state,invalid,{}).props().empty());
+}
+TEST(CreativeScenery, NearbyReservationsMatchStrictLinearOverlapAcrossBucketsAndLargeBounds) {
+    CreativeScene s;
+    for(const auto focus:std::array{creativeStart,glm::dvec2(-128,-128)}) {
+        s.state.player.x=focus.x;s.state.player.z=focus.y;
+        const auto original=CreativeScenery::admit(s.state,s.surface,{});
+        ASSERT_FALSE(original.props().empty());const auto p=original.props().front();
+        // Include remote reservations, duplicate references, strict margin
+        // boundaries, negative cells, and the broad phase's large-box fallback.
+        std::vector<AdventureSpatialQueries::Solid> probes{box(55,p.minimum,p.maximum)};
+        const double boundary=p.maximum.x+.8;
+        for(const double x:std::array{std::nextafter(boundary,-INFINITY),boundary,std::nextafter(boundary,INFINITY)})
+            probes.push_back(box(55,{x,p.minimum.y,p.minimum.z},{x+1,p.maximum.y,p.maximum.z}));
+        const double cell=std::floor(p.minimum.x/64)*64;
+        probes.push_back(box(55,{cell-1,p.minimum.y,p.minimum.z},{cell+.8,p.maximum.y,p.maximum.z}));
+        probes.push_back(box(55,{-9000,p.minimum.y,-9000},{9000,p.maximum.y,9000}));
+        probes.push_back(box(55,{-9000,p.maximum.y+1,-9000},{9000,p.maximum.y+2,9000}));
+        for(const auto& probe:probes) {
+            std::vector<AdventureSpatialQueries::Solid> reserved(512,box(55,{9000,0,9000},{9001,1,9001}));
+            reserved.push_back(probe);reserved.push_back(probe);
+            const bool blocked=std::any_of(reserved.begin(),reserved.end(),[&](const auto& b){
+                return glm::all(glm::lessThan(p.minimum,b.maximum+glm::dvec3(.8)))
+                    &&glm::all(glm::greaterThan(p.maximum,b.minimum-glm::dvec3(.8)));
+            });
+            for(int order=0;order<2;++order) {
+                SCOPED_TRACE(::testing::Message()<<"focus="<<focus.x<<","<<focus.y<<" probe="<<probe.minimum.x<<" order="<<order);
+                const auto next=CreativeScenery::admit(s.state,s.surface,reserved,&original);
+                const auto found=std::find_if(next.props().begin(),next.props().end(),[&](const auto& q){return q.id==p.id;});
+                ASSERT_EQ(found==next.props().end(),blocked);
+                if(found!=next.props().end()) {
+                    EXPECT_EQ(found->feet,p.feet);EXPECT_EQ(found->minimum,p.minimum);EXPECT_EQ(found->maximum,p.maximum);
+                    EXPECT_EQ(found->kind,p.kind);EXPECT_EQ(found->yawQuarterTurns,p.yawQuarterTurns);EXPECT_EQ(found->forestVariant,p.forestVariant);
+                } else {
+                    const auto cleared=CreativeScenery::admit(s.state,s.surface,{},&next);
+                    EXPECT_TRUE(std::none_of(cleared.props().begin(),cleared.props().end(),[&](const auto& q){return q.id==p.id;}));
+                }
+                std::reverse(reserved.begin(),reserved.end());
+            }
+        }
+    }
 }
 TEST(CreativeScenery, ActualStartingShelfSupportsAllSixKinds) {
     const char* path=std::getenv("VOXY_ADVENTURE_TEST_TERRAIN");if(!path)GTEST_SKIP()<<"Set terrain path for actual shelf admission";

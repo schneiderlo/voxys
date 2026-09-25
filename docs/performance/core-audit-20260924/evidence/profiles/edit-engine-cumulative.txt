@@ -1,0 +1,45 @@
+File: baseline-runner
+Type: cpu
+Active filters:
+   show=voxy::
+Showing nodes accounting for 4519ms, 88.30% of 5118ms total
+Dropped 107 nodes (cum <= 25.59ms)
+      flat  flat%   sum%        cum   cum%
+      14ms  0.27%  0.27%     4672ms 91.29%  voxy::game::adventure::AdventureRuntime::update
+       6ms  0.12%  0.39%     2959ms 57.82%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+    1185ms 23.15% 23.54%     2823ms 55.16%  voxy::game::adventure::CreativeScenery::admit
+       4ms 0.078% 23.62%     2640ms 51.58%  voxy::game::adventure::AdventureRuntime::commit
+    1293ms 25.26% 48.89%     1293ms 25.26%  voxy::game::adventure::(anonymous namespace)::overlap
+         0     0% 48.89%     1253ms 24.48%  voxy::game::adventure::AdventureRuntime::undoLastPlacement
+      30ms  0.59% 49.47%      995ms 19.44%  voxy::game::adventure::CreativeVillage::admit
+     189ms  3.69% 53.17%      928ms 18.13%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()
+      39ms  0.76% 53.93%      898ms 17.55%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0% 53.93%      796ms 15.55%  voxy::game::adventure::AdventureSession::finish
+         0     0% 53.93%      779ms 15.22%  voxy::game::adventure::AdventureSession::preparePlace
+     608ms 11.88% 65.81%      776ms 15.16%  voxy::game::adventure::validateConstruction
+      48ms  0.94% 66.74%      351ms  6.86%  voxy::game::adventure::AdventureRuntime::refreshHud
+     294ms  5.74% 72.49%      294ms  5.74%  voxy::game::adventure::AdventureRuntime::cannonVisible
+     155ms  3.03% 75.52%      281ms  5.49%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+     233ms  4.55% 80.07%      255ms  4.98%  voxy::game::expedition::sweepCoveTerrainSphere
+       4ms 0.078% 80.15%      162ms  3.17%  voxy::game::adventure::AdventureSpatialQueries::sweepCapsule
+       2ms 0.039% 80.19%      155ms  3.03%  voxy::game::expedition::CoveCamera::update
+         0     0% 80.19%      152ms  2.97%  voxy::game::adventure::AdventureSpatialQueries::cameraSweep() const::{lambda(void const*, glm::vec, glm::vec, double, unsigned long)#1}::_FUN
+         0     0% 80.19%      152ms  2.97%  voxy::game::adventure::AdventureSpatialQueries::sweepSphere (inline)
+         0     0% 80.19%      102ms  1.99%  voxy::game::adventure::AdventureSpatialQueries::raycast
+      77ms  1.50% 81.69%       92ms  1.80%  voxy::game::adventure::(anonymous namespace)::compileGeometry
+      55ms  1.07% 82.77%       61ms  1.19%  voxy::game::adventure::AdventureSession::validate
+      45ms  0.88% 83.65%       60ms  1.17%  voxy::game::adventure::(anonymous namespace)::terrainRange
+         0     0% 83.65%       60ms  1.17%  voxy::game::adventure::AdventureRuntime::advanceCombat
+         0     0% 83.65%       59ms  1.15%  voxy::game::adventure::AdventurePlayer::advance
+       1ms  0.02% 83.67%       59ms  1.15%  voxy::game::adventure::AdventurePlayer::step
+      58ms  1.13% 84.80%       58ms  1.13%  voxy::game::expedition::CoveInputRouter::tick
+      56ms  1.09% 85.89%       56ms  1.09%  voxy::game::adventure::(anonymous namespace)::Reservations::blocks
+         0     0% 85.89%       45ms  0.88%  voxy::game::adventure::validateInstalledGeometry
+       8ms  0.16% 86.05%       43ms  0.84%  voxy::game::adventure::AdventureRuntime::refreshNavigation
+      38ms  0.74% 86.79%       38ms  0.74%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]() const::{lambda(std::ostream&)#1}::operator()
+         0     0% 86.79%       36ms   0.7%  voxy::terrain::lego::Surface::cellTop (inline)
+      18ms  0.35% 87.14%       36ms   0.7%  voxy::terrain::lego::top (inline)
+      26ms  0.51% 87.65%       33ms  0.64%  voxy::game::adventure::AdventureSpatialQueries::publish
+      13ms  0.25% 87.91%       31ms  0.61%  voxy::game::adventure::AdventureSpatialQueries::supportHeight
+      20ms  0.39% 88.30%       30ms  0.59%  voxy::game::expedition::sampleCoveInput
+         0     0% 88.30%       26ms  0.51%  voxy::game::adventure::AdventureSession::prepareRemove

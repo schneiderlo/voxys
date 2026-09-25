@@ -1,0 +1,235 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Starting local Bazel server (8.5.0) and connecting to it...
+Computing main repo mapping: 
+WARNING: WORKSPACE support will be removed in Bazel 9 (late 2025), please migrate to Bzlmod, see https://bazel.build/external/migration.
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (2 packages loaded, 0 targets configured)
+Analyzing: 2 targets (2 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (120 packages loaded, 1880 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (149 packages loaded, 4290 targets configured).
+[10 / 829] 1 / 2 tests; Compiling src/game/construction/construction_types.cpp; 0s linux-sandbox ... (4 actions running)
+[13 / 829] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 1s linux-sandbox ... (3 actions running)
+[15 / 829] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 2s linux-sandbox ... (4 actions running)
+[16 / 829] 1 / 2 tests; Compiling third_party/tinygltf/tiny_gltf.cc; 3s linux-sandbox ... (4 actions running)
+[21 / 829] 1 / 2 tests; Compiling src/game/assets/gameplay_sidecar.cpp; 0s linux-sandbox ... (4 actions running)
+[24 / 829] 1 / 2 tests; Compiling src/game/assets/gameplay_sidecar.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[28 / 829] 1 / 2 tests; Compiling src/gpu/resources.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[33 / 829] 1 / 2 tests; Compiling src/game/expedition/session_transactions.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[47 / 829] 1 / 2 tests; Compiling src/game/expedition/session_transactions.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[59 / 829] 1 / 2 tests; Compiling src/game/expedition/session_events.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[73 / 829] 1 / 2 tests; Compiling googlemock/src/gmock.cc; 0s linux-sandbox ... (4 actions, 3 running)
+[84 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Core/JobSystemSingleThreaded.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[99 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Core/JobSystemThreadPool.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[107 / 829] 1 / 2 tests; Compiling src/network/native_tcp_transport.cpp; 0s linux-sandbox ... (4 actions running)
+[110 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Core/JobSystemWithBarrier.cpp; 1s linux-sandbox ... (4 actions running)
+[114 / 829] 1 / 2 tests; Compiling src/perf/benchmark.cpp; 1s linux-sandbox ... (4 actions running)
+[129 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Core/Memory.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[138 / 829] 1 / 2 tests; Compiling googletest/src/gtest.cc; 1s linux-sandbox ... (4 actions, 3 running)
+[140 / 829] 1 / 2 tests; Compiling googletest/src/gtest.cc; 2s linux-sandbox ... (4 actions, 3 running)
+[150 / 829] 1 / 2 tests; Compiling googletest/src/gtest.cc; 3s linux-sandbox ... (4 actions running)
+[196 / 829] 1 / 2 tests; Compiling src/terrain/textures.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[229 / 829] 1 / 2 tests; Compiling src/terrain/textures.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[245 / 829] 1 / 2 tests; Compiling src/game/assets/rigid_prefab.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[251 / 829] 1 / 2 tests; Compiling src/physics/box3d/box3d_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[261 / 829] 1 / 2 tests; Compiling src/game/assets/cooked_part_bundle.cpp; 1s linux-sandbox ... (4 actions running)
+[267 / 829] 1 / 2 tests; Compiling src/game/assets/cooked_part_bundle.cpp; 2s linux-sandbox ... (4 actions running)
+[279 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/ObjectStream/ObjectStream.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[291 / 829] 1 / 2 tests; Compiling src/game/assets/robot_asset.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[293 / 829] 1 / 2 tests; Compiling src/game/assets/robot_asset.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[301 / 829] 1 / 2 tests; Compiling src/physics/gpu/gpu_broad_phase.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[309 / 829] 1 / 2 tests; Compiling src/physics/gpu/gpu_ccd.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[318 / 829] 1 / 2 tests; Compiling src/game/assets/fixture_registry.cpp; 0s linux-sandbox ... (4 actions running)
+[320 / 829] 1 / 2 tests; Compiling src/game/assets/fixture_registry.cpp; 1s linux-sandbox ... (4 actions running)
+[322 / 829] 1 / 2 tests; Compiling src/game/assets/fixture_registry.cpp; 2s linux-sandbox ... (4 actions running)
+[328 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Body/Body.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[333 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_player.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[337 / 829] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[341 / 829] 1 / 2 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[351 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_rigid_roots.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[356 / 829] 1 / 2 tests; Compiling src/game/expedition/game_session.cpp; 1s linux-sandbox ... (4 actions running)
+[360 / 829] 1 / 2 tests; Compiling src/game/expedition/game_session.cpp; 3s linux-sandbox ... (4 actions running)
+[366 / 829] 1 / 2 tests; Compiling src/physics/jolt/jolt_backend.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[368 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 2s linux-sandbox ... (4 actions running)
+[370 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_workshop.cpp; 3s linux-sandbox ... (4 actions running)
+[377 / 829] 1 / 2 tests; Compiling src/network/native_tcp_transport.cpp; 1s linux-sandbox ... (4 actions running)
+[380 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_build.cpp; 2s linux-sandbox ... (4 actions running)
+[391 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/QuadTree.cpp; 0s linux-sandbox ... (4 actions running)
+[398 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/QuadTree.cpp; 1s linux-sandbox ... (4 actions running)
+[408 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CastConvexVsTriangles.cpp; 0s linux-sandbox ... (4 actions running)
+[418 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_test_session.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[422 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_test_session.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[432 / 829] 1 / 2 tests; Compiling src/game/expedition/cove_input_preferences.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[442 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_preferences.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[450 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_preferences.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[459 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CollisionGroup.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[467 / 829] 1 / 2 tests; Compiling src/game/adventure/trail_sites.cpp; 0s linux-sandbox ... (4 actions running)
+[470 / 829] 1 / 2 tests; Compiling src/game/adventure/creative_scenery.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[475 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/GroupFilterTable.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[488 / 829] 1 / 2 tests; Compiling src/terrain/heightmap.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[490 / 829] 1 / 2 tests; Compiling src/terrain/heightmap.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[498 / 829] 1 / 2 tests; Compiling src/game/adventure/layered_navigation.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[510 / 829] 1 / 2 tests; Compiling src/physics/physics_world.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[516 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_encounters.cpp; 1s linux-sandbox ... (4 actions running)
+[523 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/TriangleSplitter/TriangleSplitterBinning.cpp; 0s linux-sandbox ... (4 actions running)
+[527 / 829] 1 / 2 tests; Compiling src/game/adventure/construction_policy.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[531 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/CompoundShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[535 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexHullShape.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[539 / 829] 1 / 2 tests; Compiling src/game/adventure/village_layout.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[542 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[547 / 829] 1 / 2 tests; Compiling src/game/adventure/field_home_access.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[553 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/VehicleEngine.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[555 / 829] 1 / 2 tests; Compiling src/engine/platform/native/native_adventure_saves.cpp; 1s linux-sandbox ... (4 actions running)
+[561 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/HeightFieldShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[567 / 829] 1 / 2 tests; Compiling src/game/adventure/imported_wall_physics.cpp; 1s linux-sandbox ... (4 actions running)
+[573 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/MeshShape.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[579 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/MutableCompoundShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[583 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp; 1s linux-sandbox ... (3 actions running)
+[588 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Ragdoll/Ragdoll.cpp; 0s linux-sandbox ... (4 actions running)
+[589 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Ragdoll/Ragdoll.cpp; 1s linux-sandbox ... (4 actions running)
+[593 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 0s linux-sandbox ... (4 actions running)
+[596 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[598 / 829] 1 / 2 tests; Compiling src/render/adventure_hud.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[602 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/SphereShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[605 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/SwingTwistConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[611 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/TaperedCapsuleShape.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[614 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/RackAndPinionConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[617 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/PulleyConstraint.cpp; 1s linux-sandbox ... (4 actions running)
+[619 / 829] 1 / 2 tests; Compiling src/render/mesh_path.cpp; 1s linux-sandbox ... (4 actions running)
+[622 / 829] 1 / 2 tests; Compiling src/render/mesh_path.cpp; 2s linux-sandbox ... (4 actions running)
+[627 / 829] 1 / 2 tests; Compiling src/render/primitive_gpu_culling.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[632 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/DistanceConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[635 / 829] 1 / 2 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/ContactConstraintManager.cpp; 1s linux-sandbox ... (4 actions running)
+[645 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_runtime.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[646 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_runtime.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[651 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_runtime.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[656 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_runtime.cpp; 4s linux-sandbox ... (4 actions running)
+[657 / 829] 1 / 2 tests; Compiling src/game/adventure/adventure_runtime.cpp; 5s linux-sandbox ... (4 actions running)
+[662 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 4s linux-sandbox ... (4 actions running)
+[665 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 6s linux-sandbox ... (4 actions, 3 running)
+[666 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 7s linux-sandbox ... (4 actions, 3 running)
+[668 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 8s linux-sandbox ... (4 actions running)
+[669 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 9s linux-sandbox ... (4 actions running)
+[670 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 10s linux-sandbox ... (4 actions running)
+[671 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 11s linux-sandbox ... (4 actions, 3 running)
+[673 / 829] 1 / 2 tests; Compiling src/app/application.cpp; 13s linux-sandbox ... (4 actions, 3 running)
+[675 / 829] 1 / 2 tests; Compiling tests/test_imported_assembly.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[677 / 829] 1 / 2 tests; Compiling tests/test_imported_assembly.cpp; 3s linux-sandbox ... (4 actions running)
+[679 / 829] 1 / 2 tests; Compiling tests/test_imported_assembly.cpp; 4s linux-sandbox ... (4 actions running)
+[680 / 829] 1 / 2 tests; Compiling tests/test_imported_assembly.cpp; 5s linux-sandbox ... (4 actions, 3 running)
+[683 / 829] 1 / 2 tests; Compiling tests/test_adventure_runtime.cpp; 5s linux-sandbox ... (4 actions, 3 running)
+[685 / 829] 1 / 2 tests; Compiling tests/test_adventure_runtime.cpp; 7s linux-sandbox ... (4 actions, 3 running)
+[687 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_client_runtime.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[689 / 829] 1 / 2 tests; Compiling tests/test_bike.cpp; 1s linux-sandbox ... (4 actions running)
+[693 / 829] 1 / 2 tests; Compiling tests/test_log.cpp; 0s linux-sandbox ... (4 actions running)
+[697 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_character_movement.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[699 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_third_person_camera.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[702 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_graphical_client_loop.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[705 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_character_controller.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[709 / 829] 1 / 2 tests; Compiling tests/test_replay.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[711 / 829] 1 / 2 tests; Compiling tests/test_wreckwater_authority_runtime.cpp; 2s linux-sandbox ... (4 actions running)
+[715 / 829] 1 / 2 tests; Compiling tests/test_native_tcp_transport.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[716 / 829] 1 / 2 tests; Compiling tests/test_native_tcp_transport.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[719 / 829] 1 / 2 tests; Compiling tests/test_part_catalog.cpp; 1s linux-sandbox ... (4 actions running)
+[723 / 829] 1 / 2 tests; Compiling tests/test_gpu_authored_shapes.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[725 / 829] 1 / 2 tests; Compiling tests/test_gpu_authored_shapes.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[728 / 829] 1 / 2 tests; Compiling tests/test_gpu_authored_shapes.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[730 / 829] 1 / 2 tests; Compiling tests/test_compiled_assembly.cpp; 1s linux-sandbox ... (4 actions running)
+[733 / 829] 1 / 2 tests; Compiling tests/test_compiled_assembly.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[735 / 829] 1 / 2 tests; Compiling tests/test_assembly_collision.cpp; 2s linux-sandbox ... (4 actions running)
+[738 / 829] 1 / 2 tests; Compiling tests/test_compression.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[741 / 829] 1 / 2 tests; Compiling tools/salvage_assets/test_gameplay_sidecar.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[743 / 829] 1 / 2 tests; Compiling tests/test_cove_save.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[746 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[747 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 3s linux-sandbox ... (4 actions running)
+[749 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[750 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 6s linux-sandbox ... (4 actions, 3 running)
+[752 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 7s linux-sandbox ... (4 actions running)
+[755 / 829] 1 / 2 tests; Compiling tests/test_game_session.cpp; 8s linux-sandbox ... (4 actions running)
+[758 / 829] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[758 / 829] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 3s linux-sandbox ... (4 actions running)
+[761 / 829] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[762 / 829] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 5s linux-sandbox ... (4 actions, 3 running)
+[762 / 829] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 7s linux-sandbox ... (4 actions running)
+[765 / 829] 1 / 2 tests; Compiling tests/test_robot_asset.cpp; 3s linux-sandbox ... (4 actions running)
+[767 / 829] 1 / 2 tests; Compiling tests/test_gpu_dynamic_solver.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[771 / 829] 1 / 2 tests; Compiling tests/test_cove_input_preferences.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[772 / 829] 1 / 2 tests; Compiling tests/test_cove_input_preferences.cpp; 2s linux-sandbox ... (4 actions running)
+[777 / 829] 1 / 2 tests; Compiling tests/test_cove_environment.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[779 / 829] 1 / 2 tests; Compiling tests/test_cove_environment.cpp; 2s linux-sandbox ... (4 actions running)
+[780 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[780 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 4s linux-sandbox ... (4 actions running)
+[784 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 5s linux-sandbox ... (4 actions, 3 running)
+[785 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 7s linux-sandbox ... (4 actions running)
+[786 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 8s linux-sandbox ... (4 actions, 3 running)
+[788 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 10s linux-sandbox ... (4 actions running)
+[789 / 829] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 11s linux-sandbox ... (4 actions running)
+[792 / 829] 1 / 2 tests; Compiling tests/test_adventure_side_quest.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[795 / 829] 1 / 2 tests; Compiling tests/test_adventure_field_home_access.cpp; 1s linux-sandbox ... (4 actions running)
+[797 / 829] 1 / 2 tests; Compiling tests/test_adventure_trail_sites.cpp; 2s linux-sandbox ... (4 actions running)
+[800 / 829] 1 / 2 tests; Compiling tests/test_deterministic_gpu_primitives.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[802 / 829] 1 / 2 tests; Compiling tests/test_adventure_encounters.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[805 / 829] 1 / 2 tests; Compiling tests/test_adventure_walkable.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[808 / 829] 1 / 2 tests; Compiling tests/test_adventure_movement.cpp; 1s linux-sandbox ... (4 actions running)
+[812 / 829] 1 / 2 tests; Compiling tests/test_application.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[815 / 829] 1 / 2 tests; Compiling tests/test_application.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[818 / 829] 1 / 2 tests; Compiling tests/test_primitive_path.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[820 / 829] 1 / 2 tests; Compiling tests/test_multiplayer_session.cpp; 2s linux-sandbox ... (4 actions running)
+[822 / 829] 1 / 2 tests; Compiling tests/test_raycast_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[824 / 829] 1 / 2 tests; Compiling tests/test_adventure_hud.cpp; 2s linux-sandbox ... (4 actions running)
+[827 / 829] 1 / 2 tests; Compiling tests/test_blit_path.cpp; 2s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 0s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 10s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 40s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 100s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 160s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 220s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 280s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 340s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 400s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 460s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 520s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 580s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 640s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 700s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 760s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 820s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 880s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 940s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1000s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1060s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1120s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1180s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1240s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1300s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1360s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1420s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1480s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1540s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1600s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1660s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1720s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1780s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1840s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1900s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 1960s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 2020s linux-sandbox
+[829 / 830] 1 / 2 tests; Testing //tests:voxy_tests; 2080s linux-sandbox
+FAIL: //tests:voxy_tests (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log)
+[829 / 830] 2 / 2 tests, 1 failed; Testing //tests:voxy_tests; 2119s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 2330.973s, Critical Path: 2135.11s
+INFO: 722 processes: 109 action cache hit, 14 internal, 708 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 722 total actions
+//tools:terrain_diffusion_import_test                                    PASSED in 0.2s
+//tests:voxy_tests                                                       FAILED in 2119.6s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log
+
+Executed 2 out of 2 tests: 1 test passes and 1 fails locally.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

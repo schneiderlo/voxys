@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 5 targets (16 packages loaded, 2606 targets configured)
+
+INFO: Analyzed 5 targets (17 packages loaded, 2935 targets configured).
+[835 / 852] Compiling tests/test_adventure_navigation.cpp; 1s linux-sandbox ... (4 actions running)
+[836 / 852] Compiling tests/test_adventure_navigation.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[837 / 852] Compiling tests/test_adventure_navigation.cpp; 5s linux-sandbox ... (4 actions running)
+[848 / 852] Compiling src/app/application.cpp; 7s linux-sandbox ... (2 actions running)
+[850 / 852] Compiling src/app/application.cpp; 8s linux-sandbox
+[850 / 852] Compiling src/app/application.cpp; 19s linux-sandbox
+[851 / 852] [Prepa] Linking voxy_native
+[851 / 852] Linking voxy_native; 1s linux-sandbox
+INFO: Found 5 targets...
+INFO: Elapsed time: 36.173s, Critical Path: 34.35s
+INFO: 23 processes: 830 action cache hit, 13 internal, 10 linux-sandbox.
+INFO: Build completed successfully, 23 total actions
