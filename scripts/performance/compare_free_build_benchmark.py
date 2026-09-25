@@ -26,6 +26,16 @@ for source in files:
         failures.append(f"Missing {other}")
         continue
     baseline, candidate = (json.loads(p.read_text()) for p in (source, other))
+    for label, metrics in (("baseline", baseline), ("candidate", candidate)):
+        accepted_edits = metrics.get("accepted_edit_update")
+        if "accepted_edit_update" not in metrics or (metrics["workload"] == "edit" and
+                (not isinstance(accepted_edits, dict) or accepted_edits.get("count", 0) <= 0)):
+            failures.append(f"{source.name}: {label} missing accepted edit timings")
+        elif metrics["workload"] == "idle" and accepted_edits is not None:
+            failures.append(f"{source.name}: {label} idle workload accepted an edit")
+    if isinstance(baseline.get("accepted_edit_update"), dict) and isinstance(candidate.get("accepted_edit_update"), dict):
+        if baseline["accepted_edit_update"].get("count") != candidate["accepted_edit_update"].get("count"):
+            failures.append(f"{source.name}: accepted edit timing count differs")
     for key in ("scope", "parts", "frames", "workload", "accepted_placements", "removed_parts",
                 "valid_observations", "invalid_observations", "archive_sha256", "terrain_sha256"):
         if baseline[key] != candidate[key]:
@@ -39,7 +49,10 @@ for source in files:
 report = []
 for (parts, workload), pairs in sorted(groups.items()):
     item = {"parts": parts, "workload": workload, "repeats": len(pairs)}
-    for operation in ("update", "serialization"):
+    for operation in ("update", "serialization", "accepted_edit_update"):
+        if operation == "accepted_edit_update" and (workload == "idle" or
+                any(not isinstance(metrics.get(operation), dict) for pair in pairs for metrics in pair)):
+            continue
         result = {}
         for metric, ratio_limit in (("p50_us", 1.10), ("p95_us", 1.15), ("p99_us", 1.20)):
             before = statistics.median(b[operation][metric] for b, _ in pairs)

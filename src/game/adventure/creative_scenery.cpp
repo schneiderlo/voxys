@@ -325,7 +325,7 @@ CreativeScenery CreativeScenery::admit(const AdventureState& state,const terrain
             for(const auto& part:structure.parts)blocked|=aliases(part.id);
         }
         for(const auto& component:state.components)blocked|=aliases(component.id);
-        for(const auto& b:reserved)if(overlap(p.minimum,p.maximum,b,.8)){blocked=true;break;}
+        blocked|=reservations.blocks(p);
         if(!existing) {
             const glm::dvec3 feet(state.player.x,state.player.y,state.player.z);
             const double radius=AdventurePlayer::creativeRadius*AdventurePlayer::creativeScale;

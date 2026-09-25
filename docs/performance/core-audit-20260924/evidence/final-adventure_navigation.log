@@ -1,0 +1,27 @@
+Running main() from gmock_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from AdventureNavigation
+[ RUN      ] AdventureNavigation.RealFollowerCrossesBridgeAndGroundBelowWithoutChangingLayers
+[       OK ] AdventureNavigation.RealFollowerCrossesBridgeAndGroundBelowWithoutChangingLayers (3 ms)
+[ RUN      ] AdventureNavigation.RealFollowerClimbsAndDescendsAllEighteenCatalogStairTreads
+[       OK ] AdventureNavigation.RealFollowerClimbsAndDescendsAllEighteenCatalogStairTreads (7 ms)
+[ RUN      ] AdventureNavigation.NewWallStopsTheOldPathBeforeMovementAndRepathWalksAroundIt
+[       OK ] AdventureNavigation.NewWallStopsTheOldPathBeforeMovementAndRepathWalksAroundIt (4 ms)
+[ RUN      ] AdventureNavigation.RemovingBridgeDeckRefusesCrossingAndRestoringItRestoresTraversal
+[       OK ] AdventureNavigation.RemovingBridgeDeckRefusesCrossingAndRestoringItRestoresTraversal (7 ms)
+[ RUN      ] AdventureNavigation.DistantEditedTilePreservesTheAcceptedPathAndItsTileGenerations
+[       OK ] AdventureNavigation.DistantEditedTilePreservesTheAcceptedPathAndItsTileGenerations (3 ms)
+[ RUN      ] AdventureNavigation.WorkBudgetsAreBoundedAndInvalidConfigurationOrStaleQueriesCannotMoveAnActor
+[       OK ] AdventureNavigation.WorkBudgetsAreBoundedAndInvalidConfigurationOrStaleQueriesCannotMoveAnActor (1 ms)
+[ RUN      ] AdventureNavigation.MoreThanEightRealWalkableLayersRefuseCapacityInsteadOfDroppingAFloor
+[       OK ] AdventureNavigation.MoreThanEightRealWalkableLayersRefuseCapacityInsteadOfDroppingAFloor (0 ms)
+[ RUN      ] AdventureNavigation.TerrainRebindAtTheSameRevisionStopsAnExistingFollowerBeforeItsNextTick
+[       OK ] AdventureNavigation.TerrainRebindAtTheSameRevisionStopsAnExistingFollowerBeforeItsNextTick (1 ms)
+[ RUN      ] AdventureNavigation.FollowerRejectsAnotherActorsGeometryOrWaterPolicyEvenWithAValidNavQuery
+[       OK ] AdventureNavigation.FollowerRejectsAnotherActorsGeometryOrWaterPolicyEvenWithAValidNavQuery (0 ms)
+[----------] 9 tests from AdventureNavigation (29 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (29 ms total)
+[  PASSED  ] 9 tests.

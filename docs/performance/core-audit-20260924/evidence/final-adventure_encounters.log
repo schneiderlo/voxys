@@ -1,0 +1,27 @@
+Running main() from gmock_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from AdventureEncounters
+[ RUN      ] AdventureEncounters.CanonicalRaidersUseAgreedCombatContractAndRealWalkingBodies
+[       OK ] AdventureEncounters.CanonicalRaidersUseAgreedCombatContractAndRealWalkingBodies (2 ms)
+[ RUN      ] AdventureEncounters.FreshActorUsesBoundedFallbackButSavedPoseNeverMovesAroundOldPlayer
+[       OK ] AdventureEncounters.FreshActorUsesBoundedFallbackButSavedPoseNeverMovesAroundOldPlayer (3 ms)
+[ RUN      ] AdventureEncounters.OldHomesAndBedRecoveryHavePriorityOverNewOrSavedActors
+[       OK ] AdventureEncounters.OldHomesAndBedRecoveryHavePriorityOverNewOrSavedActors (2 ms)
+[ RUN      ] AdventureEncounters.SavedSupportedPoseAndHealthAreExactAndBlockedOrDeadActorHasNoBody
+[       OK ] AdventureEncounters.SavedSupportedPoseAndHealthAreExactAndBlockedOrDeadActorHasNoBody (1 ms)
+[ RUN      ] AdventureEncounters.StandingCloseToAnEnemyDoesNotRemoveItsAcceptedBody
+[       OK ] AdventureEncounters.StandingCloseToAnEnemyDoesNotRemoveItsAcceptedBody (2 ms)
+[ RUN      ] AdventureEncounters.ReservedLegacyIdentitiesDeferOnlyTheirActorAndAppendIsAtomic
+[       OK ] AdventureEncounters.ReservedLegacyIdentitiesDeferOnlyTheirActorAndAppendIsAtomic (3 ms)
+[ RUN      ] AdventureEncounters.MovementPreservesLeashProtectedBeaconAndHeadroomWhileRestRequiresSafety
+[       OK ] AdventureEncounters.MovementPreservesLeashProtectedBeaconAndHeadroomWhileRestRequiresSafety (1 ms)
+[ RUN      ] AdventureEncounters.InvalidInstalledGroundLeavesContentOutputUntouched
+[       OK ] AdventureEncounters.InvalidInstalledGroundLeavesContentOutputUntouched (0 ms)
+[ RUN      ] AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses
+[       OK ] AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses (494 ms)
+[----------] 9 tests from AdventureEncounters (512 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (512 ms total)
+[  PASSED  ] 9 tests.

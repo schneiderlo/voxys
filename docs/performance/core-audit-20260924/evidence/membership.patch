@@ -1,0 +1,67 @@
+diff --git a/src/game/adventure/adventure_runtime.cpp b/src/game/adventure/adventure_runtime.cpp
+index ee38e7ba..49764251 100644
+--- a/src/game/adventure/adventure_runtime.cpp
++++ b/src/game/adventure/adventure_runtime.cpp
+@@ -706,7 +706,8 @@ bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpat
+     return out.bindTerrain(queries_.terrain())&&out.publish(solids,state.revision+1);
+ }
+ bool AdventureRuntime::blacksmithVisible() const noexcept {
+-    return blacksmithFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),blacksmithSolid);
++    return blacksmithFeet_&&(walkQueries_.containsPartCounters(creativeSceneryStructureId,blacksmithPartId)
++        ||walkQueries_.containsPartCounters(creativeSceneryStructureId,blacksmithWallPartId));
+ }
+ void AdventureRuntime::appendBlacksmith(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
+     std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {
+@@ -1192,9 +1193,7 @@ bool AdventureRuntime::physicsWaiting() const noexcept {
+     return (cannonPhysics_&&cannonPhysics_->needsQuiescentBoundary())||(wall_&&wall_->needsQuiescentBoundary());
+ }
+ bool AdventureRuntime::cannonVisible() const noexcept {
+-    return cannonFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),[](const auto& solid){
+-        return solid.structure.counter==creativeSceneryStructureId&&solid.part.counter==cannonPartId;
+-    });
++    return cannonFeet_&&walkQueries_.containsPartCounters(creativeSceneryStructureId,cannonPartId);
+ }
+ void AdventureRuntime::appendCannon(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
+     std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {
+diff --git a/src/game/adventure/spatial_queries.cpp b/src/game/adventure/spatial_queries.cpp
+index 329a7edc..01cca0ab 100644
+--- a/src/game/adventure/spatial_queries.cpp
++++ b/src/game/adventure/spatial_queries.cpp
+@@ -79,7 +79,14 @@ bool AdventureSpatialQueries::publish(std::span<const Solid> source,uint64_t rev
+         for(int z=z0;z<=z1;++z)for(int x=x0;x<=x1;++x)sectors[{x,z}].push_back(uint16_t(i));
+     }
+     std::vector<Solid> copy(source.begin(),source.end());
+-    solids_=std::move(copy);sectors_=std::move(sectors);revision_=revision;return true;
++    std::vector<std::pair<uint64_t,uint64_t>> partCounters;partCounters.reserve(source.size());
++    for(const auto& solid:source)partCounters.emplace_back(solid.structure.counter,solid.part.counter);
++    std::sort(partCounters.begin(),partCounters.end());
++    partCounters.erase(std::unique(partCounters.begin(),partCounters.end()),partCounters.end());
++    solids_=std::move(copy);sectors_=std::move(sectors);partCounters_=std::move(partCounters);revision_=revision;return true;
++}
++bool AdventureSpatialQueries::containsPartCounters(uint64_t structure,uint64_t part) const noexcept {
++    return std::binary_search(partCounters_.begin(),partCounters_.end(),std::pair{structure,part});
+ }
+ bool AdventureSpatialQueries::candidates(glm::dvec3 lo,glm::dvec3 hi,
+     std::array<uint16_t,maximumSolids>& out,size_t& count) const noexcept {
+diff --git a/src/game/adventure/spatial_queries.hpp b/src/game/adventure/spatial_queries.hpp
+index 88a5b1ce..68d93d2c 100644
+--- a/src/game/adventure/spatial_queries.hpp
++++ b/src/game/adventure/spatial_queries.hpp
+@@ -39,6 +39,9 @@ public:
+     [[nodiscard]] size_t solidCount() const noexcept {return solids_.size();}
+     // Borrowed until the next successful publication; accepted geometry only.
+     [[nodiscard]] std::span<const Solid> solids() const noexcept {return solids_;}
++    // Counter-only membership, matching installed-scenery predicates even when
++    // different world namespaces contain equal counters. Boxes stay ordered.
++    [[nodiscard]] bool containsPartCounters(uint64_t structure,uint64_t part) const noexcept;
+     [[nodiscard]] const terrain::lego::Surface& terrain() const noexcept {return terrain_;}
+     [[nodiscard]] bool clearCapsule(glm::dvec3 feet,double radius=.3,double height=1.7) const noexcept;
+     // Highest reachable surface BELOW maximumFeetHeight. This preserves ground
+@@ -60,6 +63,7 @@ private:
+     [[nodiscard]] bool candidates(glm::dvec3 minimum,glm::dvec3 maximum,std::array<uint16_t,maximumSolids>&,size_t&) const noexcept;
+     terrain::lego::Surface terrain_{};
+     std::vector<Solid> solids_;
++    std::vector<std::pair<uint64_t,uint64_t>> partCounters_;
+     std::map<Sector,std::vector<uint16_t>> sectors_;
+     uint64_t revision_=0;
+ };

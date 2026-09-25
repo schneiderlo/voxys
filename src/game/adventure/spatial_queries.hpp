@@ -39,6 +39,9 @@ public:
     [[nodiscard]] size_t solidCount() const noexcept {return solids_.size();}
     // Borrowed until the next successful publication; accepted geometry only.
     [[nodiscard]] std::span<const Solid> solids() const noexcept {return solids_;}
+    // Counter-only membership, matching installed-scenery predicates even when
+    // different world namespaces contain equal counters. Boxes stay ordered.
+    [[nodiscard]] bool containsPartCounters(uint64_t structure,uint64_t part) const noexcept;
     [[nodiscard]] const terrain::lego::Surface& terrain() const noexcept {return terrain_;}
     [[nodiscard]] bool clearCapsule(glm::dvec3 feet,double radius=.3,double height=1.7) const noexcept;
     // Highest reachable surface BELOW maximumFeetHeight. This preserves ground
@@ -60,6 +63,7 @@ private:
     [[nodiscard]] bool candidates(glm::dvec3 minimum,glm::dvec3 maximum,std::array<uint16_t,maximumSolids>&,size_t&) const noexcept;
     terrain::lego::Surface terrain_{};
     std::vector<Solid> solids_;
+    std::vector<std::pair<uint64_t,uint64_t>> partCounters_;
     std::map<Sector,std::vector<uint16_t>> sectors_;
     uint64_t revision_=0;
 };

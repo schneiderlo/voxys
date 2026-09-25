@@ -706,7 +706,8 @@ bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpat
     return out.bindTerrain(queries_.terrain())&&out.publish(solids,state.revision+1);
 }
 bool AdventureRuntime::blacksmithVisible() const noexcept {
-    return blacksmithFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),blacksmithSolid);
+    return blacksmithFeet_&&(walkQueries_.containsPartCounters(creativeSceneryStructureId,blacksmithPartId)
+        ||walkQueries_.containsPartCounters(creativeSceneryStructureId,blacksmithWallPartId));
 }
 void AdventureRuntime::appendBlacksmith(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
     std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {
@@ -1192,9 +1193,7 @@ bool AdventureRuntime::physicsWaiting() const noexcept {
     return (cannonPhysics_&&cannonPhysics_->needsQuiescentBoundary())||(wall_&&wall_->needsQuiescentBoundary());
 }
 bool AdventureRuntime::cannonVisible() const noexcept {
-    return cannonFeet_&&std::any_of(walkQueries_.solids().begin(),walkQueries_.solids().end(),[](const auto& solid){
-        return solid.structure.counter==creativeSceneryStructureId&&solid.part.counter==cannonPartId;
-    });
+    return cannonFeet_&&walkQueries_.containsPartCounters(creativeSceneryStructureId,cannonPartId);
 }
 void AdventureRuntime::appendCannon(const AdventureState& state,std::vector<AdventureSpatialQueries::Solid>& solids,
     std::vector<AdventureSpatialQueries::Solid>& reserved,bool preserveInstalled) const {

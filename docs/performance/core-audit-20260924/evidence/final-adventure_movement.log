@@ -1,0 +1,26 @@
+Running main() from gmock_main.cc
+[==========] Running 7 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from AdventureMovement
+[ RUN      ] AdventureMovement.KeyboardAndControllerDirectionsMatchRealCameraProjection
+[       OK ] AdventureMovement.KeyboardAndControllerDirectionsMatchRealCameraProjection (1 ms)
+[ RUN      ] AdventureMovement.RotationPreservesAnalogMagnitudeAndLeavesDiagonalCappingToPlayer
+[       OK ] AdventureMovement.RotationPreservesAnalogMagnitudeAndLeavesDiagonalCappingToPlayer (0 ms)
+[ RUN      ] AdventureMovement.RunningJumpAcceptsPressEdgesAndKeepsOtherModifiers
+[       OK ] AdventureMovement.RunningJumpAcceptsPressEdgesAndKeepsOtherModifiers (0 ms)
+[ RUN      ] AdventureMovement.RunningJumpMustRearmAfterMenu
+[       OK ] AdventureMovement.RunningJumpMustRearmAfterMenu (0 ms)
+[ RUN      ] AdventureMovement.SwimUsesMouseLookPitchAndExplicitRiseDiveOverrides
+[       OK ] AdventureMovement.SwimUsesMouseLookPitchAndExplicitRiseDiveOverrides (0 ms)
+[ RUN      ] AdventureMovement.SwimRiseDiveAreHeldActionsWithFocusAndMenuRearming
+[       OK ] AdventureMovement.SwimRiseDiveAreHeldActionsWithFocusAndMenuRearming (0 ms)
+[----------] 6 tests from AdventureMovement (1 ms total)
+
+[----------] 1 test from AdventureSwimmingAnimation
+[ RUN      ] AdventureSwimmingAnimation.LeansIntoTravelAndPausesWithoutMovingCollisionOrigin
+[       OK ] AdventureSwimmingAnimation.LeansIntoTravelAndPausesWithoutMovingCollisionOrigin (0 ms)
+[----------] 1 test from AdventureSwimmingAnimation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 7 tests.

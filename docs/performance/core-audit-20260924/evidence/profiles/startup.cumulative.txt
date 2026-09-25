@@ -1,0 +1,33 @@
+Some binary filenames not available. Symbolization may be incomplete.
+Try setting PPROF_BINARY_PATH to the search path for local binaries.
+File: baseline-runner
+Type: cpu
+Showing nodes accounting for 633ms, 71.36% of 887ms total
+Dropped 385 nodes (cum <= 4.43ms)
+Showing top 25 nodes out of 128
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%      885ms 99.77%  __libc_start_call_main
+         0     0%     0%      885ms 99.77%  __libc_start_main_alias_2
+         0     0%     0%      885ms 99.77%  _start
+         0     0%     0%      885ms 99.77%  main
+         0     0%     0%      729ms 82.19%  voxy::game::adventure::AdventureRuntime::initialize
+       1ms  0.11%  0.11%      605ms 68.21%  voxy::core::Sha256::update
+     494ms 55.69% 55.81%      604ms 68.09%  voxy::core::Sha256::transform
+         0     0% 55.81%      184ms 20.74%  voxy::core::sha256 (partial-inline)
+         0     0% 55.81%      117ms 13.19%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+       6ms  0.68% 56.48%      114ms 12.85%  voxy::game::adventure::CreativeScenery::admit
+      19ms  2.14% 58.62%       77ms  8.68%  voxy::game::adventure::(anonymous namespace)::generateForestTile
+      60ms  6.76% 65.39%       60ms  6.76%  voxy::core::Sha256::loadBigEndian (inline)
+         0     0% 65.39%       59ms  6.65%  voxy::game::adventure::AdventureRuntime::restore
+         0     0% 65.39%       54ms  6.09%  voxy::game::adventure::(anonymous namespace)::installedCreativeVillageMesh
+         0     0% 65.39%       52ms  5.86%  voxy::gpu::Context::initHeadless
+      50ms  5.64% 71.03%       50ms  5.64%  std::__rotr (inline)
+         0     0% 71.03%       50ms  5.64%  std::rotr (inline)
+         0     0% 71.03%       43ms  4.85%  voxy::gpu::Context::createInstance
+         0     0% 71.03%       43ms  4.85%  wgpuCreateInstance
+         0     0% 71.03%       43ms  4.85%  wgpu_core::global::Global::new
+         0     0% 71.03%       43ms  4.85%  wgpu_core::instance::Instance::new
+         0     0% 71.03%       39ms  4.40%  std::__fill_a (inline)
+       3ms  0.34% 71.36%       39ms  4.40%  std::__fill_a1 (inline)
+         0     0% 71.36%       39ms  4.40%  std::__fill_n_a (inline)
+         0     0% 71.36%       39ms  4.40%  std::__uninitialized_default_n (inline)

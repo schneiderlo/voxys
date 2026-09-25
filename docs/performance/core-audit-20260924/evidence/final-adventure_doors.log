@@ -1,0 +1,45 @@
+Running main() from gmock_main.cc
+[==========] Running 15 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from AdventureDoorSessionTest
+[ RUN      ] AdventureDoorSessionTest.PaidDoorStartsClosedAndDesiredStatePublishesOneAtomicRevision
+[       OK ] AdventureDoorSessionTest.PaidDoorStartsClosedAndDesiredStatePublishesOneAtomicRevision (0 ms)
+[ RUN      ] AdventureDoorSessionTest.BlockedStaleForeignWrongTypeAndDuplicateChoicesPreserveAcceptedState
+[       OK ] AdventureDoorSessionTest.BlockedStaleForeignWrongTypeAndDuplicateChoicesPreserveAcceptedState (0 ms)
+[ RUN      ] AdventureDoorSessionTest.DoorsShareFurnitureCapacityOwnNoInventoryAndRefundOnce
+[       OK ] AdventureDoorSessionTest.DoorsShareFurnitureCapacityOwnNoInventoryAndRefundOnce (0 ms)
+[ RUN      ] AdventureDoorSessionTest.StrictDoorBooleanRoundTripsAndCannotBecomeFurnitureOrInventory
+[       OK ] AdventureDoorSessionTest.StrictDoorBooleanRoundTripsAndCannotBecomeFurnitureOrInventory (0 ms)
+[ RUN      ] AdventureDoorSessionTest.GenuineSchemaFiveKeepsCompletedSurveyCombatAndOldPayloadExactly
+[       OK ] AdventureDoorSessionTest.GenuineSchemaFiveKeepsCompletedSurveyCombatAndOldPayloadExactly (0 ms)
+[----------] 5 tests from AdventureDoorSessionTest (0 ms total)
+
+[----------] 9 tests from AdventureDoorGeometry
+[ RUN      ] AdventureDoorGeometry.SharedRigidRecipeAndEnvelopesCoverTheEntireQuarterTurn
+[       OK ] AdventureDoorGeometry.SharedRigidRecipeAndEnvelopesCoverTheEntireQuarterTurn (0 ms)
+[ RUN      ] AdventureDoorGeometry.PaidDoorPublishesOneLeafForWalkingCameraAndPickingAtEveryYaw
+[       OK ] AdventureDoorGeometry.PaidDoorPublishesOneLeafForWalkingCameraAndPickingAtEveryYaw (1 ms)
+[ RUN      ] AdventureDoorGeometry.SweptOccupancyRefusesEvenWhenBothEndpointPosesAreEmpty
+[       OK ] AdventureDoorGeometry.SweptOccupancyRefusesEvenWhenBothEndpointPosesAreEmpty (0 ms)
+[ RUN      ] AdventureDoorGeometry.FutureSwingReservationRefusesBuildingButAllowsClearGroundedAdditions
+[       OK ] AdventureDoorGeometry.FutureSwingReservationRefusesBuildingButAllowsClearGroundedAdditions (0 ms)
+[ RUN      ] AdventureDoorGeometry.MovingLeafCannotSupportAnotherPieceAndHandleSightIsRequired
+[       OK ] AdventureDoorGeometry.MovingLeafCannotSupportAnotherPieceAndHandleSightIsRequired (0 ms)
+[ RUN      ] AdventureDoorGeometry.TerrainInsideFutureSwingRefusesPlacementBeforeSpending
+[       OK ] AdventureDoorGeometry.TerrainInsideFutureSwingRefusesPlacementBeforeSpending (0 ms)
+[ RUN      ] AdventureDoorGeometry.OldOpenDoorwaysStayHollowAndMalformedDoorStateKeepsOutputIntact
+[       OK ] AdventureDoorGeometry.OldOpenDoorwaysStayHollowAndMalformedDoorStateKeepsOutputIntact (0 ms)
+[ RUN      ] AdventureDoorGeometry.DoorSwingPreservesVillageAndTrailApproachesAcrossChanges
+[       OK ] AdventureDoorGeometry.DoorSwingPreservesVillageAndTrailApproachesAcrossChanges (11 ms)
+[ RUN      ] AdventureDoorGeometry.CreativeDoorYieldsSceneryButStillRejectsOtherStaticObstacles
+[       OK ] AdventureDoorGeometry.CreativeDoorYieldsSceneryButStillRejectsOtherStaticObstacles (0 ms)
+[----------] 9 tests from AdventureDoorGeometry (13 ms total)
+
+[----------] 1 test from FreeBuildGeometry
+[ RUN      ] FreeBuildGeometry.BricksCanStartOnTerrainButFloatingAndOverlappingPiecesAreRejected
+[       OK ] FreeBuildGeometry.BricksCanStartOnTerrainButFloatingAndOverlappingPiecesAreRejected (0 ms)
+[----------] 1 test from FreeBuildGeometry (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 3 test suites ran. (14 ms total)
+[  PASSED  ] 15 tests.

@@ -1,0 +1,310 @@
+Running main() from gmock_main.cc
+[==========] Running 119 tests from 18 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from AdventureInventoryTest
+[ RUN      ] AdventureInventoryTest.FailedAdditionAndMaterialRefundAreAtomic
+[       OK ] AdventureInventoryTest.FailedAdditionAndMaterialRefundAreAtomic (0 ms)
+[ RUN      ] AdventureInventoryTest.StackSplittingMergingAndBounds
+[       OK ] AdventureInventoryTest.StackSplittingMergingAndBounds (0 ms)
+[----------] 2 tests from AdventureInventoryTest (0 ms total)
+
+[----------] 23 tests from AdventureSessionTest
+[ RUN      ] AdventureSessionTest.StarterSuppliesCannotBeReclaimedOnRestore
+[       OK ] AdventureSessionTest.StarterSuppliesCannotBeReclaimedOnRestore (0 ms)
+[ RUN      ] AdventureSessionTest.GeometryRefusalAndCancelledPreparationDoNotSpendOrIssueIds
+[       OK ] AdventureSessionTest.GeometryRefusalAndCancelledPreparationDoNotSpendOrIssueIds (0 ms)
+[ RUN      ] AdventureSessionTest.StaleDuplicateAndForeignPreparedChangesCannotPublish
+[       OK ] AdventureSessionTest.StaleDuplicateAndForeignPreparedChangesCannotPublish (0 ms)
+[ RUN      ] AdventureSessionTest.MovementInvalidatesPendingEditAndRejectsNonFinitePose
+[       OK ] AdventureSessionTest.MovementInvalidatesPendingEditAndRejectsNonFinitePose (0 ms)
+[ RUN      ] AdventureSessionTest.ChestCreationTransferAndNonemptyRemovalShareOwnership
+[       OK ] AdventureSessionTest.ChestCreationTransferAndNonemptyRemovalShareOwnership (0 ms)
+[ RUN      ] AdventureSessionTest.FullAndStaleChestTransfersPreserveBothContainers
+[       OK ] AdventureSessionTest.FullAndStaleChestTransfersPreserveBothContainers (0 ms)
+[ RUN      ] AdventureSessionTest.FullBackpackCraftAndRemoveRefusalsDoNotLoseInputs
+[       OK ] AdventureSessionTest.FullBackpackCraftAndRemoveRefusalsDoNotLoseInputs (0 ms)
+[ RUN      ] AdventureSessionTest.BenchCraftEquipAndGatherGiveOnePersistentUsefulYield
+[       OK ] AdventureSessionTest.BenchCraftEquipAndGatherGiveOnePersistentUsefulYield (0 ms)
+[ RUN      ] AdventureSessionTest.ShelteredBedRestAndRemovalResolveRecoverySafely
+[       OK ] AdventureSessionTest.ShelteredBedRestAndRemovalResolveRecoverySafely (0 ms)
+[ RUN      ] AdventureSessionTest.FourStructuresAnd1024PartsAreBoundedWithoutPartialDebit
+[       OK ] AdventureSessionTest.FourStructuresAnd1024PartsAreBoundedWithoutPartialDebit (23 ms)
+[ RUN      ] AdventureSessionTest.BlueprintPublishesWholeLayoutWithOneRevisionAndStableFurniture
+[       OK ] AdventureSessionTest.BlueprintPublishesWholeLayoutWithOneRevisionAndStableFurniture (0 ms)
+[ RUN      ] AdventureSessionTest.BlueprintLastPieceAndWholeCandidateRefusalsLeaveAllOwnershipUnchanged
+[       OK ] AdventureSessionTest.BlueprintLastPieceAndWholeCandidateRefusalsLeaveAllOwnershipUnchanged (0 ms)
+[ RUN      ] AdventureSessionTest.WholeStructureUndoRefusesFilledChestThenRefundsAndRemovesAtomically
+[       OK ] AdventureSessionTest.WholeStructureUndoRefusesFilledChestThenRefundsAndRemovesAtomically (0 ms)
+[ RUN      ] AdventureSessionTest.CapacityWorldKeepsFourUsableHousesAnd32ComponentsAcrossExactSave
+[       OK ] AdventureSessionTest.CapacityWorldKeepsFourUsableHousesAnd32ComponentsAcrossExactSave (6 ms)
+[ RUN      ] AdventureSessionTest.CodecPreservesHomePossessionsAndLosslessCounters
+[       OK ] AdventureSessionTest.CodecPreservesHomePossessionsAndLosslessCounters (0 ms)
+[ RUN      ] AdventureSessionTest.CodecRejectsCorruptionForeignIdentityTrailingAndWrongSchemaAtomically
+[       OK ] AdventureSessionTest.CodecRejectsCorruptionForeignIdentityTrailingAndWrongSchemaAtomically (0 ms)
+[ RUN      ] AdventureSessionTest.InvalidComponentIdsOrdersHorizonsAndContentsRefuseRestore
+[       OK ] AdventureSessionTest.InvalidComponentIdsOrdersHorizonsAndContentsRefuseRestore (0 ms)
+[ RUN      ] AdventureSessionTest.GreetingAndQuestAcceptanceNeedKnownNpcAndTrustedAdmission
+[       OK ] AdventureSessionTest.GreetingAndQuestAcceptanceNeedKnownNpcAndTrustedAdmission (0 ms)
+[ RUN      ] AdventureSessionTest.PriorHomeFullBackpackAndDuplicateClaimsKeepOnePermanentReceipt
+[       OK ] AdventureSessionTest.PriorHomeFullBackpackAndDuplicateClaimsKeepOnePermanentReceipt (0 ms)
+[ RUN      ] AdventureSessionTest.RemovedHomeAndStaleCompletionCannotClaimARecipe
+[       OK ] AdventureSessionTest.RemovedHomeAndStaleCompletionCannotClaimARecipe (0 ms)
+[ RUN      ] AdventureSessionTest.CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures
+[       OK ] AdventureSessionTest.CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures (0 ms)
+[ RUN      ] AdventureSessionTest.UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore
+[       OK ] AdventureSessionTest.UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore (0 ms)
+[ RUN      ] AdventureSessionTest.CreativePiecesDoNotConsumeOrCreateInventoryAndRetainSaveIdentity
+[       OK ] AdventureSessionTest.CreativePiecesDoNotConsumeOrCreateInventoryAndRetainSaveIdentity (0 ms)
+[----------] 23 tests from AdventureSessionTest (30 ms total)
+
+[----------] 2 tests from AdventureSaveMigration
+[ RUN      ] AdventureSaveMigration.FrozenActualHomePreservesEveryV1FieldAndNamespace
+[       OK ] AdventureSaveMigration.FrozenActualHomePreservesEveryV1FieldAndNamespace (0 ms)
+[ RUN      ] AdventureSaveMigration.LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal
+[       OK ] AdventureSaveMigration.LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal (0 ms)
+[----------] 2 tests from AdventureSaveMigration (0 ms total)
+
+[----------] 1 test from AdventureWorld
+[ RUN      ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity
+[       OK ] AdventureWorld.InstalledProfileUsesFullUnmodifiedTerrainAndSeparateIdentity (0 ms)
+[----------] 1 test from AdventureWorld (0 ms total)
+
+[----------] 6 tests from AdventureSpatialQueries
+[ RUN      ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision
+[       OK ] AdventureSpatialQueries.PublicationIsAtomicBoundedAndRejectsStaleRevision (0 ms)
+[ RUN      ] AdventureSpatialQueries.PartCounterMembershipMatchesAcceptedSolidsThroughReplacementCopyAndMove
+[       OK ] AdventureSpatialQueries.PartCounterMembershipMatchesAcceptedSolidsThroughReplacementCopyAndMove (0 ms)
+[ RUN      ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead
+[       OK ] AdventureSpatialQueries.BridgeHasDistinctGroundAndDeckSupportAndRoofBlocksHead (0 ms)
+[ RUN      ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids
+[       OK ] AdventureSpatialQueries.DoorwayPickingWalkingAndCameraReadTheSameSolids (0 ms)
+[ RUN      ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery
+[       OK ] AdventureSpatialQueries.CrossSectorReferencesDoNotLoseSolidOrDuplicateQuery (0 ms)
+[ RUN      ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets
+[       OK ] AdventureSpatialQueries.FullLengthWideDiagonalSweepsRemainCompleteWithDenseLocalBuckets (0 ms)
+[----------] 6 tests from AdventureSpatialQueries (0 ms total)
+
+[----------] 11 tests from AdventurePlayer
+[ RUN      ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall
+[       OK ] AdventurePlayer.WalkJumpAndPauseUseAcceptedTicksWithoutFlyingThroughWall (0 ms)
+[ RUN      ] AdventurePlayer.BrickImpulsesMoveFigureStopAtWallsAndClearOnRestore
+[       OK ] AdventurePlayer.BrickImpulsesMoveFigureStopAtWallsAndClearOnRestore (0 ms)
+[ RUN      ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge
+[       OK ] AdventurePlayer.WalksUpSixPhysicalStairTreadsOntoFloorAndReturnsUnderBridge (0 ms)
+[ RUN      ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight
+[       OK ] AdventurePlayer.InvalidRestorePreservesAcceptedStateAndWaterUsesWorldHeight (0 ms)
+[ RUN      ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom
+[       OK ] AdventurePlayer.CreativeFigureUsesStudScaleForCollisionMovementAndHeadroom (0 ms)
+[ RUN      ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic
+[       OK ] AdventurePlayer.CreativeScaleKeepsJumpLandingAndInvalidProfileAtomic (0 ms)
+[ RUN      ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim
+[       OK ] AdventurePlayer.IdleConnectedControllerDoesNotStealMouseBuildingAim (0 ms)
+[ RUN      ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls
+[       OK ] AdventurePlayer.RunningJumpKeepsPaceAndFastMovementStillStopsAtWalls (0 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping
+[       OK ] AdventurePlayer.CreativeWalkAndRunClimbAndDescendLDrawBrickStairsWithoutJumping (1 ms)
+[ RUN      ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall
+[       OK ] AdventurePlayer.CreativeWalkAndRunCannotAutoClimbTwoBrickWall (0 ms)
+[ RUN      ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance
+[       OK ] AdventurePlayer.NormalAdventureRetainsItsOriginalStepAllowance (0 ms)
+[----------] 11 tests from AdventurePlayer (3 ms total)
+
+[----------] 4 tests from AdventureSwimming
+[ RUN      ] AdventureSwimming.DiveRiseSurfaceAndUnderwaterRestoreKeepAcceptedDepth
+[       OK ] AdventureSwimming.DiveRiseSurfaceAndUnderwaterRestoreKeepAcceptedDepth (0 ms)
+[ RUN      ] AdventureSwimming.SurfaceTravelIsLevelAndThreeDimensionalSpeedIsBounded
+[       OK ] AdventureSwimming.SurfaceTravelIsLevelAndThreeDimensionalSpeedIsBounded (0 ms)
+[ RUN      ] AdventureSwimming.BottomWallsAndSubmergedCeilingsBlockEveryAxis
+[       OK ] AdventureSwimming.BottomWallsAndSubmergedCeilingsBlockEveryAxis (0 ms)
+[ RUN      ] AdventureSwimming.WalksOutOntoShoreAndBackIntoWaterWithoutOscillating
+[       OK ] AdventureSwimming.WalksOutOntoShoreAndBackIntoWaterWithoutOscillating (0 ms)
+[----------] 4 tests from AdventureSwimming (1 ms total)
+
+[----------] 1 test from AdventureInput
+[ RUN      ] AdventureInput.ControllerMatchesHudAndPlacementCannotAlsoJump
+[       OK ] AdventureInput.ControllerMatchesHudAndPlacementCannotAlsoJump (0 ms)
+[----------] 1 test from AdventureInput (0 ms total)
+
+[----------] 9 tests from BuilderMotorbike
+[ RUN      ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount
+[       OK ] BuilderMotorbike.FixedStepAccelerationBrakesSteeringAndSafeDismount (2 ms)
+[ RUN      ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof
+[       OK ] BuilderMotorbike.CannotTunnelThroughThinWallOrMountUnderRoof (4 ms)
+[ RUN      ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle
+[       OK ] BuilderMotorbike.ParkPauseDoesNotCarryBufferedThrottle (0 ms)
+[ RUN      ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds
+[       OK ] BuilderMotorbike.TiresFollowStuddedSlopeAndBrakeHolds (3 ms)
+[ RUN      ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps
+[       OK ] BuilderMotorbike.SlopeGravityChangesSpeedAndFixedStepIsStableOnBumps (3 ms)
+[ RUN      ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping
+[       OK ] BuilderMotorbike.RollsOffLedgeAndLandsWithoutFreezingOrSnapping (2 ms)
+[ RUN      ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires
+[       OK ] BuilderMotorbike.CoastsDownhillButBrakeHoldsAndCenterProbeDoesNotLiftTires (1 ms)
+[ RUN      ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering
+[       OK ] BuilderMotorbike.TurningAcrossElevationKeepsMomentumAndSteering (19 ms)
+[ RUN      ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace
+[       OK ] BuilderMotorbike.BrakingACompletedTurnDoesNotRotateInPlace (1 ms)
+[----------] 9 tests from BuilderMotorbike (39 ms total)
+
+[----------] 9 tests from CreativeScenery
+[ RUN      ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry
+[       OK ] CreativeScenery.DeterministicClearSpawnAndSharedPhysicalGeometry (73 ms)
+[ RUN      ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots
+[       OK ] CreativeScenery.VillageAdmissionEnvelopesDoNotConsumePhysicalSlots (90 ms)
+[ RUN      ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest
+[       OK ] CreativeScenery.TemporaryCollisionCapacityDoesNotPermanentlySuppressForest (57 ms)
+[ RUN      ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn
+[       OK ] CreativeScenery.ConstructionAndDoorReservationsYieldWholePropWithoutRespawn (62 ms)
+[ RUN      ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority
+[       OK ] CreativeScenery.SavedPlayerAndLegacyIdentityTakePriority (95 ms)
+[ RUN      ] CreativeScenery.NearbyReservationsMatchStrictLinearOverlapAcrossBucketsAndLargeBounds
+[       OK ] CreativeScenery.NearbyReservationsMatchStrictLinearOverlapAcrossBucketsAndLargeBounds (179 ms)
+[ RUN      ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+Scenery admitted 65 props; kinds 16 12 29 6 1 1 
+[       OK ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (75 ms)
+[ RUN      ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel
+[       OK ] CreativeScenery.StreamsStableWorldCellsAndRemembersDisplacedPropsAcrossTravel (90 ms)
+[ RUN      ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+World scenery at 1200,-1120: 65 props
+World scenery at 1500,-1100: 82 props
+World scenery at 900,-1000: 303 props
+World scenery at -63,-895: 490 props
+[       OK ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (193 ms)
+[----------] 9 tests from CreativeScenery (918 ms total)
+
+[----------] 3 tests from CreativeVillageRealTerrain
+[ RUN      ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[       OK ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage (82 ms)
+[ RUN      ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[       OK ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging (78 ms)
+[ RUN      ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[       OK ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession (119 ms)
+[----------] 3 tests from CreativeVillageRealTerrain (281 ms total)
+
+[----------] 9 tests from CreativeForest
+[ RUN      ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees
+[       OK ] CreativeForest.TwoKilometreCoverageHasNoDistantCollisionOrDuplicateTrees (33 ms)
+[ RUN      ] CreativeForest.SettlementMeadowProtectsEveryVillageEdgeDuringTravel
+[       OK ] CreativeForest.SettlementMeadowProtectsEveryVillageEdgeDuringTravel (51 ms)
+[ RUN      ] CreativeForest.StreamedTilesMatchColdGenerationAndReuseCollisionOnlyRefreshes
+Forest region refresh: reused=3.35653 ms cold=30.4114 ms
+Forest region refresh: reused=3.383 ms cold=30.6076 ms
+Forest region refresh: reused=6.62681 ms cold=32.4866 ms
+[       OK ] CreativeForest.StreamedTilesMatchColdGenerationAndReuseCollisionOnlyRefreshes (142 ms)
+[ RUN      ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry
+[       OK ] CreativeForest.ApproachAndDifferentRegionOrderKeepTreeIdentityAndGeometry (76 ms)
+[ RUN      ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload
+[       OK ] CreativeForest.DistantConstructionSuppressesWholeTreeAcrossApproachAndReload (87 ms)
+[ RUN      ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace
+[       OK ] CreativeForest.PlayerCanStandUnderCanopyButStreamingReservesTrunkSpace (98 ms)
+[ RUN      ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer
+[       OK ] CreativeForest.DetailedVillageBudgetDoesNotLeaveAnEmptyCircleAroundPlayer (53 ms)
+[ RUN      ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing
+Forest canopy neighbours: 64453 / 67664
+[       OK ] CreativeForest.MixedAgeGrovesHaveOverlappingCrownsAndWalkableTrunkSpacing (88 ms)
+[ RUN      ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+Forest at 1200,-1120: near=65 distant=51836 horizon=8251 solids=1296
+Forest at 800,-800: near=858 distant=40821 horizon=5915 solids=2065
+Forest at -63,-895: near=490 distant=26216 horizon=3519 solids=1693
+[       OK ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (150 ms)
+[----------] 9 tests from CreativeForest (782 ms total)
+
+[----------] 10 tests from AdventureConstructionPolicy
+[ RUN      ] AdventureConstructionPolicy.GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate
+[       OK ] AdventureConstructionPolicy.GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TerrainProtectedAccessPlayerAndReachFailBeforePublication
+[       OK ] AdventureConstructionPolicy.TerrainProtectedAccessPlayerAndReachFailBeforePublication (0 ms)
+[ RUN      ] AdventureConstructionPolicy.QuarterTurnsPreserveOpeningAndActualFurnitureBounds
+[       OK ] AdventureConstructionPolicy.QuarterTurnsPreserveOpeningAndActualFurnitureBounds (0 ms)
+[ RUN      ] AdventureConstructionPolicy.BedNeedsRoofWallsAndClearRecoveryBesideFurniture
+[       OK ] AdventureConstructionPolicy.BedNeedsRoofWallsAndClearRecoveryBesideFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.LargerHouseAndRotatedBedUseTheSameShelterRule
+[       OK ] AdventureConstructionPolicy.LargerHouseAndRotatedBedUseTheSameShelterRule (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TransfersAndCraftingRequireReachableUnblockedFurniture
+[       OK ] AdventureConstructionPolicy.TransfersAndCraftingRequireReachableUnblockedFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.GatherRequiresRealNodeReachAndUnblockedSight
+[       OK ] AdventureConstructionPolicy.GatherRequiresRealNodeReachAndUnblockedSight (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TerrainPlacementIncludesAllRectangularCorners
+[       OK ] AdventureConstructionPolicy.TerrainPlacementIncludesAllRectangularCorners (0 ms)
+[ RUN      ] AdventureConstructionPolicy.OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture
+[       OK ] AdventureConstructionPolicy.OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts
+[       OK ] AdventureConstructionPolicy.PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts (1 ms)
+[----------] 10 tests from AdventureConstructionPolicy (1 ms total)
+
+[----------] 6 tests from AdventureTown
+[ RUN      ] AdventureTown.CanonicalResidentsHaveGroundHeadroomApproachAndMatchingColliders
+[       OK ] AdventureTown.CanonicalResidentsHaveGroundHeadroomApproachAndMatchingColliders (0 ms)
+[ RUN      ] AdventureTown.NewResidentsNeverReplaceOrBlockAnOldPlayerAtTheirAnchor
+[       OK ] AdventureTown.NewResidentsNeverReplaceOrBlockAnOldPlayerAtTheirAnchor (0 ms)
+[ RUN      ] AdventureTown.UnsafeCandidatesDeferVisualAndSolidWithoutInvalidatingState
+[       OK ] AdventureTown.UnsafeCandidatesDeferVisualAndSolidWithoutInvalidatingState (0 ms)
+[ RUN      ] AdventureTown.ResidentsPreserveTownRecoveryEvenWhenTheSavedPlayerIsFarAway
+[       OK ] AdventureTown.ResidentsPreserveTownRecoveryEvenWhenTheSavedPlayerIsFarAway (0 ms)
+[ RUN      ] AdventureTown.LegacyHighPartIdentityDefersOnlyTheConflictingResident
+[       OK ] AdventureTown.LegacyHighPartIdentityDefersOnlyTheConflictingResident (0 ms)
+[ RUN      ] AdventureTown.InteractionRequiresAdmittedResidentRangeAndUnblockedSight
+[       OK ] AdventureTown.InteractionRequiresAdmittedResidentRangeAndUnblockedSight (0 ms)
+[----------] 6 tests from AdventureTown (2 ms total)
+
+[----------] 4 tests from AdventureQuestFacts
+[ RUN      ] AdventureQuestFacts.ExistingHomeCountsWithoutHammerOrChestContentsAndRechecksMissingParts
+[       OK ] AdventureQuestFacts.ExistingHomeCountsWithoutHammerOrChestContentsAndRechecksMissingParts (0 ms)
+[ RUN      ] AdventureQuestFacts.ChestInAnotherStructureDoesNotCompleteTheRegisteredHome
+[       OK ] AdventureQuestFacts.ChestInAnotherStructureDoesNotCompleteTheRegisteredHome (0 ms)
+[ RUN      ] AdventureQuestFacts.NewCompassNeedsReachableBenchButEquippingOwnedCompassDoesNot
+[       OK ] AdventureQuestFacts.NewCompassNeedsReachableBenchButEquippingOwnedCompassDoesNot (0 ms)
+[ RUN      ] AdventureQuestFacts.ProgressReceiptsArePermanentAndBoundedByAcceptedRevision
+[       OK ] AdventureQuestFacts.ProgressReceiptsArePermanentAndBoundedByAcceptedRevision (0 ms)
+[----------] 4 tests from AdventureQuestFacts (0 ms total)
+
+[----------] 6 tests from AdventurePresentation
+[ RUN      ] AdventurePresentation.PriorHomeStillNeedsAcceptanceAndCompletedReceiptWins
+[       OK ] AdventurePresentation.PriorHomeStillNeedsAcceptanceAndCompletedReceiptWins (0 ms)
+[ RUN      ] AdventurePresentation.CompassRequiresEquipmentAndUsesActualBearing
+[       OK ] AdventurePresentation.CompassRequiresEquipmentAndUsesActualBearing (0 ms)
+[ RUN      ] AdventurePresentation.QuestGuidanceFollowsCraftStorageAndEquipment
+[       OK ] AdventurePresentation.QuestGuidanceFollowsCraftStorageAndEquipment (0 ms)
+[ RUN      ] AdventurePresentation.GuideControlHintsFollowBindingsDeviceAndMouseLookPreference
+[       OK ] AdventurePresentation.GuideControlHintsFollowBindingsDeviceAndMouseLookPreference (0 ms)
+[ RUN      ] AdventurePresentation.GuideExplainsBuildRefusalManualSavingAndCurrentQuestInstructions
+[       OK ] AdventurePresentation.GuideExplainsBuildRefusalManualSavingAndCurrentQuestInstructions (0 ms)
+[ RUN      ] AdventurePresentation.GuideCardsRemainBoundedAtCustomBindingsAndRejectUnknownTopics
+[       OK ] AdventurePresentation.GuideCardsRemainBoundedAtCustomBindingsAndRejectUnknownTopics (0 ms)
+[----------] 6 tests from AdventurePresentation (0 ms total)
+
+[----------] 4 tests from AdventureMenuIntents
+[ RUN      ] AdventureMenuIntents.StablePublicationKeepsIntentButNewReplyCannotReuseOldClick
+[       OK ] AdventureMenuIntents.StablePublicationKeepsIntentButNewReplyCannotReuseOldClick (0 ms)
+[ RUN      ] AdventureMenuIntents.ContainerTargetOwnershipAndEligibilityAreBoundToThePublishedChoice
+[       OK ] AdventureMenuIntents.ContainerTargetOwnershipAndEligibilityAreBoundToThePublishedChoice (0 ms)
+[ RUN      ] AdventureMenuIntents.SameFrameDoubleActivationCannotAcceptThenCompleteOrEquipThenUnequip
+[       OK ] AdventureMenuIntents.SameFrameDoubleActivationCannotAcceptThenCompleteOrEquipThenUnequip (0 ms)
+[ RUN      ] AdventureMenuIntents.UnscopedRowsMalformedValuesAndOverCapacityFailClosed
+[       OK ] AdventureMenuIntents.UnscopedRowsMalformedValuesAndOverCapacityFailClosed (0 ms)
+[----------] 4 tests from AdventureMenuIntents (0 ms total)
+
+[----------] 9 tests from AdventureVillage
+[ RUN      ] AdventureVillage.TwoSheltersGardensTreesAndPathsShareBoundedRenderedCollision
+[       OK ] AdventureVillage.TwoSheltersGardensTreesAndPathsShareBoundedRenderedCollision (7 ms)
+[ RUN      ] AdventureVillage.ExistingPlayerInsideAProposedHouseDefersTheEntireHouse
+[       OK ] AdventureVillage.ExistingPlayerInsideAProposedHouseDefersTheEntireHouse (3 ms)
+[ RUN      ] AdventureVillage.ReloadInsideAnExistingCottageKeepsItsFloorAndExactSavedPose
+[       OK ] AdventureVillage.ReloadInsideAnExistingCottageKeepsItsFloorAndExactSavedPose (12 ms)
+[ RUN      ] AdventureVillage.AnExistingHouseAndLegacyReservedIdsWinWithoutChangingTheirState
+[       OK ] AdventureVillage.AnExistingHouseAndLegacyReservedIdsWinWithoutChangingTheirState (5 ms)
+[ RUN      ] AdventureVillage.NewBuildingCollisionsRefuseButUnchangedPartsAndRemoteBuildingRemain
+[       OK ] AdventureVillage.NewBuildingCollisionsRefuseButUnchangedPartsAndRemoteBuildingRemain (5 ms)
+[ RUN      ] AdventureVillage.NearbyOldDoorwayKeepsApproachClearanceWithoutDirectOverlap
+[       OK ] AdventureVillage.NearbyOldDoorwayKeepsApproachClearanceWithoutDirectOverlap (7 ms)
+[ RUN      ] AdventureVillage.NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority
+[       OK ] AdventureVillage.NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority (16 ms)
+[ RUN      ] AdventureVillage.RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend
+[       OK ] AdventureVillage.RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend (6 ms)
+[ RUN      ] AdventureVillage.TownRecoveryNpcApproachesAndResourcePointsRemainUsable
+[       OK ] AdventureVillage.TownRecoveryNpcApproachesAndResourcePointsRemainUsable (5 ms)
+[----------] 9 tests from AdventureVillage (72 ms total)
+
+[----------] Global test environment tear-down
+[==========] 119 tests from 18 test suites ran. (2133 ms total)
+[  PASSED  ] 119 tests.

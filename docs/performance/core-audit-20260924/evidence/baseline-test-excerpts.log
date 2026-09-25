@@ -1,0 +1,553 @@
+[==========] Running 2626 tests from 361 test suites.
+[       OK ] AdventureSessionTest.RemovedHomeAndStaleCompletionCannotClaimARecipe (0 ms)
+[ RUN      ] AdventureSessionTest.CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures
+[       OK ] AdventureSessionTest.CompassRecipeCraftAndEquipmentHaveOneOwnerAndAtomicFailures (0 ms)
+[ RUN      ] AdventureSessionTest.UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore
+[       OK ] AdventureSessionTest.UnknownQuestBitsReceiptsAndUnearnedCompassesRefuseRestore (0 ms)
+[ RUN      ] AdventureSessionTest.CreativePiecesDoNotConsumeOrCreateInventoryAndRetainSaveIdentity
+[       OK ] AdventureSessionTest.CreativePiecesDoNotConsumeOrCreateInventoryAndRetainSaveIdentity (2 ms)
+[----------] 23 tests from AdventureSessionTest (185 ms total)
+
+[----------] 2 tests from AdventureSaveMigration
+[ RUN      ] AdventureSaveMigration.FrozenActualHomePreservesEveryV1FieldAndNamespace
+[       OK ] AdventureSaveMigration.FrozenActualHomePreservesEveryV1FieldAndNamespace (0 ms)
+[ RUN      ] AdventureSaveMigration.LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal
+[       OK ] AdventureSaveMigration.LegacyAndV2ForgeriesPreserveDestinationAndMetadataOnRefusal (0 ms)
+[----------] 2 tests from AdventureSaveMigration (1 ms total)
+[  SKIPPED ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds (0 ms)
+[  SKIPPED ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing (0 ms)
+[  SKIPPED ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage (0 ms)
+[  SKIPPED ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging (0 ms)
+[  SKIPPED ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession (0 ms)
+[  SKIPPED ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision (0 ms)
+[       OK ] AdventureVillage.NewAdjacentBuildingPreservesFreshAdmissionWhileOldNearBuildingKeepsPriority (90 ms)
+[ RUN      ] AdventureVillage.RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend
+[       OK ] AdventureVillage.RetainedGroupsStayFixedAndCapacityFailureCannotPartiallyAppend (35 ms)
+[ RUN      ] AdventureVillage.TownRecoveryNpcApproachesAndResourcePointsRemainUsable
+[       OK ] AdventureVillage.TownRecoveryNpcApproachesAndResourcePointsRemainUsable (37 ms)
+[----------] 9 tests from AdventureVillage (409 ms total)
+
+[----------] 24 tests from Bike
+[ RUN      ] Bike.ResetRestoresPoseAndPowertrain
+[       OK ] Bike.ResetRestoresPoseAndPowertrain (0 ms)
+[ RUN      ] Bike.AcceleratesForwardOnFlatGroundAndRunsGears
+[       OK ] Bike.AcceleratesForwardOnFlatGroundAndRunsGears (3 ms)
+[ RUN      ] Bike.BrakingReducesSpeedMoreThanCoasting
+[       OK ] Bike.BrakingReducesSpeedMoreThanCoasting (4 ms)
+[ RUN      ] Bike.DrivenRearWheelBuildsLaunchSlipBeforeChassisCatchesUp
+[       OK ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange (0 ms)
+[ RUN      ] ConfigFileTest.SaveReportsDeviceWriteFailure
+[31m[ERROR] [00:00:01.484] Failed while writing config: /dev/full[0m
+[       OK ] ConfigFileTest.SaveReportsDeviceWriteFailure (0 ms)
+[ RUN      ] ConfigFileTest.AllSettingsPreserved
+[32m[INFO ] [00:00:01.484] Loading config: /tmp/nix-shell-60762-2433981389/voxy_ConfigFileTest_AllSettingsPreserved.cfg[0m
+[       OK ] ConfigFileTest.AllSettingsPreserved (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverridesAllSettings
+[32m[INFO ] [00:00:01.484] Loading config: /tmp/nix-shell-60762-2433981389/voxy_ConfigFileTest_CommandLineOverridesAllSettings.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverridesAllSettings (0 ms)
+[----------] 25 tests from ConfigFileTest (4 ms total)
+
+[----------] 4 tests from DayNightTest
+[ RUN      ] DayNightTest.ClockWrapsAndAdvancesIndependentlyOfFrameRate
+[       OK ] DayNightTest.ClockWrapsAndAdvancesIndependentlyOfFrameRate (0 ms)
+[ RUN      ] DayNightTest.PausesAndStallsDoNotSkipTheEvening
+[  SKIPPED ] WindowGLFWTest.WindowCreation (0 ms)
+[       OK ] FileIOTest.CompressWithChecksum (0 ms)
+[ RUN      ] FileIOTest.ReportsBufferedWriteFailure
+[32m[INFO ] [00:00:02.489] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.12 ms)[0m
+[31m[ERROR] [00:00:02.489] Failed to finish LDH file: /dev/full[0m
+[       OK ] FileIOTest.ReportsBufferedWriteFailure (0 ms)
+[ RUN      ] FileIOTest.DecompressWithExpectedDimensions
+[32m[INFO ] [00:00:02.489] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.11 ms)[0m
+[32m[INFO ] [00:00:02.489] Wrote LDH file: /tmp/nix-shell-60762-2433981389/voxy_compression_test/test_dims.ldh (98 bytes)[0m
+[32m[INFO ] [00:00:02.489] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.01 ms)[0m
+[32m[INFO ] [00:00:02.489] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)[0m
+[31m[ERROR] [00:00:02.489] Dimension mismatch: expected 4x16, got 8x8[0m
+[       OK ] FileIOTest.DecompressWithExpectedDimensions (0 ms)
+[ RUN      ] FileIOTest.DecompressNonExistentFile
+[31m[ERROR] [00:00:02.489] LDH file not found: /tmp/nix-shell-60762-2433981389/voxy_compression_test/nonexistent.ldh[0m
+[       OK ] FileIOTest.DecompressNonExistentFile (0 ms)
+[ RUN      ] FileIOTest.ReadHeaderFromFile
+[32m[INFO ] [00:00:02.491] Compressed 16x16 heightmap: 512 -> 102 bytes (5.02x, 1.47 ms)[0m
+[       OK ] SalvagePreview.AssetInspectionControlsOwnNoSceneryOrBodyLifetimes (0 ms)
+[ RUN      ] SalvagePreview.PartialSpawnFailureRollsBackOnlyOwnedBodies
+[       OK ] SalvagePreview.PartialSpawnFailureRollsBackOnlyOwnedBodies (0 ms)
+[ RUN      ] SalvagePreview.ResetRequiresCompletedMatchingGenerationSnapshot
+[       OK ] SalvagePreview.ResetRequiresCompletedMatchingGenerationSnapshot (0 ms)
+[ RUN      ] SalvagePreview.AcceptedDestroysAreNotRequeuedAndLeaveWinsReset
+[       OK ] SalvagePreview.AcceptedDestroysAreNotRequeuedAndLeaveWinsReset (0 ms)
+[ RUN      ] SalvagePreview.ReusedIndicesDoNotRetainOrDeleteAnotherGeneration
+[       OK ] SalvagePreview.ReusedIndicesDoNotRetainOrDeleteAnotherGeneration (0 ms)
+[ RUN      ] SalvagePreview.FailedRespawnRollsBackNewGeneration
+[       OK ] SalvagePreview.FailedRespawnRollsBackNewGeneration (0 ms)
+[ RUN      ] SalvagePreview.InvalidPortsAndActionsHaveNoSideEffects
+[       OK ] SalvagePreview.InvalidPortsAndActionsHaveNoSideEffects (0 ms)
+[ RUN      ] SalvagePreview.ShutdownReportsBlockedRemovalAndCanRetry
+[       OK ] SalvagePreview.ShutdownReportsBlockedRemovalAndCanRetry (0 ms)
+[  SKIPPED ] GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp (0 ms)
+[  SKIPPED ] RaycastPathGPUTest.LegoHorizonBenchmark (20 ms)
+[  SKIPPED ] RaycastPathGPUTest.DayNightTerrainBenchmark (19 ms)
+[  SKIPPED ] AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested (0 ms)
+[       OK ] MultiplayerSessionLifecycle.PumpServicesTransportExactlyOnceBeforeBoundedDrain (0 ms)
+[ RUN      ] MultiplayerSessionLifecycle.CommittedTicksSurviveSendFailureAndRecordingsStayBounded
+[       OK ] MultiplayerSessionLifecycle.CommittedTicksSurviveSendFailureAndRecordingsStayBounded (0 ms)
+[ RUN      ] MultiplayerSessionLifecycle.TransportLifecycleFramesRemainOutsidePacketDecoding
+[       OK ] MultiplayerSessionLifecycle.TransportLifecycleFramesRemainOutsidePacketDecoding (0 ms)
+[----------] 4 tests from MultiplayerSessionLifecycle (0 ms total)
+
+[----------] 1 test from MultiplayerSessionSecurity
+[ RUN      ] MultiplayerSessionSecurity.OversizedAndInvalidTrafficCannotPoisonValidCommandState
+[       OK ] MultiplayerSessionSecurity.OversizedAndInvalidTrafficCannotPoisonValidCommandState (0 ms)
+[----------] 1 test from MultiplayerSessionSecurity (0 ms total)
+
+[----------] 1 test from PrimitivePathLayoutTest
+[ RUN      ] PrimitivePathLayoutTest.CpuShapeMirrorMatchesGpuStride
+[       OK ] PrimitivePathLayoutTest.CpuShapeMirrorMatchesGpuStride (0 ms)
+[  SKIPPED ] AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses (0 ms)
+[  SKIPPED ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour (0 ms)
+[  SKIPPED ] AdventureBlueprints.GenericEarnedRecipeBuildsTheProvenFullTerrainShortcutWithoutChangingItsSite (0 ms)
+[90m[TRACE] [00:21:15.303] Created bind group 'environment_bake_group' with 4 entries[0m
+tests/test_salvage_asset_fixture.cpp:1013: Failure
+Expected equality of these values:
+  fixture.stats().lastEncodedSceneryDraws
+    Which is: 8
+  24u
+    Which is: 24
+
+tests/test_salvage_asset_fixture.cpp:1014: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedSceneryDraws
+    Which is: 8
+  24u
+    Which is: 24
+
+tests/test_salvage_asset_fixture.cpp:1029: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 87
+  103u
+    Which is: 103
+
+[90m[TRACE] [00:21:15.305] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1053: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedSceneryDraws
+    Which is: 8
+  23u
+    Which is: 23
+
+tests/test_salvage_asset_fixture.cpp:1055: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 88
+  105u
+    Which is: 105
+
+[90m[TRACE] [00:21:15.311] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1071: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedSceneryDraws
+    Which is: 8
+  23u
+    Which is: 23
+
+[90m[TRACE] [00:21:15.312] Created bind group 'mesh_live_body' with 5 entries[0m
+[90m[TRACE] [00:21:15.314] Created bind group 'mesh_live_body' with 5 entries[0m
+tests/test_salvage_asset_fixture.cpp:1076: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedSceneryDraws
+    Which is: 8
+  23u
+    Which is: 23
+
+[90m[TRACE] [00:21:15.314] Created buffer 'mesh_path_uniforms': 160 bytes[0m
+[90m[TRACE] [00:21:15.314] Created buffer 'mesh_path_draw_instances': 65536 bytes[0m
+[90m[TRACE] [00:21:15.314] Created buffer 'mesh_path_instance_indices': 2048 bytes[0m
+[90m[TRACE] [00:21:15.314] Created sampler 'mesh_path_environment_sampler'[0m
+[90m[TRACE] [00:21:15.314] Created sampler 'mesh_filtered_environment_sampler'[0m
+[90m[TRACE] [00:21:15.314] Created sampler 'mesh_path_material_sampler'[0m
+[  FAILED  ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (1174 ms)
+[       OK ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload (85 ms)
+[ RUN      ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[36m[DEBUG] [00:21:16.927] [GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:21:16.929] [GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:21:16.929] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:21:16.929] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:21:16.929] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:21:16.929] [GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:21:16.930] [GPU] GPU device created[0m
+[32m[INFO ] [00:21:16.930] [GPU] Headless GPU context initialized successfully[0m
+[90m[TRACE] [00:21:16.941] Created buffer 'mesh_path_uniforms': 160 bytes[0m
+[90m[TRACE] [00:21:16.941] Created buffer 'mesh_path_draw_instances': 65536 bytes[0m
+[90m[TRACE] [00:21:16.941] Created buffer 'mesh_path_instance_indices': 2048 bytes[0m
+[90m[TRACE] [00:21:16.999] Created bind group 'mesh_live_body' with 5 entries[0m
+[       OK ] FixtureGPU.CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration (113 ms)
+[ RUN      ] FixtureGPU.DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[36m[DEBUG] [00:21:17.042] [GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:21:17.044] [GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:21:17.044] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:21:17.044] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:21:17.044] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:21:17.044] [GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:21:17.045] [GPU] GPU device created[0m
+[32m[INFO ] [00:21:17.045] [GPU] Headless GPU context initialized successfully[0m
+[90m[TRACE] [00:21:17.056] Created buffer 'mesh_path_uniforms': 160 bytes[0m
+[90m[TRACE] [00:21:17.056] Created buffer 'mesh_path_draw_instances': 65536 bytes[0m
+[       OK ] RigidPrefab.NonFiniteSingularIllConditionedAndOverflowingTransformsReject (0 ms)
+[ RUN      ] RigidPrefab.GeometryAndNormalMapFailuresAreCheckedBeforeGpuAllocation
+[       OK ] RigidPrefab.GeometryAndNormalMapFailuresAreCheckedBeforeGpuAllocation (0 ms)
+[ RUN      ] RigidPrefab.SharedImageSlotsCountEveryUploadedCopyAndCompleteMipChains
+[       OK ] RigidPrefab.SharedImageSlotsCountEveryUploadedCopyAndCompleteMipChains (0 ms)
+[ RUN      ] RigidPrefab.MalformedTextureMetadataAndUnsupportedAppearanceReject
+[       OK ] RigidPrefab.MalformedTextureMetadataAndUnsupportedAppearanceReject (0 ms)
+[ RUN      ] RigidPrefab.CallersCannotRaiseHardAdmissionCeilings
+[       OK ] RigidPrefab.CallersCannotRaiseHardAdmissionCeilings (0 ms)
+[ RUN      ] RigidPrefab.AllIndependentBudgetsRejectWithoutReplacingOutput
+[       OK ] RigidPrefab.AllIndependentBudgetsRejectWithoutReplacingOutput (0 ms)
+[ RUN      ] RigidPrefab.PlacementCapacityAndInvalidFinalTransformLeavePriorDraws
+[       OK ] RigidPrefab.PlacementCapacityAndInvalidFinalTransformLeavePriorDraws (0 ms)
+[ RUN      ] RigidPrefab.NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations
+[       OK ] RigidPrefab.NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations (2 ms)
+[       OK ] GameSession.InsufficientFundsInvalidGeometryAndCapacityPreserveWorld (0 ms)
+[ RUN      ] GameSession.DelayedAndFinalReadinessFailuresDiscardExactlyOnce
+[       OK ] GameSession.DelayedAndFinalReadinessFailuresDiscardExactlyOnce (0 ms)
+[ RUN      ] GameSession.LeaseOwnershipEpochAndExclusiveExpiryAreRecheckedAtBoundary
+[       OK ] GameSession.LeaseOwnershipEpochAndExclusiveExpiryAreRecheckedAtBoundary (0 ms)
+[ RUN      ] GameSession.FutureExecutionRejectsLeaseExpiryBeforeStagingPhysicalWork
+[       OK ] GameSession.FutureExecutionRejectsLeaseExpiryBeforeStagingPhysicalWork (0 ms)
+[ RUN      ] GameSession.StaleBuildOrSessionRevisionsRejectBeforeIssuingIds
+[       OK ] GameSession.StaleBuildOrSessionRevisionsRejectBeforeIssuingIds (0 ms)
+[ RUN      ] GameSession.LoanDismantlingPaysZeroAndConnectedRemovalIsExplicitlyRejected
+[       OK ] GameSession.LoanDismantlingPaysZeroAndConnectedRemovalIsExplicitlyRejected (0 ms)
+[ RUN      ] GameSession.TrustedJobAcceptanceDoesNotRewardOrChangeCargo
+[       OK ] GameSession.TrustedJobAcceptanceDoesNotRewardOrChangeCargo (0 ms)
+[ RUN      ] GameSession.PreviewBootstrapDoesNotGrantWorkshopInventoryOrJobs
+[       OK ] GameSession.PreviewBootstrapDoesNotGrantWorkshopInventoryOrJobs (0 ms)
+[       OK ] GameSessionHistory.CountAndByteLimitsStageEvictionOrRejectWithoutChangingHistory (0 ms)
+[ RUN      ] GameSessionHistory.DormantLimitsAndActivationFailuresKeepCompensationAvailable
+[       OK ] GameSessionHistory.DormantLimitsAndActivationFailuresKeepCompensationAvailable (0 ms)
+[ RUN      ] GameSessionHistory.InverseDebitCannotConsumeAnotherPreparationsReservedFunds
+[       OK ] GameSessionHistory.InverseDebitCannotConsumeAnotherPreparationsReservedFunds (0 ms)
+[ RUN      ] GameSessionHistory.ForgedEntryGenerationTargetAndDirectionNeverSupplyInverseAuthority
+[       OK ] GameSessionHistory.ForgedEntryGenerationTargetAndDirectionNeverSupplyInverseAuthority (0 ms)
+[ RUN      ] GameSessionHistory.ClosureRetiresEscrowWithoutPayingAgainAndJournalRecordsExactActions
+[       OK ] GameSessionHistory.ClosureRetiresEscrowWithoutPayingAgainAndJournalRecordsExactActions (0 ms)
+[----------] 14 tests from GameSessionHistory (3 ms total)
+
+[----------] 3 tests from GameSessionDelivery
+[ RUN      ] GameSessionDelivery.PublishesOnlyAfterFutureExecutionAndExactRetryNeverPaysTwice
+[       OK ] GameSessionDelivery.PublishesOnlyAfterFutureExecutionAndExactRetryNeverPaysTwice (1 ms)
+[ RUN      ] GameSessionDelivery.RefusalAndCancellationPreserveCargoJobAndBalance
+[       OK ] GameSessionObservation.DomainOverrunAndReceiptEvictionRecoverFromOneBaselineWithoutSpendingAgain (2 ms)
+[ RUN      ] GameSessionObservation.BaselineFailureAndInPlaceStreamRestartPreserveAuthorityAndReaderLifetime
+[       OK ] GameSessionObservation.BaselineFailureAndInPlaceStreamRestartPreserveAuthorityAndReaderLifetime (0 ms)
+[ RUN      ] GameSessionObservation.FreshRecoveryHasAQuietNewStreamAndKeepsFailedInputReusable
+[       OK ] GameSessionObservation.FreshRecoveryHasAQuietNewStreamAndKeepsFailedInputReusable (1 ms)
+[----------] 9 tests from GameSessionObservation (5 ms total)
+
+[----------] 4 tests from StarterRecoveryPlan
+[ RUN      ] StarterRecoveryPlan.RebuildRetiresLoanInstancesAndStoresExactPaidConditionWithoutRefund
+[       OK ] StarterRecoveryPlan.RebuildRetiresLoanInstancesAndStoresExactPaidConditionWithoutRefund (0 ms)
+[ RUN      ] StarterRecoveryPlan.RepeatedRebuildAndStockReuseCannotDuplicatePaidValue
+[       OK ] StarterRecoveryPlan.RepeatedRebuildAndStockReuseCannotDuplicatePaidValue (0 ms)
+[ RUN      ] StarterRecoveryPlan.CapacityAndInvalidProvenanceRefuseBeforeIssuingIds
+[       OK ] StarterRecoveryPlan.CapacityAndInvalidProvenanceRefuseBeforeIssuingIds (0 ms)
+[ RUN      ] StarterRecoveryPlan.StoredPaidIdsCannotBeReissuedOrClaimedByAnotherBuild
+[       OK ] GameSessionRefit.ReplacesPaidPartAtomicallyAndReplaysExactIdsAndNetEconomy (9 ms)
+[ RUN      ] GameSessionRefit.InvalidConnectionAndAdapterFailurePreserveLiveBuild
+[       OK ] GameSessionRefit.InvalidConnectionAndAdapterFailurePreserveLiveBuild (4 ms)
+[ RUN      ] GameSessionRefit.LargeRejectedRefitBurnsContiguousIdsAcrossLeaseRecords
+[       OK ] GameSessionRefit.LargeRejectedRefitBurnsContiguousIdsAcrossLeaseRecords (9 ms)
+[ RUN      ] GameSessionRefit.BoundsSharedPayloadsAndRejectsHistoryThatCannotUndoRemoval
+[       OK ] GameSessionRefit.BoundsSharedPayloadsAndRejectsHistoryThatCannotUndoRemoval (3 ms)
+[ RUN      ] GameSessionRefit.RetiringLoanInvalidatesWeldOnlyHistoryThatReferencesItsEndpoint
+[       OK ] GameSessionRefit.RetiringLoanInvalidatesWeldOnlyHistoryThatReferencesItsEndpoint (3 ms)
+[ RUN      ] GameSessionRefit.PublishesOnlyAfterConfirmedFutureExecutionAndRestoresPendingAsCanceled
+[       OK ] GameSessionRefit.PublishesOnlyAfterConfirmedFutureExecutionAndRestoresPendingAsCanceled (4 ms)
+[----------] 8 tests from GameSessionRefit (52 ms total)
+
+[----------] 8 tests from GameSessionSave
+[ RUN      ] GameSessionSave.FrozenNativeAndWasmBytesKeepLargeIdsAndNegativeGridCoordinates
+[       OK ] GameSessionCut.RetiresOnlyTargetHistoryAndKeepsOtherBuildUndoUsable (10 ms)
+[ RUN      ] GameSessionCut.AdmissionCancellationAndBackendFailuresKeepOwnershipAndAllocatorUntouched
+[       OK ] GameSessionCut.AdmissionCancellationAndBackendFailuresKeepOwnershipAndAllocatorUntouched (16 ms)
+[ RUN      ] GameSessionCut.FutureCutChecksLeaseBeforeStagingAndPendingCrashRestoresUncutBoat
+[       OK ] GameSessionCut.FutureCutChecksLeaseBeforeStagingAndPendingCrashRestoresUncutBoat (6 ms)
+[ RUN      ] GameSessionCut.CoveredAndReplayedCutsRejectForgedBondsBalancesAndUndoHistory
+[       OK ] GameSessionCut.CoveredAndReplayedCutsRejectForgedBondsBalancesAndUndoHistory (3 ms)
+[ RUN      ] GameSessionCut.EveryJournalBoundaryRoundTripsVersionThreeAndFreshWriterKeepsFragments
+SAVE_GOLDEN cut-checkpoint 2674 49704f0e7cfdc07f0d3015eccabd20d8ac7773b77724973996dafc0647d56e17
+SAVE_GOLDEN cut-journal 957 100155e57d6ae7b491e269af2cf0277bf39abc9271e41e2cf3785089e0689452
+[       OK ] GameSessionCut.EveryJournalBoundaryRoundTripsVersionThreeAndFreshWriterKeepsFragments (10 ms)
+[ RUN      ] GameSessionCut.ReservesEntireCutPayloadBeforeAnyPreparationOrJournalMutation
+[       OK ] GameSessionCut.ReservesEntireCutPayloadBeforeAnyPreparationOrJournalMutation (2 ms)
+[ RUN      ] GameSessionCut.StarterRecoveryAfterCutCollectsPaidPartsOnceAndRetiresEveryOldLoan
+[       OK ] GameSessionCut.StarterRecoveryAfterCutCollectsPaidPartsOnceAndRetiresEveryOldLoan (7 ms)
+[       OK ] BuildModel.DecoderRejectsMalformedOrderValuesAndContentWithoutPublishing (1 ms)
+[ RUN      ] BuildModel.EncodingFailureAndContentMismatchLeaveOutputUnchanged
+[       OK ] BuildModel.EncodingFailureAndContentMismatchLeaveOutputUnchanged (0 ms)
+[ RUN      ] BuildModel.IndependentPartConnectionProxySocketAndPairWorkCaps
+[       OK ] BuildModel.IndependentPartConnectionProxySocketAndPairWorkCaps (14 ms)
+[ RUN      ] BuildModel.BlueprintCodecIsCanonicalAndOmitsOwnershipConditionAndProvenance
+[       OK ] BuildModel.BlueprintCodecIsCanonicalAndOmitsOwnershipConditionAndProvenance (0 ms)
+[ RUN      ] BuildModel.BlueprintCodecRejectsDamageVersionsOrdinalsAndForgedSettingsWithoutPublishing
+[       OK ] BuildModel.BlueprintCodecRejectsDamageVersionsOrdinalsAndForgedSettingsWithoutPublishing (0 ms)
+[ RUN      ] BuildModel.BlueprintDuplicationCannotCarryPhysicalAuthorityOrAllocateIds
+[       OK ] BuildModel.BlueprintDuplicationCannotCarryPhysicalAuthorityOrAllocateIds (0 ms)
+[ RUN      ] BuildModel.CoarseUiStepsRotateStudAndPlateAxesWithoutChangingCanonicalOffsets
+[       OK ] BuildModel.CoarseUiStepsRotateStudAndPlateAxesWithoutChangingCanonicalOffsets (0 ms)
+[----------] 25 tests from BuildModel (20 ms total)
+
+[       OK ] AssemblyMass.CurrentCatalogIsRevalidatedAndActuallyUsed (0 ms)
+[ RUN      ] AssemblyMass.InvalidEmptyAndOverLimitInputsReturnTypedFailures
+[       OK ] AssemblyMass.InvalidEmptyAndOverLimitInputsReturnTypedFailures (0 ms)
+[ RUN      ] AssemblyMass.RootAndFullBuildCapacitiesAreEnforcedWithoutTruncation
+[       OK ] AssemblyMass.RootAndFullBuildCapacitiesAreEnforcedWithoutTruncation (5 ms)
+[ RUN      ] AssemblyMass.OutputOwnsItsValuesAfterInputsAndCatalogAreDestroyed
+[       OK ] AssemblyMass.OutputOwnsItsValuesAfterInputsAndCatalogAreDestroyed (0 ms)
+[----------] 11 tests from AssemblyMass (7 ms total)
+
+[----------] 7 tests from BoxUnion
+[ RUN      ] BoxUnion.PartialOverlapContainmentAndDuplicateBoundsHaveOneOwner
+[       OK ] BoxUnion.PartialOverlapContainmentAndDuplicateBoundsHaveOneOwner (0 ms)
+[ RUN      ] BoxUnion.PartialMatingFacesKeepEveryExposedRectangle
+[       OK ] BoxUnion.PartialMatingFacesKeepEveryExposedRectangle (0 ms)
+[ RUN      ] BoxUnion.ClosedCavityRetainsItsInnerBoundaryAndExcludesItsVolume
+[       OK ] BoxUnion.BoundedMixedFixturesAndInputPermutationsRemainExact (16 ms)
+[ RUN      ] BoxUnion.BvhQueriesMatchLinearCellsAndNeverPartiallyWriteOnFailure
+[       OK ] BoxUnion.BvhQueriesMatchLinearCellsAndNeverPartiallyWriteOnFailure (0 ms)
+[ RUN      ] BoxUnion.InvalidInputsAndEveryIndependentBudgetRefuseWithoutTruncation
+[       OK ] BoxUnion.InvalidInputsAndEveryIndependentBudgetRefuseWithoutTruncation (0 ms)
+[----------] 7 tests from BoxUnion (25 ms total)
+
+[----------] 5 tests from AssemblyCollision
+[ RUN      ] AssemblyCollision.RealWeldedStackHasNoInternalMatingFacesAndStablePartLookup
+[       OK ] AssemblyCollision.RealWeldedStackHasNoInternalMatingFacesAndStablePartLookup (0 ms)
+[ RUN      ] AssemblyCollision.Full256PartProfileCompilesWithoutDecorativeContacts
+[       OK ] AssemblyCollision.Full256PartProfileCompilesWithoutDecorativeContacts (16 ms)
+[ RUN      ] AssemblyCollision.DisabledWeldRootsStaySeparateAndBudgetsApplyAcrossAllRoots
+[       OK ] AssemblyCollision.DisabledWeldRootsStaySeparateAndBudgetsApplyAcrossAllRoots (0 ms)
+[ RUN      ] AssemblyCollision.OverlappingAuthoredProxiesDoNotDoubleVolumeOrMass
+[       OK ] GpuAuthoredShapes.CloseWaitsForAnUnresolvedSubmissionAndRetainedReader (26 ms)
+[ RUN      ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[36m[DEBUG] [00:21:21.583] [GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:21:21.584] [GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:21:21.584] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:21:21.584] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:21:21.584] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:21:21.584] [GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:21:21.585] [GPU] GPU device created[0m
+[32m[INFO ] [00:21:21.585] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources (25 ms)
+[ RUN      ] GpuAuthoredShapes.BodyKernelForceUsesPreparedPrincipalInertia
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[36m[DEBUG] [00:21:21.608] [GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:21:21.610] [GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:21:21.610] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:21:21.610] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:21:21.610] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:21:21.610] [GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:21:21.611] [GPU] GPU device created[0m
+[32m[INFO ] [00:21:21.611] [GPU] Headless GPU context initialized successfully[0m
+[36m[DEBUG] [00:21:21.619] Created shader module 'body_mass_contract' (129149 bytes)[0m
+[90m[TRACE] [00:21:21.619] Created buffer 'body_mass_table': 64 bytes[0m
+[  SKIPPED ] GpuAuthoredShapes.OptionalActualWallPairContactReplay (23 ms)
+[       OK ] PartCatalog.AnalyticalBoxesMatchIndependentCornerBoundsForAllRotations (0 ms)
+[ RUN      ] PartCatalog.CollisionOccupancyAndRotationFailuresIdentifyTheirProperty
+[       OK ] PartCatalog.CollisionOccupancyAndRotationFailuresIdentifyTheirProperty (0 ms)
+[ RUN      ] PartCatalog.BuoyancyRejectsDoubleVolumeButAllowsTouchingCompartments
+[       OK ] PartCatalog.BuoyancyRejectsDoubleVolumeButAllowsTouchingCompartments (0 ms)
+[ RUN      ] PartCatalog.TypedSocketCompatibilitySeparatesWeldRopeAndCargoLatch
+[       OK ] PartCatalog.TypedSocketCompatibilitySeparatesWeldRopeAndCargoLatch (0 ms)
+[ RUN      ] PartCatalog.EngagedSocketPitchAndNormalsSurviveSidewaysAndUpsideDownPlacements
+[       OK ] PartCatalog.EngagedSocketPitchAndNormalsSurviveSidewaysAndUpsideDownPlacements (0 ms)
+[ RUN      ] PartCatalog.SocketAuthoringErrorsArePrecise
+[       OK ] PartCatalog.SocketAuthoringErrorsArePrecise (0 ms)
+[ RUN      ] PartCatalog.ModuleParametersAndRequiredSocketRolesCannotBeIgnored
+[       OK ] PartCatalog.ModuleParametersAndRequiredSocketRolesCannotBeIgnored (0 ms)
+[ RUN      ] PartCatalog.ResourcesMaterialsAndBoundsRejectMalformedAuthoring
+[       OK ] PartCatalog.ResourcesMaterialsAndBoundsRejectMalformedAuthoring (0 ms)
+[       OK ] WreckwaterAuthorityRuntime.HelmTimesOutInServerTicks (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.SnapshotIsCanonicalMappedUnderMtuAndSendFailureIsIsolated
+[       OK ] WreckwaterAuthorityRuntime.SnapshotIsCanonicalMappedUnderMtuAndSendFailureIsIsolated (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.MalformedCommittedMutationCountsPermanentlyFailStop
+[       OK ] WreckwaterAuthorityRuntime.MalformedCommittedMutationCountsPermanentlyFailStop (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.NonSnapshotTickAttachmentBreakUsesExactCertifiedEvidence
+[       OK ] WreckwaterAuthorityRuntime.NonSnapshotTickAttachmentBreakUsesExactCertifiedEvidence (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.ExactContactFracturesFloodsSinksDestroysAndRespawnsFreshBody
+[       OK ] WreckwaterAuthorityRuntime.ExactContactFracturesFloodsSinksDestroysAndRespawnsFreshBody (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.SameTickBankAndStealResolveOneWinnerWithoutAtomicAbort
+[       OK ] WreckwaterAuthorityRuntime.SameTickBankAndStealResolveOneWinnerWithoutAtomicAbort (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.EventOverflowAndGapPermanentlyFailStopBeforePublication
+[       OK ] WreckwaterAuthorityRuntime.EventOverflowAndGapPermanentlyFailStopBeforePublication (0 ms)
+[ RUN      ] WreckwaterAuthorityRuntime.PoseGapPermanentlyFailStops
+[       OK ] WreckwaterAuthorityRuntime.PoseGapPermanentlyFailStops (0 ms)
+[       OK ] WreckwaterApplicationClient.OwnsOnePumpPerFrameAndClosesTransportOnce (0 ms)
+[ RUN      ] WreckwaterApplicationClient.NullTransportFailureLeavesCleanState
+[       OK ] WreckwaterApplicationClient.NullTransportFailureLeavesCleanState (0 ms)
+[ RUN      ] WreckwaterApplicationClient.TerrainProbeConservativelyCoversFlatAndSharpTerrain
+[       OK ] WreckwaterApplicationClient.TerrainProbeConservativelyCoversFlatAndSharpTerrain (0 ms)
+[ RUN      ] WreckwaterApplicationClient.TerrainProbeBudgetExhaustionCannotBecomeMiss
+[       OK ] WreckwaterApplicationClient.TerrainProbeBudgetExhaustionCannotBecomeMiss (0 ms)
+[ RUN      ] WreckwaterApplicationClient.ProbeMergeRetainsFullIdentityAndChoosesClosestDomain
+[       OK ] WreckwaterApplicationClient.ProbeMergeRetainsFullIdentityAndChoosesClosestDomain (0 ms)
+[ RUN      ] WreckwaterApplicationClient.ProbeMergeFailsClosedOnMissingOrMismatchedBodyEvidence
+[       OK ] WreckwaterApplicationClient.ProbeMergeFailsClosedOnMissingOrMismatchedBodyEvidence (0 ms)
+[----------] 8 tests from WreckwaterApplicationClient (0 ms total)
+
+[----------] 15 tests from WreckwaterCharacterController
+[ RUN      ] WreckwaterCharacterController.BindsOnlyExactLocalCertifiedStateAndPinsIdentity
+[       OK ] WreckwaterCharacterMovement.DisconnectPurgesInputAndReconnectRejectsStaleIdentity (0 ms)
+[ RUN      ] WreckwaterCharacterMovement.CapacityAndPlatformFailuresAreAtomic
+[       OK ] WreckwaterCharacterMovement.CapacityAndPlatformFailuresAreAtomic (0 ms)
+[ RUN      ] WreckwaterCharacterMovement.LongRunConvergesExactlyAcrossInputAndPlatformOrder
+[       OK ] WreckwaterCharacterMovement.LongRunConvergesExactlyAcrossInputAndPlatformOrder (743 ms)
+[----------] 16 tests from WreckwaterCharacterMovement (754 ms total)
+
+[----------] 5 tests from WreckwaterCharacterStep
+[ RUN      ] WreckwaterCharacterStep.AboardMovementAndJumpMatchAuthorityExactly
+[       OK ] WreckwaterCharacterStep.AboardMovementAndJumpMatchAuthorityExactly (0 ms)
+[ RUN      ] WreckwaterCharacterStep.FallingLandsOnMovingRotatingDeckExactly
+[       OK ] WreckwaterCharacterStep.FallingLandsOnMovingRotatingDeckExactly (0 ms)
+[ RUN      ] WreckwaterCharacterStep.MovingDeckCrossesWorldSectorExactly
+[       OK ] WreckwaterCharacterStep.MovingDeckCrossesWorldSectorExactly (0 ms)
+[ RUN      ] WreckwaterCharacterStep.SwimmingBoardAssistAndWaterExitMatchAuthorityExactly
+[       OK ] WreckwaterReplayRecorderTest.RecordsWithoutPostInitializeStorageMovementAndRoundTrips (0 ms)
+[ RUN      ] WreckwaterReplayRecorderTest.CapacityAndOrderingFailuresAreAtomic
+[       OK ] WreckwaterReplayRecorderTest.CapacityAndOrderingFailuresAreAtomic (0 ms)
+[ RUN      ] WreckwaterReplayRecorderTest.FinalStateMustBeBackedByLastCertifiedSnapshot
+[       OK ] WreckwaterReplayRecorderTest.FinalStateMustBeBackedByLastCertifiedSnapshot (0 ms)
+[ RUN      ] WreckwaterReplayRecorderTest.FinalizeRequiresTerminalSnapshotAsLastRecordAndAtLeastOneEvent
+[       OK ] WreckwaterReplayRecorderTest.FinalizeRequiresTerminalSnapshotAsLastRecordAndAtLeastOneEvent (0 ms)
+[ RUN      ] WreckwaterReplayRecorderTest.RejectsSnapshotObjectWhoseEntityBytesComeFromAnotherSnapshot
+[       OK ] WreckwaterReplayRecorderTest.RejectsSnapshotObjectWhoseEntityBytesComeFromAnotherSnapshot (0 ms)
+[ RUN      ] WreckwaterReplayRecorderTest.RejectsInvalidConfiguration
+[       OK ] WreckwaterReplayRecorderTest.RejectsInvalidConfiguration (0 ms)
+[----------] 6 tests from WreckwaterReplayRecorderTest (0 ms total)
+
+[----------] 3 tests from WreckwaterReplayCodecTest
+[ RUN      ] WreckwaterReplayCodecTest.RejectsCorruptionTruncationTrailingBytesAndReadLimitOverflow
+[       OK ] WreckwaterReplayPlaybackTest.StepAndWreckCamNeverExposeUncertifiedFutureEvents (0 ms)
+[ RUN      ] WreckwaterReplayPlaybackTest.CapacityAndInvalidSeekFailuresAreAtomic
+[       OK ] WreckwaterReplayPlaybackTest.CapacityAndInvalidSeekFailuresAreAtomic (1 ms)
+[ RUN      ] WreckwaterReplayPlaybackTest.RuntimeQueriesKeepPreparedStorageStable
+[       OK ] WreckwaterReplayPlaybackTest.RuntimeQueriesKeepPreparedStorageStable (5 ms)
+[----------] 17 tests from WreckwaterReplayPlaybackTest (29 ms total)
+
+[----------] 22 tests from WreckwaterClientSnapshotBufferTest
+[ RUN      ] WreckwaterClientSnapshotBufferTest.RejectsDuplicateOutOfOrderIdentityAndTickRegressionUntilReset
+[       OK ] WreckwaterClientSnapshotBufferTest.RejectsDuplicateOutOfOrderIdentityAndTickRegressionUntilReset (0 ms)
+[ RUN      ] WreckwaterClientSnapshotBufferTest.InterpolatesAcrossSectorBoundaryWithoutFarFloatConversion
+[       OK ] WreckwaterClientSnapshotBufferTest.InterpolatesAcrossSectorBoundaryWithoutFarFloatConversion (0 ms)
+[ RUN      ] WreckwaterClientSnapshotBufferTest.UsesPhysicsEvidenceTimelineWhenApplicationTickIsLater
+[       OK ] WreckwaterClientSnapshotBufferTest.UsesPhysicsEvidenceTimelineWhenApplicationTickIsLater (0 ms)
+[ RUN      ] WreckwaterClientSnapshotBufferTest.UsesShortestQuaternionPathAcrossCanonicalAntipodes
+[       OK ] NativeSaveStore.RefusesSymlinksAndHardlinkedStagingWithoutTouchingTheirTargets (42 ms)
+[ RUN      ] NativeSaveStore.EveryInjectedIoFailurePreservesACompleteGenerationAndReportsAmbiguity
+[       OK ] NativeSaveStore.EveryInjectedIoFailurePreservesACompleteGenerationAndReportsAmbiguity (1024 ms)
+[ RUN      ] NativeSaveStore.ActualProcessKillAtEveryWriteBoundaryLeavesAnIntactRecoverableSave
+[       OK ] NativeSaveStore.ActualProcessKillAtEveryWriteBoundaryLeavesAnIntactRecoverableSave (1531 ms)
+[ RUN      ] NativeSaveStore.ClassifiesFullDiskAndPermissionErrorsWithoutAcknowledging
+[       OK ] NativeSaveStore.ClassifiesFullDiskAndPermissionErrorsWithoutAcknowledging (126 ms)
+[ RUN      ] NativeSaveStore.DoesNotReplaceConflictingReplicasOrAnotherWorld
+[       OK ] NativeSaveStore.DoesNotReplaceConflictingReplicasOrAnotherWorld (42 ms)
+[ RUN      ] NativeSaveStore.ActualSessionCheckpointReloadKeepsPurchasedPartAndRejectsOldRequest
+[       OK ] NativeSaveStore.ActualSessionCheckpointReloadKeepsPurchasedPartAndRejectsOldRequest (14 ms)
+[----------] 9 tests from NativeSaveStore (3022 ms total)
+
+[----------] 4 tests from NativeSaveWorker
+[ RUN      ] NativeSaveWorker.CompletionWaitsForDiskAndOnlyOneOwnedOperationCanBePending
+[  SKIPPED ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative (0 ms)
+[  SKIPPED ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore (0 ms)
+[32m[INFO ] [00:31:28.645] PHYSDBG islands_enter[0m
+tests/test_cannon_physics_scene_gpu.cpp:175: Failure
+The difference between at(stack[i]).position.y and expected[i+2].position.y is 1.2217462360858917, which exceeds .10f, where
+at(stack[i]).position.y evaluates to 0.48707053065299988,
+expected[i+2].position.y evaluates to 1.7088167667388916, and
+.10f evaluates to 0.10000000149011612.
+
+tests/test_cannon_physics_scene_gpu.cpp:175: Failure
+The difference between at(stack[i]).position.y and expected[i+2].position.y is 2.2447409629821777, which exceeds .10f, where
+at(stack[i]).position.y evaluates to 0.60286545753479004,
+expected[i+2].position.y evaluates to 2.8476064205169678, and
+.10f evaluates to 0.10000000149011612.
+
+tests/test_cannon_physics_scene_gpu.cpp:176: Failure
+Expected: (glm::length(at(stack[i]).linearVelocity)) < (.10f), actual: 0.148643374 vs 0.1
+
+tests/test_cannon_physics_scene_gpu.cpp:177: Failure
+Expected: (glm::length(at(stack[i]).angularVelocity)) < (.10f), actual: 0.22701095 vs 0.1
+
+tests/test_cannon_physics_scene_gpu.cpp:175: Failure
+The difference between at(stack[i]).position.y and expected[i+2].position.y is 3.4961548447608948, which exceeds .10f, where
+at(stack[i]).position.y evaluates to 0.49136227369308472,
+expected[i+2].position.y evaluates to 3.9875171184539795, and
+.10f evaluates to 0.10000000149011612.
+
+tests/test_cannon_physics_scene_gpu.cpp:176: Failure
+Expected: (glm::length(at(stack[i]).linearVelocity)) < (.10f), actual: 0.168384522 vs 0.1
+
+tests/test_cannon_physics_scene_gpu.cpp:177: Failure
+Expected: (glm::length(at(stack[i]).angularVelocity)) < (.10f), actual: 0.348029733 vs 0.1
+
+tests/test_cannon_physics_scene_gpu.cpp:185: Failure
+Expected: (maximumFlightRotationError) < (.05f), actual: 1.7350024 vs 0.05
+
+[  FAILED  ] CannonPhysicsSceneGpu.ThrownBrickFlightBounceAndStackMatchJolt (13107 ms)
+[ RUN      ] CannonPhysicsSceneGpu.FastBrickReachesItsSurfaceAndRetainsBounceMomentum
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[36m[DEBUG] [00:31:28.680] [GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:31:28.683] [GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:31:28.683] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:31:28.683] [GPU]   Vendor: radv[0m
+[32m[INFO ] [00:31:28.683] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:31:28.683] [GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:31:28.684] [GPU] GPU device created[0m
+[       OK ] NativeDesignLibrary.DurableAcknowledgmentOwnsBytesAndBlocksConcurrentOperations (21 ms)
+[ RUN      ] NativeDesignLibrary.OrdinaryDiskFailureKeepsCurrentAndBackupTogetherThenRetries
+[       OK ] NativeDesignLibrary.OrdinaryDiskFailureKeepsCurrentAndBackupTogetherThenRetries (45 ms)
+[ RUN      ] NativeDesignLibrary.UncertainPublicationRequiresReopenWithoutFalseSuccess
+[       OK ] NativeDesignLibrary.UncertainPublicationRequiresReopenWithoutFalseSuccess (31 ms)
+[ RUN      ] NativeDesignLibrary.ExclusiveLibraryOwnerAndShutdownDrainRemainIndependentOfWorlds
+[       OK ] NativeDesignLibrary.ExclusiveLibraryOwnerAndShutdownDrainRemainIndependentOfWorlds (27 ms)
+[ RUN      ] NativeDesignLibrary.ActualExportImportFilesAreBoundedValidatedAndNeverOverwrite
+[       OK ] NativeDesignLibrary.ActualExportImportFilesAreBoundedValidatedAndNeverOverwrite (39 ms)
+[ RUN      ] NativeDesignLibrary.ImportValidationOccursOnMainThreadAndInvalidContentCannotPublish
+[       OK ] NativeDesignLibrary.ImportValidationOccursOnMainThreadAndInvalidContentCannotPublish (20 ms)
+[----------] 8 tests from NativeDesignLibrary (341 ms total)
+
+[----------] 19 tests from MenuFixture
+[ RUN      ] MenuFixture.OpeningClosingAndFocusLossConsumeWithoutConstruction
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections (0 ms)
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport (0 ms)
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact (0 ms)
+[==========] 2626 tests from 361 test suites ran. (2119213 ms total)
+[  PASSED  ] 2604 tests.
+[  SKIPPED ] 20 tests, listed below:
+[  SKIPPED ] CreativeScenery.ActualStartingShelfSupportsAllSixKinds
+[  SKIPPED ] CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing
+[  SKIPPED ] CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage
+[  SKIPPED ] CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging
+[  SKIPPED ] CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession
+[  SKIPPED ] CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision
+[  SKIPPED ] WindowGLFWTest.WindowCreation
+[  SKIPPED ] GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp
+[  SKIPPED ] RaycastPathGPUTest.LegoHorizonBenchmark
+[  SKIPPED ] RaycastPathGPUTest.DayNightTerrainBenchmark
+[  SKIPPED ] AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested
+[  SKIPPED ] AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses
+[  SKIPPED ] AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour
+[  SKIPPED ] AdventureBlueprints.GenericEarnedRecipeBuildsTheProvenFullTerrainShortcutWithoutChangingItsSite
+[  SKIPPED ] GpuAuthoredShapes.OptionalActualWallPairContactReplay
+[  SKIPPED ] AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative
+[  SKIPPED ] FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport
+[  SKIPPED ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[  FAILED  ] CannonPhysicsSceneGpu.ThrownBrickFlightBounceAndStackMatchJolt
+  YOU HAVE 5 DISABLED TESTS

@@ -79,7 +79,14 @@ bool AdventureSpatialQueries::publish(std::span<const Solid> source,uint64_t rev
         for(int z=z0;z<=z1;++z)for(int x=x0;x<=x1;++x)sectors[{x,z}].push_back(uint16_t(i));
     }
     std::vector<Solid> copy(source.begin(),source.end());
-    solids_=std::move(copy);sectors_=std::move(sectors);revision_=revision;return true;
+    std::vector<std::pair<uint64_t,uint64_t>> partCounters;partCounters.reserve(source.size());
+    for(const auto& solid:source)partCounters.emplace_back(solid.structure.counter,solid.part.counter);
+    std::sort(partCounters.begin(),partCounters.end());
+    partCounters.erase(std::unique(partCounters.begin(),partCounters.end()),partCounters.end());
+    solids_=std::move(copy);sectors_=std::move(sectors);partCounters_=std::move(partCounters);revision_=revision;return true;
+}
+bool AdventureSpatialQueries::containsPartCounters(uint64_t structure,uint64_t part) const noexcept {
+    return std::binary_search(partCounters_.begin(),partCounters_.end(),std::pair{structure,part});
 }
 bool AdventureSpatialQueries::candidates(glm::dvec3 lo,glm::dvec3 hi,
     std::array<uint16_t,maximumSolids>& out,size_t& count) const noexcept {

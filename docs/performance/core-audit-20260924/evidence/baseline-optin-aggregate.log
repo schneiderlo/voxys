@@ -1,0 +1,312 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = *ImportedWallRuntimeIntegration*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from SourceHouse/ImportedWallRuntimeIntegration
+[ RUN      ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections
+[32m[INFO ] [02:48:06.601] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:48:06.601] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:48:06.601] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:48:06.601] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:48:06.603] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:48:06.793] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [02:48:13.042] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.044] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.044] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.044] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.044] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.387] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.387] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.387] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.387] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.387] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.394] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.394] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.394] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.394] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.394] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.399] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.399] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.399] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.399] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.399] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.405] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.405] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.405] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.405] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.405] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.410] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.410] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.410] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.410] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.410] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.416] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.416] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.416] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.416] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.416] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.422] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.422] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.422] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.422] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.422] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.426] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.426] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.426] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.426] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.426] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.432] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.432] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.432] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.432] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.432] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.437] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.437] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.437] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.437] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.437] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.443] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.443] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.443] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.443] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.443] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.448] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.449] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.449] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.449] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.449] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.454] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.454] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.454] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.454] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.454] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.461] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.462] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.462] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.462] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.462] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.466] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.466] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.466] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.466] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.466] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.471] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.471] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.471] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.471] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.471] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.476] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.476] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.476] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.476] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.476] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:13.480] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:13.481] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:13.481] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:13.481] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:13.481] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.083] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.083] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.083] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.083] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.083] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.105] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.105] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.105] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.105] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.105] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1379: Failure
+Expected: (read().at("cannon").at("yaw").get<double>()) > (yaw), actual: -0.0360332748563 vs -0.0360332748563
+
+tests/test_adventure_runtime.cpp:1380: Failure
+Expected: (read().at("cannon").at("elevation").get<double>()) > (elevation), actual: 0.072676758471200004 vs 0.072676758471200004
+
+[32m[INFO ] [02:48:14.586] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.586] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.586] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.586] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.586] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.592] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.593] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.593] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.593] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.593] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.594] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.594] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.594] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.594] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.595] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.598] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.598] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.598] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.598] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.598] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.602] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.602] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.602] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.602] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.602] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:14.605] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:14.605] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:14.605] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:14.605] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:14.605] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1393: Failure
+Expected equality of these values:
+  read().at("cannon").at("shots")
+    Which is: 0
+  1
+{"costText":"Unlimited pieces","creative":true,"build":false,"selected":"Brick 2 × 2","blueprintKind":0,"piece":9,"status":"A/D: turn · W/S: elevation · Click or Space: fire · C: leave","previewReason":"Move out of the building preview","interaction":"Use nearby","statusEvent":"3","valid":false,"wood":0,"stone":0,"scrap":0,"parts":0,"menu":"","saveFailure":"","saveStatus":"Saved build loaded","dirty":true,"textScale":1,"highContrast":false,"rows":[],"mode":"explore","menuTitle":"","menuText":"","menuStatus":"","menuToken":8,"catalogCategory":1,"preferencesRevision":"1","preferencesStatus":"No saved settings. Your current controls were kept.","attackControl":"Left mouse","dodgeControl":"Q","lookControl":"Hold the right mouse button to look around, or use the right stick.","forest":{"seed":9665061,"recipe":3,"drawDistance":2000,"nearProps":103,"distantTrees":51803,"horizonDraws":0,"visitedTrees":0,"visibleTrees":0,"selectionMs":0,"instanceUploadBytes":0,"meshColorTriangles":0,"meshShadowTriangles":0},"riding":false,"bikeSpeed":0,"cannon":{"available":true,"x":1240,"y":0.18500000715255738,"z":-1027,"distanceStuds":9,"active":true,"ready":true,"error":"","shots":0,"impacts":0,"live":0,"yaw":-0.0360332748563,"elevation":0.072676758471200004,"awaitingHit":false,"contacts":0,"contactFeature":0,"contactBody":0,"contactSpeed":0,"contactImpulse":0,"releasedParts":0,"sourceParts":20,"partDisplacement":2.6976122938639395e-06,"impactDirection":[0,0,0],"impactSource":"0","impactEnergy":0,"wallReady":true,"wallReleased":false,"inspectingWall":false,"wallBusy":false,"wallPhase":2,"wallMessage":"","wallFailed":false,"nearby":true},"blacksmith":{"available":true,"x":1208,"y":0.18500000715255738,"z":-1032},"paint":15022899,"quickSlot":1,"quickSlots":[{"piece":9,"paint":15022899},{"piece":10,"paint":15987435},{"piece":2,"paint":0},{"piece":1,"paint":3909724},{"piece":4,"paint":15987435},{"piece":15,"paint":0}],"colourAvailable":true,"colourPickerOpen":false,"canUndo":false,"canRemove":false,"hud":{"width":0,"height":0,"controls":[]},"navigation":{"visible":true,"mapRevision":5,"terrainRasterizations":2,"cameraBearingDegrees":272.06454467773438,"playerBearingDegrees":317.02816772460938,"playerUv":[0.47916328907012939,0.49823451042175293],"placedPieces":0},"observation":"55","revision":"2","menuSelected":0,"player":{"x":1247.994806974333,"y":1.4196791696548461,"z":-1026.7117961777562,"yaw":0.75,"tick":"29"},"swimming":false,"thrownBricks":{"total":101,"live":0,"playerCollider":true,"playerContacts":0},"camera":{"yaw":0.82999999999999996,"distance":64,"requestedDistance":64,"width":1280,"height":800,"eye":[1241.5391273498535,5.7486300468444824,-1026.9445161819458],"viewTarget":[1196.2418461570335,5.1436513692051413,-1028.5774323548219],"origin":[1280,0,-1024],"viewProjection":[-0.038998819887638092,-0.023100417107343674,-0.99927186965942383,-0.99926185607910156,-6.3011645901056568e-10,1.7318966388702393,-0.013345826417207718,-0.013345693238079548,1.0818291902542114,-0.0008327450486831367,-0.036022718995809555,-0.036022357642650604,1.6855348348617554,-10.846946716308594,-38.562217712402344,-38.461830139160156]},"aimInput":{"pointer":[660,400],"usedPointer":[660,400],"mouseCaptured":false,"gamepadConnected":false,"padOwnsAim":false},"aimRay":{"from":[1217.1132888793945,63.195503234863281,-1104.3490295410156],"to":[1194.6052333825717,-9.9395388977366395,-1121.8676781765348],"complete":true,"hit":true,"distance":67.831316893785868},"preview":{"x":1198,"y":0.20000000000000001,"z":-1119,"kind":9,"yaw":0},"world":"6461a9a191f06ce74beed8f03d4454cc","registeredBed":"0","health":100,"combatLabel":"Use nearby","staffEquipped":false,"attackReady":true,"dodgeReady":true,"combatTick":"0","enemies":[{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"},{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"}],"hammerEquipped":false,"quest":{"phase":"not-accepted","ready":false,"objective":"Meet Moss in the meadow square.","recipeUnlocked":false,"rewardRevision":"0"},"objective":"Meet Moss in the meadow square.","trailQuests":[{"id":2,"phase":0,"title":"Prepare for the trail","objective":"Help Moss finish A Place to Return.","ready":false,"rewardRevision":"0"},{"id":3,"phase":0,"title":"Recover the relay component","objective":"Finish Prepare for the trail with Rivet.","ready":false,"rewardRevision":"0"},{"id":4,"phase":0,"title":"Restore the relay","objective":"Finish Recover relay component with Lumen.","ready":false,"rewardRevision":"0"}],"sideQuest":null,"wideStoneStepUnlocked":false,"discoveries":[{"id":1,"discoveredRevision":"0","rewardClaimRevision":"0"},{"id":2,"discoveredRevision":"0","rewardClaimRevision":"0"}],"trailSites":[{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0}],"relayActivationRevision":"0","equippedUtility":{"kind":0,"quantity":0},"compass":{"equipped":false,"target":"relay","label":"Meadow beacon","bearing":0,"distance":0,"direction":"","available":false,"reason":"Equip a Trail Compass to see a bearing.","backpackSlot":null},"dialogue":null,"residents":[{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false}],"metNpcMask":0,"saveSchema":6,"migrationDirty":false,"structures":[],"components":[]}
+
+[33m[WARN ] [02:48:14.611] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections, where GetParam() = 0 (8161 ms)
+[ RUN      ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport
+[32m[INFO ] [02:48:14.738] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:48:14.738] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:48:14.738] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:48:14.738] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:48:14.739] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:48:14.846] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [02:48:21.141] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.142] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.142] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.142] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.142] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.477] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.477] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.477] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.477] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.477] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.500] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.500] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.500] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.500] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.500] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1379: Failure
+Expected: (read().at("cannon").at("yaw").get<double>()) > (yaw), actual: -0.0360332748563 vs -0.0360332748563
+
+tests/test_adventure_runtime.cpp:1380: Failure
+Expected: (read().at("cannon").at("elevation").get<double>()) > (elevation), actual: 0.072676758471200004 vs 0.072676758471200004
+
+[32m[INFO ] [02:48:21.965] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.966] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.966] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.966] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.966] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.969] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.970] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.970] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.970] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.970] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.976] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.976] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.976] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.976] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.976] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.980] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.980] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.980] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.980] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.980] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.983] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.983] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.983] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.983] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.983] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:21.987] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:21.987] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:21.987] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:21.987] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:21.987] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1393: Failure
+Expected equality of these values:
+  read().at("cannon").at("shots")
+    Which is: 0
+  1
+{"costText":"Unlimited pieces","creative":true,"build":false,"selected":"Brick 2 × 2","blueprintKind":0,"piece":9,"status":"A/D: turn · W/S: elevation · Click or Space: fire · C: leave","previewReason":"Ready to place","interaction":"Use nearby","statusEvent":"1","valid":true,"wood":0,"stone":0,"scrap":0,"parts":0,"menu":"","saveFailure":"","saveStatus":"Unsaved build","dirty":true,"textScale":1,"highContrast":false,"rows":[],"mode":"explore","menuTitle":"","menuText":"","menuStatus":"","menuToken":2,"catalogCategory":1,"preferencesRevision":"1","preferencesStatus":"No saved settings. Your current controls were kept.","attackControl":"Left mouse","dodgeControl":"Q","lookControl":"Hold the right mouse button to look around, or use the right stick.","forest":{"seed":9665061,"recipe":3,"drawDistance":2000,"nearProps":103,"distantTrees":51803,"horizonDraws":0,"visitedTrees":0,"visibleTrees":0,"selectionMs":0,"instanceUploadBytes":0,"meshColorTriangles":0,"meshShadowTriangles":0},"riding":false,"bikeSpeed":0,"cannon":{"available":true,"x":1240,"y":0.18500000715255738,"z":-1027,"distanceStuds":9,"active":true,"ready":true,"error":"","shots":0,"impacts":0,"live":0,"yaw":-0.0360332748563,"elevation":0.072676758471200004,"awaitingHit":false,"contacts":0,"contactFeature":0,"contactBody":0,"contactSpeed":0,"contactImpulse":0,"releasedParts":0,"sourceParts":20,"partDisplacement":2.6976122938639395e-06,"impactDirection":[0,0,0],"impactSource":"0","impactEnergy":0,"wallReady":true,"wallReleased":false,"inspectingWall":false,"wallBusy":false,"wallPhase":2,"wallMessage":"","wallFailed":false,"nearby":true},"blacksmith":{"available":true,"x":1208,"y":0.18500000715255738,"z":-1032},"paint":15022899,"quickSlot":1,"quickSlots":[{"piece":9,"paint":15022899},{"piece":10,"paint":15987435},{"piece":2,"paint":0},{"piece":1,"paint":3909724},{"piece":4,"paint":15987435},{"piece":15,"paint":0}],"colourAvailable":true,"colourPickerOpen":false,"canUndo":false,"canRemove":false,"hud":{"width":0,"height":0,"controls":[]},"navigation":{"visible":true,"mapRevision":4,"terrainRasterizations":2,"cameraBearingDegrees":272.06454467773438,"playerBearingDegrees":317.02816772460938,"playerUv":[0.47916328907012939,0.49823451042175293],"placedPieces":0},"observation":"32","revision":"2","menuSelected":0,"player":{"x":1247.994806974333,"y":1.4196791696548461,"z":-1026.7117961777562,"yaw":0.75,"tick":"13"},"swimming":false,"thrownBricks":{"total":0,"live":0,"playerCollider":true,"playerContacts":0},"camera":{"yaw":0.75,"distance":10.5,"requestedDistance":10.5,"width":1280,"height":800,"eye":[1241.5391273498535,5.7486300468444824,-1026.9445161819458],"viewTarget":[1196.2418461570335,5.1436513692051413,-1028.5774323548219],"origin":[1280,0,-1024],"viewProjection":[-0.038998819887638092,-0.023100417107343674,-0.99927186965942383,-0.99926185607910156,-6.3011645901056568e-10,1.7318966388702393,-0.013345826417207718,-0.013345693238079548,1.0818291902542114,-0.0008327450486831367,-0.036022718995809555,-0.036022357642650604,1.6855348348617554,-10.846946716308594,-38.562217712402344,-38.461830139160156]},"aimInput":{"pointer":[640,400],"usedPointer":[640,400],"mouseCaptured":false,"gamepadConnected":false,"padOwnsAim":false},"aimRay":{"from":[1206.7938766479492,6.8479490280151367,-1112.707275390625],"to":[1190.6188778569906,-1.0167051578711099,-1130.0715095703665],"complete":true,"hit":true,"distance":21.768086892823217},"preview":{"x":1193,"y":0.20000000000000001,"z":-1128,"kind":9,"yaw":0},"world":"88ef9837761da5aba5ef79c8f4cd2ae9","registeredBed":"0","health":100,"combatLabel":"Use nearby","staffEquipped":false,"attackReady":true,"dodgeReady":true,"combatTick":"0","enemies":[{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"},{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"}],"hammerEquipped":false,"quest":{"phase":"not-accepted","ready":false,"objective":"Meet Moss in the meadow square.","recipeUnlocked":false,"rewardRevision":"0"},"objective":"Meet Moss in the meadow square.","trailQuests":[{"id":2,"phase":0,"title":"Prepare for the trail","objective":"Help Moss finish A Place to Return.","ready":false,"rewardRevision":"0"},{"id":3,"phase":0,"title":"Recover the relay component","objective":"Finish Prepare for the trail with Rivet.","ready":false,"rewardRevision":"0"},{"id":4,"phase":0,"title":"Restore the relay","objective":"Finish Recover relay component with Lumen.","ready":false,"rewardRevision":"0"}],"sideQuest":null,"wideStoneStepUnlocked":false,"discoveries":[{"id":1,"discoveredRevision":"0","rewardClaimRevision":"0"},{"id":2,"discoveredRevision":"0","rewardClaimRevision":"0"}],"trailSites":[{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0}],"relayActivationRevision":"0","equippedUtility":{"kind":0,"quantity":0},"compass":{"equipped":false,"target":"relay","label":"Meadow beacon","bearing":0,"distance":0,"direction":"","available":false,"reason":"Equip a Trail Compass to see a bearing.","backpackSlot":null},"dialogue":null,"residents":[{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false}],"metNpcMask":0,"saveSchema":6,"migrationDirty":false,"structures":[],"components":[]}
+
+[33m[WARN ] [02:48:21.992] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport, where GetParam() = 1 (7376 ms)
+[ RUN      ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact
+[32m[INFO ] [02:48:22.110] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:48:22.110] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:48:22.110] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:48:22.110] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:48:22.112] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:48:22.219] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [02:48:28.543] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:28.544] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:28.544] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:28.544] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:28.544] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:28.876] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:28.877] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:28.877] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:28.877] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:28.877] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:28.900] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:28.900] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:28.900] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:28.900] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:28.900] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1379: Failure
+Expected: (read().at("cannon").at("yaw").get<double>()) > (yaw), actual: -0.0360332748563 vs -0.0360332748563
+
+tests/test_adventure_runtime.cpp:1380: Failure
+Expected: (read().at("cannon").at("elevation").get<double>()) > (elevation), actual: 0.072676758471200004 vs 0.072676758471200004
+
+[32m[INFO ] [02:48:29.381] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.382] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.382] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.382] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.382] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:29.387] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.388] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.388] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.388] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.388] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:29.388] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.389] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.389] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.389] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.389] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:29.393] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.393] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.393] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.393] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.393] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:29.396] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.397] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.397] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.397] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.397] PHYSDBG islands_enter[0m
+[32m[INFO ] [02:48:29.400] PHYSDBG broad_enter[0m
+[32m[INFO ] [02:48:29.400] PHYSDBG narrow_encoded=true[0m
+[32m[INFO ] [02:48:29.400] PHYSDBG solver_enter[0m
+[32m[INFO ] [02:48:29.400] PHYSDBG commit_enter[0m
+[32m[INFO ] [02:48:29.400] PHYSDBG islands_enter[0m
+tests/test_adventure_runtime.cpp:1393: Failure
+Expected equality of these values:
+  read().at("cannon").at("shots")
+    Which is: 0
+  1
+{"costText":"Unlimited pieces","creative":true,"build":false,"selected":"Brick 2 × 2","blueprintKind":0,"piece":9,"status":"A/D: turn · W/S: elevation · Click or Space: fire · C: leave","previewReason":"Ready to place","interaction":"Use nearby","statusEvent":"1","valid":true,"wood":0,"stone":0,"scrap":0,"parts":0,"menu":"","saveFailure":"","saveStatus":"Unsaved build","dirty":true,"textScale":1,"highContrast":false,"rows":[],"mode":"explore","menuTitle":"","menuText":"","menuStatus":"","menuToken":2,"catalogCategory":1,"preferencesRevision":"1","preferencesStatus":"No saved settings. Your current controls were kept.","attackControl":"Left mouse","dodgeControl":"Q","lookControl":"Hold the right mouse button to look around, or use the right stick.","forest":{"seed":9665061,"recipe":3,"drawDistance":2000,"nearProps":103,"distantTrees":51803,"horizonDraws":0,"visitedTrees":0,"visibleTrees":0,"selectionMs":0,"instanceUploadBytes":0,"meshColorTriangles":0,"meshShadowTriangles":0},"riding":false,"bikeSpeed":0,"cannon":{"available":true,"x":1240,"y":0.18500000715255738,"z":-1027,"distanceStuds":9,"active":true,"ready":true,"error":"","shots":0,"impacts":0,"live":0,"yaw":-0.0360332748563,"elevation":0.072676758471200004,"awaitingHit":false,"contacts":0,"contactFeature":0,"contactBody":0,"contactSpeed":0,"contactImpulse":0,"releasedParts":0,"sourceParts":20,"partDisplacement":2.6976122938639395e-06,"impactDirection":[0,0,0],"impactSource":"0","impactEnergy":0,"wallReady":true,"wallReleased":false,"inspectingWall":false,"wallBusy":false,"wallPhase":2,"wallMessage":"","wallFailed":false,"nearby":true},"blacksmith":{"available":true,"x":1208,"y":0.18500000715255738,"z":-1032},"paint":15022899,"quickSlot":1,"quickSlots":[{"piece":9,"paint":15022899},{"piece":10,"paint":15987435},{"piece":2,"paint":0},{"piece":1,"paint":3909724},{"piece":4,"paint":15987435},{"piece":15,"paint":0}],"colourAvailable":true,"colourPickerOpen":false,"canUndo":false,"canRemove":false,"hud":{"width":0,"height":0,"controls":[]},"navigation":{"visible":true,"mapRevision":4,"terrainRasterizations":2,"cameraBearingDegrees":272.06454467773438,"playerBearingDegrees":317.02816772460938,"playerUv":[0.47916328907012939,0.49823451042175293],"placedPieces":0},"observation":"35","revision":"2","menuSelected":0,"player":{"x":1247.994806974333,"y":1.4196791696548461,"z":-1026.7117961777562,"yaw":0.75,"tick":"12"},"swimming":false,"thrownBricks":{"total":0,"live":0,"playerCollider":true,"playerContacts":0},"camera":{"yaw":0.75,"distance":10.5,"requestedDistance":10.5,"width":1280,"height":800,"eye":[1241.5391273498535,5.7486300468444824,-1026.9445161819458],"viewTarget":[1196.2418461570335,5.1436513692051413,-1028.5774323548219],"origin":[1280,0,-1024],"viewProjection":[-0.038998819887638092,-0.023100417107343674,-0.99927186965942383,-0.99926185607910156,-6.3011645901056568e-10,1.7318966388702393,-0.013345826417207718,-0.013345693238079548,1.0818291902542114,-0.0008327450486831367,-0.036022718995809555,-0.036022357642650604,1.6855348348617554,-10.846946716308594,-38.562217712402344,-38.461830139160156]},"aimInput":{"pointer":[640,400],"usedPointer":[640,400],"mouseCaptured":false,"gamepadConnected":false,"padOwnsAim":false},"aimRay":{"from":[1206.7938766479492,6.8479490280151367,-1112.707275390625],"to":[1190.6188778569906,-1.0167051578711099,-1130.0715095703665],"complete":true,"hit":true,"distance":21.768086892823217},"preview":{"x":1193,"y":0.20000000000000001,"z":-1128,"kind":9,"yaw":0},"world":"9029dff771563912bcbc84f2dfdb55cf","registeredBed":"0","health":100,"combatLabel":"Use nearby","staffEquipped":false,"attackReady":true,"dodgeReady":true,"combatTick":"0","enemies":[{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"},{"id":0,"health":0,"phase":"Waiting for a clear trail","phaseCode":0,"phaseTicks":0,"attackSerial":"0","available":false,"x":0,"y":0,"z":0,"yaw":0,"deathRevision":"0","lootClaimRevision":"0"}],"hammerEquipped":false,"quest":{"phase":"not-accepted","ready":false,"objective":"Meet Moss in the meadow square.","recipeUnlocked":false,"rewardRevision":"0"},"objective":"Meet Moss in the meadow square.","trailQuests":[{"id":2,"phase":0,"title":"Prepare for the trail","objective":"Help Moss finish A Place to Return.","ready":false,"rewardRevision":"0"},{"id":3,"phase":0,"title":"Recover the relay component","objective":"Finish Prepare for the trail with Rivet.","ready":false,"rewardRevision":"0"},{"id":4,"phase":0,"title":"Restore the relay","objective":"Finish Recover relay component with Lumen.","ready":false,"rewardRevision":"0"}],"sideQuest":null,"wideStoneStepUnlocked":false,"discoveries":[{"id":1,"discoveredRevision":"0","rewardClaimRevision":"0"},{"id":2,"discoveredRevision":"0","rewardClaimRevision":"0"}],"trailSites":[{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0},{"id":0,"available":false,"active":false,"x":0,"y":0,"z":0}],"relayActivationRevision":"0","equippedUtility":{"kind":0,"quantity":0},"compass":{"equipped":false,"target":"relay","label":"Meadow beacon","bearing":0,"distance":0,"direction":"","available":false,"reason":"Equip a Trail Compass to see a bearing.","backpackSlot":null},"dialogue":null,"residents":[{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false},{"id":0,"name":"","role":"","x":0,"y":0,"z":0,"available":false}],"metNpcMask":0,"saveSchema":6,"migrationDirty":false,"structures":[],"components":[]}
+
+[33m[WARN ] [02:48:29.405] Abandoning undrained authored shape resources during world shutdown[0m
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact, where GetParam() = 2 (7417 ms)
+[----------] 3 tests from SourceHouse/ImportedWallRuntimeIntegration (22955 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (22955 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections, where GetParam() = 0
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport, where GetParam() = 1
+[  FAILED  ] SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact, where GetParam() = 2
+
+ 3 FAILED TESTS
