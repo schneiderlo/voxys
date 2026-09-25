@@ -18,6 +18,15 @@ const html=`<!doctype html><script src="pipeline-probe.js"></script><script>
 (async()=>{
     const adapter=await navigator.gpu.requestAdapter();
     const device=await adapter.requestDevice();
+    const renderDescriptors=[];
+    let pendingRenders=0,maxPendingRenders=0;
+    const createRender=device.createRenderPipelineAsync.bind(device);
+    device.createRenderPipelineAsync=descriptor=>{
+        renderDescriptors.push({entry:descriptor.vertex.entryPoint,
+            format:descriptor.fragment.targets[0].format});
+        maxPendingRenders=Math.max(maxPendingRenders,++pendingRenders);
+        return createRender(descriptor).finally(()=>{pendingRenders--;});
+    };
     const timeout=window.setTimeout;
     globalThis.progress=[];globalThis.blockedTimers=0;
     globalThis.setTimeout=(f,ms,...args)=>{
@@ -32,6 +41,7 @@ const html=`<!doctype html><script src="pipeline-probe.js"></script><script>
     // complete through WebGPU callbacks while its timers remain paused.
     for(let n=0;n<200&&!globalThis.pipelineProbePassed;n++)await new Promise(r=>timeout(r,50));
     globalThis.probe={passed:globalThis.pipelineProbePassed===true,blockedTimers,progress,
+        renderDescriptors,maxPendingRenders,
         adapter:{vendor:adapter.info.vendor,architecture:adapter.info.architecture}};
 })().catch(e=>{globalThis.probe={error:String(e)};});
 </script>`;
@@ -77,7 +87,11 @@ try{
     console.log(JSON.stringify(result));
     assert.equal(result?.passed,true);
     assert.equal(result.blockedTimers,0);
-    assert(result.progress.includes('Preparing graphics... 26 steps complete'));
+    assert(result.progress.includes('Preparing graphics... 51 steps complete'));
+    assert.equal(result.maxPendingRenders,25,'24 valid variants and a failure must be submitted before waiting');
+    assert.deepEqual(result.renderDescriptors.slice(2,26),Array.from({length:24},(_,i)=>({
+        entry:'vs',format:i%2===0?'rgba8unorm':'rgba16float'
+    })),'the WASM bridge must consume each nested descriptor before its storage is reused');
 }finally{
     if(call&&socket?.readyState===WebSocket.OPEN){try{await call('Browser.close');}catch{chrome.kill();}}
     else chrome.kill();

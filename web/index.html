@@ -533,6 +533,7 @@
     <script src="lego_playground.js"></script>
     <script src="network_transport.js"></script>
     <script src="loader.js?v=__VOXY_BUILD_ID__"></script>
+    <script src="gpu_startup.js?v=__VOXY_BUILD_ID__"></script>
     <script src="frame_budget.js?v=__VOXY_BUILD_ID__"></script>
     <script src="renderer_inspector.js"></script>
     <script>
@@ -1312,6 +1313,13 @@
                 );
                 const device = deviceRequest.device;
                 window.voxyDeviceProfile = deviceRequest.profile;
+                const releaseFiles = VoxyDataPacks.parseManifest(window.voxyReleaseFiles);
+                // Shader source/layouts are small and independent of textures,
+                // meshes and world data. Start them before awaiting the packs.
+                window.voxyGpuStartup = VoxyGpuStartup.install(device, {
+                    manifest: releaseFiles, experience, profile: deviceRequest.profile,
+                    configuration: VoxyGpuStartup.configurationFor(location.search),
+                });
                 globalThis.voxyUncapturedGpuErrors = [];
                 globalThis.voxyUncapturedGpuErrorCount = 0;
                 globalThis.voxyDeviceLost = null;
@@ -1354,7 +1362,6 @@
                     startupDownloads.onProgress = null;
                 }
                 updateProgress(startupDownloads ? 85 : 15, 'Loading WASM module...');
-                const releaseFiles = VoxyDataPacks.parseManifest(window.voxyReleaseFiles);
                 const compiledWasm = startupDownloads?.wasmModule;
 
                 const coveArguments = (() => {
@@ -1479,6 +1486,7 @@
                     else window.VoxyAdventureUI.install(voxyModule,window);
                 }
 
+                await window.voxyGpuStartup.finish();
                 setupPhysicsBackendSwitcher();
 
                 if (window.voxyDebugEnabled) VoxyRendererInspector.mount({

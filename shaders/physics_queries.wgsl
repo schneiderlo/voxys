@@ -751,9 +751,8 @@ fn query_authored_surface(pose: BodyPose, shape: BodyShape, a: vec3<f32>, b: vec
         quaternion_rotate(pose.orientation,authored_body_vector(geometry,surface.normal)),surface.feature);
 }
 
-fn shape_surface(pose : BodyPose, shape : BodyShape,
-                 point : vec3<f32>) -> Surface {
-    if (shape.authored_shape.x!=0u) { return query_authored_surface(pose,shape,point,point); }
+fn primitive_surface(pose : BodyPose, shape : BodyShape,
+                     point : vec3<f32>) -> Surface {
     if (legoIsBrick(bitcast<u32>(shape.invInertia_material.w))) {
         var best = Surface(1e30, point, vec3<f32>(0,1,0), 0u);
         for(var part=0u;part<legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w));part++) {
@@ -779,13 +778,22 @@ fn shape_surface(pose : BodyPose, shape : BodyShape,
     return box_surface(pose, shape, point);
 }
 
+fn shape_surface(pose : BodyPose, shape : BodyShape,
+                 point : vec3<f32>) -> Surface {
+    if (shape.authored_shape.x!=0u) { return query_authored_surface(pose,shape,point,point); }
+    return primitive_surface(pose, shape, point);
+}
+
 fn closest_segment_surface(segment : Segment, pose : BodyPose,
                            shape : BodyShape) -> Surface {
+    // capsule_separation handles authored shapes before reaching this sampler.
+    // Calling the primitive helper keeps five unreachable copies of the large
+    // authored BVH traversal out of the compiler's inlined program.
     var bestFraction = 0.0;
-    var best = shape_surface(pose, shape, segment.first);
+    var best = primitive_surface(pose, shape, segment.first);
     for (var sample = 1u; sample <= 24u; sample += 1u) {
         let fraction = f32(sample) / 24.0;
-        let candidate = shape_surface(
+        let candidate = primitive_surface(
             pose, shape, mix(segment.first, segment.second, fraction));
         if (candidate.signedDistance < best.signedDistance) {
             best = candidate;
@@ -797,9 +805,9 @@ fn closest_segment_surface(segment : Segment, pose : BodyPose,
     for (var iteration = 0u; iteration < 12u; iteration += 1u) {
         let left = mix(low, high, 0.3333333333);
         let right = mix(low, high, 0.6666666667);
-        let leftSurface = shape_surface(
+        let leftSurface = primitive_surface(
             pose, shape, mix(segment.first, segment.second, left));
-        let rightSurface = shape_surface(
+        let rightSurface = primitive_surface(
             pose, shape, mix(segment.first, segment.second, right));
         if (leftSurface.signedDistance <= rightSurface.signedDistance) {
             high = right;
@@ -807,7 +815,7 @@ fn closest_segment_surface(segment : Segment, pose : BodyPose,
             low = left;
         }
     }
-    return shape_surface(pose, shape,
+    return primitive_surface(pose, shape,
         mix(segment.first, segment.second, 0.5 * (low + high)));
 }
 

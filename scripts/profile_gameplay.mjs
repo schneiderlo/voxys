@@ -6,6 +6,8 @@ import path from 'node:path';
 import os from 'node:os';
 import http from 'node:http';
 import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {installStartupGraphicsProbe} from './performance/startup_graphics_probe.mjs';
 import {installGameplayCounters} from './performance/gameplay_counters.mjs';
 import {gameplayWork,checkGameplayWork} from './performance/gameplay_work.mjs';
 const args = Object.fromEntries(process.argv.slice(2).map(a => {
@@ -14,6 +16,12 @@ const args = Object.fromEntries(process.argv.slice(2).map(a => {
 }));
 if(args['check-work']==='1'&&args.counts!=='1'&&args['diagnose-first']!=='1')throw Error('--check-work=1 requires --counts=1 or --diagnose-first=1');
 if(!args.chrome||(!args.site&&!args.url)||!args.output)throw Error('Required: --chrome=PATH --site=DIR (or --url=URL) --output=DIR');
+if(Boolean(args['narrow-shader'])!==Boolean(args['expected-narrow-shader']))throw Error('--narrow-shader and --expected-narrow-shader must be supplied together');
+const replacement=args['narrow-shader']?{label:args['shader-label']||'physics_narrow_phase.wgsl',code:fs.readFileSync(args['narrow-shader'],'utf8'),expected:fs.readFileSync(args['expected-narrow-shader'],'utf8')}:null;
+const settleSeconds=Number(args['settle-seconds']??3);
+if(!Number.isFinite(settleSeconds)||settleSeconds<0)throw Error('--settle-seconds must be nonnegative');
+const dataDelayMs=Number(args['data-delay-ms']??0);
+if(!Number.isFinite(dataDelayMs)||dataDelayMs<0)throw Error('--data-delay-ms must be nonnegative');
 const output=path.resolve(args.output); fs.mkdirSync(output,{recursive:true});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const connections=[];
@@ -24,7 +32,7 @@ async function connect(url){
         else if(m.method==='Runtime.consoleAPICalled')fs.appendFileSync(path.join(output,'console.log'),m.params.args.map(a=>a.value??a.description??'').join(' ')+'\n');};
     return {call:(method,params={})=>new Promise((resolve,reject)=>{const n=++id;const timer=setTimeout(()=>{pending.delete(n);reject(Error('Timeout: '+method));},900000);pending.set(n,{resolve,reject,timer});ws.send(JSON.stringify({id:n,method,params}));})};
 }
-let server,browser,child;
+let server,browser,child,report;
 const profile=args.profile?path.resolve(args.profile):fs.mkdtempSync(path.join(os.tmpdir(),'voxys-gameplay-'));
 try{
     let url=args.url;
@@ -34,7 +42,7 @@ try{
             const name=decodeURIComponent(new URL(q.url,'http://localhost').pathname);
             const file=path.resolve(site,name==='/'?'index.html':name.slice(1));
             if(!file.startsWith(site+path.sep)){s.writeHead(403);s.end();return;}
-            fs.readFile(file,(e,data)=>{if(e){s.writeHead(404);s.end();return;}s.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)]||'application/octet-stream');s.end(data);});
+            fs.readFile(file,async(e,data)=>{if(e){s.writeHead(404);s.end();return;}if(path.extname(file)==='.data'&&dataDelayMs)await sleep(dataDelayMs);s.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)]||'application/octet-stream');s.end(data);});
         });
         await new Promise(r=>server.listen(Number(args.port||0),'127.0.0.1',r));url='http://127.0.0.1:'+server.address().port+'/index.html';
     }
@@ -50,6 +58,7 @@ try{
     await page.call('Emulation.setFocusEmulationEnabled',{enabled:true});
     const evaluate=async expression=>{const r=await page.call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
     if(args.counts==='1')await page.call('Page.addScriptToEvaluateOnNewDocument',{source:`(${installGameplayCounters.toString()})()`});
+    if(args.startup==='1'||replacement)await page.call('Page.addScriptToEvaluateOnNewDocument',{source:`(${installStartupGraphicsProbe.toString()})(${JSON.stringify(replacement)})`});
     await page.call('Page.navigate',{url:targetUrl.href});
     let state;
     for(let i=0;i<180;i++){
@@ -59,11 +68,24 @@ try{
         if(i%6===0)console.log('Waiting for game',state.frames);
     }
     if(!state.ready||state.loading||state.frames<=60)throw Error('Game did not start');
+    const graphicsCache=await evaluate('globalThis.voxyGpuStartup?.stats ?? null');
+    const downloads=await evaluate('globalThis.voxyStartupDownloads ? {startedMs:voxyStartupDownloads.startedMs,readyMs:voxyStartupDownloads.readyMs,cachedFiles:voxyStartupDownloads.cachedFiles} : null');
+    const graphicsRecipe=await evaluate('globalThis.voxyGpuStartup?.recipe ?? null');
+    if(graphicsRecipe)fs.writeFileSync(path.join(output,'graphics-recipe.json'),JSON.stringify(graphicsRecipe));
+    const startup=(args.startup==='1'||replacement)?await evaluate('voxyFinishGraphicsProbe()'):null;
+    if(startup){
+        startup.build=await evaluate('window.voxyBuildId');
+        startup.browser=await browser.call('Browser.getVersion');
+        startup.shader_sha256=replacement?createHash('sha256').update(replacement.code).digest('hex'):null;
+        startup.expected_shader_sha256=replacement?createHash('sha256').update(replacement.expected).digest('hex'):null;
+        fs.writeFileSync(path.join(output,'startup.json'),JSON.stringify(startup,null,2));
+        console.log('Graphics startup',JSON.stringify({span_ms:startup.graphics_span_ms,playable_ms:startup.playable_observed_ms,pipelines:startup.pipelines.length}));
+    }
     if(state.device?.adapter?.fallback||/swiftshader|llvmpipe/i.test(JSON.stringify(state.device)))throw Error('Software GPU is not valid performance evidence');
     await evaluate(`const canvas=document.getElementById('voxy-canvas');canvas.focus();canvas.width=${Number(args.width||1280)};canvas.height=${Number(args.height||720)};voxyModule._voxy_resize(canvas.width,canvas.height);voxyModule._adventure_action(15,0);`);
-    await sleep(3000);
+    await sleep(settleSeconds*1000);
     if(args['wait-for-file']){console.log('Waiting for clean timing gate');const deadline=Date.now()+1800000;while(!fs.existsSync(args['wait-for-file'])){if(Date.now()>deadline)throw Error('Timing gate timed out');await sleep(1000);}await sleep(3000);}
-    const report={schema:'voxys.gameplay.v1',url:targetUrl.href,device:state.device,width:Number(args.width||1280),height:Number(args.height||720),headless:true,instrumented:args.cpu==='1'||args.counts==='1',scenarios:[]};
+    report={schema:'voxys.gameplay.v1',url:targetUrl.href,device:state.device,width:Number(args.width||1280),height:Number(args.height||720),headless:true,instrumented:args.cpu==='1'||args.counts==='1',settleSeconds,startup,graphicsCache,downloads,dataDelayMs,scenarios:[]};
     report.complete=false;
     const saveReport=()=>fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));
     if(args['diagnose-first']==='1'){
@@ -118,16 +140,22 @@ try{
         if(scenario==='walk')await evaluate(`voxyModule._voxy_key_event(87,0)`);
         const percentile=(values,p)=>{const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))];};
         result.summary={frames:result.after.frame.count-result.before.frame.count,renderedFrames:result.after.render.surface_acquired_frames-result.before.render.surface_acquired_frames,p50:percentile(result.frames,.5),p95:percentile(result.frames,.95),p99:percentile(result.frames,.99),cpuP50:percentile(result.cpu,.5),cpuP95:percentile(result.cpu,.95),terrainRefreshes:result.after.render.terrain_cache_refreshes-result.before.render.terrain_cache_refreshes};
+        // Retain the failing scenario too; an incomplete report is not a pass.
+        report.scenarios.push(result);saveReport();
         if(result.health.lost||result.health.errors?.length)throw Error('GPU failure: '+JSON.stringify(result.health));
         if(result.canvas.width!==report.width||result.canvas.height!==report.height)throw Error('Render resolution changed');
         if(result.summary.frames<30||result.adventure.cannon?.wallFailed||result.after.physics.tick<=result.before.physics.tick)throw Error('Gameplay did not advance: '+JSON.stringify(result.summary));
         if(args.counts==='1')result.work=args['check-work']==='1'?checkGameplayWork(result):gameplayWork(result);
-        report.scenarios.push(result);console.log(scenario,JSON.stringify(result.summary));
+        console.log(scenario,JSON.stringify(result.summary));
         saveReport();
         const shot=await page.call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(output,scenario+'.png'),Buffer.from(shot.data,'base64'));
     }
     report.complete=true;
     saveReport();
+}catch(error){
+    report||={complete:false,scenarios:[]};report.error=String(error);
+    fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));
+    throw error;
 }finally{
     if(browser)try{await browser.call('Browser.close');}catch{}
     for(const ws of connections)ws.close();

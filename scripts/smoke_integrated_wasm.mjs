@@ -371,6 +371,27 @@ try{
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
     assert.equal(sample.loadingVisible,false,'loading overlay still covers the application');
+    if(process.env.VOXY_SMOKE_REQUIRE_GRAPHICS_REUSE==='1'){
+        const cache=await call('Runtime.evaluate',{returnByValue:true,
+            expression:'globalThis.voxyGpuStartup?.stats'});
+        report.graphicsCache=cache.result?.value;
+        assert(report.graphicsCache?.hits>0,'engine did not reuse graphics');
+        assert(report.graphicsCache.submitted<report.graphicsCache.requests,'duplicate creation was not avoided');
+        if(report.graphicsCache.earlyDisabled==='software-adapter'){
+            assert.equal(report.graphicsCache.earlySubmitted,0,'software adapter compiled speculatively');
+            assert.equal(report.graphicsCache.recipeSource,'none','software adapter loaded a speculative recipe');
+        }else{
+            assert(report.graphicsCache.earlySubmitted>0,'no graphics compiled early');
+            assert(report.graphicsCache.earlyHits>0,'engine did not reuse early graphics');
+        }
+        assert.equal(report.graphicsCache.recipeFailures,0,'graphics warmup failed');
+    }
+    if(process.env.VOXY_SMOKE_GRAPHICS_RECIPE){
+        const captured=await call('Runtime.evaluate',{returnByValue:true,
+            expression:'globalThis.voxyGpuStartup?.recipe'});
+        assert(captured.result?.value?.pipelines?.length,'startup did not capture graphics setup');
+        await writeFile(process.env.VOXY_SMOKE_GRAPHICS_RECIPE,JSON.stringify(captured.result.value));
+    }
     if(process.env.VOXY_SMOKE_PRESENTATION_PARTS!==undefined)
         assert.equal(sample.salvage?.assetFixture?.presentationParts,Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS),'active presentation parts');
     assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
@@ -786,7 +807,7 @@ finally{
         report.startup=await Promise.race([new Promise(resolve=>{
             const listener=e=>{const m=JSON.parse(e.data);if(m.id===n){socket.removeEventListener('message',listener);resolve(m.result);}};
             socket.addEventListener('message',listener);
-            socket.send(JSON.stringify({id:n,method:'Runtime.evaluate',params:{returnByValue:true,expression:`({diagnostics:globalThis.voxyStartupDiagnostics,profile:window.voxyDeviceProfile,lost:globalThis.voxyDeviceLost,memory:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null})`}}));
+            socket.send(JSON.stringify({id:n,method:'Runtime.evaluate',params:{returnByValue:true,expression:`({diagnostics:globalThis.voxyStartupDiagnostics,graphicsCache:globalThis.voxyGpuStartup?.stats,profile:window.voxyDeviceProfile,lost:globalThis.voxyDeviceLost,memory:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null})`}}));
         }),delay(3000).then(()=>({timeout:true}))]);
     }
     clearTimeout(timer);

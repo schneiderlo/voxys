@@ -6,7 +6,7 @@
 (function(global){
     'use strict';
     const cacheName='voxys-release-files-v1';
-    const fileName=/^voxy_[a-z0-9_]+\.(data|wasm)$/;
+    const fileName=/^(?:voxy_[a-z0-9_]+\.(?:data|wasm)|voxy_graphics\.json)$/;
     const sha256=/^[0-9a-f]{64}$/;
 
     function parseManifest(text){
@@ -64,6 +64,7 @@
         const perFile=new Map(names.map(name=>[name,0])),buffers=new Map(),writes=[];
         const state={
             total:names.reduce((sum,name)=>sum+manifest[name].size,0),loaded:0,cachedFiles:0,
+            startedMs:environment.performance?.now()??null,readyMs:null,
             onProgress:null,wasmModule:null,
             // Emscripten's getPreloadedPackage hook: hand over a finished pack once.
             take(remoteName,size){
@@ -104,7 +105,7 @@
         // A failed pack is left to Emscripten's own download of the same URL.
         state.ready=Promise.all([compile,...names.map(name=>load(name).catch(error=>{
             console.warn(`Early download of ${name} failed; the engine will fetch it.`,error);report(name,0);
-        }))]).then(()=>state);
+        }))]).then(()=>{state.readyMs=environment.performance?.now()??null;return state;});
         // Drop files from other releases once this release's copies are stored.
         state.ready.then(()=>Promise.all(writes)).then(async()=>{
             const cache=await cachePromise;if(!cache)return;

@@ -86,28 +86,64 @@ int main() {
         wgpuRenderPipelineRelease(validRender);
         render.vertex.entryPoint = voxy::gpu::toStringView("missing");
         assert(!voxy::gpu::createRenderPipeline(device, &render));
+
+        std::array<WGPURenderPipeline, 24> renders{};
+        WGPURenderPipeline invalidRender = nullptr;
+        {
+            voxy::gpu::RenderPipelineBatch batch;
+            render.vertex.entryPoint = voxy::gpu::toStringView("vs");
+            for (size_t index = 0; index < renders.size(); ++index) {
+                // Reuse nested descriptor storage, as the production variants
+                // do for target formats, entry points and specialization data.
+                target.format = index % 2 == 0 ? WGPUTextureFormat_RGBA8Unorm
+                                              : WGPUTextureFormat_RGBA16Float;
+                batch.add(device, render, renders[index]);
+            }
+            render.vertex.entryPoint = voxy::gpu::toStringView("missing");
+            batch.add(device, render, invalidRender);
+            batch.wait();
+            batch.wait();
+        }
+        assert(!invalidRender);
+        for (const auto pipeline : renders) {
+            assert(pipeline);
+            wgpuRenderPipelineRelease(pipeline);
+        }
+        WGPURenderPipeline drainedRender = nullptr;
+        {
+            voxy::gpu::RenderPipelineBatch batch;
+            render.vertex.entryPoint = voxy::gpu::toStringView("vs");
+            batch.add(device, render, drainedRender);
+        }
+        assert(drainedRender);
+        wgpuRenderPipelineRelease(drainedRender);
         EM_ASM({
-            if (Module['voxyStartupCompletedPipelines'] !== 26) throw Error('Unexpected completion count');
+            if (Module['voxyStartupCompletedPipelines'] !== 51) throw Error('Unexpected completion count');
         });
 
         // Losing the device must also drain outstanding callbacks safely.
         std::array<WGPUComputePipeline, 2> interrupted{};
+        WGPURenderPipeline interruptedRender = nullptr;
         {
             voxy::gpu::ComputePipelineBatch batch;
+            voxy::gpu::RenderPipelineBatch renderBatch;
             for (auto& pipeline : interrupted) {
                 WGPUComputePipelineDescriptor desc = WGPU_COMPUTE_PIPELINE_DESCRIPTOR_INIT;
                 desc.compute.module = module;
                 desc.compute.entryPoint = voxy::gpu::toStringView("main");
                 batch.add(device, desc, pipeline);
             }
+            renderBatch.add(device, render, interruptedRender);
             EM_ASM({ Module['preinitializedWebGPUDevice'].destroy(); });
             batch.wait();
+            renderBatch.wait();
         }
         // A driver may finish these before loss is delivered. Both outcomes
         // are valid; callbacks must settle and any returned handles be released.
         for (const auto pipeline : interrupted) {
             if (pipeline) wgpuComputePipelineRelease(pipeline);
         }
+        if (interruptedRender) wgpuRenderPipelineRelease(interruptedRender);
     }
     assert(!voxy::gpu::asynchronousStartupPipelines);
     wgpuShaderModuleRelease(module);

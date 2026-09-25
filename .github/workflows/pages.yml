@@ -151,11 +151,39 @@ jobs:
       - name: Loading and browser navigation regressions
         run: |
           node --test scripts/test_loading_roller.mjs scripts/test_data_packs.mjs scripts/test_webgpu_startup.mjs scripts/test_startup_budget.mjs scripts/test_startup_observation.mjs
+          # Older source_commit releases predate the collision compile guard.
+          if test -f scripts/test_collision_compile_work.mjs; then
+            node --test scripts/test_collision_compile_work.mjs scripts/performance/test_startup_graphics_probe.mjs
+          fi
+          if test -f scripts/test_gpu_startup.mjs; then
+            node --test scripts/test_gpu_startup.mjs
+            python3 scripts/test_publish_graphics_recipe.py
+          fi
           node scripts/test_startup_observation_browser.mjs google-chrome
+      - name: Check asynchronous pipeline completion and failure handling
+        if: ${{ hashFiles('scripts/fixtures/startup_pipeline_probe.cpp') != '' }}
+        run: |
+          mkdir -p pipeline-probe-build
+          em++ scripts/fixtures/startup_pipeline_probe.cpp -Isrc -DVOXY_WASM -std=c++20 \
+            --use-port=emdawnwebgpu -sASYNCIFY -sMODULARIZE -sEXPORT_NAME=PipelineProbe \
+            -sENVIRONMENT=web -o pipeline-probe-build/pipeline-probe.js
+          node scripts/test_pipeline_startup.mjs --chrome="$(command -v google-chrome)" \
+            --build=pipeline-probe-build --software=1
       - name: Start the main page through the full browser application
         id: main_page_smoke
         env:
           VOXY_SMOKE_GPU: swiftshader-window
+          VOXY_SMOKE_GRAPHICS_RECIPE: graphics-recipe.json
+        run: xvfb-run -a node scripts/smoke_integrated_wasm.mjs docs default
+      - name: Publish small graphics setup for compilation during downloads
+        if: ${{ hashFiles('scripts/publish_graphics_recipe.py') != '' }}
+        run: python3 scripts/publish_graphics_recipe.py docs graphics-recipe.json
+      - name: Verify graphics reuse and software fallback with a published recipe
+        if: ${{ hashFiles('scripts/publish_graphics_recipe.py') != '' }}
+        env:
+          VOXY_SMOKE_GPU: swiftshader-window
+          VOXY_SMOKE_REQUIRE_GRAPHICS_REUSE: '1'
+          VOXY_SMOKE_REPORT: graphics-warmup-startup-report.json
         run: xvfb-run -a node scripts/smoke_integrated_wasm.mjs docs default
       - uses: actions/upload-artifact@v4
         if: always()
@@ -163,6 +191,7 @@ jobs:
           name: main-page-startup
           path: |
             integrated-startup-report.json
+            graphics-warmup-startup-report.json
             startup-default.png
           if-no-files-found: ignore
       - uses: actions/configure-pages@v4

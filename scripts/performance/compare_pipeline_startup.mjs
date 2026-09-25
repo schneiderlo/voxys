@@ -10,10 +10,24 @@ const args=Object.fromEntries(process.argv.slice(2).map(arg=>{
 }));
 const mode=args.mode;
 if(!args.chrome||!args.output||!['sync','serial','batch'].includes(mode))throw Error('--chrome, --output and --mode=sync|serial|batch are required');
+if(args.recipe&&(!args.shader||!args.label))throw Error('--recipe also requires --shader and --label');
 const dir=path.resolve(args.output);fs.mkdirSync(dir,{recursive:true});
-const shader=fs.readFileSync(new URL('../../shaders/physics_narrow_phase.wgsl',import.meta.url),'utf8');
+// --shader permits an archived baseline without changing the working tree.
+const shader=fs.readFileSync(args.shader||new URL('../../shaders/physics_narrow_phase.wgsl',import.meta.url),'utf8');
 const shaderHash=createHash('sha256').update(shader).digest('hex');
 const inputs=[];
+let resources;
+if(args.recipe){
+    const recipe=JSON.parse(fs.readFileSync(args.recipe,'utf8'));
+    resources=recipe.resources;
+    const label=args.label||'physics_ballistic.wgsl';
+    const selected=new Set();
+    for(const [index,row] of resources.entries())if(row.kind==='createShaderModule'&&row.descriptor.label===label){
+        row.descriptor.code=shader;selected.add(index);
+    }
+    for(const row of recipe.pipelines)if(row.kind==='createComputePipelineAsync'&&selected.has(row.descriptor.compute.module.$gpu))inputs.push(row);
+    if(!inputs.length)throw Error('No recipe pipelines for '+label);
+}else{
 const names=['sphere_sphere','sphere_capsule','capsule_capsule','sphere_box','capsule_box','box_box','sphere_cylinder','capsule_cylinder','box_cylinder','cylinder_cylinder'];
 for(const [index,name] of names.entries()){
     const authored=[3,4,5,8].includes(index);
@@ -23,10 +37,11 @@ for(const [index,name] of names.entries()){
                 ...(pass<0?{}:{constants:{AUTHORED_PAIR_PASS:pass}})}}});
     }
 }
+}
 const profile=fs.mkdtempSync(path.join(dir,mode+'-profile-'));
 const server=http.createServer((req,res)=>{
     res.setHeader('Content-Type',req.url==='/pipelines.json'?'application/json':'text/html');
-    res.end(req.url==='/pipelines.json'?JSON.stringify(inputs):'<!doctype html><title>Startup compilation comparison</title>');
+    res.end(req.url==='/pipelines.json'?JSON.stringify({inputs,resources}):'<!doctype html><title>Startup compilation comparison</title>');
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const chrome=spawn(args.chrome,[
@@ -39,22 +54,35 @@ chrome.stderr.on('data',d=>{stderr+=d;});
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const pending=new Map();let id=0;
 async function run(mode){
-    const inputs=await(await fetch('/pipelines.json')).json();
+    const {inputs,resources}=await(await fetch('/pipelines.json')).json();
     const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
     const device=await adapter.requestDevice({requiredLimits:{maxStorageBuffersPerShaderStage:8}});
     const report=globalThis.report={mode,adapter:{vendor:adapter.info.vendor,architecture:adapter.info.architecture},rounds:[],lost:null,errors:[]};
     device.lost.then(info=>{report.lost={reason:info.reason,message:info.message};});
     device.addEventListener('uncapturederror',e=>report.errors.push(e.error.message));
     const modules=new Map();
+    globalThis.retainedPipelines=[];
+    if(resources){
+        const objects=[];
+        function decode(value){
+            if(!value||typeof value!=='object')return value;
+            if(Array.isArray(value))return value.map(decode);
+            if('$gpu' in value)return objects[value.$gpu]||build(value.$gpu);
+            return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,decode(item)]));
+        }
+        function build(index){const row=resources[index];return objects[index]=device[row.kind](decode(row.descriptor));}
+        for(const row of inputs)row.descriptor=decode(row.descriptor);
+        report.layout='captured production descriptors';
+    }else{
     const entries=[[0,true],[1,true],[4,false],[6,true],[7,false],[8,true],[9,false],[15,true]].map(([binding,readOnly])=>({binding,visibility:GPUShaderStage.COMPUTE,buffer:{type:readOnly?'read-only-storage':'storage'}}));
     entries.push({binding:10,visibility:GPUShaderStage.COMPUTE,buffer:{type:'uniform',minBindingSize:48}},{binding:16,visibility:GPUShaderStage.COMPUTE,buffer:{type:'uniform',minBindingSize:128}});
     const layout=device.createPipelineLayout({bindGroupLayouts:[device.createBindGroupLayout({entries})]});
-    globalThis.retainedPipelines=[];
     report.layout='production explicit narrow-phase layout';
     for(const p of inputs){
         const source=p.descriptor.compute.module;
         if(!modules.has(source.code))modules.set(source.code,device.createShaderModule(source));
         p.descriptor.compute.module=modules.get(source.code);p.descriptor.layout=layout;
+    }
     }
     for(const cache of ['fresh-profile','same-device-repeat']){
         const round={cache,pipelines:[]};report.rounds.push(round);

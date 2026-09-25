@@ -1022,6 +1022,38 @@ TEST_F(GpuAuthoredShapes,ContactBoxClipsToExteriorPatchesAndLeavesNotchOpen) {
     close(context,*store);
 }
 
+TEST_F(GpuAuthoredShapes,ContactBoxBodyOrderPreservesExteriorAnchors) {
+    auto store=create(context); const auto handle=upload(context,*store);
+    {
+        AuthoredContactFixture contact(context,*store);
+        // The broad phase orders by body ID, not shape type. Exercise both
+        // branches of the authored-body reorder with the same physical pair.
+        for (uint32_t authoredBody : {1u,2u}) {
+            SCOPED_TRACE(authoredBody);
+            const uint32_t boxBody=3u-authoredBody;
+            contact.authored(authoredBody,handle);
+            contact.primitive(boxBody,{1.05f,-.25f,.25f},{.2f,.2f,.2f,2});
+            auto hit=contact.run();
+            contactHit(hit,-.05f,{authoredBody==1u?-1.0f:1.0f,0,0});
+            ASSERT_EQ(hit.manifold.state[0],4u);
+            uint32_t corners=0;
+            for(uint32_t i=0;i<hit.manifold.state[0];++i) {
+                const auto point=contact.anchorWorld(hit.manifold.points[i],authoredBody==2u);
+                EXPECT_NEAR(point.x,1,.0005f);
+                EXPECT_NEAR(std::abs(point.y+.25f),.1f,.0005f);
+                EXPECT_NEAR(std::abs(point.z-.25f),.1f,.0005f);
+                corners|=1u<<((point.y>-.25f?1u:0u)|(point.z>.25f?2u:0u));
+            }
+            EXPECT_EQ(corners,15u);
+            contact.primitive(boxBody,{1.3f,-.25f,.25f},{.2f,.2f,.2f,2});
+            hit=contact.run();
+            EXPECT_EQ(hit.manifold.state[0],0u);
+            EXPECT_EQ(hit.telemetry[16],0u);
+        }
+    }
+    close(context,*store);
+}
+
 TEST_F(GpuAuthoredShapes,ContactTiltedBottomEdgesKeepDominantExteriorFaceIdentity) {
     auto store=create(context);const auto handle=upload(context,*store,7,false);
     {

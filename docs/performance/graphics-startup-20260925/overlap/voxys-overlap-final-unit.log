@@ -1,0 +1,328 @@
+TAP version 13
+# Subtest: startup measurement preserves pipeline descriptors and restores gameplay APIs
+ok 1 - startup measurement preserves pipeline descriptors and restores gameplay APIs
+  ---
+  duration_ms: 13.30444
+  type: 'test'
+  ...
+# Subtest: a mismatched deployed shader cannot produce a valid comparison
+ok 2 - a mismatched deployed shader cannot produce a valid comparison
+  ---
+  duration_ms: 5.886814
+  type: 'test'
+  ...
+# Subtest: an absent substitution or unfinished compilation is not a completed startup
+ok 3 - an absent substitution or unfinished compilation is not a completed startup
+  ---
+  duration_ms: 1.066044
+  type: 'test'
+  ...
+# Subtest: authored body ordering exposes only one large contact traversal to inlining
+ok 4 - authored body ordering exposes only one large contact traversal to inlining
+  ---
+  duration_ms: 6.704055
+  type: 'test'
+  ...
+# Subtest: terrain shape dispatch exposes one large primitive traversal to inlining
+ok 5 - terrain shape dispatch exposes one large primitive traversal to inlining
+  ---
+  duration_ms: 5.702017
+  type: 'test'
+  ...
+# Subtest: primitive capsule sampling excludes the unreachable authored traversal
+ok 6 - primitive capsule sampling excludes the unreachable authored traversal
+  ---
+  duration_ms: 0.884629
+  type: 'test'
+  ...
+# Subtest: manifest parsing accepts only a written release manifest
+ok 7 - manifest parsing accepts only a written release manifest
+  ---
+  duration_ms: 90.883338
+  type: 'test'
+  ...
+# Subtest: LEGO-terrain experiences need no optional pack; others request theirs
+ok 8 - LEGO-terrain experiences need no optional pack; others request theirs
+  ---
+  duration_ms: 1.654598
+  type: 'test'
+  ...
+# Subtest: first visit downloads, a later visit with the same hashes reads the cache
+ok 9 - first visit downloads, a later visit with the same hashes reads the cache
+  ---
+  duration_ms: 25.832886
+  type: 'test'
+  ...
+# Subtest: a new release evicts only files whose hashes changed
+ok 10 - a new release evicts only files whose hashes changed
+  ---
+  duration_ms: 28.239827
+  type: 'test'
+  ...
+# Subtest: a damaged cached copy is downloaded again
+ok 11 - a damaged cached copy is downloaded again
+  ---
+  duration_ms: 4.948884
+  type: 'test'
+  ...
+# Subtest: failed downloads leave the pack to Emscripten
+ok 12 - failed downloads leave the pack to Emscripten
+  ---
+  duration_ms: 6.065412
+  type: 'test'
+  ...
+# Subtest: Emscripten file URLs are content-addressed when the manifest knows them
+ok 13 - Emscripten file URLs are content-addressed when the manifest knows them
+  ---
+  duration_ms: 2.476156
+  type: 'test'
+  ...
+# Subtest: identical descriptors coalesce pending work across independently created modules/layouts
+ok 14 - identical descriptors coalesce pending work across independently created modules/layouts
+  ---
+  duration_ms: 47.32196
+  type: 'test'
+  ...
+# Subtest: code, layout, entry point and constants distinguish compute programs
+ok 15 - code, layout, entry point and constants distinguish compute programs
+  ---
+  duration_ms: 1.115398
+  type: 'test'
+  ...
+# Subtest: render targets, vertex attributes, depth, blend and fragment constants distinguish programs
+ok 16 - render targets, vertex attributes, depth, blend and fragment constants distinguish programs
+  ---
+  duration_ms: 1.319155
+  type: 'test'
+  ...
+# Subtest: mutating a descriptor after submission does not mutate the stored recipe
+ok 17 - mutating a descriptor after submission does not mutate the stored recipe
+  ---
+  duration_ms: 0.586327
+  type: 'test'
+  ...
+# Subtest: a later page recreates GPU objects early and engine requests reuse them
+ok 18 - a later page recreates GPU objects early and engine requests reuse them
+  ---
+  duration_ms: 32.76402
+  type: 'test'
+  ...
+# Subtest: a release recipe enables early compilation on a first visit
+ok 19 - a release recipe enables early compilation on a first visit
+  ---
+  duration_ms: 3.989613
+  type: 'test'
+  ...
+# Subtest: changed releases and different experiences do not replay the old recipe
+ok 20 - changed releases and different experiences do not replay the old recipe
+  ---
+  duration_ms: 1.934464
+  type: 'test'
+  ...
+# Subtest: backend/capacity selections separate saved setup while world IDs and telemetry do not
+ok 21 - backend/capacity selections separate saved setup while world IDs and telemetry do not
+  ---
+  duration_ms: 0.761388
+  type: 'test'
+  ...
+# Subtest: failed early compilation retries through the engine and does not poison reuse
+ok 22 - failed early compilation retries through the engine and does not poison reuse
+  ---
+  duration_ms: 14.328585
+  type: 'test'
+  ...
+# Subtest: storage failures are optional; unknown objects pass through unchanged
+ok 23 - storage failures are optional; unknown objects pass through unchanged
+  ---
+  duration_ms: 1.434292
+  type: 'test'
+  ...
+# Subtest: finish waits for in-flight speculative work and stops queued work before play
+ok 24 - finish waits for in-flight speculative work and stops queued work before play
+  ---
+  duration_ms: 11.677071
+  type: 'test'
+  ...
+# Subtest: software adapters reuse requested programs without speculative compilation
+ok 25 - software adapters reuse requested programs without speculative compilation
+  ---
+  duration_ms: 5.488109
+  type: 'test'
+  ...
+# Subtest: corrupt recipes and device loss never prevent normal failure handling
+ok 26 - corrupt recipes and device loss never prevent normal failure handling
+  ---
+  duration_ms: 4.935279
+  type: 'test'
+  ...
+# Subtest: finish aborts an optional recipe download that is still waiting
+ok 27 - finish aborts an optional recipe download that is still waiting
+  ---
+  duration_ms: 2.922906
+  type: 'test'
+  ...
+# Subtest: warmup prioritizes measured expensive programs and drains other workers after a bad entry
+ok 28 - warmup prioritizes measured expensive programs and drains other workers after a bad entry
+  ---
+  duration_ms: 3.901488
+  type: 'test'
+  ...
+# Subtest: waiting for the engine never completes the loader prematurely
+ok 29 - waiting for the engine never completes the loader prematurely
+  ---
+  duration_ms: 14.411675
+  type: 'test'
+  ...
+# Subtest: landing follows elapsed time after a five-second animation-frame gap
+ok 30 - landing follows elapsed time after a five-second animation-frame gap
+  ---
+  duration_ms: 4.835862
+  type: 'test'
+  ...
+# Subtest: a ready engine is revealed even when animation frames stop entirely
+ok 31 - a ready engine is revealed even when animation frames stop entirely
+  ---
+  duration_ms: 6.613838
+  type: 'test'
+  ...
+# Subtest: software GPU startup covers the page deadline plus rendered-frame validation
+ok 32 - software GPU startup covers the page deadline plus rendered-frame validation
+  ---
+  duration_ms: 2.386176
+  type: 'test'
+  ...
+# Subtest: hardware checks retain their existing budgets
+ok 33 - hardware checks retain their existing budgets
+  ---
+  duration_ms: 1.50877
+  type: 'test'
+  ...
+# Subtest: a global override cannot silently cut startup short
+ok 34 - a global override cannot silently cut startup short
+  ---
+  duration_ms: 1.647967
+  type: 'test'
+  ...
+# Subtest: invalid or unbounded overrides are rejected
+ok 35 - invalid or unbounded overrides are rejected
+  ---
+  duration_ms: 5.279507
+  type: 'test'
+  ...
+# Subtest: CDP failures retain method, code and protocol message
+ok 36 - CDP failures retain method, code and protocol message
+  ---
+  duration_ms: 19.704617
+  type: 'test'
+  ...
+# Subtest: directory entry waits for canonical CDP document URL, retaining query and ignoring fragment
+ok 37 - directory entry waits for canonical CDP document URL, retaining query and ignoring fragment
+  ---
+  duration_ms: 1.433118
+  type: 'test'
+  ...
+# Subtest: missing or wrong final commit reaches the original deadline
+ok 38 - missing or wrong final commit reaches the original deadline
+  ---
+  duration_ms: 9.606677
+  type: 'test'
+  ...
+# Subtest: startup observation retries known document loss: Inspected target navigated or closed
+ok 39 - startup observation retries known document loss: Inspected target navigated or closed
+  ---
+  duration_ms: 2.238332
+  type: 'test'
+  ...
+# Subtest: startup observation retries known document loss: Execution context was destroyed.
+ok 40 - startup observation retries known document loss: Execution context was destroyed.
+  ---
+  duration_ms: 4.803217
+  type: 'test'
+  ...
+# Subtest: repeated navigation cannot reset or extend the startup deadline
+ok 41 - repeated navigation cannot reset or extend the startup deadline
+  ---
+  duration_ms: 1.357638
+  type: 'test'
+  ...
+# Subtest: closed connection is fatal even with the navigation-or-closed message
+ok 42 - closed connection is fatal even with the navigation-or-closed message
+  ---
+  duration_ms: 0.748455
+  type: 'test'
+  ...
+# Subtest: non-navigation failure is not retried: Error: Runtime.evaluate: {"code":-32000,"message":"Target crashed"}
+ok 43 - non-navigation failure is not retried: Error: Runtime.evaluate: {"code":-32000,"message":"Target crashed"}
+  ---
+  duration_ms: 0.623372
+  type: 'test'
+  ...
+# Subtest: non-navigation failure is not retried: Error: Runtime.evaluate: {"code":-32602,"message":"Inspected target navigated or closed"}
+ok 44 - non-navigation failure is not retried: Error: Runtime.evaluate: {"code":-32602,"message":"Inspected target navigated or closed"}
+  ---
+  duration_ms: 1.308394
+  type: 'test'
+  ...
+# Subtest: non-navigation failure is not retried: Error: Page.navigate: {"code":-32000,"message":"Inspected target navigated or closed"}
+ok 45 - non-navigation failure is not retried: Error: Page.navigate: {"code":-32000,"message":"Inspected target navigated or closed"}
+  ---
+  duration_ms: 2.218178
+  type: 'test'
+  ...
+# Subtest: non-navigation failure is not retried: Error: Chrome request timed out: Runtime.evaluate
+ok 46 - non-navigation failure is not retried: Error: Chrome request timed out: Runtime.evaluate
+  ---
+  duration_ms: 0.718741
+  type: 'test'
+  ...
+# Subtest: JavaScript exception details remain visible to the smoke failure gates
+ok 47 - JavaScript exception details remain visible to the smoke failure gates
+  ---
+  duration_ms: 0.447941
+  type: 'test'
+  ...
+# Subtest: waits for cold shader compilation beyond the old two-minute deadline
+ok 48 - waits for cold shader compilation beyond the old two-minute deadline
+  ---
+  duration_ms: 7.331778
+  type: 'test'
+  ...
+# Subtest: device loss overrides an engine that reports initialized
+ok 49 - device loss overrides an engine that reports initialized
+  ---
+  duration_ms: 4.342613
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the startup wait
+ok 50 - device loss during compilation rejects the startup wait
+  ---
+  duration_ms: 2.723507
+  type: 'test'
+  ...
+# Subtest: failed initialization exits without waiting for the timeout
+ok 51 - failed initialization exits without waiting for the timeout
+  ---
+  duration_ms: 1.929197
+  type: 'test'
+  ...
+# Subtest: an engine that never finishes has a bounded startup wait
+ok 52 - an engine that never finishes has a bounded startup wait
+  ---
+  duration_ms: 1.970996
+  type: 'test'
+  ...
+# Subtest: main-route lighting defaults survive slow initialization and apply once
+ok 53 - main-route lighting defaults survive slow initialization and apply once
+  ---
+  duration_ms: 3.820086
+  type: 'test'
+  ...
+1..53
+# tests 53
+# suites 0
+# pass 53
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 376.55319

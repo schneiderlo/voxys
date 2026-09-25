@@ -132,6 +132,56 @@ private:
 #endif
 };
 
+// Render descriptors are consumed by WebGPU when add() submits them, just like
+// compute descriptors. Each destination must survive until the batch drains.
+class RenderPipelineBatch {
+public:
+    RenderPipelineBatch() = default;
+    ~RenderPipelineBatch() { wait(); }
+    RenderPipelineBatch(const RenderPipelineBatch&) = delete;
+    RenderPipelineBatch& operator=(const RenderPipelineBatch&) = delete;
+
+    void add(WGPUDevice device, const WGPURenderPipelineDescriptor& descriptor,
+             WGPURenderPipeline& destination) {
+#if defined(VOXY_WASM)
+        if (asynchronousStartupPipelines) {
+            auto pending = std::make_unique<Pending>();
+            pending->destination = &destination;
+            auto* result = &pending->result;
+            pending_.push_back(std::move(pending));
+            WGPUCreateRenderPipelineAsyncCallbackInfo callback =
+                WGPU_CREATE_RENDER_PIPELINE_ASYNC_CALLBACK_INFO_INIT;
+            callback.mode = WGPUCallbackMode_AllowSpontaneous;
+            callback.callback = detail::pipelineCompiled<WGPURenderPipeline>;
+            callback.userdata1 = result;
+            static_cast<void>(wgpuDeviceCreateRenderPipelineAsync(
+                device, &descriptor, callback));
+            return;
+        }
+#endif
+        destination = wgpuDeviceCreateRenderPipeline(device, &descriptor);
+    }
+
+    void wait() {
+#if defined(VOXY_WASM)
+        // Even a failed pipeline must settle before callback state is freed.
+        for (auto& pending : pending_) {
+            *pending->destination = pending->result.await();
+        }
+        pending_.clear();
+#endif
+    }
+
+private:
+#if defined(VOXY_WASM)
+    struct Pending {
+        WGPURenderPipeline* destination = nullptr;
+        detail::PipelineResult<WGPURenderPipeline> result;
+    };
+    std::vector<std::unique_ptr<Pending>> pending_;
+#endif
+};
+
 inline WGPUComputePipeline createComputePipeline(
     WGPUDevice device, const WGPUComputePipelineDescriptor* descriptor) {
 #if defined(VOXY_WASM)

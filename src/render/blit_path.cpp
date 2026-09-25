@@ -2105,24 +2105,17 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     pipelineDesc.multisample = multisampleState;
     // No depth stencil - depth is handled by ray-caster
     
-    pipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-    
-    if (!pipeline_) {
-        LOG_ERROR("Failed to create blit render pipeline");
-        return false;
-    }
+    // These variants are independent. Submit all of them before waiting so
+    // the browser can compile them together during startup.
+    gpu::RenderPipelineBatch pipelines;
+    pipelines.add(device_, pipelineDesc, pipeline_);
 
     // The cached opaque scene stays in linear HDR so water can refract it
     // before the one and only presentation transform.
     colorTarget.format = WGPUTextureFormat_RGBA16Float;
     WGPU_SET_ENTRY_POINT(fragmentState, "fsBackground");
     WGPU_SET_LABEL(pipelineDesc, "blit_background_pipeline");
-    backgroundPipeline_ =
-        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-    if (!backgroundPipeline_) {
-        LOG_ERROR("Failed to create linear background pipeline");
-        return false;
-    }
+    pipelines.add(device_, pipelineDesc, backgroundPipeline_);
 
     if (config.enableOpaqueScene) {
         sceneShadowLayout_ = gpu::createBindGroupLayout(device_, sceneShadowLayoutEntries(), "scene_sun_receiver_layout");
@@ -2151,8 +2144,7 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         WGPU_SET_ENTRY_POINT(fragmentState, config.coveVisuals ? "fsSceneTerrainCove" : "fsSceneTerrain");
         pipelineDesc.layout = sceneTerrainLayout_;
         WGPU_SET_LABEL(pipelineDesc, "scene_live_terrain_lighting");
-        sceneTerrainPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-        if (!sceneTerrainPipeline_) return false;
+        pipelines.add(device_, pipelineDesc, sceneTerrainPipeline_);
     }
 
     std::array<WGPUBindGroupLayout, 1> cachedLayouts = {
@@ -2187,18 +2179,27 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     opaqueMaskState.stencilWriteMask = 0u;
     pipelineDesc.depthStencil = &opaqueMaskState;
     WGPU_SET_LABEL(pipelineDesc, "blit_cached_opaque_pipeline");
-    cachedPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-    if (!cachedPipeline_) {
-        LOG_ERROR("Failed to create cached blit render pipeline");
-        return false;
-    }
+    pipelines.add(device_, pipelineDesc, cachedPipeline_);
 
     fragmentState.targetCount = 1u;
     fragmentState.targets = cachedTargets.data();
     WGPU_SET_ENTRY_POINT(fragmentState, "fsCachedOpaqueColor");
     WGPU_SET_LABEL(pipelineDesc, "blit_cached_opaque_color_pipeline");
-    cachedColorPipeline_ =
-        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
+    pipelines.add(device_, pipelineDesc, cachedColorPipeline_);
+    pipelines.wait();
+    if (!pipeline_) {
+        LOG_ERROR("Failed to create blit render pipeline");
+        return false;
+    }
+    if (!backgroundPipeline_) {
+        LOG_ERROR("Failed to create linear background pipeline");
+        return false;
+    }
+    if (config.enableOpaqueScene && !sceneTerrainPipeline_) return false;
+    if (!cachedPipeline_) {
+        LOG_ERROR("Failed to create cached blit render pipeline");
+        return false;
+    }
     if (!cachedColorPipeline_) {
         LOG_ERROR("Failed to create color-only cached blit pipeline");
         return false;
@@ -2334,36 +2335,37 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     waterMaskState.stencilWriteMask = 1u;
     pipelineDesc.depthStencil = &waterMaskState;
     pipelineDesc.multisample = multisampleState;
-    waterClipmapPipeline_ =
-        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-    if (!waterClipmapPipeline_) {
-        LOG_ERROR("Failed to create water clipmap render pipeline");
-        return false;
-    }
+    gpu::RenderPipelineBatch pipelines;
+    pipelines.add(device_, pipelineDesc, waterClipmapPipeline_);
 
     fragmentState.targetCount = 1u;
     fragmentState.targets = colorTargets.data();
     WGPU_SET_ENTRY_POINT(fragmentState, "fsColor");
     WGPU_SET_LABEL(pipelineDesc, "water_clipmap_color_pipeline");
-    waterClipmapColorPipeline_ =
-        ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-    if (!waterClipmapColorPipeline_) {
-        LOG_ERROR("Failed to create color-only water clipmap pipeline");
-        return false;
-    }
+    pipelines.add(device_, pipelineDesc, waterClipmapColorPipeline_);
 
     if (config.enableOpaqueScene) {
         pipelineDesc.layout = sceneWaterLayout_;
         fragmentState.targetCount = colorTargets.size();
         WGPU_SET_ENTRY_POINT(fragmentState, "fsScene");
         WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_lighting");
-        sceneWaterPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
+        pipelines.add(device_, pipelineDesc, sceneWaterPipeline_);
         fragmentState.targetCount = 1u;
         WGPU_SET_ENTRY_POINT(fragmentState, "fsSceneColor");
         WGPU_SET_LABEL(pipelineDesc, "scene_water_sun_color_lighting");
-        sceneWaterColorPipeline_ = ::voxy::gpu::createRenderPipeline(device_, &pipelineDesc);
-        if (!sceneWaterPipeline_ || !sceneWaterColorPipeline_) return false;
+        pipelines.add(device_, pipelineDesc, sceneWaterColorPipeline_);
     }
+
+    pipelines.wait();
+    if (!waterClipmapPipeline_) {
+        LOG_ERROR("Failed to create water clipmap render pipeline");
+        return false;
+    }
+    if (!waterClipmapColorPipeline_) {
+        LOG_ERROR("Failed to create color-only water clipmap pipeline");
+        return false;
+    }
+    if (config.enableOpaqueScene && (!sceneWaterPipeline_ || !sceneWaterColorPipeline_)) return false;
 
     const detail::WaterClipmapMesh mesh = detail::makeWaterClipmap();
     if (mesh.vertices.empty() || mesh.indices.empty() ||

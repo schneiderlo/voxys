@@ -1,0 +1,245 @@
+{
+  "runs": {
+    "serial": {
+      "graphics_ms": 187912.60000000056,
+      "playable_observed_ms": 200581.69999999925,
+      "pipelines": 235,
+      "complete": false,
+      "error": "Error: GPU failure: {\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[]}",
+      "settle_seconds": 3,
+      "groups": {
+        "blit": {
+          "span_ms": 19798.39999999944,
+          "peak_pending": 1
+        },
+        "water": {
+          "span_ms": 4381.0999999996275,
+          "peak_pending": 1
+        }
+      },
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsed_ms": 10031.299999999814,
+          "summary": {
+            "frames": 588,
+            "renderedFrames": 588,
+            "p50": 16.70000000001164,
+            "p95": 16.89999999999418,
+            "p99": 33.40000000002328,
+            "cpuP50": 7.100000001,
+            "cpuP95": 12.1,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 58.616530260286396
+        },
+        {
+          "name": "orbit",
+          "elapsed_ms": 10012.400000000373,
+          "summary": {
+            "frames": 176,
+            "renderedFrames": 176,
+            "p50": 16.70000000001164,
+            "p95": 50.10000000000582,
+            "p99": 50.20000000001164,
+            "cpuP50": 5.899999999,
+            "cpuP95": 8.3,
+            "terrainRefreshes": 153
+          },
+          "health": {
+            "lost": {
+              "reason": "unknown",
+              "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+            },
+            "errors": []
+          },
+          "rendered_fps": 17.57820302824432
+        }
+      ],
+      "render_groups_ms": 24179.49999999907
+    },
+    "batch": {
+      "graphics_ms": 169759.5,
+      "playable_observed_ms": 186225.2999999998,
+      "pipelines": 235,
+      "complete": true,
+      "error": null,
+      "settle_seconds": 3,
+      "groups": {
+        "blit": {
+          "span_ms": 9344.200000000186,
+          "peak_pending": 5
+        },
+        "water": {
+          "span_ms": 1370.0,
+          "peak_pending": 4
+        }
+      },
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsed_ms": 10019.699999999255,
+          "summary": {
+            "frames": 535,
+            "renderedFrames": 535,
+            "p50": 16.70000000001164,
+            "p95": 33.39999999999418,
+            "p99": 33.5,
+            "cpuP50": 6.6,
+            "cpuP95": 9.6,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 53.394812219930714
+        },
+        {
+          "name": "orbit",
+          "elapsed_ms": 10054.5,
+          "summary": {
+            "frames": 324,
+            "renderedFrames": 324,
+            "p50": 33.39999999999418,
+            "p95": 50.19999999998254,
+            "p99": 50.30000000001746,
+            "cpuP50": 6.9,
+            "cpuP95": 9.7,
+            "terrainRefreshes": 286
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 32.22437714456213
+        },
+        {
+          "name": "walk",
+          "elapsed_ms": 10029.900000000373,
+          "summary": {
+            "frames": 323,
+            "renderedFrames": 298,
+            "p50": 33.30000000001746,
+            "p95": 50.19999999998254,
+            "p99": 133.60000000000582,
+            "cpuP50": 7.1,
+            "cpuP95": 10.7,
+            "terrainRefreshes": 290
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 29.711163620772783
+        },
+        {
+          "name": "throw",
+          "elapsed_ms": 10059.699999999255,
+          "summary": {
+            "frames": 316,
+            "renderedFrames": 316,
+            "p50": 16.70000000001164,
+            "p95": 150.20000000001164,
+            "p99": 167.10000000000582,
+            "cpuP50": 5.6,
+            "cpuP95": 6.300000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 31.412467568617693
+        }
+      ],
+      "render_groups_ms": 10714.200000000186
+    },
+    "batch-repeat": {
+      "graphics_ms": 187443.40000000037,
+      "playable_observed_ms": 202662.7999999998,
+      "pipelines": 235,
+      "complete": true,
+      "error": null,
+      "settle_seconds": 20,
+      "groups": {
+        "blit": {
+          "span_ms": 11294.200000000186,
+          "peak_pending": 5
+        },
+        "water": {
+          "span_ms": 1726.5999999996275,
+          "peak_pending": 4
+        }
+      },
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsed_ms": 30024.5,
+          "summary": {
+            "frames": 1487,
+            "renderedFrames": 1487,
+            "p50": 16.70000000001164,
+            "p95": 33.5,
+            "p99": 33.89999999999418,
+            "cpuP50": 6,
+            "cpuP95": 7.7,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 49.52622025345968
+        }
+      ],
+      "render_groups_ms": 13020.799999999814
+    },
+    "serial-repeat": {
+      "graphics_ms": 233037.90000000037,
+      "playable_observed_ms": 248354.5,
+      "pipelines": 235,
+      "complete": true,
+      "error": null,
+      "settle_seconds": 20,
+      "groups": {
+        "blit": {
+          "span_ms": 32984.0,
+          "peak_pending": 1
+        },
+        "water": {
+          "span_ms": 5283.9000000003725,
+          "peak_pending": 1
+        }
+      },
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsed_ms": 30019,
+          "summary": {
+            "frames": 1497,
+            "renderedFrames": 1497,
+            "p50": 16.70000000001164,
+            "p95": 33.5,
+            "p99": 50.100000000034925,
+            "cpuP50": 7.7,
+            "cpuP95": 20.2,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "rendered_fps": 49.86841666944269
+        }
+      ],
+      "render_groups_ms": 38267.90000000037
+    }
+  },
+  "matching_pipeline_descriptors": 235,
+  "gpu_object_identity": "labels; shader and asset pack bytes match"
+}

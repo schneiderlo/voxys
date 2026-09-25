@@ -1,0 +1,183 @@
+{
+  "page-baseline-local": {
+    "complete": false,
+    "error": "Error: GPU failure: {\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[]}",
+    "build": "fa8ebffcecaef5c98aedf9363a8c262c88bb9168",
+    "graphics_ms": 192388.69999999972,
+    "observed_playable_ms": 203833,
+    "pipelines": 235,
+    "adapter": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "shader_sha256": "4e5df07810989ee2ff681ffe7a7ff9d4e3d086f26089e5a137bc99f55e195278",
+    "scenarios": [
+      {
+        "name": "idle",
+        "summary": {
+          "frames": 594,
+          "renderedFrames": 594,
+          "p50": 16.70000000001164,
+          "p95": 16.800000000017462,
+          "p99": 33.30000000001746,
+          "cpuP50": 5.3,
+          "cpuP95": 6.5,
+          "terrainRefreshes": 0
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 300
+      },
+      {
+        "name": "orbit",
+        "summary": {
+          "frames": 345,
+          "renderedFrames": 345,
+          "p50": 33.39999999999418,
+          "p95": 50.19999999998254,
+          "p99": 50.20000000001164,
+          "cpuP50": 5.5,
+          "cpuP95": 6.4,
+          "terrainRefreshes": 305
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 150
+      },
+      {
+        "name": "walk",
+        "summary": {
+          "frames": 14,
+          "renderedFrames": 4,
+          "p50": 16.70000000001164,
+          "p95": 16.800000000017462,
+          "p99": 17.29999999998836,
+          "cpuP50": 5.4,
+          "cpuP95": 5.4,
+          "terrainRefreshes": 4
+        },
+        "health": {
+          "lost": {
+            "reason": "unknown",
+            "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+          },
+          "errors": []
+        },
+        "physics_ticks": 30
+      }
+    ]
+  },
+  "page-candidate": {
+    "complete": true,
+    "error": null,
+    "build": "fa8ebffcecaef5c98aedf9363a8c262c88bb9168",
+    "graphics_ms": 145387.6000000001,
+    "observed_playable_ms": 156689.2999999998,
+    "pipelines": 235,
+    "adapter": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "shader_sha256": "e4c3ed0495e1945adf179a69f8d9ed298c961e7bedb3095c0fd95e8e312bddb7",
+    "scenarios": [
+      {
+        "name": "idle",
+        "summary": {
+          "frames": 600,
+          "renderedFrames": 600,
+          "p50": 16.70000000001164,
+          "p95": 16.800000000017462,
+          "p99": 17.20000000001164,
+          "cpuP50": 5.2,
+          "cpuP95": 6.6,
+          "terrainRefreshes": 0
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 300
+      },
+      {
+        "name": "orbit",
+        "summary": {
+          "frames": 365,
+          "renderedFrames": 365,
+          "p50": 33.30000000001746,
+          "p95": 50,
+          "p99": 50.20000000001164,
+          "cpuP50": 5.6,
+          "cpuP95": 6.5,
+          "terrainRefreshes": 321
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 150
+      },
+      {
+        "name": "walk",
+        "summary": {
+          "frames": 392,
+          "renderedFrames": 367,
+          "p50": 16.79999999998836,
+          "p95": 50,
+          "p99": 100.10000000000582,
+          "cpuP50": 5.3,
+          "cpuP95": 7.8,
+          "terrainRefreshes": 350
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 141
+      },
+      {
+        "name": "throw",
+        "summary": {
+          "frames": 287,
+          "renderedFrames": 287,
+          "p50": 16.70000000001164,
+          "p95": 117,
+          "p99": 150.39999999999418,
+          "cpuP50": 4.7,
+          "cpuP95": 6.2,
+          "terrainRefreshes": 0
+        },
+        "health": {
+          "lost": null,
+          "errors": []
+        },
+        "physics_ticks": 150
+      }
+    ]
+  },
+  "graphics_reduction_percent": 24.43028098843627,
+  "limits": "One matched local run per shader. Baseline failed during walking. Successful candidate does not prove a GPU-reset fix or FPS parity for walking/throwing.",
+  "screenshots": {
+    "candidate-idle.png": {
+      "sha256": "15a5f35f8a56517980821f33fbda05928bb9369c49ee3860ee6f0e7cf87d375b",
+      "bytes": 1005336
+    },
+    "candidate-throw.png": {
+      "sha256": "f8a257b1ce505afe21fbf125f9db31cb1e87e5de8077789d9a30342956a0e4df",
+      "bytes": 910521
+    },
+    "baseline-idle.png": {
+      "sha256": "c6cd21114e1d54286f85e6afe8eb11290b08ebc6c5b779167648128f9d83ac69",
+      "bytes": 1004732
+    }
+  }
+}

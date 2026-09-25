@@ -1,0 +1,373 @@
+{
+  "final-control": {
+    "complete": true,
+    "error": null,
+    "graphics_ms": 127332.89999999851,
+    "playable_ms": 148572.80000000075,
+    "downloads": {
+      "startedMs": 1514.800000000745,
+      "readyMs": 12535.900000000373,
+      "cachedFiles": 0
+    },
+    "graphicsCache": {
+      "requests": 235,
+      "hits": 54,
+      "submitted": 181,
+      "earlySubmitted": 0,
+      "earlyHits": 0,
+      "recipeSource": "none",
+      "recipeFailures": 0,
+      "startedMs": 2657.0999999996275,
+      "finishedMs": 140270,
+      "uniquePipelines": 181
+    },
+    "dataDelayMs": 10000,
+    "device": {
+      "name": "webgpu-physics",
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "requiredStorageBuffers": 8,
+      "maxStorageBuffersPerShaderStage": 8,
+      "maxStorageBufferBindingSize": 134217728,
+      "maxBufferSize": 268435456,
+      "maxComputeWorkgroupsPerDimension": 65535,
+      "timestampQuery": true
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "scenarios": [
+      {
+        "name": "idle",
+        "rendered_fps": 58.56544638663516,
+        "frames": 1172,
+        "renderedFrames": 1172,
+        "p50": 16.70000000001164,
+        "p95": 16.89999999999418,
+        "p99": 33.39999999999418,
+        "cpuP50": 6.1,
+        "cpuP95": 8.199999999,
+        "terrainRefreshes": 0,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "orbit",
+        "rendered_fps": 36.38741364852386,
+        "frames": 729,
+        "renderedFrames": 729,
+        "p50": 32.90000000002328,
+        "p95": 50.10000000000582,
+        "p99": 50.20000000001164,
+        "cpuP50": 6.5,
+        "cpuP95": 10.2,
+        "terrainRefreshes": 631,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "walk",
+        "rendered_fps": 32.198482428115014,
+        "frames": 669,
+        "renderedFrames": 645,
+        "p50": 33.30000000001746,
+        "p95": 50.19999999998254,
+        "p99": 66.80000000001746,
+        "cpuP50": 5.9,
+        "cpuP95": 7.5,
+        "terrainRefreshes": 616,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "throw",
+        "rendered_fps": 23.8732331320696,
+        "frames": 480,
+        "renderedFrames": 480,
+        "p50": 16.70000000001164,
+        "p95": 133.60000000000582,
+        "p99": 150.39999999999418,
+        "cpuP50": 4.4,
+        "cpuP95": 6,
+        "terrainRefreshes": 1,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      }
+    ],
+    "programs_match_control": true
+  },
+  "final-release": {
+    "complete": false,
+    "error": "Error: GPU failure: {\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[]}",
+    "graphics_ms": 97648.19999999925,
+    "playable_ms": 110257.70000000112,
+    "downloads": {
+      "startedMs": 1465.5,
+      "readyMs": 14299.200000001118,
+      "cachedFiles": 0
+    },
+    "graphicsCache": {
+      "requests": 235,
+      "hits": 185,
+      "submitted": 181,
+      "earlySubmitted": 131,
+      "earlyHits": 183,
+      "recipeSource": "release",
+      "recipeFailures": 0,
+      "startedMs": 2407.800000000745,
+      "firstEarlyMs": 2841,
+      "finishedMs": 101546.70000000112,
+      "uniquePipelines": 181
+    },
+    "dataDelayMs": 10000,
+    "device": {
+      "name": "webgpu-physics",
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "requiredStorageBuffers": 8,
+      "maxStorageBuffersPerShaderStage": 8,
+      "maxStorageBufferBindingSize": 134217728,
+      "maxBufferSize": 268435456,
+      "maxComputeWorkgroupsPerDimension": 65535,
+      "timestampQuery": true
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "scenarios": [
+      {
+        "name": "idle",
+        "rendered_fps": 58.74067192136161,
+        "frames": 1176,
+        "renderedFrames": 1176,
+        "p50": 16.70000000001164,
+        "p95": 16.800000000017462,
+        "p99": 33.39999999999418,
+        "cpuP50": 5.9,
+        "cpuP95": 7.199999999,
+        "terrainRefreshes": 0,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "orbit",
+        "rendered_fps": 4.795995343888032,
+        "frames": 96,
+        "renderedFrames": 96,
+        "p50": 16.70000000001164,
+        "p95": 17,
+        "p99": 50.10000000000582,
+        "cpuP50": 7.800000001,
+        "cpuP95": 7.899999999,
+        "terrainRefreshes": 86,
+        "health": {
+          "lost": {
+            "reason": "unknown",
+            "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+          },
+          "errors": []
+        }
+      }
+    ],
+    "programs_match_control": true
+  },
+  "final-reload": {
+    "complete": false,
+    "error": "Error: GPU failure: {\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[]}",
+    "graphics_ms": 85881.69999999925,
+    "playable_ms": 99959.30000000075,
+    "downloads": {
+      "startedMs": 1546.7000000011176,
+      "readyMs": 3662.5,
+      "cachedFiles": 1
+    },
+    "graphicsCache": {
+      "requests": 235,
+      "hits": 102,
+      "submitted": 181,
+      "earlySubmitted": 48,
+      "earlyHits": 50,
+      "recipeSource": "saved",
+      "recipeFailures": 0,
+      "startedMs": 3566.2000000011176,
+      "firstEarlyMs": 4166.700000001118,
+      "finishedMs": 91736.20000000112,
+      "uniquePipelines": 181
+    },
+    "dataDelayMs": 10000,
+    "device": {
+      "name": "webgpu-physics",
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "requiredStorageBuffers": 8,
+      "maxStorageBuffersPerShaderStage": 8,
+      "maxStorageBufferBindingSize": 134217728,
+      "maxBufferSize": 268435456,
+      "maxComputeWorkgroupsPerDimension": 65535,
+      "timestampQuery": true
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "scenarios": [
+      {
+        "name": "idle",
+        "rendered_fps": 57.134580904862865,
+        "frames": 1144,
+        "renderedFrames": 1144,
+        "p50": 16.69999999999709,
+        "p95": 17.60000000000582,
+        "p99": 33.5,
+        "cpuP50": 6.199999999,
+        "cpuP95": 8.5,
+        "terrainRefreshes": 0,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "orbit",
+        "rendered_fps": 10.195412064570943,
+        "frames": 204,
+        "renderedFrames": 204,
+        "p50": 16.70000000001164,
+        "p95": 33.39999999999418,
+        "p99": 50.10000000000582,
+        "cpuP50": 5.6,
+        "cpuP95": 10.1,
+        "terrainRefreshes": 175,
+        "health": {
+          "lost": {
+            "reason": "unknown",
+            "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+          },
+          "errors": []
+        }
+      }
+    ],
+    "programs_match_control": true
+  },
+  "control-repeat": {
+    "complete": false,
+    "error": "Error: GPU failure: {\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[]}",
+    "graphics_ms": 153267.19999999925,
+    "playable_ms": 166844.79999999888,
+    "downloads": {
+      "startedMs": 1765.0999999996275,
+      "readyMs": 3326.5999999996275,
+      "cachedFiles": 1
+    },
+    "graphicsCache": {
+      "requests": 235,
+      "hits": 54,
+      "submitted": 181,
+      "earlySubmitted": 0,
+      "earlyHits": 0,
+      "recipeSource": "none",
+      "recipeFailures": 0,
+      "startedMs": 3266.9000000003725,
+      "finishedMs": 157047.19999999925,
+      "uniquePipelines": 181
+    },
+    "dataDelayMs": 10000,
+    "device": {
+      "name": "webgpu-physics",
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "requiredStorageBuffers": 8,
+      "maxStorageBuffersPerShaderStage": 8,
+      "maxStorageBufferBindingSize": 134217728,
+      "maxBufferSize": 268435456,
+      "maxComputeWorkgroupsPerDimension": 65535,
+      "timestampQuery": true
+    },
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "scenarios": [
+      {
+        "name": "idle",
+        "rendered_fps": 57.15856004396812,
+        "frames": 1144,
+        "renderedFrames": 1144,
+        "p50": 16.70000000001164,
+        "p95": 17.300000000017462,
+        "p99": 33.5,
+        "cpuP50": 6.1,
+        "cpuP95": 8.1,
+        "terrainRefreshes": 0,
+        "health": {
+          "lost": null,
+          "errors": []
+        }
+      },
+      {
+        "name": "orbit",
+        "rendered_fps": 33.07684620765464,
+        "frames": 662,
+        "renderedFrames": 662,
+        "p50": 16.79999999998836,
+        "p95": 50.10000000000582,
+        "p99": 50.20000000001164,
+        "cpuP50": 7.4,
+        "cpuP95": 9.800000001,
+        "terrainRefreshes": 576,
+        "health": {
+          "lost": {
+            "reason": "unknown",
+            "message": "ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at CheckHRESULTImpl (..\\..\\third_party\\dawn\\src\\dawn\\native\\d3d\\D3DError.cpp:121)\n\nBackend messages:\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\n"
+          },
+          "errors": []
+        }
+      }
+    ],
+    "programs_match_control": true
+  }
+}

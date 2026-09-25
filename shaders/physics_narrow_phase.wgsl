@@ -2674,8 +2674,11 @@ fn collide_authored_polyhedra_ordered(a: u32, b: u32) {
 }
 
 fn collide_authored_polyhedra(a: u32, b: u32) {
-    if (body_has_authored(b)) { collide_authored_polyhedra_ordered(a, b); return; }
-    collide_authored_polyhedra_ordered(b, a);
+    // Choose the body order before the call. Two call sites duplicate the
+    // entire BVH/contact routine when shader compilers inline it.
+    let reverse = !body_has_authored(b);
+    collide_authored_polyhedra_ordered(select(a, b, reverse), select(b, a, reverse));
+    if (!reverse) { return; }
     let delta = body_position_in_frame(b, a) - poses[b].position_invMass.xyz;
     for (var p = 0u; p < authoredPatchCount; p += 1u) {
         var cluster = swap_candidates(authoredPatches[p]);

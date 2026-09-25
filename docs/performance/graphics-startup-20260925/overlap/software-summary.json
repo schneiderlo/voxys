@@ -1,0 +1,27 @@
+{
+  "four_workers_headless": {
+    "status": "failed",
+    "reason": "application startup deadline",
+    "report": "software-four-workers-report.json.gz"
+  },
+  "no_speculation_headless_control": {
+    "status": "failed-image-gate",
+    "initialized_ms": 420025.9,
+    "retired_frames": 43,
+    "gpu_errors": 0,
+    "reason": "black headless screenshot",
+    "report": "software-headless-control-report.json.gz"
+  },
+  "one_worker_headless_retry": {
+    "status": "deliberately-aborted",
+    "reason": "switched to CI windowed mode after headless control produced a black image",
+    "report": "software-headless-one-aborted-report.json.gz"
+  },
+  "one_worker_windowed": {
+    "status": "failed",
+    "reason": "application startup deadline",
+    "report": "software-one-window-report.json.gz"
+  },
+  "retained_policy": "No speculative compilation on software adapters; retain exact-request reuse, as in the headless control. Hardware scheduling is unchanged.",
+  "limitation": "Full software-browser smoke did not pass locally. Browser modes differ; these runs are not a matched software performance comparison."
+}

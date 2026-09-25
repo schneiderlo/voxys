@@ -421,7 +421,7 @@ TEST(GpuAsyncQueries, UsesExactShapeGeometryAxisFiltersAndGenerations) {
     queries.setBodyView({poseBuffer, shapeBuffer, metadataBuffer,
                          bodyCapacity});
 
-    std::array<GpuQueryRequest, 12> requests{};
+    std::array<GpuQueryRequest, 16> requests{};
     requests[0] = makeRequest(400u, GpuQueryType::RayCast, 4u);
     requests[0].originRadius = {0.0f, 0.0f, 1.0f, 0.0f};
     requests[1] = makeRequest(401u, GpuQueryType::RayCast, 4u);
@@ -450,6 +450,19 @@ TEST(GpuAsyncQueries, UsesExactShapeGeometryAxisFiltersAndGenerations) {
     requests[11] = makeRequest(411u, GpuQueryType::RayCast, 4u);
     requests[11].originRadius = {0.0f, 40.0f, 0.0f, 0.0f};
     requests[11].ids[3] = PhysicsQueryExcludeStatic;
+    // Capsule casts against boxes/cylinders reach the primitive segment
+    // sampler; sphere/capsule targets use separate analytical paths.
+    requests[12] = makeRequest(412u, GpuQueryType::CapsuleCast, 4u);
+    requests[12].originRadius = {0.0f, 20.0f, 0.0f, 0.25f};
+    requests[13] = requests[12];
+    requests[13].ids[0] = 413u;
+    requests[13].originRadius[1] = 10.0f;
+    requests[14] = requests[12];
+    requests[14].ids[0] = 414u;
+    requests[14].originRadius[1] = 23.0f;
+    requests[15] = requests[13];
+    requests[15].ids[0] = 415u;
+    requests[15].originRadius[1] = 14.0f;
 
     const auto result = executeBatch(context, queries, requests, 400u);
     ASSERT_TRUE(result.has_value());
@@ -484,6 +497,13 @@ TEST(GpuAsyncQueries, UsesExactShapeGeometryAxisFiltersAndGenerations) {
     EXPECT_NEAR(result->outputs[9].hits[0].metricDistance[1], 0.1f, 1e-4f);
     EXPECT_EQ(result->outputs[10].header[1], 0u);
     EXPECT_EQ(result->outputs[11].header[1], 0u);
+    for (const uint32_t query : {12u, 13u}) {
+        ASSERT_EQ(result->outputs[query].header[1], 1u);
+        EXPECT_EQ(result->outputs[query].hits[0].ids[1], query == 12u ? 3u : 2u);
+        EXPECT_NEAR(result->outputs[query].hits[0].metricDistance[1], 3.75f, 2e-3f);
+    }
+    EXPECT_EQ(result->outputs[14].header[1], 0u);
+    EXPECT_EQ(result->outputs[15].header[1], 0u);
 
     queries.shutdown();
     releaseBuffer(metadataBuffer);

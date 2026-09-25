@@ -1554,13 +1554,20 @@ fn generate_primitive_terrain_candidates(pose : BodyPose,
 // Merge a bounded set of child contacts. Keep the deepest candidates when
 // the 16-slot scratch fills; final manifold reduction retains four spread points.
 fn generate_terrain_candidates(pose:BodyPose,shape:BodyShape)->TerrainCandidateSet {
-    if(!legoIsBrick(bitcast<u32>(shape.invInertia_material.w))){return generate_primitive_terrain_candidates(pose,shape);}
+    // Keep one call to the large terrain traversal. Separate primitive and
+    // brick call sites duplicate its inlined code in both physics entry points.
+    let brick = legoIsBrick(bitcast<u32>(shape.invInertia_material.w));
+    var partCount = 1u;
+    if (brick) { partCount = legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w)); }
     var result:TerrainCandidateSet;
-    for(var part=0u;part<legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w));part++) {
+    for(var part=0u;part<partCount;part++) {
         var child=shape;var childPose=pose;
-        child.dimensions_type=vec4<f32>(legoBrickPartSize(shape.dimensions_type.xyz,part),select(2.0,4.0,part>0u));
-        childPose.position_invMass=vec4<f32>(pose.position_invMass.xyz+rotate_by_quaternion(pose.orientation,legoBrickPartOffset(shape.dimensions_type.xyz,part)),pose.position_invMass.w);
+        if (brick) {
+            child.dimensions_type=vec4<f32>(legoBrickPartSize(shape.dimensions_type.xyz,part),select(2.0,4.0,part>0u));
+            childPose.position_invMass=vec4<f32>(pose.position_invMass.xyz+rotate_by_quaternion(pose.orientation,legoBrickPartOffset(shape.dimensions_type.xyz,part)),pose.position_invMass.w);
+        }
         var contacts=generate_primitive_terrain_candidates(childPose,child);
+        if (!brick) { return contacts; }
         for(var k=0u;k<contacts.count;k++) {
             var c=contacts.items[k];c.featureId^=part<<24u;
             if(result.count<16u){result.items[result.count]=c;result.count++;}
