@@ -1631,12 +1631,13 @@ fn collide_box_box(bodyA : u32, bodyB : u32,
     }
     result.normal = sat.normal;
     if (sat.valid == 0u) { return result; }
-    if (sat.axisKind == 0u) {
-        append_clipped_box_face(&result, frameA, frameB,
-                                sat.normal, sat.axisA, true);
-    } else if (sat.axisKind == 1u) {
-        append_clipped_box_face(&result, frameB, frameA,
-                                -sat.normal, sat.axisB, false);
+    if (sat.axisKind <= 1u) {
+        var reference = frameA; var incident = frameB;
+        let reverse = sat.axisKind == 1u;
+        if (reverse) { reference = frameB; incident = frameA; }
+        append_clipped_box_face(&result, reference, incident,
+            select(sat.normal, -sat.normal, reverse),
+            select(sat.axisA, sat.axisB, reverse), !reverse);
     } else {
         let edgeA = box_support_edge(frameA, sat.normal, sat.axisA);
         let edgeB = box_support_edge(frameB, -sat.normal, sat.axisB);
@@ -2777,8 +2778,13 @@ fn narrow_sphere_box_impl(gid : vec3<u32>) {
     if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
     if (AUTHORED_PAIR_PASS) {
         let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
-        if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, false)); }
-        else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, false))); }
+        // Select body order before the large traversal so inlining exposes
+        // one copy of the authored geometry query and manifold reduction.
+        let reverse = !body_has_authored(b);
+        var hit = collide_authored_round(
+            select(a, b, reverse), select(b, a, reverse), a, false);
+        if (reverse) { hit = swap_candidates(hit); }
+        write_class_manifold(pairRecord, hit);
         return;
     }
     if (pair_has_lego(pairRecord)) {
@@ -2803,8 +2809,13 @@ fn narrow_capsule_box_impl(gid : vec3<u32>) {
     if (pair_has_authored(pairRecord) != AUTHORED_PAIR_PASS) { return; }
     if (AUTHORED_PAIR_PASS) {
         let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
-        if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, true)); }
-        else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, true))); }
+        // Select body order before the large traversal so inlining exposes
+        // one copy of the authored geometry query and manifold reduction.
+        let reverse = !body_has_authored(b);
+        var hit = collide_authored_round(
+            select(a, b, reverse), select(b, a, reverse), a, true);
+        if (reverse) { hit = swap_candidates(hit); }
+        write_class_manifold(pairRecord, hit);
         return;
     }
     if (pair_has_lego(pairRecord)) {
@@ -2898,12 +2909,10 @@ fn narrow_cylinder_cylinder_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
+    // The pair-class bucket contains two cylinders. Make that invariant
+    // visible to the compiler so box-only SAT paths are not included.
     write_class_manifold(pairRecord, collide_polyhedra(
-        bodyA,
-        canonical_shape(compound_shape(bodyA).dimensions_type.w),
-        bodyB,
-        canonical_shape(compound_shape(bodyB).dimensions_type.w),
-        bodyA));
+        bodyA, 3u, bodyB, 3u, bodyA));
 }
 
 @compute @workgroup_size(1)

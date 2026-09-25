@@ -1,0 +1,127 @@
+{
+  "pairs": [
+    {
+      "pair": 1,
+      "before": "page-retained-before-2",
+      "after": "page-shader-after-1",
+      "before_playable_s": 94.66080000000075,
+      "after_playable_s": 87.66109999999776,
+      "saved_s": 6.9997000000029885,
+      "saved_percent": 7.394507546949669,
+      "before_graphics_s": 82.75319999999925,
+      "after_graphics_s": 75.89939999999851,
+      "gameplay": {
+        "before": [
+          [
+            "idle",
+            59.75518361229078,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "throw",
+            34.41625871532413,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "walk",
+            13.729430726064958,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "orbit",
+            14.484328350857885,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ]
+        ],
+        "after": [
+          [
+            "idle",
+            59.92688919518634,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "throw",
+            35.67752316040629,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "walk",
+            15.850862326786961,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ],
+          [
+            "orbit",
+            15.554735719055232,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "pair": 2,
+      "before": "page-shader-before-2",
+      "after": "page-shader-after-2",
+      "before_playable_s": 104.405,
+      "after_playable_s": 92.12429999999702,
+      "saved_s": 12.28070000000298,
+      "saved_percent": 11.762559264405903,
+      "before_graphics_s": 92.63069999999925,
+      "after_graphics_s": 79.82319999999926,
+      "gameplay": {
+        "before": [
+          [
+            "idle",
+            59.649298096617876,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ]
+        ],
+        "after": [
+          [
+            "idle",
+            59.545218399077285,
+            {
+              "lost": null,
+              "errors": []
+            }
+          ]
+        ]
+      }
+    }
+  ],
+  "browser_unit_tests": 55,
+  "publisher_tests": 4,
+  "native_retained_cases": 4,
+  "retained_source_sha256": "bf5eaadc1d7db441acfcfe0262cef38769c78a2e62e1faa7df2387f6434086bf",
+  "same_programs_except_expected_narrow_source": true,
+  "program_count": 181,
+  "wasm_identical": true,
+  "new_render_preparation_retained": false,
+  "authored_face_merge_retained": false
+}

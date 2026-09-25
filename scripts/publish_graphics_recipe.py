@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Publish portable compute setup captured from this release's real startup.
+"""Publish hardware compute setup captured from this release's real startup.
 
 The CI smoke run is the source of truth for descriptors. Only compute pipelines
-whose WGSL matches the production shader files are exported: a SwiftShader-only
-compatibility shader and adapter-dependent render targets are not portable.
-Runtime requests still match the entire descriptor before reusing any program.
+whose WGSL matches the production shader files are exported. The known software
+collision module uses the same pipeline interface, so export its hardware source
+instead. Software adapters skip speculative compilation in gpu_startup.js.
+Adapter-dependent render targets remain excluded. Runtime requests still match
+the entire descriptor, including source, before reusing any program.
 """
 import argparse
 import hashlib
@@ -14,20 +16,28 @@ import re
 
 
 def portable_recipe(recipe, shaders):
-    resources = recipe['resources']
+    resources = []
     portable = []
-    for row in resources:
+    for row in recipe['resources']:
         desc = row['descriptor']
         if row['kind'] == 'createShaderModule':
             name = desc.get('label', '')
             path = shaders / name
-            # This logical module selects different code on SwiftShader. A
-            # device-specific saved recipe can warm it; a public recipe cannot.
-            portable.append(bool(name and name != 'physics_narrow_phase.wgsl'
-                                 and Path(name).name == name and path.is_file()
-                                 and path.read_text() == desc['code']))
+            source = (path.read_text()
+                      if name and Path(name).name == name and path.is_file() else None)
+            if (name == 'physics_narrow_phase.wgsl'
+                    and source is not None and desc['code'] != source):
+                compatibility = shaders / 'physics_narrow_phase_compat.wgsl'
+                if compatibility.is_file() and desc['code'] == compatibility.read_text():
+                    # CI runs SwiftShader. Its exact, release-matched source is
+                    # the only alternate we may translate; unknown sources stay
+                    # excluded. Preserve captured layouts/constants verbatim.
+                    row = {**row, 'descriptor': {**desc, 'code': source}}
+                    desc = row['descriptor']
+            portable.append(source is not None and source == desc['code'])
         else:
             portable.append(True)
+        resources.append(row)
 
     selected, remap = [], {}
 

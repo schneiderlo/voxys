@@ -1,0 +1,2797 @@
+{
+  "goal_start_utc": "2026-09-25 18:44:16 UTC",
+  "goal_deadline_utc": "2026-09-25 20:44:16 UTC",
+  "measurement": "Local Windows Chrome153, Intel Iris Xe, 1280x720. Fresh profiles unless return visit specified. Normal watchdog; no driver-cache reset. No build or other benchmark during performance sampling.",
+  "runs": [
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 104,
+        "submitted": 181,
+        "earlySubmitted": 50,
+        "earlyHits": 51,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 3047.199999999255,
+        "firstEarlyMs": 3780.300000000745,
+        "finishedMs": 98831.5,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1378.9000000022352,
+        "readyMs": 3103.10000000149,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-after-1",
+      "startup": {
+        "playable_observed_ms": 108096,
+        "graphics_span_ms": 94235.59999999776,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "b34264b2e976a6926966955fc84fb985355414d41d970cf278418656d3b94a92",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": true,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10020.099999997765,
+          "rendered_fps": 59.08124669415795,
+          "summary": {
+            "frames": 592,
+            "renderedFrames": 592,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 33.40000000000873,
+            "cpuP50": 6.099999998,
+            "cpuP95": 9.199999999,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10078.39999999851,
+          "rendered_fps": 34.43006826480903,
+          "summary": {
+            "frames": 347,
+            "renderedFrames": 347,
+            "p50": 16.70000000001164,
+            "p95": 116.89999999999418,
+            "p99": 133.70000000001164,
+            "cpuP50": 5,
+            "cpuP95": 7,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10042.199999999255,
+          "rendered_fps": 13.742008723189166,
+          "summary": {
+            "frames": 161,
+            "renderedFrames": 138,
+            "p50": 33.29999999998836,
+            "p95": 150.29999999998836,
+            "p99": 284,
+            "cpuP50": 6.399999999,
+            "cpuP95": 244.3,
+            "terrainRefreshes": 132
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10078.5,
+          "rendered_fps": 13.29562930991715,
+          "summary": {
+            "frames": 134,
+            "renderedFrames": 134,
+            "p50": 50,
+            "p95": 167.10000000000582,
+            "p99": 183.69999999998254,
+            "cpuP50": 6.300000001,
+            "cpuP95": 8.099999998,
+            "terrainRefreshes": 122
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 103,
+        "submitted": 181,
+        "earlySubmitted": 49,
+        "earlyHits": 50,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 2374.199999999255,
+        "firstEarlyMs": 3153.60000000149,
+        "finishedMs": 98202.10000000149,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1292.300000000745,
+        "readyMs": 3920.800000000745,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-after-2",
+      "startup": {
+        "playable_observed_ms": 108471.80000000075,
+        "graphics_span_ms": 94011,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "b34264b2e976a6926966955fc84fb985355414d41d970cf278418656d3b94a92",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": true,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10009.199999999255,
+          "rendered_fps": 59.545218399077285,
+          "summary": {
+            "frames": 596,
+            "renderedFrames": 596,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17.39999999999418,
+            "cpuP50": 6,
+            "cpuP95": 8.899999999,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10055.699999999255,
+          "rendered_fps": 34.80612985670077,
+          "summary": {
+            "frames": 350,
+            "renderedFrames": 350,
+            "p50": 16.70000000001164,
+            "p95": 100.29999999998836,
+            "p99": 133.69999999998254,
+            "cpuP50": 5.5,
+            "cpuP95": 6.799999997,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10040.70000000298,
+          "rendered_fps": 14.540818867206138,
+          "summary": {
+            "frames": 172,
+            "renderedFrames": 146,
+            "p50": 16.800000000017462,
+            "p95": 150.29999999998836,
+            "p99": 217.30000000001746,
+            "cpuP50": 5.099999998,
+            "cpuP95": 8.199999999,
+            "terrainRefreshes": 138
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10020.199999999255,
+          "rendered_fps": 14.271172232092237,
+          "summary": {
+            "frames": 143,
+            "renderedFrames": 143,
+            "p50": 50,
+            "p95": 167.10000000000582,
+            "p99": 183.80000000001746,
+            "cpuP50": 5.900000002,
+            "cpuP95": 147.5,
+            "terrainRefreshes": 129
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 30,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 99,
+        "submitted": 181,
+        "earlySubmitted": 45,
+        "earlyHits": 46,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 2528,
+        "firstEarlyMs": 3484.900000002235,
+        "finishedMs": 93262.5,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1284.9000000022352,
+        "readyMs": 3428.5,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-after-idle",
+      "startup": {
+        "playable_observed_ms": 102560.90000000224,
+        "graphics_span_ms": 88843.69999999925,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "b34264b2e976a6926966955fc84fb985355414d41d970cf278418656d3b94a92",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": true,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 30022,
+          "rendered_fps": 59.85610552261675,
+          "summary": {
+            "frames": 1797,
+            "renderedFrames": 1797,
+            "p50": 16.70000000001164,
+            "p95": 16.800000000017462,
+            "p99": 17.10000000000582,
+            "cpuP50": 5.899999999,
+            "cpuP95": 7.5,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 109,
+        "submitted": 181,
+        "earlySubmitted": 55,
+        "earlyHits": 55,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 3581.300000000745,
+        "firstEarlyMs": 5239,
+        "finishedMs": 116721.70000000298,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1778.6000000014901,
+        "readyMs": 4021.900000002235,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-before-1",
+      "startup": {
+        "playable_observed_ms": 127205.5,
+        "graphics_span_ms": 109919.90000000224,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10009,
+          "rendered_fps": 52.95234289139774,
+          "summary": {
+            "frames": 530,
+            "renderedFrames": 530,
+            "p50": 16.70000000001164,
+            "p95": 33.40000000002328,
+            "p99": 33.5,
+            "cpuP50": 5.5,
+            "cpuP95": 6.5,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10064.699999999255,
+          "rendered_fps": 32.58914821107676,
+          "summary": {
+            "frames": 328,
+            "renderedFrames": 328,
+            "p50": 16.70000000001164,
+            "p95": 116.89999999999418,
+            "p99": 133.70000000001164,
+            "cpuP50": 5,
+            "cpuP95": 6.399999999,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10160.400000002235,
+          "rendered_fps": 12.893193181367975,
+          "summary": {
+            "frames": 159,
+            "renderedFrames": 131,
+            "p50": 17.199999999982538,
+            "p95": 167.10000000000582,
+            "p99": 250.5,
+            "cpuP50": 5.600000001,
+            "cpuP95": 6.800000001,
+            "terrainRefreshes": 126
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10169.10000000149,
+          "rendered_fps": 12.78382551061362,
+          "summary": {
+            "frames": 130,
+            "renderedFrames": 130,
+            "p50": 33.40000000002328,
+            "p95": 183.80000000001746,
+            "p99": 200.60000000000582,
+            "cpuP50": 5,
+            "cpuP95": 6.699999999,
+            "terrainRefreshes": 119
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 117,
+        "submitted": 181,
+        "earlySubmitted": 63,
+        "earlyHits": 63,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2733.800000000745,
+        "firstEarlyMs": 3199.10000000149,
+        "finishedMs": 94111.90000000224,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1670.9000000022352,
+        "readyMs": 3060.7000000029802,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-before-2",
+      "startup": {
+        "playable_observed_ms": 102292.20000000298,
+        "graphics_span_ms": 89700.60000000149,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10013.300000000745,
+          "rendered_fps": 55.22654869023787,
+          "summary": {
+            "frames": 553,
+            "renderedFrames": 553,
+            "p50": 16.69999999999709,
+            "p95": 33.30000000000291,
+            "p99": 50,
+            "cpuP50": 7.299999997,
+            "cpuP95": 11.9,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10008.20000000298,
+          "rendered_fps": 32.873044103825066,
+          "summary": {
+            "frames": 329,
+            "renderedFrames": 329,
+            "p50": 16.80000000000291,
+            "p95": 117,
+            "p99": 150.39999999999418,
+            "cpuP50": 6.100000001,
+            "cpuP95": 9.800000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10055.400000002235,
+          "rendered_fps": 12.630029635814763,
+          "summary": {
+            "frames": 150,
+            "renderedFrames": 127,
+            "p50": 17,
+            "p95": 167.10000000000582,
+            "p99": 282.79999999998836,
+            "cpuP50": 5.800000001,
+            "cpuP95": 293.4,
+            "terrainRefreshes": 120
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10023.20000000298,
+          "rendered_fps": 13.069678346232845,
+          "summary": {
+            "frames": 131,
+            "renderedFrames": 131,
+            "p50": 33.5,
+            "p95": 167.10000000000582,
+            "p99": 183.79999999998836,
+            "cpuP50": 5.5,
+            "cpuP95": 7.099999998,
+            "terrainRefreshes": 120
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 30,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 111,
+        "submitted": 181,
+        "earlySubmitted": 57,
+        "earlyHits": 57,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2732.900000002235,
+        "firstEarlyMs": 3178.60000000149,
+        "finishedMs": 100446,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1809.9000000022352,
+        "readyMs": 4547.60000000149,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-final-before-idle",
+      "startup": {
+        "playable_observed_ms": 108906,
+        "graphics_span_ms": 96151.5,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 30021.199999999255,
+          "rendered_fps": 59.591222202978045,
+          "summary": {
+            "frames": 1789,
+            "renderedFrames": 1789,
+            "p50": 16.70000000001164,
+            "p95": 16.800000000017462,
+            "p99": 17.39999999999418,
+            "cpuP50": 5.900000002,
+            "cpuP95": 8.600000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 103,
+        "submitted": 181,
+        "earlySubmitted": 49,
+        "earlyHits": 50,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 2593.699999999255,
+        "firstEarlyMs": 3564.5,
+        "finishedMs": 100601.79999999702,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1264.3999999985099,
+        "readyMs": 3858.599999997765,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-render-after-1",
+      "startup": {
+        "playable_observed_ms": 110861.89999999851,
+        "graphics_span_ms": 96074.89999999851,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10006.89999999851,
+          "rendered_fps": 59.35904226084886,
+          "summary": {
+            "frames": 594,
+            "renderedFrames": 594,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 33.39999999999418,
+            "cpuP50": 5.599999998,
+            "cpuP95": 6.599999998,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10067.20000000298,
+          "rendered_fps": 33.07771773679885,
+          "summary": {
+            "frames": 333,
+            "renderedFrames": 333,
+            "p50": 16.70000000001164,
+            "p95": 116.89999999999418,
+            "p99": 133.70000000001164,
+            "cpuP50": 5.399999999,
+            "cpuP95": 6.300000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10157.099999997765,
+          "rendered_fps": 13.291195321502173,
+          "summary": {
+            "frames": 157,
+            "renderedFrames": 135,
+            "p50": 16.800000000017462,
+            "p95": 183.70000000001164,
+            "p99": 217.20000000001164,
+            "cpuP50": 5.099999998,
+            "cpuP95": 220.1,
+            "terrainRefreshes": 124
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10070.89999999851,
+          "rendered_fps": 13.206366858971858,
+          "summary": {
+            "frames": 133,
+            "renderedFrames": 133,
+            "p50": 33.5,
+            "p95": 200.39999999999418,
+            "p99": 233.89999999999418,
+            "cpuP50": 5.300000001,
+            "cpuP95": 6.299999997,
+            "terrainRefreshes": 121
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": false,
+      "device": null,
+      "width": null,
+      "height": null,
+      "instrumented": null,
+      "settleSeconds": null,
+      "graphicsCache": null,
+      "downloads": null,
+      "error": "Error: {\"ready\":1,\"frames\":18,\"lost\":{\"reason\":\"unknown\",\"message\":\"ID3D12Device::GetDeviceRemovedReason failed with DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n - While handling unexpected error type Internal when allowed errors are Validation.\\n    at CheckHRESULTImpl (..\\\\..\\\\third_party\\\\dawn\\\\src\\\\dawn\\\\native\\\\d3d\\\\D3DError.cpp:121)\\n\\nBackend messages:\\n * Device removed reason: DXGI_ERROR_DEVICE_HUNG (0x887A0006)\\n\"},\"errors\":[],\"loading\":false,\"device\":{\"name\":\"webgpu-physics\",\"adapter\":{\"vendor\":\"intel\",\"architecture\":\"gen-12lp\",\"device\":\"Unknown\",\"description\":\"Unknown\",\"fallback\":false},\"requiredStorageBuffers\":8,\"maxStorageBuffersPerShaderStage\":8,\"maxStorageBufferBindingSize\":134217728,\"maxBufferSize\":268435456,\"maxComputeWorkgroupsPerDimension\":65535,\"timestampQuery\":true}}",
+      "tag": "page-render-after-2",
+      "startup": {
+        "playable_observed_ms": null,
+        "graphics_span_ms": null,
+        "browser": null
+      },
+      "scenarios": []
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 99,
+        "submitted": 181,
+        "earlySubmitted": 45,
+        "earlyHits": 46,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 2733.5,
+        "firstEarlyMs": 3261.400000002235,
+        "finishedMs": 106799.30000000075,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1516.9000000022352,
+        "readyMs": 3138.5,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-render-after-3",
+      "startup": {
+        "playable_observed_ms": 117030.90000000224,
+        "graphics_span_ms": 102522.39999999851,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10022.70000000298,
+          "rendered_fps": 58.76659981839473,
+          "summary": {
+            "frames": 589,
+            "renderedFrames": 589,
+            "p50": 16.69999999999709,
+            "p95": 16.90000000000873,
+            "p99": 33.40000000000873,
+            "cpuP50": 6,
+            "cpuP95": 8.399999999,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10080.699999999255,
+          "rendered_fps": 32.537422996421306,
+          "summary": {
+            "frames": 328,
+            "renderedFrames": 328,
+            "p50": 16.79999999998836,
+            "p95": 116.90000000002328,
+            "p99": 150.40000000002328,
+            "cpuP50": 5.600000001,
+            "cpuP95": 7,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10013.699999999255,
+          "rendered_fps": 13.681256678351678,
+          "summary": {
+            "frames": 160,
+            "renderedFrames": 137,
+            "p50": 16.800000000017462,
+            "p95": 167.20000000001164,
+            "p99": 250.5,
+            "cpuP50": 5.5,
+            "cpuP95": 6.800000001,
+            "terrainRefreshes": 132
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10156.300000000745,
+          "rendered_fps": 12.701475931194484,
+          "summary": {
+            "frames": 129,
+            "renderedFrames": 129,
+            "p50": 83.39999999999418,
+            "p95": 183.59999999997672,
+            "p99": 183.90000000002328,
+            "cpuP50": 5,
+            "cpuP95": 5.5,
+            "terrainRefreshes": 119
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 113,
+        "submitted": 181,
+        "earlySubmitted": 59,
+        "earlyHits": 59,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2794.10000000149,
+        "firstEarlyMs": 3427.199999999255,
+        "finishedMs": 107872.5,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1617.9000000022352,
+        "readyMs": 3329.10000000149,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-render-before-1",
+      "startup": {
+        "playable_observed_ms": 116340.10000000149,
+        "graphics_span_ms": 103505.80000000075,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10026.300000000745,
+          "rendered_fps": 59.64313854562057,
+          "summary": {
+            "frames": 598,
+            "renderedFrames": 598,
+            "p50": 16.69999999999709,
+            "p95": 16.89999999999418,
+            "p99": 17.39999999999418,
+            "cpuP50": 5.900000002,
+            "cpuP95": 7.700000003,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10025,
+          "rendered_fps": 33.416458852867834,
+          "summary": {
+            "frames": 335,
+            "renderedFrames": 335,
+            "p50": 16.70000000001164,
+            "p95": 117,
+            "p99": 133.80000000001746,
+            "cpuP50": 5.5,
+            "cpuP95": 9,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10066.199999999255,
+          "rendered_fps": 13.609902445809754,
+          "summary": {
+            "frames": 160,
+            "renderedFrames": 137,
+            "p50": 16.800000000017462,
+            "p95": 167,
+            "p99": 233.90000000002328,
+            "cpuP50": 5.5,
+            "cpuP95": 172.6,
+            "terrainRefreshes": 131
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10078,
+          "rendered_fps": 12.99861083548323,
+          "summary": {
+            "frames": 131,
+            "renderedFrames": 131,
+            "p50": 50.09999999997672,
+            "p95": 183.69999999998254,
+            "p99": 183.80000000001746,
+            "cpuP50": 5,
+            "cpuP95": 6.199999999,
+            "terrainRefreshes": 121
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 112,
+        "submitted": 181,
+        "earlySubmitted": 58,
+        "earlyHits": 58,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2745.599999997765,
+        "firstEarlyMs": 3305,
+        "finishedMs": 107099.89999999851,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1642.5999999977648,
+        "readyMs": 4952.199999999255,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-render-before-2",
+      "startup": {
+        "playable_observed_ms": 115916,
+        "graphics_span_ms": 102747,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10016.60000000149,
+          "rendered_fps": 58.502885210541784,
+          "summary": {
+            "frames": 586,
+            "renderedFrames": 586,
+            "p50": 16.69999999999709,
+            "p95": 17,
+            "p99": 33.39999999999418,
+            "cpuP50": 6.099999998,
+            "cpuP95": 8.100000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10035.199999999255,
+          "rendered_fps": 32.88424744898203,
+          "summary": {
+            "frames": 330,
+            "renderedFrames": 330,
+            "p50": 16.79999999998836,
+            "p95": 116.89999999999418,
+            "p99": 150.5,
+            "cpuP50": 5.5,
+            "cpuP95": 6.599999998,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10134.800000000745,
+          "rendered_fps": 12.43241109839274,
+          "summary": {
+            "frames": 151,
+            "renderedFrames": 126,
+            "p50": 33.29999999998836,
+            "p95": 167,
+            "p99": 267.29999999998836,
+            "cpuP50": 5.400000002,
+            "cpuP95": 6.600000001,
+            "terrainRefreshes": 124
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10137.699999999255,
+          "rendered_fps": 12.428854671178794,
+          "summary": {
+            "frames": 126,
+            "renderedFrames": 126,
+            "p50": 33.5,
+            "p95": 183.80000000001746,
+            "p99": 217.20000000001164,
+            "cpuP50": 5.299999997,
+            "cpuP95": 6.800000001,
+            "terrainRefreshes": 115
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 103,
+        "submitted": 181,
+        "earlySubmitted": 49,
+        "earlyHits": 50,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "canvasSkipped": 0,
+        "startedMs": 2450.800000000745,
+        "firstEarlyMs": 3032.199999999255,
+        "finishedMs": 89433.30000000075,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1503,
+        "readyMs": 2968.39999999851,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-retained-after-1",
+      "startup": {
+        "playable_observed_ms": 97385,
+        "graphics_span_ms": 85526.30000000075,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "5b07a42202ca46d0738eb374b5b9d0c5daf5eb0897cb2176253460ce03bd3e83",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": true,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10008.300000000745,
+          "rendered_fps": 59.950241299716765,
+          "summary": {
+            "frames": 600,
+            "renderedFrames": 600,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17.10000000000582,
+            "cpuP50": 5.5,
+            "cpuP95": 6.800000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10036.60000000149,
+          "rendered_fps": 35.56981447900155,
+          "summary": {
+            "frames": 357,
+            "renderedFrames": 357,
+            "p50": 16.69999999999709,
+            "p95": 100.20000000001164,
+            "p99": 133.6999999999971,
+            "cpuP50": 5,
+            "cpuP95": 5.699999999,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10136.60000000149,
+          "rendered_fps": 16.080342521158578,
+          "summary": {
+            "frames": 189,
+            "renderedFrames": 163,
+            "p50": 16.89999999999418,
+            "p95": 133.59999999997672,
+            "p99": 200.5,
+            "cpuP50": 4.5,
+            "cpuP95": 5.600000001,
+            "terrainRefreshes": 153
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10081.300000000745,
+          "rendered_fps": 15.573388352691458,
+          "summary": {
+            "frames": 157,
+            "renderedFrames": 157,
+            "p50": 33.5,
+            "p95": 150.30000000001746,
+            "p99": 167,
+            "cpuP50": 4.5,
+            "cpuP95": 7.199999999,
+            "terrainRefreshes": 146
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 109,
+        "submitted": 181,
+        "earlySubmitted": 55,
+        "earlyHits": 55,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2765.800000000745,
+        "firstEarlyMs": 3170.39999999851,
+        "finishedMs": 86063.89999999851,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1599.199999999255,
+        "readyMs": 3122.699999999255,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-retained-before-1",
+      "startup": {
+        "playable_observed_ms": 93821.60000000149,
+        "graphics_span_ms": 82012,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10011.699999999255,
+          "rendered_fps": 59.92988203801998,
+          "summary": {
+            "frames": 600,
+            "renderedFrames": 600,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 16.89999999999418,
+            "cpuP50": 5.300000001,
+            "cpuP95": 7,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10095.10000000149,
+          "rendered_fps": 34.9674594605252,
+          "summary": {
+            "frames": 353,
+            "renderedFrames": 353,
+            "p50": 16.70000000001164,
+            "p95": 100.19999999999709,
+            "p99": 117,
+            "cpuP50": 4.800000001,
+            "cpuP95": 5.400000002,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10010.800000000745,
+          "rendered_fps": 13.785112078953702,
+          "summary": {
+            "frames": 162,
+            "renderedFrames": 138,
+            "p50": 16.80000000000291,
+            "p95": 150.39999999999418,
+            "p99": 183.8000000000029,
+            "cpuP50": 4.800000001,
+            "cpuP95": 6.100000001,
+            "terrainRefreshes": 131
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10145.199999999255,
+          "rendered_fps": 13.898198162678938,
+          "summary": {
+            "frames": 141,
+            "renderedFrames": 141,
+            "p50": 33.39999999999418,
+            "p95": 167.20000000001164,
+            "p99": 200.5,
+            "cpuP50": 4.199999999,
+            "cpuP95": 5,
+            "terrainRefreshes": 130
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 110,
+        "submitted": 181,
+        "earlySubmitted": 56,
+        "earlyHits": 56,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 1977.199999999255,
+        "firstEarlyMs": 2317.099999997765,
+        "finishedMs": 85957.19999999925,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1110.5999999977648,
+        "readyMs": 2822.39999999851,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-retained-before-2",
+      "startup": {
+        "playable_observed_ms": 94660.80000000075,
+        "graphics_span_ms": 82753.19999999925,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10007.5,
+          "rendered_fps": 59.75518361229078,
+          "summary": {
+            "frames": 598,
+            "renderedFrames": 598,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17.30000000000291,
+            "cpuP50": 5.699999999,
+            "cpuP95": 7,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10111.5,
+          "rendered_fps": 34.41625871532413,
+          "summary": {
+            "frames": 348,
+            "renderedFrames": 348,
+            "p50": 16.69999999999709,
+            "p95": 100.30000000000291,
+            "p99": 133.70000000001164,
+            "cpuP50": 5.099999998,
+            "cpuP95": 5.800000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10051.400000002235,
+          "rendered_fps": 13.729430726064958,
+          "summary": {
+            "frames": 161,
+            "renderedFrames": 138,
+            "p50": 16.89999999999418,
+            "p95": 183.70000000001164,
+            "p99": 250.60000000000582,
+            "cpuP50": 5.300000001,
+            "cpuP95": 7.5,
+            "terrainRefreshes": 133
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10148.89999999851,
+          "rendered_fps": 14.484328350857885,
+          "summary": {
+            "frames": 147,
+            "renderedFrames": 147,
+            "p50": 33.39999999999418,
+            "p95": 167.20000000001164,
+            "p99": 217.10000000000582,
+            "cpuP50": 4.5,
+            "cpuP95": 5.100000001,
+            "terrainRefreshes": 133
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 116,
+        "submitted": 181,
+        "earlySubmitted": 62,
+        "earlyHits": 62,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2335.699999999255,
+        "firstEarlyMs": 2618.099999997765,
+        "finishedMs": 79450,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1675.0999999977648,
+        "readyMs": 2805.599999997765,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-shader-after-1",
+      "startup": {
+        "playable_observed_ms": 87661.09999999776,
+        "graphics_span_ms": 75899.39999999851,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "5b07a42202ca46d0738eb374b5b9d0c5daf5eb0897cb2176253460ce03bd3e83",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": true,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10012.199999999255,
+          "rendered_fps": 59.92688919518634,
+          "summary": {
+            "frames": 600,
+            "renderedFrames": 600,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17.19999999999709,
+            "cpuP50": 5.300000001,
+            "cpuP95": 6.400000002,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "throw",
+          "elapsedMs": 10006.300000000745,
+          "rendered_fps": 35.67752316040629,
+          "summary": {
+            "frames": 357,
+            "renderedFrames": 357,
+            "p50": 16.69999999999709,
+            "p95": 100.20000000001164,
+            "p99": 133.60000000000582,
+            "cpuP50": 5.199999999,
+            "cpuP95": 5.800000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "walk",
+          "elapsedMs": 10031,
+          "rendered_fps": 15.850862326786961,
+          "summary": {
+            "frames": 184,
+            "renderedFrames": 159,
+            "p50": 16.90000000000873,
+            "p95": 133.6999999999971,
+            "p99": 183.6999999999971,
+            "cpuP50": 4.600000001,
+            "cpuP95": 6.199999999,
+            "terrainRefreshes": 151
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        },
+        {
+          "name": "orbit",
+          "elapsedMs": 10029.10000000149,
+          "rendered_fps": 15.554735719055232,
+          "summary": {
+            "frames": 156,
+            "renderedFrames": 156,
+            "p50": 33.39999999999418,
+            "p95": 150.29999999998836,
+            "p99": 150.40000000002328,
+            "cpuP50": 5.100000001,
+            "cpuP95": 6.400000002,
+            "terrainRefreshes": 139
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 136,
+        "submitted": 181,
+        "earlySubmitted": 82,
+        "earlyHits": 82,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2202.099999997765,
+        "firstEarlyMs": 2638.5,
+        "finishedMs": 83404.59999999776,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1279.8999999985099,
+        "readyMs": 2536.39999999851,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-shader-after-2",
+      "startup": {
+        "playable_observed_ms": 92124.29999999702,
+        "graphics_span_ms": 79823.19999999925,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "5b07a42202ca46d0738eb374b5b9d0c5daf5eb0897cb2176253460ce03bd3e83",
+      "programs_equal_original": false,
+      "programs_equal_expected_shader_change": true,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10009.199999999255,
+          "rendered_fps": 59.545218399077285,
+          "summary": {
+            "frames": 596,
+            "renderedFrames": 596,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17.39999999999418,
+            "cpuP50": 6,
+            "cpuP95": 9.599999998,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "device": {
+        "name": "webgpu-physics",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "Unknown",
+          "description": "Unknown",
+          "fallback": false
+        },
+        "requiredStorageBuffers": 8,
+        "maxStorageBuffersPerShaderStage": 8,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "timestampQuery": true
+      },
+      "width": 1280,
+      "height": 720,
+      "instrumented": false,
+      "settleSeconds": 10,
+      "graphicsCache": {
+        "requests": 235,
+        "hits": 128,
+        "submitted": 181,
+        "earlySubmitted": 74,
+        "earlyHits": 74,
+        "earlyDisabled": null,
+        "recipeSource": "release",
+        "recipeFailures": 0,
+        "startedMs": 2193.60000000149,
+        "firstEarlyMs": 2645.800000000745,
+        "finishedMs": 96340.89999999851,
+        "uniquePipelines": 181
+      },
+      "downloads": {
+        "startedMs": 1239.699999999255,
+        "readyMs": 3403.199999999255,
+        "cachedFiles": 0
+      },
+      "error": null,
+      "tag": "page-shader-before-2",
+      "startup": {
+        "playable_observed_ms": 104405,
+        "graphics_span_ms": 92630.69999999925,
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        }
+      },
+      "program_count": 181,
+      "program_sha256": "99c2add43bfa08b9e54a68dd4bfecf0eb19b72dbaf13904fedd618411d0a1c2a",
+      "programs_equal_original": true,
+      "programs_equal_expected_shader_change": false,
+      "programs_equal_experimental_shader_change": false,
+      "scenarios": [
+        {
+          "name": "idle",
+          "elapsedMs": 10008.5,
+          "rendered_fps": 59.649298096617876,
+          "summary": {
+            "frames": 597,
+            "renderedFrames": 597,
+            "p50": 16.69999999999709,
+            "p95": 16.80000000000291,
+            "p99": 17,
+            "cpuP50": 5.699999999,
+            "cpuP95": 7.300000001,
+            "terrainRefreshes": 0
+          },
+          "health": {
+            "lost": null,
+            "errors": []
+          },
+          "canvas": {
+            "width": 1280,
+            "height": 720
+          },
+          "physics_steps": null
+        }
+      ]
+    }
+  ],
+  "runtime": [
+    {
+      "tag": "runtime-1",
+      "pairs": 1024,
+      "seed": 1899408273,
+      "errors": [],
+      "lost": null,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "complete": true,
+      "shader_sha256": {
+        "before": "e4c3ed0495e1945adf179a69f8d9ed298c961e7bedb3095c0fd95e8e312bddb7",
+        "after": "e5d5551d807034a3e8514f144da6fc35b37d8e72237aa014da2b5988cb02e6d5"
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.53",
+        "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "kernels": [
+        {
+          "name": "box_box",
+          "authored": false,
+          "compile_ms": {
+            "before": 24962.099999997765,
+            "after": 17175.10000000149
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 815,
+            "misses": 209,
+            "contact_points": 2228
+          },
+          "median_ms": {
+            "before": 1.376256,
+            "after": 1.114112
+          }
+        },
+        {
+          "name": "cylinder_cylinder",
+          "authored": false,
+          "compile_ms": {
+            "before": 3331,
+            "after": 2791.099999997765
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 815,
+            "misses": 209,
+            "contact_points": 3260
+          },
+          "median_ms": {
+            "before": 7.143424,
+            "after": 2.94912
+          }
+        },
+        {
+          "name": "sphere_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 5966,
+            "after": 3107.800000000745
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 819,
+            "misses": 205,
+            "contact_points": 819
+          },
+          "median_ms": {
+            "before": 0.720896,
+            "after": 0.393216
+          }
+        },
+        {
+          "name": "capsule_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 5905.699999999255,
+            "after": 2995.39999999851
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 819,
+            "misses": 205,
+            "contact_points": 819
+          },
+          "median_ms": {
+            "before": 0.851968,
+            "after": 0.458752
+          }
+        },
+        {
+          "name": "box_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 34313.800000000745,
+            "after": 28606.199999999255
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 819,
+            "misses": 205,
+            "contact_points": 2146
+          },
+          "median_ms": {
+            "before": 6.422528,
+            "after": 6.291456
+          }
+        }
+      ]
+    },
+    {
+      "tag": "runtime-2",
+      "pairs": 2048,
+      "seed": 305419897,
+      "workgroup": 128,
+      "errors": [],
+      "lost": null,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "complete": true,
+      "shader_sha256": {
+        "before": "e4c3ed0495e1945adf179a69f8d9ed298c961e7bedb3095c0fd95e8e312bddb7",
+        "after": "e5d5551d807034a3e8514f144da6fc35b37d8e72237aa014da2b5988cb02e6d5"
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.53",
+        "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "kernels": [
+        {
+          "name": "sphere_sphere",
+          "authored": false,
+          "compile_ms": {
+            "before": 1227.6000000014901,
+            "after": 1277.2999999970198
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1614,
+            "misses": 434,
+            "contact_points": 1614
+          },
+          "median_ms": {
+            "before": 0.196608,
+            "after": 0.196608
+          }
+        },
+        {
+          "name": "box_box",
+          "authored": false,
+          "compile_ms": {
+            "before": 24689.199999999255,
+            "after": 16758.699999999255
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1629,
+            "misses": 419,
+            "contact_points": 4464
+          },
+          "median_ms": {
+            "before": 1.900544,
+            "after": 1.507328
+          }
+        },
+        {
+          "name": "cylinder_cylinder",
+          "authored": false,
+          "compile_ms": {
+            "before": 3859.10000000149,
+            "after": 3314.699999999255
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1633,
+            "misses": 415,
+            "contact_points": 6532
+          },
+          "median_ms": {
+            "before": 8.781824,
+            "after": 3.342336
+          }
+        },
+        {
+          "name": "sphere_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 6829.60000000149,
+            "after": 3629.2999999970198
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 1638
+          },
+          "median_ms": {
+            "before": 1.114112,
+            "after": 0.65536
+          }
+        },
+        {
+          "name": "capsule_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 6765.599999997765,
+            "after": 3441.10000000149
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 1638
+          },
+          "median_ms": {
+            "before": 1.114112,
+            "after": 0.589824
+          }
+        },
+        {
+          "name": "box_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 33032,
+            "after": 20075.800000000745
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 4262
+          },
+          "median_ms": {
+            "before": 8.454144,
+            "after": 8.716288
+          }
+        }
+      ]
+    },
+    {
+      "tag": "runtime-retained",
+      "pairs": 2048,
+      "seed": 305419897,
+      "workgroup": 128,
+      "errors": [],
+      "lost": null,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "complete": true,
+      "shader_sha256": {
+        "before": "e4c3ed0495e1945adf179a69f8d9ed298c961e7bedb3095c0fd95e8e312bddb7",
+        "after": "bf5eaadc1d7db441acfcfe0262cef38769c78a2e62e1faa7df2387f6434086bf"
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.53",
+        "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "kernels": [
+        {
+          "name": "sphere_sphere",
+          "authored": false,
+          "compile_ms": {
+            "before": 895.7000000029802,
+            "after": 1107.699999999255
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1614,
+            "misses": 434,
+            "contact_points": 1614
+          },
+          "median_ms": {
+            "before": 0.196608,
+            "after": 0.196608
+          }
+        },
+        {
+          "name": "box_box",
+          "authored": false,
+          "compile_ms": {
+            "before": 24158.099999997765,
+            "after": 16711.900000002235
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1629,
+            "misses": 419,
+            "contact_points": 4464
+          },
+          "median_ms": {
+            "before": 1.835008,
+            "after": 1.441792
+          }
+        },
+        {
+          "name": "cylinder_cylinder",
+          "authored": false,
+          "compile_ms": {
+            "before": 3113.10000000149,
+            "after": 2645
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1633,
+            "misses": 415,
+            "contact_points": 6532
+          },
+          "median_ms": {
+            "before": 7.798784,
+            "after": 3.211264
+          }
+        },
+        {
+          "name": "sphere_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 5926,
+            "after": 2922.900000002235
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 1638
+          },
+          "median_ms": {
+            "before": 1.048576,
+            "after": 0.589824
+          }
+        },
+        {
+          "name": "capsule_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 5515.800000000745,
+            "after": 2523.10000000149
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 1638
+          },
+          "median_ms": {
+            "before": 1.114112,
+            "after": 0.524288
+          }
+        },
+        {
+          "name": "box_box",
+          "authored": true,
+          "compile_ms": {
+            "before": 35114.29999999702,
+            "after": 18957
+          },
+          "comparison": {
+            "bitwise_equal": true,
+            "integer_mismatches": 0,
+            "float_mismatches": 0,
+            "max_absolute_error": 0,
+            "contacts": 1638,
+            "misses": 410,
+            "contact_points": 4262
+          },
+          "median_ms": {
+            "before": 7.733248,
+            "after": 7.667712
+          }
+        }
+      ]
+    }
+  ],
+  "native": [
+    {
+      "tag": "native-before-gpu_authored_shapes",
+      "exit": 0,
+      "seconds": 66.78504514694214
+    },
+    {
+      "tag": "native-before-gpu_narrow_phase",
+      "exit": 139,
+      "seconds": 124.19488191604614
+    },
+    {
+      "tag": "native-candidate-gpu_authored_shapes",
+      "exit": 1,
+      "seconds": 188.941712141037
+    },
+    {
+      "tag": "native-candidate-gpu_narrow_phase",
+      "exit": 139,
+      "seconds": 92.67438387870789
+    },
+    {
+      "tag": "native-recheck-candidate-sphere",
+      "exit": 0,
+      "seconds": 13.696505069732666
+    },
+    {
+      "tag": "native-recheck-before-differential",
+      "exit": 0,
+      "seconds": 11.717768430709839
+    },
+    {
+      "tag": "native-recheck-before-64",
+      "exit": 0,
+      "seconds": 9.672480344772339
+    },
+    {
+      "tag": "native-recheck-before-128",
+      "exit": 0,
+      "seconds": 8.80113410949707
+    },
+    {
+      "tag": "native-recheck-before-256",
+      "exit": 0,
+      "seconds": 10.968859672546387
+    },
+    {
+      "tag": "native-recheck-candidate-differential",
+      "exit": 0,
+      "seconds": 12.533547639846802
+    },
+    {
+      "tag": "native-recheck-candidate-64",
+      "exit": 0,
+      "seconds": 8.604666233062744
+    },
+    {
+      "tag": "native-recheck-candidate-128",
+      "exit": 0,
+      "seconds": 9.054871082305908
+    },
+    {
+      "tag": "native-recheck-candidate-256",
+      "exit": 139,
+      "seconds": 81.39346575737
+    },
+    {
+      "tag": "native-recheck-candidate-256-repeat",
+      "exit": 0,
+      "seconds": 12.266700267791748
+    },
+    {
+      "tag": "native-retained-1",
+      "exit": 1,
+      "seconds": 89.29041385650635
+    },
+    {
+      "tag": "native-retained-2",
+      "exit": 0,
+      "seconds": 25.694555521011353
+    }
+  ],
+  "retained_source_sha256": "bf5eaadc1d7db441acfcfe0262cef38769c78a2e62e1faa7df2387f6434086bf",
+  "discarded_experiment": "Authored face-clipping merge: runtime benefit was inconsistent. page-final-* after runs use that earlier experimental source; page-retained-* after runs use the retained source."
+}

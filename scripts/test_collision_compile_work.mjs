@@ -7,20 +7,36 @@ import {test} from 'node:test';
 const shader = fs.readFileSync(process.env.VOXY_NARROW_SHADER
     || new URL('../shaders/physics_narrow_phase.wgsl', import.meta.url), 'utf8');
 
-test('authored body ordering exposes only one large contact traversal to inlining', () => {
+function functionBody(name) {
     const source = shader.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '');
-    const start = source.indexOf('fn collide_authored_polyhedra(');
-    assert(start >= 0, 'missing authored contact entry');
+    const start = source.indexOf(`fn ${name}(`);
+    assert(start >= 0, `missing shader function: ${name}`);
     const open = source.indexOf('{', start);
     let depth = 1, end = open + 1;
     for (; end < source.length && depth; ++end) {
         if (source[end] === '{') ++depth;
         if (source[end] === '}') --depth;
     }
-    assert.equal(depth, 0, 'unterminated authored contact entry');
-    const body = source.slice(open + 1, end - 1);
+    assert.equal(depth, 0, `unterminated shader function: ${name}`);
+    return source.slice(open + 1, end - 1);
+}
+
+test('authored body ordering exposes only one large contact traversal to inlining', () => {
+    const body = functionBody('collide_authored_polyhedra');
     const calls = [...body.matchAll(/\bcollide_authored_polyhedra_ordered\s*\(/g)].length;
     assert.equal(calls, 1, 'duplicated BVH/contact call sites increase cold shader compilation');
+});
+
+test('authored sphere and capsule ordering share one traversal per entry', () => {
+    for (const name of ['narrow_sphere_box_impl', 'narrow_capsule_box_impl']) {
+        assert.equal([...functionBody(name).matchAll(/\bcollide_authored_round\s*\(/g)].length, 1,
+            `${name}: duplicated traversal sites increase cold compilation`);
+    }
+});
+
+test('primitive box reference-face selection shares one clipper', () => {
+    assert.equal([...functionBody('collide_box_box').matchAll(/\bappend_clipped_box_face\s*\(/g)].length, 1,
+        'duplicated primitive face clippers increase cold compilation');
 });
 
 test('terrain shape dispatch exposes one large primitive traversal to inlining', () => {

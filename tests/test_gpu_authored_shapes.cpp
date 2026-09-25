@@ -968,17 +968,24 @@ void contactHit(const AuthoredContactFixture::Snapshot& result,float separation,
 TEST_F(GpuAuthoredShapes,ContactSphereUsesExteriorAndPreservesConcaveGap) {
     auto store=create(context); const auto handle=upload(context,*store);
     {
-        AuthoredContactFixture contact(context,*store); contact.authored(1,handle);
-        contact.primitive(2,{1.65f,.25f,.25f},{.2f,.2f,.2f,0});
-        auto hit=contact.run(); contactHit(hit,-.05f,{-1,0,0});
-        ASSERT_GT(hit.manifold.state[0],0u);
-        auto face=hit.manifold.points[0].features[1]&0x7fffffffu;
-        ASSERT_LT(face,store->get(handle)->faces().size()); EXPECT_EQ(store->get(handle)->faces()[face].source,11u);
-        contact.primitive(2,{1.3f,-.25f,.25f},{.2f,.2f,.2f,0});
-        EXPECT_EQ(contact.run().manifold.state[0],0u);
-        contact.primitive(2,{1.1f,.25f,.25f},{.04f,.04f,.04f,0});
-        hit=contact.run(); ASSERT_EQ(hit.manifold.state[0],1u);
-        EXPECT_NEAR(hit.manifold.points[0].localAnchorASeparation[3],-.27f,.0005f);
+        AuthoredContactFixture contact(context,*store);
+        for (uint32_t authoredBody : {1u,2u}) {
+            SCOPED_TRACE(authoredBody);
+            const uint32_t sphereBody=3u-authoredBody;
+            contact.authored(authoredBody,handle);
+            contact.primitive(sphereBody,{1.65f,.25f,.25f},{.2f,.2f,.2f,0});
+            auto hit=contact.run(); contactHit(hit,-.05f,{authoredBody==1u?-1.0f:1.0f,0,0});
+            ASSERT_GT(hit.manifold.state[0],0u);
+            const auto face=hit.manifold.points[0].features[authoredBody==1u?1u:0u]&0x7fffffffu;
+            ASSERT_LT(face,store->get(handle)->faces().size()); EXPECT_EQ(store->get(handle)->faces()[face].source,11u);
+            const auto point=contact.anchorWorld(hit.manifold.points[0],authoredBody==2u);
+            EXPECT_NEAR(point.x,1.6f,.0005f);
+            contact.primitive(sphereBody,{1.3f,-.25f,.25f},{.2f,.2f,.2f,0});
+            EXPECT_EQ(contact.run().manifold.state[0],0u);
+            contact.primitive(sphereBody,{1.1f,.25f,.25f},{.04f,.04f,.04f,0});
+            hit=contact.run(); ASSERT_EQ(hit.manifold.state[0],1u);
+            EXPECT_NEAR(hit.manifold.points[0].localAnchorASeparation[3],-.27f,.0005f);
+        }
     }
     close(context,*store);
 }
@@ -990,11 +997,18 @@ TEST_F(GpuAuthoredShapes,ContactCapsuleFindsThinRailWithoutSegmentSampling) {
     AuthoredShapeIssue shapeIssue; auto shape=AuthoredShape::prepare(*geometry,{5,{.25,-.5,.75},{3,0,0,0,3,0,0,0,3}},shapeIssue);
     ASSERT_TRUE(shape); ShapeResourceError error; auto handle=store->upload(std::move(*shape),error); ASSERT_TRUE(drain(context,*store));
     {
-        AuthoredContactFixture contact(context,*store); contact.authored(1,handle);
-        contact.primitive(2,{.1005f,0,0},{.002f,40,.002f,3});
-        const auto hit=contact.run(); contactHit(hit,-.0005f,{-1,0,0});
-        ASSERT_EQ(hit.manifold.state[0],1u); const auto point=contact.anchorWorld(hit.manifold.points[0],false);
-        EXPECT_GE(point.y,.219f); EXPECT_LE(point.y,.241f);
+        AuthoredContactFixture contact(context,*store);
+        for (uint32_t authoredBody : {1u,2u}) {
+            SCOPED_TRACE(authoredBody);
+            const uint32_t capsuleBody=3u-authoredBody;
+            contact.authored(authoredBody,handle);
+            contact.primitive(capsuleBody,{.1005f,0,0},{.002f,40,.002f,3});
+            const auto hit=contact.run(); contactHit(hit,-.0005f,{authoredBody==1u?-1.0f:1.0f,0,0});
+            ASSERT_EQ(hit.manifold.state[0],1u);
+            const auto point=contact.anchorWorld(hit.manifold.points[0],authoredBody==2u);
+            EXPECT_NEAR(point.x,.1f,.0005f);
+            EXPECT_GE(point.y,.219f); EXPECT_LE(point.y,.241f);
+        }
     }
     close(context,*store);
 }

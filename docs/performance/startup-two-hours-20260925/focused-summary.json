@@ -1,0 +1,51 @@
+{
+  "measurement": "Fresh Chrome profile; production descriptor subsets; no driver-cache reset. Small local paired samples.",
+  "pairs": [
+    {
+      "group": "round",
+      "pair": 1,
+      "before_ms": 7535.5,
+      "after_ms": 3693.2000000029802,
+      "reduction_percent": 50.989317231730084
+    },
+    {
+      "group": "round",
+      "pair": 2,
+      "before_ms": 6743.89999999851,
+      "after_ms": 3215.199999999255,
+      "reduction_percent": 52.324322721274555
+    },
+    {
+      "group": "faces",
+      "pair": 1,
+      "before_ms": 42482.400000002235,
+      "after_ms": 37718.29999999702,
+      "reduction_percent": 11.214291094676776
+    },
+    {
+      "group": "faces",
+      "pair": 2,
+      "before_ms": 45807.400000002235,
+      "after_ms": 37342.099999997765,
+      "reduction_percent": 18.480201888786652
+    },
+    {
+      "group": "cylinder",
+      "pair": 1,
+      "before_ms": 3827.800000000745,
+      "after_ms": 3281.60000000149,
+      "reduction_percent": 14.269293066491162
+    },
+    {
+      "group": "cylinder",
+      "pair": 2,
+      "before_ms": 4453.89999999851,
+      "after_ms": 4047.39999999851,
+      "reduction_percent": 9.126832663511442
+    }
+  ],
+  "source_sha256": {
+    "narrow-before.wgsl": "e4c3ed0495e1945adf179a69f8d9ed298c961e7bedb3095c0fd95e8e312bddb7",
+    "narrow-combined.wgsl": "e5d5551d807034a3e8514f144da6fc35b37d8e72237aa014da2b5988cb02e6d5"
+  }
+}
