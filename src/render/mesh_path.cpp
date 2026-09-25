@@ -524,6 +524,7 @@ void MeshPath::teardown(bool destroyResources) {
     instances_.clear();
 
     if (sunCasterPipeline_) { wgpuRenderPipelineRelease(sunCasterPipeline_); sunCasterPipeline_ = nullptr; }
+    if (sunCasterCulledPipeline_) { wgpuRenderPipelineRelease(sunCasterCulledPipeline_); sunCasterCulledPipeline_ = nullptr; }
     if (sunCasterPipelineLayout_) { wgpuPipelineLayoutRelease(sunCasterPipelineLayout_); sunCasterPipelineLayout_ = nullptr; }
     if (sunShadowBinding_) { wgpuBindGroupRelease(sunShadowBinding_); sunShadowBinding_ = nullptr; }
     if (farSunCasterBinding_) { wgpuBindGroupRelease(farSunCasterBinding_); farSunCasterBinding_ = nullptr; }
@@ -549,6 +550,10 @@ void MeshPath::teardown(bool destroyResources) {
     if (blendPipeline_) {
         wgpuRenderPipelineRelease(blendPipeline_);
         blendPipeline_ = nullptr;
+    }
+    if (opaqueCulledPipeline_) {
+        wgpuRenderPipelineRelease(opaqueCulledPipeline_);
+        opaqueCulledPipeline_ = nullptr;
     }
     if (opaquePipeline_) {
         wgpuRenderPipelineRelease(opaquePipeline_);
@@ -791,6 +796,11 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
         return ::voxy::gpu::createRenderPipeline(device_, &descriptor);
     };
     opaquePipeline_ = create("mesh_path_opaque_pipeline", false, true);
+    // The shader discards back faces of single-sided materials; culling them
+    // in hardware drops exactly those fragments before they are rasterized.
+    primitiveState.cullMode = WGPUCullMode_Back;
+    opaqueCulledPipeline_ = create("mesh_path_opaque_culled_pipeline", false, true);
+    primitiveState.cullMode = WGPUCullMode_None;
     blendPipeline_ = create("mesh_path_blend_pipeline", !config.linearHdrOutput, config.linearHdrOutput);
     if (sunShadows_) {
         // The caster binds only its matrix, never the depth texture currently
@@ -811,8 +821,12 @@ bool MeshPath::createPipeline(const MeshPathConfig& config) {
         descriptor.fragment = &fragmentState; descriptor.primitive = primitiveState;
         descriptor.depthStencil = &depthState; descriptor.multisample = multisample;
         sunCasterPipeline_ = ::voxy::gpu::createRenderPipeline(device_,&descriptor);
+        descriptor.primitive.cullMode = WGPUCullMode_Back;
+        WGPU_SET_LABEL(descriptor,"mesh_live_sun_casters_culled");
+        sunCasterCulledPipeline_ = ::voxy::gpu::createRenderPipeline(device_,&descriptor);
     }
-    return opaquePipeline_ && blendPipeline_ && (!sunShadows_ || sunCasterPipeline_);
+    return opaquePipeline_ && opaqueCulledPipeline_ && blendPipeline_
+        && (!sunShadows_ || (sunCasterPipeline_ && sunCasterCulledPipeline_));
 }
 
 bool MeshPath::loadMesh(const std::filesystem::path& path) {
@@ -988,6 +1002,8 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
     materials.reserve(data.materials.size());
     std::vector<uint8_t> materialAlphaModes;
     materialAlphaModes.reserve(data.materials.size());
+    std::vector<uint8_t> materialDoubleSided;
+    materialDoubleSided.reserve(data.materials.size());
     for (const moto::VmeshMaterial& material : data.materials) {
         if (!validMaterial(material)) return false;
         // Byte loading proves these through readVmesh. The public parsed-data
@@ -1020,6 +1036,7 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
             textureMask);
         materials.push_back(gpuMaterial);
         materialAlphaModes.push_back(material.alphaMode);
+        materialDoubleSided.push_back(material.doubleSided);
     }
 
     GpuAsset pending;
@@ -1045,6 +1062,7 @@ bool MeshPath::uploadMesh(const moto::VmeshData& data) {
     pending.submeshes = std::move(submeshes);
     pending.meshBounds = std::move(meshBounds);
     pending.materialAlphaModes = std::move(materialAlphaModes);
+    pending.materialDoubleSided = std::move(materialDoubleSided);
     pending.vertexCount = data.header.vertexCount;
     pending.indexCount = data.header.indexCount;
 
@@ -1501,6 +1519,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (!asset.vertexBuffer || !asset.indexBuffer
             || asset.materials.empty()
             || asset.materialAlphaModes.size() != asset.materials.size()
+            || asset.materialDoubleSided.size() != asset.materials.size()
             || instance.meshIndex >= asset.meshBounds.size()
             || !asset.meshBounds[instance.meshIndex].valid) {
             LOG_ERROR("MeshPath::render: invalid mesh asset");
@@ -1693,7 +1712,8 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         descriptor.depthStencilAttachment = &target;
         auto pass = wgpuCommandEncoderBeginRenderPass(encoder,&descriptor);
         if (!pass) return false;
-        wgpuRenderPassEncoderSetPipeline(pass,sunCasterPipeline_);
+        WGPURenderPipeline boundCaster = sunCasterPipeline_;
+        wgpuRenderPassEncoderSetPipeline(pass,boundCaster);
         wgpuRenderPassEncoderSetBindGroup(pass,1u,bodyBinding_,0u,nullptr);
         uint32_t boundShadowAsset = std::numeric_limits<uint32_t>::max();
         uint32_t boundShadowMaterial = std::numeric_limits<uint32_t>::max();
@@ -1713,6 +1733,13 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                     boundShadowMaterial = std::numeric_limits<uint32_t>::max();
                     wgpuRenderPassEncoderSetVertexBuffer(pass,0u,asset.vertexBuffer,0u,WGPU_WHOLE_SIZE);
                     wgpuRenderPassEncoderSetIndexBuffer(pass,asset.indexBuffer,WGPUIndexFormat_Uint32,0u,WGPU_WHOLE_SIZE);
+                }
+                // Same layout: bind groups survive the pipeline switch.
+                const auto caster = asset.materialDoubleSided[draw.materialIndex]
+                    ? sunCasterPipeline_ : sunCasterCulledPipeline_;
+                if (boundCaster != caster) {
+                    boundCaster = caster;
+                    wgpuRenderPassEncoderSetPipeline(pass,boundCaster);
                 }
                 if (boundShadowMaterial != draw.materialIndex) {
                     boundShadowMaterial = draw.materialIndex;
@@ -1767,8 +1794,9 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         const moto::VmeshSubmesh& submesh =
             asset.submeshes[draw.submeshIndex];
         WGPURenderPipeline desiredPipeline =
-            draw.alphaMode == moto::VmeshAlphaBlend
-                ? blendPipeline_ : opaquePipeline_;
+            draw.alphaMode == moto::VmeshAlphaBlend ? blendPipeline_
+            : asset.materialDoubleSided[draw.materialIndex] ? opaquePipeline_
+            : opaqueCulledPipeline_;
         if (boundPipeline != desiredPipeline) {
             boundPipeline = desiredPipeline;
             wgpuRenderPassEncoderSetPipeline(pass, boundPipeline);

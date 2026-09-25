@@ -222,7 +222,7 @@ private:
     WGPUBindGroupLayout sunShadowLayout_ = nullptr, sunCasterLayout_ = nullptr;
     WGPUBindGroup sunShadowBinding_ = nullptr, sunCasterBinding_ = nullptr, farSunCasterBinding_ = nullptr;
     WGPUPipelineLayout sunCasterPipelineLayout_ = nullptr;
-    WGPURenderPipeline sunCasterPipeline_ = nullptr;
+    WGPURenderPipeline sunCasterPipeline_ = nullptr, sunCasterCulledPipeline_ = nullptr;
     bool sunShadows_ = false, farSunShadows_ = false;
     WGPUBindGroupLayout bodyLayout_ = nullptr;
     WGPUBindGroup bodyBinding_ = nullptr;
@@ -251,6 +251,7 @@ private:
         std::vector<moto::VmeshSubmesh> submeshes;
         std::vector<MeshBounds> meshBounds;
         std::vector<uint8_t> materialAlphaModes;
+        std::vector<uint8_t> materialDoubleSided;
         uint32_t vertexCount = 0;
         uint32_t indexCount = 0;
         uint32_t encodedColorDraws = 0;
@@ -267,6 +268,9 @@ private:
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPURenderPipeline opaquePipeline_ = nullptr;
+    // Single-sided opaque materials: hardware back-face culling instead of the
+    // fragment shader discarding back faces after rasterizing them.
+    WGPURenderPipeline opaqueCulledPipeline_ = nullptr;
     WGPURenderPipeline blendPipeline_ = nullptr;
     WGPUBuffer instanceBuffer_ = nullptr;
     WGPUBuffer instanceIndexBuffer_ = nullptr;

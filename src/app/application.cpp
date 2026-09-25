@@ -2561,7 +2561,6 @@ void Application::render() {
     }
 
     RenderFrameGuard frameGuard;
-    frameGuard.blit=blitPath_.get(); frameGuard.raycast=raycastPath_.get();
     const bool retiredBoat=salvageLocalSession_ && salvageLocalSession_->asset
         && salvageLocalSession_->asset->boat
         && salvageLocalSession_->asset->leaving && salvageLocalSession_->asset->boatRoots->allRetired()
@@ -2601,6 +2600,10 @@ void Application::render() {
         return;
     }
     frameGuard.encoder=encoder;
+    // Arm the cache rollbacks only once encoding starts. A frame deferred for
+    // physics admission (or without a surface) encoded nothing, and rolling
+    // back would discard the valid terrain, sky and background caches.
+    frameGuard.blit=blitPath_.get(); frameGuard.raycast=raycastPath_.get();
     if (salvageLocalSession_ && salvageLocalSession_->asset)
         frameGuard.fixture = &salvageLocalSession_->asset->fixture;
 
