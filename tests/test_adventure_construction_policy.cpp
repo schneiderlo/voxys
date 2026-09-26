@@ -1,6 +1,10 @@
 #include "game/adventure/construction_policy.hpp"
 #include "game/adventure/adventure_player.hpp"
 #include <gtest/gtest.h>
+#include <algorithm>
+#include <array>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 using namespace voxy::game::adventure;
@@ -20,7 +24,147 @@ struct Fixture {
     }
     bool publish() {std::vector<AdventureSpatialQueries::Solid> solids;std::string error;return compileSolids(state,solids,error)&&queries.publish(solids,queries.revision()+1);}
 };
+
+void expectConstructionResultWithoutMutation(
+    const AdventureState& before, const AdventureState& after,
+    const AdventureSpatialQueries& queries, bool expected,
+    std::string_view expectedError) {
+    const auto originalBefore = before;
+    const auto originalAfter = after;
+    const auto originalGeometryRevision = queries.revision();
+    for (const bool freeBuild : {false, true}) {
+        SCOPED_TRACE(freeBuild);
+        std::string error = "previous diagnostic";
+        EXPECT_EQ(validateConstruction(before, after, queries, error, freeBuild), expected);
+        EXPECT_EQ(error, expectedError);
+        EXPECT_TRUE(before == originalBefore);
+        EXPECT_TRUE(after == originalAfter);
+        EXPECT_EQ(queries.revision(), originalGeometryRevision);
+    }
 }
+}
+
+TEST(AdventureConstructionPolicy, DuplicateBeforeIdsUseTheFirstMatchingPart) {
+    Fixture f;
+    f.add(PieceKind::Foundation, 0, 0, -20);
+    f.state.structures[0].parts[0].id = 20;
+    const auto after = f.state;
+    auto before = after;
+    auto duplicate = before.structures[0].parts.front();
+    duplicate.position.x += 50;
+    before.structures[0].parts.push_back(duplicate);
+
+    // Before-state is not re-admitted: equal IDs retain their original first
+    // match. The unchanged distant foundation is allowed, while moving it is not.
+    expectConstructionResultWithoutMutation(before, after, f.queries, true, "");
+    std::swap(before.structures[0].parts[0], before.structures[0].parts[1]);
+    expectConstructionResultWithoutMutation(
+        before, after, f.queries, false, "Move closer to build");
+}
+
+TEST(AdventureConstructionPolicy, DuplicateBeforeIdsRespectOriginalStructureOrder) {
+    Fixture f;
+    f.add(PieceKind::Foundation, 0, 0, -20);
+    f.state.structures[0].id = 80;
+    f.state.structures[0].parts[0].id = 20;
+    const auto after = f.state;
+    auto before = after;
+    auto duplicateStructure = before.structures.front();
+    duplicateStructure.id = 1;
+    duplicateStructure.parts[0].position.x += 50;
+    before.structures.push_back(duplicateStructure);
+
+    // Structure IDs need not be sorted. A repeated part in a later structure
+    // must not replace the earlier match, even when its structure ID is lower.
+    expectConstructionResultWithoutMutation(before, after, f.queries, true, "");
+    std::reverse(before.structures.begin(), before.structures.end());
+    expectConstructionResultWithoutMutation(
+        before, after, f.queries, false, "Move closer to build");
+}
+
+TEST(AdventureConstructionPolicy, UnchangedPartsMayHaveIndependentBeforeAndAfterOrder) {
+    Fixture f;
+    f.add(PieceKind::Foundation, -3, 0, -20);
+    f.add(PieceKind::Foundation, 0, 0, -20);
+    f.add(PieceKind::Foundation, 3, 0, -20);
+    const auto parts = f.state.structures[0].parts;
+    constexpr std::array<std::array<size_t, 3>, 4> orders{{
+        {0, 1, 2}, {2, 0, 1}, {1, 2, 0}, {2, 1, 0},
+    }};
+    for (size_t oldOrder = 0; oldOrder < orders.size(); ++oldOrder) {
+        SCOPED_TRACE(oldOrder);
+        for (size_t newOrder = 0; newOrder < orders.size(); ++newOrder) {
+            SCOPED_TRACE(newOrder);
+            auto before = f.state;
+            auto after = f.state;
+            for (size_t index = 0; index < parts.size(); ++index) {
+                before.structures[0].parts[index] = parts[orders[oldOrder][index]];
+                after.structures[0].parts[index] = parts[orders[newOrder][index]];
+            }
+            // Neither an unchanged part nor its mere reordering is an edit
+            // that requires the player to be within construction/removal reach.
+            expectConstructionResultWithoutMutation(before, after, f.queries, true, "");
+        }
+    }
+}
+
+TEST(AdventureConstructionPolicy, UnchangedStructuresMayBeReorderedWithoutMovingParts) {
+    Fixture f;
+    f.add(PieceKind::Foundation, -3, 0, -20);
+    f.add(PieceKind::Foundation, 0, 0, -20);
+    f.add(PieceKind::Foundation, 3, 0, -20);
+    const auto source = f.state.structures.front();
+    constexpr std::array<uint64_t, 3> structureIds{80, 10, 50};
+    f.state.structures.clear();
+    for (size_t index = 0; index < structureIds.size(); ++index) {
+        auto structure = source;
+        structure.id = structureIds[index];
+        structure.parts = {source.parts[index]};
+        f.state.structures.push_back(std::move(structure));
+    }
+    auto after = f.state;
+    std::rotate(after.structures.begin(), after.structures.begin() + 2,
+                after.structures.end());
+    expectConstructionResultWithoutMutation(f.state, after, f.queries, true, "");
+}
+
+TEST(AdventureConstructionPolicy, MissingBeforeIdsRemainNewPlacements) {
+    Fixture f;
+    f.add(PieceKind::Foundation, -3, 0, -20);
+    f.add(PieceKind::Foundation, 3, 0, -20);
+    f.state.structures[0].parts[0].id = 10;
+    f.state.structures[0].parts[1].id = 30;
+    for (const uint64_t addedId : {2u, 20u, 40u}) {
+        SCOPED_TRACE(addedId);
+        auto after = f.state;
+        after.structures[0].parts.push_back(
+            {addedId, PieceKind::Foundation, {0, 0, -1000}, 0, 0});
+        std::sort(after.structures[0].parts.begin(), after.structures[0].parts.end(),
+                  [](const auto& left, const auto& right) { return left.id < right.id; });
+        expectConstructionResultWithoutMutation(
+            f.state, after, f.queries, false, "Move closer to build");
+    }
+}
+
+TEST(AdventureConstructionPolicy, MissingAfterIdsRemainRemovals) {
+    Fixture f;
+    f.add(PieceKind::Foundation, -3, 0, -20);
+    f.add(PieceKind::Foundation, 0, 0, -20);
+    f.add(PieceKind::Foundation, 3, 0, -20);
+    for (const auto& removed : f.state.structures[0].parts) {
+        SCOPED_TRACE(removed.id);
+        auto after = f.state;
+        std::erase_if(after.structures[0].parts,
+                      [&](const auto& part) { return part.id == removed.id; });
+        expectConstructionResultWithoutMutation(
+            f.state, after, f.queries, false, "Move closer to remove this piece");
+    }
+    auto empty = f.state;
+    empty.structures[0].parts.clear();
+    expectConstructionResultWithoutMutation(
+        f.state, empty, f.queries, false, "Move closer to remove this piece");
+}
+
 TEST(AdventureConstructionPolicy, GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate) {
     Fixture f;const auto foundation=f.add(PieceKind::Foundation,0,0,0);f.add(PieceKind::Wall,0,.32,0);
     AdventureState empty=f.state;empty.structures.clear();std::string error;

@@ -69,6 +69,27 @@ const WorldPart* partFor(const AdventureState& state,uint64_t id) noexcept {
     for(const auto& structure:state.structures)for(const auto& part:structure.parts)if(part.id==id)return &part;
     return nullptr;
 }
+// Published parts are ordered, but this validator also accepts arbitrary input
+// order. Certify once per call and retain the original first-match fallback.
+class PartLookup {
+    const AdventureState& state_;
+    bool sorted_;
+public:
+    explicit PartLookup(const AdventureState& state):state_(state),sorted_(
+        std::all_of(state.structures.begin(),state.structures.end(),[](const auto& structure){
+            return std::is_sorted(structure.parts.begin(),structure.parts.end(),
+                [](const auto& a,const auto& b){return a.id<b.id;});
+        })) {}
+    const WorldPart* find(uint64_t id) const noexcept {
+        if(!sorted_)return partFor(state_,id);
+        for(const auto& structure:state_.structures) {
+            const auto found=std::lower_bound(structure.parts.begin(),structure.parts.end(),id,
+                [](const WorldPart& part,uint64_t value){return part.id<value;});
+            if(found!=structure.parts.end()&&found->id==id)return &*found;
+        }
+        return nullptr;
+    }
+};
 const StructureComponent* componentFor(const AdventureState& state,uint64_t id) noexcept {
     for(const auto& c:state.components)if(c.id==id)return &c;
     return nullptr;
@@ -210,8 +231,9 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
     std::map<uint64_t,std::vector<size_t>> partSolids;
     std::set<uint64_t> supported;
     for(size_t i=0;i<solids.size();++i)partSolids[solids[i].part.counter].push_back(i);
+    const PartLookup beforeParts(before),afterParts(after);
     for(const auto& structure:after.structures)for(const auto& part:structure.parts) {
-        const auto* definition=buildingDefinition(part.kind);const auto* old=partFor(before,part.id);
+        const auto* definition=buildingDefinition(part.kind);const auto* old=beforeParts.find(part.id);
         const bool moved=partMoved(old,part);
         bool terrainAnchor=false;
         for(const auto index:partSolids[part.id]) {
@@ -231,7 +253,7 @@ bool validateConstruction(const AdventureState& before,const AdventureState& aft
         }
         if(terrainAnchor)supported.insert(part.id);
     }
-    for(const auto& structure:before.structures)for(const auto& removed:structure.parts)if(!partFor(after,removed.id)) {
+    for(const auto& structure:before.structures)for(const auto& removed:structure.parts)if(!afterParts.find(removed.id)) {
         if(glm::length(metres(removed.position)-feet)>12) {error="Move closer to remove this piece";return false;}
     }
     std::map<uint64_t,std::vector<uint64_t>> neighbors;
