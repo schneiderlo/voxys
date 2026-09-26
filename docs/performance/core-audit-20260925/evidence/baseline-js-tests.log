@@ -1,0 +1,478 @@
+TAP version 13
+# Subtest: accepts active scene with bounded readback and low-rate diagnostics
+ok 1 - accepts active scene with bounded readback and low-rate diagnostics
+  ---
+  duration_ms: 0.99971
+  type: 'test'
+  ...
+# Subtest: rejects every previous recurring-work regression independently
+ok 2 - rejects every previous recurring-work regression independently
+  ---
+  duration_ms: 0.332953
+  type: 'test'
+  ...
+# Subtest: missing instrumentation cannot pass as zero work
+ok 3 - missing instrumentation cannot pass as zero work
+  ---
+  duration_ms: 0.150321
+  type: 'test'
+  ...
+# Subtest: unlabeled query sets use the labeled resolve buffer
+ok 4 - unlabeled query sets use the labeled resolve buffer
+  ---
+  duration_ms: 0.313346
+  type: 'test'
+  ...
+# Subtest: actual event bursts retain capacity while throwing
+ok 5 - actual event bursts retain capacity while throwing
+  ---
+  duration_ms: 1.516626
+  type: 'test'
+  ...
+# Subtest: fences settling after device loss are not successful GPU completions
+ok 6 - fences settling after device loss are not successful GPU completions
+  ---
+  duration_ms: 3.214593
+  type: 'test'
+  ...
+# Subtest: pass splitting preserves copy, compute and render ordering
+ok 7 - pass splitting preserves copy, compute and render ordering
+  ---
+  duration_ms: 2.996585
+  type: 'test'
+  ...
+# Subtest: diagnostic omission is explicit and limited to matching dispatches
+ok 8 - diagnostic omission is explicit and limited to matching dispatches
+  ---
+  duration_ms: 0.621382
+  type: 'test'
+  ...
+# Subtest: manifest parsing accepts only a written release manifest
+ok 9 - manifest parsing accepts only a written release manifest
+  ---
+  duration_ms: 32.385843
+  type: 'test'
+  ...
+# Subtest: LEGO-terrain experiences need no optional pack; others request theirs
+ok 10 - LEGO-terrain experiences need no optional pack; others request theirs
+  ---
+  duration_ms: 1.012724
+  type: 'test'
+  ...
+# Subtest: first visit downloads, a later visit with the same hashes reads the cache
+ok 11 - first visit downloads, a later visit with the same hashes reads the cache
+  ---
+  duration_ms: 18.66472
+  type: 'test'
+  ...
+# Subtest: a new release evicts only files whose hashes changed
+ok 12 - a new release evicts only files whose hashes changed
+  ---
+  duration_ms: 23.74941
+  type: 'test'
+  ...
+# Subtest: a damaged cached copy is downloaded again
+ok 13 - a damaged cached copy is downloaded again
+  ---
+  duration_ms: 2.325609
+  type: 'test'
+  ...
+# Subtest: failed downloads leave the pack to Emscripten
+ok 14 - failed downloads leave the pack to Emscripten
+  ---
+  duration_ms: 1.051798
+  type: 'test'
+  ...
+# Subtest: Emscripten file URLs are content-addressed when the manifest knows them
+ok 15 - Emscripten file URLs are content-addressed when the manifest knows them
+  ---
+  duration_ms: 0.840552
+  type: 'test'
+  ...
+# Subtest: uses envelope, not misleading stage sum
+ok 16 - uses envelope, not misleading stage sum
+  ---
+  duration_ms: 1.622434
+  type: 'test'
+  ...
+# Subtest: deduplicates asynchronous samples by their source frame
+ok 17 - deduplicates asynchronous samples by their source frame
+  ---
+  duration_ms: 0.316532
+  type: 'test'
+  ...
+# Subtest: does not accept zeros, missing clocks, NaN or invalid dimensions
+ok 18 - does not accept zeros, missing clocks, NaN or invalid dimensions
+  ---
+  duration_ms: 0.308467
+  type: 'test'
+  ...
+# Subtest: does not combine resized frames into a budget pass
+ok 19 - does not combine resized frames into a budget pass
+  ---
+  duration_ms: 0.247553
+  type: 'test'
+  ...
+# Subtest: p95 and p99 retain slow samples and nearest-rank boundaries
+ok 20 - p95 and p99 retain slow samples and nearest-rank boundaries
+  ---
+  duration_ms: 0.313205
+  type: 'test'
+  ...
+# Subtest: one millisecond means a measured sampled budget, not display FPS
+ok 21 - one millisecond means a measured sampled budget, not display FPS
+  ---
+  duration_ms: 0.158376
+  type: 'test'
+  ...
+# Subtest: rejects invalid targets and sample thresholds
+ok 22 - rejects invalid targets and sample thresholds
+  ---
+  duration_ms: 0.568263
+  type: 'test'
+  ...
+# Subtest: report is a copy and input packets remain unchanged
+ok 23 - report is a copy and input packets remain unchanged
+  ---
+  duration_ms: 0.124152
+  type: 'test'
+  ...
+# Subtest: measurement rejects missing runtime and malformed options
+ok 24 - measurement rejects missing runtime and malformed options
+  ---
+  duration_ms: 0.711561
+  type: 'test'
+  ...
+# Subtest: abort does not change settings or turn missing frames into success
+ok 25 - abort does not change settings or turn missing frames into success
+  ---
+  duration_ms: 3.691815
+  type: 'test'
+  ...
+# Subtest: measurement reads newly completed envelopes, excluding old samples
+ok 26 - measurement reads newly completed envelopes, excluding old samples
+  ---
+  duration_ms: 51.668388
+  type: 'test'
+  ...
+# Subtest: software architecture is recognized even when fallback is false
+ok 27 - software architecture is recognized even when fallback is false
+  ---
+  duration_ms: 25.897217
+  type: 'test'
+  ...
+# Subtest: waiting for the engine never completes the loader prematurely
+ok 28 - waiting for the engine never completes the loader prematurely
+  ---
+  duration_ms: 2.818622
+  type: 'test'
+  ...
+# Subtest: landing follows elapsed time after a five-second animation-frame gap
+ok 29 - landing follows elapsed time after a five-second animation-frame gap
+  ---
+  duration_ms: 2.941251
+  type: 'test'
+  ...
+# Subtest: a ready engine is revealed even when animation frames stop entirely
+ok 30 - a ready engine is revealed even when animation frames stop entirely
+  ---
+  duration_ms: 1.054142
+  type: 'test'
+  ...
+# Subtest: software GPU startup covers the page deadline plus rendered-frame validation
+ok 31 - software GPU startup covers the page deadline plus rendered-frame validation
+  ---
+  duration_ms: 0.963382
+  type: 'test'
+  ...
+# Subtest: hardware checks retain their existing budgets
+ok 32 - hardware checks retain their existing budgets
+  ---
+  duration_ms: 0.71615
+  type: 'test'
+  ...
+# Subtest: a global override cannot silently cut startup short
+ok 33 - a global override cannot silently cut startup short
+  ---
+  duration_ms: 1.337171
+  type: 'test'
+  ...
+# Subtest: invalid or unbounded overrides are rejected
+ok 34 - invalid or unbounded overrides are rejected
+  ---
+  duration_ms: 1.294921
+  type: 'test'
+  ...
+# Subtest: waits for cold shader compilation beyond the old two-minute deadline
+ok 35 - waits for cold shader compilation beyond the old two-minute deadline
+  ---
+  duration_ms: 2.32585
+  type: 'test'
+  ...
+# Subtest: device loss overrides an engine that reports initialized
+ok 36 - device loss overrides an engine that reports initialized
+  ---
+  duration_ms: 1.289231
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the startup wait
+ok 37 - device loss during compilation rejects the startup wait
+  ---
+  duration_ms: 1.024125
+  type: 'test'
+  ...
+# Subtest: failed initialization exits without waiting for the timeout
+ok 38 - failed initialization exits without waiting for the timeout
+  ---
+  duration_ms: 0.816437
+  type: 'test'
+  ...
+# Subtest: an engine that never finishes has a bounded startup wait
+ok 39 - an engine that never finishes has a bounded startup wait
+  ---
+  duration_ms: 0.836024
+  type: 'test'
+  ...
+# Subtest: main-route lighting defaults survive slow initialization and apply once
+ok 40 - main-route lighting defaults survive slow initialization and apply once
+  ---
+  duration_ms: 3.607407
+  type: 'test'
+  ...
+# Subtest: normal and absent descriptors use the allocation-free passthrough
+ok 41 - normal and absent descriptors use the allocation-free passthrough
+  ---
+  duration_ms: 1.928567
+  type: 'test'
+  ...
+# Subtest: render end sentinel is omitted without mutating frozen input
+ok 42 - render end sentinel is omitted without mutating frozen input
+  ---
+  duration_ms: 0.469027
+  type: 'test'
+  ...
+# Subtest: compute beginning sentinel is omitted, and a zero end remains valid
+ok 43 - compute beginning sentinel is omitted, and a zero end remains valid
+  ---
+  duration_ms: 0.190616
+  type: 'test'
+  ...
+# Subtest: two missing endpoints remain invalid input for native WebGPU validation
+ok 44 - two missing endpoints remain invalid input for native WebGPU validation
+  ---
+  duration_ms: 0.363059
+  type: 'test'
+  ...
+# Subtest: other invalid indices are not hidden or clamped
+ok 45 - other invalid indices are not hidden or clamped
+  ---
+  duration_ms: 0.355535
+  type: 'test'
+  ...
+# Subtest: installation is idempotent and scoped to one device
+ok 46 - installation is idempotent and scoped to one device
+  ---
+  duration_ms: 0.27809
+  type: 'test'
+  ...
+# Subtest: encoder descriptors, return values and multiple encoders are preserved
+ok 47 - encoder descriptors, return values and multiple encoders are preserved
+  ---
+  duration_ms: 0.370863
+  type: 'test'
+  ...
+# Subtest: production device request installs the bridge
+ok 48 - production device request installs the bridge
+  ---
+  duration_ms: 0.554447
+  type: 'test'
+  ...
+# Subtest: shared browser controls mirror framebuffer geometry without a second visual HUD
+ok 49 - shared browser controls mirror framebuffer geometry without a second visual HUD
+  ---
+  duration_ms: 86.45964
+  type: 'test'
+  ...
+# Subtest: live engine ticks leave the semantic DOM untouched until a control changes
+ok 50 - live engine ticks leave the semantic DOM untouched until a control changes
+  ---
+  duration_ms: 12.710834
+  type: 'test'
+  ...
+# Subtest: slot shortcuts follow the rendered hotbar and are removed from disabled menu peers
+ok 51 - slot shortcuts follow the rendered hotbar and are removed from disabled menu peers
+  ---
+  duration_ms: 12.978805
+  type: 'test'
+  ...
+# Subtest: shared menu peers refuse stale intents and carry accepted opaque identities
+ok 52 - shared menu peers refuse stale intents and carry accepted opaque identities
+  ---
+  duration_ms: 17.485735
+  type: 'test'
+  ...
+# Subtest: canvas Tab enters the accepted catalogue before Emscripten consumes the key
+ok 53 - canvas Tab enters the accepted catalogue before Emscripten consumes the key
+  ---
+  duration_ms: 12.787607
+  type: 'test'
+  ...
+# Subtest: opening a palette retains keyboard focus across the first-render hitbox gap
+ok 54 - opening a palette retains keyboard focus across the first-render hitbox gap
+  ---
+  duration_ms: 13.785184
+  type: 'test'
+  ...
+# Subtest: a fresher raw observation cannot consume menu focus before its queued action is accepted
+ok 55 - a fresher raw observation cannot consume menu focus before its queued action is accepted
+  ---
+  duration_ms: 10.596539
+  type: 'test'
+  ...
+# Subtest: menu focus waits for accepted controls after many unpublished engine observations
+ok 56 - menu focus waits for accepted controls after many unpublished engine observations
+  ---
+  duration_ms: 15.97523
+  type: 'test'
+  ...
+# Subtest: radial selection keeps the same focused peer when a petal moves to the centre
+ok 57 - radial selection keeps the same focused peer when a petal moves to the centre
+  ---
+  duration_ms: 15.705304
+  type: 'test'
+  ...
+# Subtest: repeated semantic actions remain separate peers when surrounding controls reorder
+ok 58 - repeated semantic actions remain separate peers when surrounding controls reorder
+  ---
+  duration_ms: 13.086396
+  type: 'test'
+  ...
+# Subtest: a replaced menu context restores published selection without selecting row zero first
+ok 59 - a replaced menu context restores published selection without selecting row zero first
+  ---
+  duration_ms: 12.650651
+  type: 'test'
+  ...
+# Subtest: shared menu keyboard focus wraps, Escape returns to canvas, and input stays owned
+ok 60 - shared menu keyboard focus wraps, Escape returns to canvas, and input stays owned
+  ---
+  duration_ms: 15.065358
+  type: 'test'
+  ...
+# Subtest: shared HUD keeps preferences, dirty-world protection, failures and cleanup
+ok 61 - shared HUD keeps preferences, dirty-world protection, failures and cleanup
+  ---
+  duration_ms: 11.006556
+  type: 'test'
+  ...
+# Subtest: gameplay announcements are not masked by persistent save status or repeated after priority updates
+ok 62 - gameplay announcements are not masked by persistent save status or repeated after priority updates
+  ---
+  duration_ms: 10.054025
+  type: 'test'
+  ...
+# Subtest: bridge rejects stale menu events and guards pending actions without blocking focus metadata
+ok 63 - bridge rejects stale menu events and guards pending actions without blocking focus metadata
+  ---
+  duration_ms: 93.245022
+  type: 'test'
+  ...
+# Subtest: bridge publishes only changed snapshots so an idle poll does not re-render
+ok 64 - bridge publishes only changed snapshots so an idle poll does not re-render
+  ---
+  duration_ms: 14.656322
+  type: 'test'
+  ...
+# Subtest: engine ticks do not publish unchanged controls, but pending completion and preferences stay current
+ok 65 - engine ticks do not publish unchanged controls, but pending completion and preferences stay current
+  ---
+  duration_ms: 13.840497
+  type: 'test'
+  ...
+# Subtest: pending input publishes the next accepted frame without idle animation work
+ok 66 - pending input publishes the next accepted frame without idle animation work
+  ---
+  duration_ms: 9.992479
+  type: 'test'
+  ...
+# Subtest: invalid runtime state fails closed; unsaved builds keep unload protection
+ok 67 - invalid runtime state fails closed; unsaved builds keep unload protection
+  ---
+  duration_ms: 10.135026
+  type: 'test'
+  ...
+# Subtest: minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+ok 68 - minimal HUD cycles real pieces, opens colour only on demand, and cleans up
+  ---
+  duration_ms: 570.910106
+  type: 'test'
+  ...
+# Subtest: swimming hints follow water state in building and explore modes
+ok 69 - swimming hints follow water state in building and explore modes
+  ---
+  duration_ms: 312.562734
+  type: 'test'
+  ...
+# Subtest: modal uses authoritative intents, traps focus, and does not block click after row focus
+ok 70 - modal uses authoritative intents, traps focus, and does not block click after row focus
+  ---
+  duration_ms: 241.460687
+  type: 'test'
+  ...
+# Subtest: motorbike button routes mount and mounted HUD replaces building controls
+ok 71 - motorbike button routes mount and mounted HUD replaces building controls
+  ---
+  duration_ms: 245.143606
+  type: 'test'
+  ...
+# Subtest: cannon mode owns firing controls and disables fire until physical collision is ready
+ok 72 - cannon mode owns firing controls and disables fire until physical collision is ready
+  ---
+  duration_ms: 449.247744
+  type: 'test'
+  ...
+# Subtest: cannon impact controls show shot and damage state without exposing manual test actions
+ok 73 - cannon impact controls show shot and damage state without exposing manual test actions
+  ---
+  duration_ms: 1509.040024
+  type: 'test'
+  ...
+# Subtest: repeated cannon refusals show feedback again without extending it on ordinary frames
+ok 74 - repeated cannon refusals show feedback again without extending it on ordinary frames
+  ---
+  duration_ms: 322.78818
+  type: 'test'
+  ...
+# Subtest: distant cannon offers explicit travel while wall inspection explains aiming controls
+ok 75 - distant cannon offers explicit travel while wall inspection explains aiming controls
+  ---
+  duration_ms: 376.662714
+  type: 'test'
+  ...
+# Subtest: catalog search retains original row intent and exposes an empty state
+ok 76 - catalog search retains original row intent and exposes an empty state
+  ---
+  duration_ms: 465.71864
+  type: 'test'
+  ...
+# Subtest: palette keyboard dismissal restores its trigger and keeps gameplay input owned
+ok 77 - palette keyboard dismissal restores its trigger and keeps gameplay input owned
+  ---
+  duration_ms: 167.864737
+  type: 'test'
+  ...
+# Subtest: quick tools dispatch existing commands and accessibility preferences reach the root
+ok 78 - quick tools dispatch existing commands and accessibility preferences reach the root
+  ---
+  duration_ms: 320.574679
+  type: 'test'
+  ...
+1..78
+# tests 78
+# suites 0
+# pass 78
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5846.818951

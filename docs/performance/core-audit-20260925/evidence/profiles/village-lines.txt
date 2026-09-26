@@ -1,0 +1,135 @@
+Total: 3.37s
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit in src/game/adventure/creative_village.cpp
+      10ms      1.06s (flat, cum) 31.39% of Total
+         .          .     99:        House{0,{1064,-1050},0},House{8,{1082,-1034},0},
+         .          .    100:        House{0,{1127,-1040},0},House{1,{1154,-1044},0},
+         .          .    101:        House{1,{1067,-1086},2},House{9,{1088,-1092},2},
+         .          .    102:        House{8,{1130,-1096},2},House{9,{1168,-1100},2},
+         .          .    103:        House{1,{1048,-1034},0},House{8,{1110,-1011},0},House{1,{1176,-1036},0}};
+         .       19ms    104:    for(const auto& h:houses)admit(building(++id,h.mesh,h.center,h.yaw,terrain,state.world));
+         .        3ms    105:    admit(building(++id,2,{1110,-1035},0,terrain,state.world));
+         .        3ms    106:    admit(building(++id,3,{1042,-1068},0,terrain,state.world));
+         .          .    107:    for(const glm::dvec2 plot:std::array{glm::dvec2(1044,-1091),glm::dvec2(1086,-1058),glm::dvec2(1146,-1024),glm::dvec2(1173,-1064)})
+         .       31ms    108:        for(double x:{-5.3,5.3})for(double z:{-3.4,3.4})admit(building(++id,4,plot+glm::dvec2(x,z),0,terrain,state.world));
+         .        1ms    109:    admit(building(++id,6,{1110,-1067},0,terrain,state.world));
+         .        5ms    110:    for(const glm::dvec2 p:std::array{glm::dvec2(1101,-1055),glm::dvec2(1126,-1060)})admit(building(++id,10,p,0,terrain,state.world));
+         .          .    111:    // Each house has planted frontage, leaving a wide clear entrance.
+         .          .    112:    for(const auto& h:houses)for(double side:{-1.,1.}) {
+         .          .    113:        const auto p=glm::dvec3(h.center.x,0,h.center.y)+rotate({side*5.7,0,-6.8},h.yaw);
+         .       39ms    114:        admit(building(++id,side<0?11:12,{p.x,p.z},h.yaw,terrain,state.world));
+         .          .    115:    }
+         .        6ms    116:    for(const glm::dvec2 p:std::array{glm::dvec2(1103,-1055),glm::dvec2(1131,-1058),glm::dvec2(1095,-1089),glm::dvec2(1164,-1105)})admit(building(++id,13,p,0,terrain,state.world));
+         .          .    117:    // Gardens frame the arrival lane without blocking the view of the commons.
+         .          .    118:    // Broken hedgerows leave the house and farm entrances open.
+         .          .    119:    for(const auto p:std::array{glm::dvec2(1190,-1100),glm::dvec2(1182,-1088),glm::dvec2(1170,-1078),
+         .          .    120:        glm::dvec2(1150,-1082),glm::dvec2(1144,-1082),glm::dvec2(1138,-1082)})
+         .       13ms    121:        admit(building(++id,11,p,0,terrain,state.world));
+         .          .    122:    for(const auto p:std::array{glm::dvec2(1190,-1103),glm::dvec2(1185,-1098),
+         .          .    123:        glm::dvec2(1181,-1092),glm::dvec2(1176,-1086),glm::dvec2(1170,-1081),
+         .          .    124:        glm::dvec2(1148,-1079),glm::dvec2(1142,-1079),glm::dvec2(1136,-1079)})
+         .       12ms    125:        admit(building(++id,12,p,0,terrain,state.world));
+         .          .    126:    for(const auto p:std::array{glm::dvec2(1193,-1087),glm::dvec2(1188,-1080)})
+         .        4ms    127:        admit(building(++id,4,p,0,terrain,state.world));
+         .          .    128:    std::set<std::pair<int,int>> tiles;
+         .          .    129:    const auto lane=[&](glm::dvec2 a,glm::dvec2 b,int halfWidth=1) {
+         .          .    130:        const auto delta=b-a;const int steps=std::max(1,int(std::ceil(glm::length(delta)/1.5)));
+         .          .    131:        const auto forward=glm::length(delta)>0?glm::normalize(delta):glm::dvec2(1,0);const glm::dvec2 side(-forward.y,forward.x);
+         .          .    132:        for(int i=0;i<=steps;++i)for(int j=-halfWidth;j<=halfWidth;++j) {
+         .          .    133:            const auto p=a+delta*(double(i)/steps)+side*double(j*2);
+         .          .    134:            tiles.emplace(int(std::round(p.x/2))*2,int(std::round(p.y/2))*2);
+         .          .    135:        }
+         .          .    136:    };
+         .        1ms    137:    lane({1194,-1114},{1180,-1090});lane({1180,-1090},{1158,-1070});
+         .        3ms    138:    lane({1042,-1076},{1080,-1072});lane({1080,-1072},{1110,-1070});lane({1110,-1070},{1160,-1070});
+         .        1ms    139:    lane({1110,-1080},{1110,-1038});
+         .          .    140:    for(const auto& h:houses) {
+         .          .    141:        const auto entry=glm::dvec3(h.center.x,0,h.center.y)+rotate({0,0,-5},h.yaw);
+         .          .    142:        if(h.center.x==1082) {
+         .          .    143:            lane({1098,-1070},{1098,-1044},0);lane({1098,-1044},{1082,-1044},0);
+         .          .    144:            lane({1082,-1044},{entry.x,entry.z},0);
+         .          .    145:        } else if(h.center.y==-1011) {
+         .          .    146:            lane({1100,-1058},{1100,-1020},0);lane({1100,-1020},{1110,-1020},0);lane({1110,-1020},{entry.x,entry.z},0);
+         .        1ms    147:        } else lane({h.center.x,-1071},{entry.x,entry.z},0);
+         .          .    148:    }
+         .        2ms    149:    lane({1042,-1076},{1042,-1072});lane({1146,-1040},{1146,-1030});
+         .        1ms    150:    lane({1158,-1070},{1178,-1070});lane({1180,-1090},{1190,-1091},0);lane({1044,-1084},{1064,-1074});
+         .        1ms    151:    for(int x=1098;x<=1122;x+=2)for(int z=-1078;z<=-1058;z+=2)tiles.emplace(x,z);
+         .          .    152:    const size_t fixedGroups=out.groups_.size();
+         .        6ms    153:    for(const auto& [x,z]:tiles) {
+         .        5ms    154:        ++id;const auto [lo,hi]=ground(terrain,{x,z},{1,1});
+         .          .    155:        if(!std::isfinite(hi)||hi-lo>1.61||lo<double(installedWorld().waterHeight)+2)continue;
+         .          .    156:        bool blocked=false;
+      10ms       21ms    157:        for(size_t gi=0;gi<fixedGroups;++gi)if(const auto& g=out.groups_[gi];overlap({x-1.,lo,z-1.},{x+1.,hi+.35,z+1.},{{},{},g.minimum,g.maximum})){blocked=true;break;}
+         .          .    158:        if(blocked)continue;
+         .          .    159:        CreativeVillageGroup group;group.id=id;group.minimum=glm::dvec3(INFINITY);group.maximum=glm::dvec3(-INFINITY);
+         .          .    160:        // Small paving pieces follow each terrace instead of discarding a
+         .          .    161:        // whole 2x2 patch whenever it straddles two terrain elevations.
+         .          .    162:        if(hi-lo<.001) {
+         .        7ms    163:            add(group,state.world,{5,0,{double(x),lo+.002,double(z)},{1,.24/.35,1}});
+         .          .    164:        } else for(double dx:{-.5,.5})for(double dz:{-.5,.5}) {
+         .          .    165:            const auto [tileLo,tileHi]=ground(terrain,{x+dx,z+dz},{.5,.5});
+         .        4ms    166:            add(group,state.world,{5,0,{x+dx,tileLo+.002,z+dz},{.5,(tileHi-tileLo+.24)/.35,.5}});
+         .          .    167:        }
+         .      865ms    168:        admit(std::move(group));
+         .          .    169:    }
+         .          .    170:    return out;
+         .        4ms    171:}
+         .          .    172:bool CreativeVillage::appendSolids(std::vector<Solid>& solids) const {
+         .          .    173:    size_t count=solids.size();for(const auto& group:groups_)count+=group.solids.size();
+         .          .    174:    if(count>AdventureSpatialQueries::maximumSolids)return false;
+         .          .    175:    for(const auto& group:groups_)solids.insert(solids.end(),group.solids.begin(),group.solids.end());
+         .          .    176:    return true;
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(glm::vec, glm::vec, int)#1}::operator() in src/game/adventure/creative_village.cpp
+       1ms        9ms (flat, cum)  0.27% of Total
+         .          .    129:    const auto lane=[&](glm::dvec2 a,glm::dvec2 b,int halfWidth=1) {
+         .          .    130:        const auto delta=b-a;const int steps=std::max(1,int(std::ceil(glm::length(delta)/1.5)));
+         .          .    131:        const auto forward=glm::length(delta)>0?glm::normalize(delta):glm::dvec2(1,0);const glm::dvec2 side(-forward.y,forward.x);
+         .          .    132:        for(int i=0;i<=steps;++i)for(int j=-halfWidth;j<=halfWidth;++j) {
+         .          .    133:            const auto p=a+delta*(double(i)/steps)+side*double(j*2);
+       1ms        9ms    134:            tiles.emplace(int(std::round(p.x/2))*2,int(std::round(p.y/2))*2);
+         .          .    135:        }
+         .          .    136:    };
+         .          .    137:    lane({1194,-1114},{1180,-1090});lane({1180,-1090},{1158,-1070});
+         .          .    138:    lane({1042,-1076},{1080,-1072});lane({1080,-1072},{1110,-1070});lane({1110,-1070},{1160,-1070});
+         .          .    139:    lane({1110,-1080},{1110,-1038});
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator() in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h
+       3ms        3ms (flat, cum) 0.089% of Total
+         .          .   2090:    _GLIBCXX20_CONSTEXPR
+         .          .   2091:    inline _Iterator
+         .          .   2092:    __find_if(_Iterator __first, _Iterator __last, _Predicate __pred)
+         .          .   2093:    {
+         .          .   2094:#pragma GCC unroll 4
+       3ms        3ms   2095:      while (__first != __last && !__pred(__first))
+         .          .   2096:	++__first;
+         .          .   2097:      return __first;
+         .          .   2098:    }
+         .          .   2099:
+         .          .   2100:  template<typename _InputIterator, typename _Predicate>
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator() in src/game/adventure/creative_village.cpp
+     214ms      998ms (flat, cum) 29.61% of Total
+         .          .     73:    CreativeVillage out;out.initialized_=true;if(!terrain.valid())return out;
+         .          .     74:    const bool continuing=previous&&previous->initialized_;
+         .          .     75:    size_t total=reserved.size();
+         .          .     76:    const auto admit=[&](CreativeVillageGroup group) {
+         .          .     77:        if(group.pieces.empty())return;
+       1ms        9ms     78:        if(continuing&&std::none_of(previous->groups_.begin(),previous->groups_.end(),[&](const auto& g){return g.id==group.id;}))return;
+     201ms      969ms     79:        for(const auto& b:reserved)if(overlap(group.minimum,group.maximum,b,.5))return;
+         .          .     80:        const auto part=creativeSceneryPartBase-1500000u-group.id;
+       5ms        5ms     81:        const auto alias=[&](uint64_t value){return value==creativeSceneryStructureId||value==part;};
+       7ms       14ms     82:        for(const auto& structure:state.structures){if(alias(structure.id))return;for(const auto& p:structure.parts)if(alias(p.id))return;}
+         .          .     83:        for(const auto& c:state.components)if(alias(c.id))return;
+         .          .     84:        if(!continuing) {
+         .          .     85:            const glm::dvec3 p(state.player.x,state.player.y,state.player.z);
+         .          .     86:            const Solid player{{},{},p-glm::dvec3(1.12,0,1.12),p+glm::dvec3(1.12,5.7,1.12)};
+         .          .     87:            // Player inside an open cottage is safe: test actual solids rather
+         .          .     88:            // than ejecting them merely for standing under its roof.
+         .          .     89:            for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,player))return;
+         .          .     90:            for(const auto& c:clearance)for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,c,.05))return;
+         .          .     91:        }
+         .          .     92:        if(total+group.solids.size()>AdventureSpatialQueries::maximumSolids)return;
+         .        1ms     93:        total+=group.solids.size();out.groups_.push_back(std::move(group));
+         .          .     94:    };
+         .          .     95:    uint16_t id=0;
+         .          .     96:    struct House {uint8_t mesh;glm::dvec2 center;uint8_t yaw;};
+         .          .     97:    // Staggered plots leave a central view corridor to the commons and tower.
+         .          .     98:    const std::array houses{

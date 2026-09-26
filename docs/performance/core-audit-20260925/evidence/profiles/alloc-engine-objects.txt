@@ -1,0 +1,40 @@
+File: baseline-runner
+Type: alloc_objects
+Active filters:
+   show=voxy::
+Showing nodes accounting for 1037678, 97.42% of 1065129 total
+Dropped 28 nodes (cum <= 5325)
+      flat  flat%   sum%        cum   cum%
+         2 0.00019% 0.00019%    1025646 96.29%  voxy::game::adventure::AdventureRuntime::update
+         0     0% 0.00019%     750209 70.43%  voxy::game::adventure::AdventureSession::finish
+         0     0% 0.00019%     708950 66.56%  voxy::game::adventure::AdventureSession::preparePlace
+        54 0.0051% 0.0053%     681122 63.95%  voxy::game::adventure::AdventureRuntime::updateTarget
+    518821 48.71% 48.71%     658971 61.87%  voxy::game::adventure::validateConstruction
+    174554 16.39% 65.10%     174554 16.39%  voxy::game::adventure::(anonymous namespace)::compileGeometry
+    129933 12.20% 77.30%     129933 12.20%  voxy::game::adventure::AdventureSession::validate
+     60502  5.68% 82.98%     128411 12.06%  voxy::game::adventure::AdventureRuntime::refreshHud
+        22 0.0021% 82.98%     124835 11.72%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+         0     0% 82.98%     120338 11.30%  voxy::game::adventure::AdventureRuntime::commit
+         0     0% 82.98%      89901  8.44%  voxy::game::adventure::AdventureRuntime::undoLastPlacement
+         0     0% 82.98%      53040  4.98%  voxy::game::adventure::AdventureRuntime::interactionLabel[abi:cxx11]
+     20027  1.88% 84.86%      51311  4.82%  voxy::game::adventure::CreativeScenery::admit
+         0     0% 84.86%      46514  4.37%  voxy::game::adventure::validateInstalledGeometry
+         0     0% 84.86%      41755  3.92%  voxy::game::adventure::AdventureSession::prepareRemove
+      6062  0.57% 85.43%      39368  3.70%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+      1573  0.15% 85.58%      29150  2.74%  voxy::game::adventure::CreativeVillage::admit
+         0     0% 85.58%      26520  2.49%  voxy::game::adventure::AdventureRuntime::combatLabel[abi:cxx11]
+     26520  2.49% 88.07%      26520  2.49%  voxy::game::adventure::TownResidents::interactable
+         0     0% 88.07%      26520  2.49%  voxy::game::adventure::TownResidents::nearestInteractable
+      9443  0.89% 88.96%      18838  1.77%  voxy::game::adventure::AdventureRuntime::refreshNavigation
+     18469  1.73% 90.69%      18469  1.73%  voxy::game::adventure::(anonymous namespace)::add
+         0     0% 90.69%      17680  1.66%  voxy::game::adventure::AdventureRuntime::nearbyDiscovery
+     17680  1.66% 92.35%      17680  1.66%  voxy::game::adventure::TrailSites::discoveryReachable
+         0     0% 92.35%      16420  1.54%  voxy::game::adventure::compileSolids (inline)
+     16410  1.54% 93.89%      16410  1.54%  voxy::game::adventure::(anonymous namespace)::quote
+     10565  0.99% 94.88%      10565  0.99%  voxy::game::adventure::AdventureRuntime::refreshHud()::{lambda(std::__cxx11::basic_string, bool, voxy::game::adventure::AdventureRuntime::MenuCommand, unsigned char)#1}::operator()
+      9214  0.87% 95.75%       9214  0.87%  voxy::game::adventure::AdventureSpatialQueries::publish
+      8987  0.84% 96.59%       8987  0.84%  voxy::game::adventure::CreativeVillage::admit()::{lambda(glm::vec, glm::vec, int)#1}::operator()
+         0     0% 96.59%       8840  0.83%  voxy::game::adventure::AdventureRuntime::nearbyRelay
+      8840  0.83% 97.42%       8840  0.83%  voxy::game::adventure::TrailSites::relayReachable
+         0     0% 97.42%       8601  0.81%  voxy::game::adventure::compileDoorSwingSolids
+         0     0% 97.42%       7200  0.68%  voxy::game::adventure::trailJournal

@@ -1,0 +1,44 @@
+diff --git a/src/physics/gpu/gpu_physics_backend.cpp b/src/physics/gpu/gpu_physics_backend.cpp
+index 3b8c5458..7443682d 100644
+--- a/src/physics/gpu/gpu_physics_backend.cpp
++++ b/src/physics/gpu/gpu_physics_backend.cpp
+@@ -4032,6 +4032,7 @@ public:
+             }
+             bool broadPhaseEncoded = true;
+             if (executeBodyPipeline && dynamicContactsEnabled) {
++                LOG_INFO("PHYSDBG broad_enter");
+                 broadPhaseEncoded = broadPhase_.encode(
+                     encoder, broadProfilingBoundary);
+             } else {
+@@ -4057,6 +4058,7 @@ public:
+                 && (!narrowPhaseEnabled
+                     || narrowPhase_.encode(
+                         encoder, narrowProfilingBoundary));
++            LOG_INFO("PHYSDBG narrow_encoded={}", narrowPhaseEncoded);
+             if (executeBodyPipeline && dynamicContactsEnabled
+                 && !narrowPhaseEncoded) {
+                 LOG_ERROR("Failed to encode a GPU broad/narrow-phase stage");
+@@ -4099,6 +4101,7 @@ public:
+             }
+             bool dynamicWorldEncoded = true;
+             if (executeBodyPipeline && narrowPhaseEncoded) {
++                LOG_INFO("PHYSDBG solver_enter");
+                 dynamicWorldEncoded = dynamicSolver_.encode(
+                     encoder, executionBodies <= kSerialWorldBodyLimit,
+                     solverProfilingBoundary);
+@@ -4116,6 +4119,7 @@ public:
+                 batchSucceeded = false;
+                 break;
+             }
++            LOG_INFO("PHYSDBG commit_enter");
+             if (executeBodyPipeline && dynamicContactsEnabled
+                 && narrowPhaseEncoded && dynamicWorldEncoded
+                 && !narrowPhase_.encodeCommitActiveManifolds(encoder)) {
+@@ -4147,6 +4151,7 @@ public:
+             }
+             writeStageTimestamp();
+ 
++            LOG_INFO("PHYSDBG islands_enter");
+             if (executeBodyPipeline && !islandManager_.encode(
+                     encoder,
+                     executionBodies <= kCompactIslandBodyLimit)) {

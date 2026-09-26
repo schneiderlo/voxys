@@ -1,0 +1,15 @@
+{
+  "begin": "53922 00:37:33.123229 write(2, \"VOXY_REPLAY_BEGIN\\n\", 18) = 18 <0.000017>",
+  "end": "53922 00:37:33.566279 write(2, \"VOXY_REPLAY_END\\n\", 16) = 16 <0.000051>",
+  "syscalls_excluding_markers": {
+    "ioctl": 60,
+    "brk": 6
+  },
+  "syscall_duration_seconds_diagnostic_only": {
+    "ioctl": 0.001159,
+    "brk": 0.000154
+  },
+  "gpu_queries": 60,
+  "file_network_data_calls": 0,
+  "unparsed_lines": []
+}

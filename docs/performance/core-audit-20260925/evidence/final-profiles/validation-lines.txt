@@ -1,0 +1,2070 @@
+Total: 2.51s
+ROUTINE ======================== voxy::game::adventure::validateConstruction in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h
+       2ms       12ms (flat, cum)  0.48% of Total
+         .          .   3228:      if (__first == __last)
+         .          .   3229:	return __last;
+         .          .   3230:
+         .          .   3231:      _ForwardIterator __next = __first;
+         .          .   3232:      for (++__next; __next != __last; __first = __next, (void)++__next)
+       2ms        2ms   3233:	if (__comp(__next, __first))
+         .          .   3234:	  return __next;
+         .          .   3235:      return __next;
+         .          .   3236:    }
+         .          .   3237:
+         .          .   3238:  /**
+         .          .   3239:   *  @brief  Determines the end of a sorted sequence.
+         .          .   3240:   *  @ingroup sorting_algorithms
+         .          .   3241:   *  @param  __first   An iterator.
+         .          .   3242:   *  @param  __last    Another iterator.
+         .          .   3243:   *  @return  An iterator pointing to the last iterator i in [__first, __last)
+         .          .   3244:   *           for which the range [__first, i) is sorted.
+         .          .   3245:  */
+         .          .   3246:  template<typename _ForwardIterator>
+         .          .   3247:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3248:    inline _ForwardIterator
+         .          .   3249:    is_sorted_until(_ForwardIterator __first, _ForwardIterator __last)
+         .          .   3250:    {
+         .          .   3251:      // concept requirements
+         .          .   3252:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3253:      __glibcxx_function_requires(_LessThanComparableConcept<
+         .          .   3254:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3255:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3256:      __glibcxx_requires_irreflexive(__first, __last);
+         .          .   3257:
+         .          .   3258:      return std::__is_sorted_until(__first, __last,
+         .          .   3259:				    __gnu_cxx::__ops::__iter_less_iter());
+         .          .   3260:    }
+         .          .   3261:
+         .          .   3262:  /**
+         .          .   3263:   *  @brief  Determines the end of a sorted sequence using comparison functor.
+         .          .   3264:   *  @ingroup sorting_algorithms
+         .          .   3265:   *  @param  __first   An iterator.
+         .          .   3266:   *  @param  __last    Another iterator.
+         .          .   3267:   *  @param  __comp    A comparison functor.
+         .          .   3268:   *  @return  An iterator pointing to the last iterator i in [__first, __last)
+         .          .   3269:   *           for which the range [__first, i) is sorted.
+         .          .   3270:  */
+         .          .   3271:  template<typename _ForwardIterator, typename _Compare>
+         .          .   3272:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3273:    inline _ForwardIterator
+         .          .   3274:    is_sorted_until(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   3275:		    _Compare __comp)
+         .          .   3276:    {
+         .          .   3277:      // concept requirements
+         .          .   3278:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3279:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   3280:	    typename iterator_traits<_ForwardIterator>::value_type,
+         .          .   3281:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3282:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3283:      __glibcxx_requires_irreflexive_pred(__first, __last, __comp);
+         .          .   3284:
+         .          .   3285:      return std::__is_sorted_until(__first, __last,
+         .          .   3286:				    __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   3287:    }
+         .          .   3288:
+         .          .   3289:  /**
+         .          .   3290:   *  @brief  Determines min and max at once as an ordered pair.
+         .          .   3291:   *  @ingroup sorting_algorithms
+         .          .   3292:   *  @param  __a  A thing of arbitrary type.
+         .          .   3293:   *  @param  __b  Another thing of arbitrary type.
+         .          .   3294:   *  @return A pair(__b, __a) if __b is smaller than __a, pair(__a,
+         .          .   3295:   *  __b) otherwise.
+         .          .   3296:  */
+         .          .   3297:  template<typename _Tp>
+         .          .   3298:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3299:    inline pair<const _Tp&, const _Tp&>
+         .          .   3300:    minmax(const _Tp& __a, const _Tp& __b)
+         .          .   3301:    {
+         .          .   3302:      // concept requirements
+         .          .   3303:      __glibcxx_function_requires(_LessThanComparableConcept<_Tp>)
+         .          .   3304:
+         .          .   3305:      return __b < __a ? pair<const _Tp&, const _Tp&>(__b, __a)
+         .          .   3306:		       : pair<const _Tp&, const _Tp&>(__a, __b);
+         .          .   3307:    }
+         .          .   3308:
+         .          .   3309:  /**
+         .          .   3310:   *  @brief  Determines min and max at once as an ordered pair.
+         .          .   3311:   *  @ingroup sorting_algorithms
+         .          .   3312:   *  @param  __a  A thing of arbitrary type.
+         .          .   3313:   *  @param  __b  Another thing of arbitrary type.
+         .          .   3314:   *  @param  __comp  A @link comparison_functors comparison functor @endlink.
+         .          .   3315:   *  @return A pair(__b, __a) if __b is smaller than __a, pair(__a,
+         .          .   3316:   *  __b) otherwise.
+         .          .   3317:  */
+         .          .   3318:  template<typename _Tp, typename _Compare>
+         .          .   3319:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3320:    inline pair<const _Tp&, const _Tp&>
+         .          .   3321:    minmax(const _Tp& __a, const _Tp& __b, _Compare __comp)
+         .          .   3322:    {
+         .          .   3323:      return __comp(__b, __a) ? pair<const _Tp&, const _Tp&>(__b, __a)
+         .          .   3324:			      : pair<const _Tp&, const _Tp&>(__a, __b);
+         .          .   3325:    }
+         .          .   3326:
+         .          .   3327:  template<typename _ForwardIterator, typename _Compare>
+         .          .   3328:    _GLIBCXX14_CONSTEXPR
+         .          .   3329:    pair<_ForwardIterator, _ForwardIterator>
+         .          .   3330:    __minmax_element(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   3331:		     _Compare __comp)
+         .          .   3332:    {
+         .          .   3333:      _ForwardIterator __next = __first;
+         .          .   3334:      if (__first == __last
+         .          .   3335:	  || ++__next == __last)
+         .          .   3336:	return std::make_pair(__first, __first);
+         .          .   3337:
+         .          .   3338:      _ForwardIterator __min{}, __max{};
+         .          .   3339:      if (__comp(__next, __first))
+         .          .   3340:	{
+         .          .   3341:	  __min = __next;
+         .          .   3342:	  __max = __first;
+         .          .   3343:	}
+         .          .   3344:      else
+         .          .   3345:	{
+         .          .   3346:	  __min = __first;
+         .          .   3347:	  __max = __next;
+         .          .   3348:	}
+         .          .   3349:
+         .          .   3350:      __first = __next;
+         .          .   3351:      ++__first;
+         .          .   3352:
+         .          .   3353:      while (__first != __last)
+         .          .   3354:	{
+         .          .   3355:	  __next = __first;
+         .          .   3356:	  if (++__next == __last)
+         .          .   3357:	    {
+         .          .   3358:	      if (__comp(__first, __min))
+         .          .   3359:		__min = __first;
+         .          .   3360:	      else if (!__comp(__first, __max))
+         .          .   3361:		__max = __first;
+         .          .   3362:	      break;
+         .          .   3363:	    }
+         .          .   3364:
+         .          .   3365:	  if (__comp(__next, __first))
+         .          .   3366:	    {
+         .          .   3367:	      if (__comp(__next, __min))
+         .          .   3368:		__min = __next;
+         .          .   3369:	      if (!__comp(__first, __max))
+         .          .   3370:		__max = __first;
+         .          .   3371:	    }
+         .          .   3372:	  else
+         .          .   3373:	    {
+         .          .   3374:	      if (__comp(__first, __min))
+         .          .   3375:		__min = __first;
+         .          .   3376:	      if (!__comp(__next, __max))
+         .          .   3377:		__max = __next;
+         .          .   3378:	    }
+         .          .   3379:
+         .          .   3380:	  __first = __next;
+         .          .   3381:	  ++__first;
+         .          .   3382:	}
+         .          .   3383:
+         .          .   3384:      return std::make_pair(__min, __max);
+         .          .   3385:    }
+         .          .   3386:
+         .          .   3387:  /**
+         .          .   3388:   *  @brief  Return a pair of iterators pointing to the minimum and maximum
+         .          .   3389:   *          elements in a range.
+         .          .   3390:   *  @ingroup sorting_algorithms
+         .          .   3391:   *  @param  __first  Start of range.
+         .          .   3392:   *  @param  __last   End of range.
+         .          .   3393:   *  @return  make_pair(m, M), where m is the first iterator i in
+         .          .   3394:   *           [__first, __last) such that no other element in the range is
+         .          .   3395:   *           smaller, and where M is the last iterator i in [__first, __last)
+         .          .   3396:   *           such that no other element in the range is larger.
+         .          .   3397:  */
+         .          .   3398:  template<typename _ForwardIterator>
+         .          .   3399:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3400:    inline pair<_ForwardIterator, _ForwardIterator>
+         .          .   3401:    minmax_element(_ForwardIterator __first, _ForwardIterator __last)
+         .          .   3402:    {
+         .          .   3403:      // concept requirements
+         .          .   3404:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3405:      __glibcxx_function_requires(_LessThanComparableConcept<
+         .          .   3406:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3407:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3408:      __glibcxx_requires_irreflexive(__first, __last);
+         .          .   3409:
+         .          .   3410:      return std::__minmax_element(__first, __last,
+         .          .   3411:				   __gnu_cxx::__ops::__iter_less_iter());
+         .          .   3412:    }
+         .          .   3413:
+         .          .   3414:  /**
+         .          .   3415:   *  @brief  Return a pair of iterators pointing to the minimum and maximum
+         .          .   3416:   *          elements in a range.
+         .          .   3417:   *  @ingroup sorting_algorithms
+         .          .   3418:   *  @param  __first  Start of range.
+         .          .   3419:   *  @param  __last   End of range.
+         .          .   3420:   *  @param  __comp   Comparison functor.
+         .          .   3421:   *  @return  make_pair(m, M), where m is the first iterator i in
+         .          .   3422:   *           [__first, __last) such that no other element in the range is
+         .          .   3423:   *           smaller, and where M is the last iterator i in [__first, __last)
+         .          .   3424:   *           such that no other element in the range is larger.
+         .          .   3425:  */
+         .          .   3426:  template<typename _ForwardIterator, typename _Compare>
+         .          .   3427:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3428:    inline pair<_ForwardIterator, _ForwardIterator>
+         .          .   3429:    minmax_element(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   3430:		   _Compare __comp)
+         .          .   3431:    {
+         .          .   3432:      // concept requirements
+         .          .   3433:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3434:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   3435:	    typename iterator_traits<_ForwardIterator>::value_type,
+         .          .   3436:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3437:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3438:      __glibcxx_requires_irreflexive_pred(__first, __last, __comp);
+         .          .   3439:
+         .          .   3440:      return std::__minmax_element(__first, __last,
+         .          .   3441:				   __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   3442:    }
+         .          .   3443:
+         .          .   3444:  template<typename _Tp>
+         .          .   3445:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3446:    inline pair<_Tp, _Tp>
+         .          .   3447:    minmax(initializer_list<_Tp> __l)
+         .          .   3448:    {
+         .          .   3449:      __glibcxx_requires_irreflexive(__l.begin(), __l.end());
+         .          .   3450:      pair<const _Tp*, const _Tp*> __p =
+         .          .   3451:	std::__minmax_element(__l.begin(), __l.end(),
+         .          .   3452:			      __gnu_cxx::__ops::__iter_less_iter());
+         .          .   3453:      return std::make_pair(*__p.first, *__p.second);
+         .          .   3454:    }
+         .          .   3455:
+         .          .   3456:  template<typename _Tp, typename _Compare>
+         .          .   3457:    _GLIBCXX_NODISCARD _GLIBCXX14_CONSTEXPR
+         .          .   3458:    inline pair<_Tp, _Tp>
+         .          .   3459:    minmax(initializer_list<_Tp> __l, _Compare __comp)
+         .          .   3460:    {
+         .          .   3461:      __glibcxx_requires_irreflexive_pred(__l.begin(), __l.end(), __comp);
+         .          .   3462:      pair<const _Tp*, const _Tp*> __p =
+         .          .   3463:	std::__minmax_element(__l.begin(), __l.end(),
+         .          .   3464:			      __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   3465:      return std::make_pair(*__p.first, *__p.second);
+         .          .   3466:    }
+         .          .   3467:
+         .          .   3468:  /**
+         .          .   3469:   *  @brief  Checks whether a permutation of the second sequence is equal
+         .          .   3470:   *          to the first sequence.
+         .          .   3471:   *  @ingroup non_mutating_algorithms
+         .          .   3472:   *  @param  __first1  Start of first range.
+         .          .   3473:   *  @param  __last1   End of first range.
+         .          .   3474:   *  @param  __first2  Start of second range.
+         .          .   3475:   *  @param  __pred    A binary predicate.
+         .          .   3476:   *  @return true if there exists a permutation of the elements in
+         .          .   3477:   *          the range [__first2, __first2 + (__last1 - __first1)),
+         .          .   3478:   *          beginning with ForwardIterator2 begin, such that
+         .          .   3479:   *          equal(__first1, __last1, __begin, __pred) returns true;
+         .          .   3480:   *          otherwise, returns false.
+         .          .   3481:  */
+         .          .   3482:  template<typename _ForwardIterator1, typename _ForwardIterator2,
+         .          .   3483:	   typename _BinaryPredicate>
+         .          .   3484:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3485:    inline bool
+         .          .   3486:    is_permutation(_ForwardIterator1 __first1, _ForwardIterator1 __last1,
+         .          .   3487:		   _ForwardIterator2 __first2, _BinaryPredicate __pred)
+         .          .   3488:    {
+         .          .   3489:      // concept requirements
+         .          .   3490:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator1>)
+         .          .   3491:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator2>)
+         .          .   3492:      __glibcxx_function_requires(_BinaryPredicateConcept<_BinaryPredicate,
+         .          .   3493:	    typename iterator_traits<_ForwardIterator1>::value_type,
+         .          .   3494:	    typename iterator_traits<_ForwardIterator2>::value_type>)
+         .          .   3495:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   3496:
+         .          .   3497:      return std::__is_permutation(__first1, __last1, __first2,
+         .          .   3498:				   __gnu_cxx::__ops::__iter_comp_iter(__pred));
+         .          .   3499:    }
+         .          .   3500:
+         .          .   3501:#if __cplusplus > 201103L
+         .          .   3502:#pragma GCC diagnostic push
+         .          .   3503:#pragma GCC diagnostic ignored "-Wc++17-extensions" // if constexpr
+         .          .   3504:  template<typename _ForwardIterator1, typename _ForwardIterator2,
+         .          .   3505:	   typename _BinaryPredicate>
+         .          .   3506:    _GLIBCXX20_CONSTEXPR
+         .          .   3507:    bool
+         .          .   3508:    __is_permutation(_ForwardIterator1 __first1, _ForwardIterator1 __last1,
+         .          .   3509:		     _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+         .          .   3510:		     _BinaryPredicate __pred)
+         .          .   3511:    {
+         .          .   3512:      using _Cat1
+         .          .   3513:	= typename iterator_traits<_ForwardIterator1>::iterator_category;
+         .          .   3514:      using _Cat2
+         .          .   3515:	= typename iterator_traits<_ForwardIterator2>::iterator_category;
+         .          .   3516:      using _It1_is_RA = is_same<_Cat1, random_access_iterator_tag>;
+         .          .   3517:      using _It2_is_RA = is_same<_Cat2, random_access_iterator_tag>;
+         .          .   3518:      constexpr bool __ra_iters = __and_<_It1_is_RA, _It2_is_RA>::value;
+         .          .   3519:      if constexpr (__ra_iters)
+         .          .   3520:	{
+         .          .   3521:	  if ((__last1 - __first1) != (__last2 - __first2))
+         .          .   3522:	    return false;
+         .          .   3523:	}
+         .          .   3524:
+         .          .   3525:      // Efficiently compare identical prefixes:  O(N) if sequences
+         .          .   3526:      // have the same elements in the same order.
+         .          .   3527:      for (; __first1 != __last1 && __first2 != __last2;
+         .          .   3528:	  ++__first1, (void)++__first2)
+         .          .   3529:	if (!__pred(__first1, __first2))
+         .          .   3530:	  break;
+         .          .   3531:
+         .          .   3532:      if constexpr (__ra_iters)
+         .          .   3533:	{
+         .          .   3534:	  if (__first1 == __last1)
+         .          .   3535:	    return true;
+         .          .   3536:	}
+         .          .   3537:      else
+         .          .   3538:	{
+         .          .   3539:	  auto __d1 = std::distance(__first1, __last1);
+         .          .   3540:	  auto __d2 = std::distance(__first2, __last2);
+         .          .   3541:	  if (__d1 == 0 && __d2 == 0)
+         .          .   3542:	    return true;
+         .          .   3543:	  if (__d1 != __d2)
+         .          .   3544:	    return false;
+         .          .   3545:	}
+         .          .   3546:
+         .          .   3547:      for (_ForwardIterator1 __scan = __first1; __scan != __last1; ++__scan)
+         .          .   3548:	{
+         .          .   3549:	  if (__scan != std::__find_if(__first1, __scan,
+         .          .   3550:			__gnu_cxx::__ops::__iter_comp_iter(__pred, __scan)))
+         .          .   3551:	    continue; // We've seen this one before.
+         .          .   3552:
+         .          .   3553:	  auto __matches = std::__count_if(__first2, __last2,
+         .          .   3554:		__gnu_cxx::__ops::__iter_comp_iter(__pred, __scan));
+         .          .   3555:	  if (0 == __matches
+         .          .   3556:	      || std::__count_if(__scan, __last1,
+         .          .   3557:			__gnu_cxx::__ops::__iter_comp_iter(__pred, __scan))
+         .          .   3558:	      != __matches)
+         .          .   3559:	    return false;
+         .          .   3560:	}
+         .          .   3561:      return true;
+         .          .   3562:    }
+         .          .   3563:#pragma GCC diagnostic pop
+         .          .   3564:
+         .          .   3565:  /**
+         .          .   3566:   *  @brief  Checks whether a permutaion of the second sequence is equal
+         .          .   3567:   *          to the first sequence.
+         .          .   3568:   *  @ingroup non_mutating_algorithms
+         .          .   3569:   *  @param  __first1  Start of first range.
+         .          .   3570:   *  @param  __last1   End of first range.
+         .          .   3571:   *  @param  __first2  Start of second range.
+         .          .   3572:   *  @param  __last2   End of first range.
+         .          .   3573:   *  @return true if there exists a permutation of the elements in the range
+         .          .   3574:   *          [__first2, __last2), beginning with ForwardIterator2 begin,
+         .          .   3575:   *          such that equal(__first1, __last1, begin) returns true;
+         .          .   3576:   *          otherwise, returns false.
+         .          .   3577:  */
+         .          .   3578:  template<typename _ForwardIterator1, typename _ForwardIterator2>
+         .          .   3579:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3580:    inline bool
+         .          .   3581:    is_permutation(_ForwardIterator1 __first1, _ForwardIterator1 __last1,
+         .          .   3582:		   _ForwardIterator2 __first2, _ForwardIterator2 __last2)
+         .          .   3583:    {
+         .          .   3584:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   3585:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   3586:
+         .          .   3587:      return
+         .          .   3588:	std::__is_permutation(__first1, __last1, __first2, __last2,
+         .          .   3589:			      __gnu_cxx::__ops::__iter_equal_to_iter());
+         .          .   3590:    }
+         .          .   3591:
+         .          .   3592:  /**
+         .          .   3593:   *  @brief  Checks whether a permutation of the second sequence is equal
+         .          .   3594:   *          to the first sequence.
+         .          .   3595:   *  @ingroup non_mutating_algorithms
+         .          .   3596:   *  @param  __first1  Start of first range.
+         .          .   3597:   *  @param  __last1   End of first range.
+         .          .   3598:   *  @param  __first2  Start of second range.
+         .          .   3599:   *  @param  __last2   End of first range.
+         .          .   3600:   *  @param  __pred    A binary predicate.
+         .          .   3601:   *  @return true if there exists a permutation of the elements in the range
+         .          .   3602:   *          [__first2, __last2), beginning with ForwardIterator2 begin,
+         .          .   3603:   *          such that equal(__first1, __last1, __begin, __pred) returns true;
+         .          .   3604:   *          otherwise, returns false.
+         .          .   3605:  */
+         .          .   3606:  template<typename _ForwardIterator1, typename _ForwardIterator2,
+         .          .   3607:	   typename _BinaryPredicate>
+         .          .   3608:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3609:    inline bool
+         .          .   3610:    is_permutation(_ForwardIterator1 __first1, _ForwardIterator1 __last1,
+         .          .   3611:		   _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+         .          .   3612:		   _BinaryPredicate __pred)
+         .          .   3613:    {
+         .          .   3614:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   3615:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   3616:
+         .          .   3617:      return std::__is_permutation(__first1, __last1, __first2, __last2,
+         .          .   3618:				   __gnu_cxx::__ops::__iter_comp_iter(__pred));
+         .          .   3619:    }
+         .          .   3620:#endif // C++14
+         .          .   3621:
+         .          .   3622:#ifdef  __glibcxx_clamp // C++ >= 17
+         .          .   3623:  /**
+         .          .   3624:   *  @brief  Returns the value clamped between lo and hi.
+         .          .   3625:   *  @ingroup sorting_algorithms
+         .          .   3626:   *  @param  __val  A value of arbitrary type.
+         .          .   3627:   *  @param  __lo   A lower limit of arbitrary type.
+         .          .   3628:   *  @param  __hi   An upper limit of arbitrary type.
+         .          .   3629:   *  @retval `__lo` if `__val < __lo`
+         .          .   3630:   *  @retval `__hi` if `__hi < __val`
+         .          .   3631:   *  @retval `__val` otherwise.
+         .          .   3632:   *  @pre `_Tp` is LessThanComparable and `(__hi < __lo)` is false.
+         .          .   3633:   */
+         .          .   3634:  template<typename _Tp>
+         .          .   3635:    [[nodiscard]] constexpr const _Tp&
+         .          .   3636:    clamp(const _Tp& __val, const _Tp& __lo, const _Tp& __hi)
+         .          .   3637:    {
+         .          .   3638:      __glibcxx_assert(!(__hi < __lo));
+         .          .   3639:      return std::min(std::max(__val, __lo), __hi);
+         .          .   3640:    }
+         .          .   3641:
+         .          .   3642:  /**
+         .          .   3643:   *  @brief  Returns the value clamped between lo and hi.
+         .          .   3644:   *  @ingroup sorting_algorithms
+         .          .   3645:   *  @param  __val   A value of arbitrary type.
+         .          .   3646:   *  @param  __lo    A lower limit of arbitrary type.
+         .          .   3647:   *  @param  __hi    An upper limit of arbitrary type.
+         .          .   3648:   *  @param  __comp  A comparison functor.
+         .          .   3649:   *  @retval `__lo` if `__comp(__val, __lo)`
+         .          .   3650:   *  @retval `__hi` if `__comp(__hi, __val)`
+         .          .   3651:   *  @retval `__val` otherwise.
+         .          .   3652:   *  @pre `__comp(__hi, __lo)` is false.
+         .          .   3653:   */
+         .          .   3654:  template<typename _Tp, typename _Compare>
+         .          .   3655:    [[nodiscard]] constexpr const _Tp&
+         .          .   3656:    clamp(const _Tp& __val, const _Tp& __lo, const _Tp& __hi, _Compare __comp)
+         .          .   3657:    {
+         .          .   3658:      __glibcxx_assert(!__comp(__hi, __lo));
+         .          .   3659:      return std::min(std::max(__val, __lo, __comp), __hi, __comp);
+         .          .   3660:    }
+         .          .   3661:#endif // __glibcxx_clamp
+         .          .   3662:
+         .          .   3663:  /**
+         .          .   3664:   *  @brief Generate two uniformly distributed integers using a
+         .          .   3665:   *         single distribution invocation.
+         .          .   3666:   *  @param  __b0    The upper bound for the first integer.
+         .          .   3667:   *  @param  __b1    The upper bound for the second integer.
+         .          .   3668:   *  @param  __g     A UniformRandomBitGenerator.
+         .          .   3669:   *  @return  A pair (i, j) with i and j uniformly distributed
+         .          .   3670:   *           over [0, __b0) and [0, __b1), respectively.
+         .          .   3671:   *
+         .          .   3672:   *  Requires: __b0 * __b1 <= __g.max() - __g.min().
+         .          .   3673:   *
+         .          .   3674:   *  Using uniform_int_distribution with a range that is very
+         .          .   3675:   *  small relative to the range of the generator ends up wasting
+         .          .   3676:   *  potentially expensively generated randomness, since
+         .          .   3677:   *  uniform_int_distribution does not store leftover randomness
+         .          .   3678:   *  between invocations.
+         .          .   3679:   *
+         .          .   3680:   *  If we know we want two integers in ranges that are sufficiently
+         .          .   3681:   *  small, we can compose the ranges, use a single distribution
+         .          .   3682:   *  invocation, and significantly reduce the waste.
+         .          .   3683:  */
+         .          .   3684:  template<typename _IntType, typename _UniformRandomBitGenerator>
+         .          .   3685:    pair<_IntType, _IntType>
+         .          .   3686:    __gen_two_uniform_ints(_IntType __b0, _IntType __b1,
+         .          .   3687:			   _UniformRandomBitGenerator&& __g)
+         .          .   3688:    {
+         .          .   3689:      _IntType __x
+         .          .   3690:	= uniform_int_distribution<_IntType>{0, (__b0 * __b1) - 1}(__g);
+         .          .   3691:      return std::make_pair(__x / __b1, __x % __b1);
+         .          .   3692:    }
+         .          .   3693:
+         .          .   3694:  /**
+         .          .   3695:   *  @brief Shuffle the elements of a sequence using a uniform random
+         .          .   3696:   *         number generator.
+         .          .   3697:   *  @ingroup mutating_algorithms
+         .          .   3698:   *  @param  __first   A forward iterator.
+         .          .   3699:   *  @param  __last    A forward iterator.
+         .          .   3700:   *  @param  __g       A UniformRandomNumberGenerator (26.5.1.3).
+         .          .   3701:   *  @return  Nothing.
+         .          .   3702:   *
+         .          .   3703:   *  Reorders the elements in the range @p [__first,__last) using @p __g to
+         .          .   3704:   *  provide random numbers.
+         .          .   3705:  */
+         .          .   3706:  template<typename _RandomAccessIterator,
+         .          .   3707:	   typename _UniformRandomNumberGenerator>
+         .          .   3708:    void
+         .          .   3709:    shuffle(_RandomAccessIterator __first, _RandomAccessIterator __last,
+         .          .   3710:	    _UniformRandomNumberGenerator&& __g)
+         .          .   3711:    {
+         .          .   3712:      // concept requirements
+         .          .   3713:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   3714:	    _RandomAccessIterator>)
+         .          .   3715:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3716:
+         .          .   3717:      if (__first == __last)
+         .          .   3718:	return;
+         .          .   3719:
+         .          .   3720:      typedef typename iterator_traits<_RandomAccessIterator>::difference_type
+         .          .   3721:	_DistanceType;
+         .          .   3722:
+         .          .   3723:      typedef typename std::make_unsigned<_DistanceType>::type __ud_type;
+         .          .   3724:      typedef typename std::uniform_int_distribution<__ud_type> __distr_type;
+         .          .   3725:      typedef typename __distr_type::param_type __p_type;
+         .          .   3726:
+         .          .   3727:      typedef typename remove_reference<_UniformRandomNumberGenerator>::type
+         .          .   3728:	_Gen;
+         .          .   3729:      typedef typename common_type<typename _Gen::result_type, __ud_type>::type
+         .          .   3730:	__uc_type;
+         .          .   3731:
+         .          .   3732:      const __uc_type __urngrange = __g.max() - __g.min();
+         .          .   3733:      const __uc_type __urange = __uc_type(__last - __first);
+         .          .   3734:
+         .          .   3735:      if (__urngrange / __urange >= __urange)
+         .          .   3736:        // I.e. (__urngrange >= __urange * __urange) but without wrap issues.
+         .          .   3737:      {
+         .          .   3738:	_RandomAccessIterator __i = __first + 1;
+         .          .   3739:
+         .          .   3740:	// Since we know the range isn't empty, an even number of elements
+         .          .   3741:	// means an uneven number of elements /to swap/, in which case we
+         .          .   3742:	// do the first one up front:
+         .          .   3743:
+         .          .   3744:	if ((__urange % 2) == 0)
+         .          .   3745:	{
+         .          .   3746:	  __distr_type __d{0, 1};
+         .          .   3747:	  std::iter_swap(__i++, __first + __d(__g));
+         .          .   3748:	}
+         .          .   3749:
+         .          .   3750:	// Now we know that __last - __i is even, so we do the rest in pairs,
+         .          .   3751:	// using a single distribution invocation to produce swap positions
+         .          .   3752:	// for two successive elements at a time:
+         .          .   3753:
+         .          .   3754:	while (__i != __last)
+         .          .   3755:	{
+         .          .   3756:	  const __uc_type __swap_range = __uc_type(__i - __first) + 1;
+         .          .   3757:
+         .          .   3758:	  const pair<__uc_type, __uc_type> __pospos =
+         .          .   3759:	    __gen_two_uniform_ints(__swap_range, __swap_range + 1, __g);
+         .          .   3760:
+         .          .   3761:	  std::iter_swap(__i++, __first + __pospos.first);
+         .          .   3762:	  std::iter_swap(__i++, __first + __pospos.second);
+         .          .   3763:	}
+         .          .   3764:
+         .          .   3765:	return;
+         .          .   3766:      }
+         .          .   3767:
+         .          .   3768:      __distr_type __d;
+         .          .   3769:
+         .          .   3770:      for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+         .          .   3771:	std::iter_swap(__i, __first + __d(__g, __p_type(0, __i - __first)));
+         .          .   3772:    }
+         .          .   3773:#endif // C++11
+         .          .   3774:
+         .          .   3775:_GLIBCXX_BEGIN_NAMESPACE_ALGO
+         .          .   3776:
+         .          .   3777:  /**
+         .          .   3778:   *  @brief Apply a function to every element of a sequence.
+         .          .   3779:   *  @ingroup non_mutating_algorithms
+         .          .   3780:   *  @param  __first  An input iterator.
+         .          .   3781:   *  @param  __last   An input iterator.
+         .          .   3782:   *  @param  __f      A unary function object.
+         .          .   3783:   *  @return   @p __f
+         .          .   3784:   *
+         .          .   3785:   *  Applies the function object @p __f to each element in the range
+         .          .   3786:   *  @p [first,last).  @p __f must not modify the order of the sequence.
+         .          .   3787:   *  If @p __f has a return value it is ignored.
+         .          .   3788:  */
+         .          .   3789:  template<typename _InputIterator, typename _Function>
+         .          .   3790:    _GLIBCXX20_CONSTEXPR
+         .          .   3791:    _Function
+         .          .   3792:    for_each(_InputIterator __first, _InputIterator __last, _Function __f)
+         .          .   3793:    {
+         .          .   3794:      // concept requirements
+         .          .   3795:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   3796:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3797:      for (; __first != __last; ++__first)
+         .          .   3798:	__f(*__first);
+         .          .   3799:      return __f; // N.B. [alg.foreach] says std::move(f) but it's redundant.
+         .          .   3800:    }
+         .          .   3801:
+         .          .   3802:#if __cplusplus >= 201703L
+         .          .   3803:  /**
+         .          .   3804:   *  @brief Apply a function to every element of a sequence.
+         .          .   3805:   *  @ingroup non_mutating_algorithms
+         .          .   3806:   *  @param  __first  An input iterator.
+         .          .   3807:   *  @param  __n      A value convertible to an integer.
+         .          .   3808:   *  @param  __f      A unary function object.
+         .          .   3809:   *  @return   `__first+__n`
+         .          .   3810:   *
+         .          .   3811:   *  Applies the function object `__f` to each element in the range
+         .          .   3812:   *  `[first, first+n)`.  `__f` must not modify the order of the sequence.
+         .          .   3813:   *  If `__f` has a return value it is ignored.
+         .          .   3814:  */
+         .          .   3815:  template<typename _InputIterator, typename _Size, typename _Function>
+         .          .   3816:    _GLIBCXX20_CONSTEXPR
+         .          .   3817:    _InputIterator
+         .          .   3818:    for_each_n(_InputIterator __first, _Size __n, _Function __f)
+         .          .   3819:    {
+         .          .   3820:      auto __n2 = std::__size_to_integer(__n);
+         .          .   3821:      using _Cat = typename iterator_traits<_InputIterator>::iterator_category;
+         .          .   3822:      if constexpr (is_base_of_v<random_access_iterator_tag, _Cat>)
+         .          .   3823:	{
+         .          .   3824:	  if (__n2 <= 0)
+         .          .   3825:	    return __first;
+         .          .   3826:	  auto __last = __first + __n2;
+         .          .   3827:	  std::for_each(__first, __last, std::move(__f));
+         .          .   3828:	  return __last;
+         .          .   3829:	}
+         .          .   3830:      else
+         .          .   3831:	{
+         .          .   3832:	  while (__n2-->0)
+         .          .   3833:	    {
+         .          .   3834:	      __f(*__first);
+         .          .   3835:	      ++__first;
+         .          .   3836:	    }
+         .          .   3837:	  return __first;
+         .          .   3838:	}
+         .          .   3839:    }
+         .          .   3840:#endif // C++17
+         .          .   3841:
+         .          .   3842:  /**
+         .          .   3843:   *  @brief Find the first occurrence of a value in a sequence.
+         .          .   3844:   *  @ingroup non_mutating_algorithms
+         .          .   3845:   *  @param  __first  An input iterator.
+         .          .   3846:   *  @param  __last   An input iterator.
+         .          .   3847:   *  @param  __val    The value to find.
+         .          .   3848:   *  @return   The first iterator @c i in the range @p [__first,__last)
+         .          .   3849:   *  such that @c *i == @p __val, or @p __last if no such iterator exists.
+         .          .   3850:  */
+         .          .   3851:  template<typename _InputIterator, typename _Tp>
+         .          .   3852:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3853:    inline _InputIterator
+         .          .   3854:    find(_InputIterator __first, _InputIterator __last, const _Tp& __val)
+         .          .   3855:    {
+         .          .   3856:      // concept requirements
+         .          .   3857:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   3858:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   3859:		typename iterator_traits<_InputIterator>::value_type, _Tp>)
+         .          .   3860:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3861:
+         .          .   3862:#if __cpp_if_constexpr && __glibcxx_type_trait_variable_templates
+         .          .   3863:      using _ValT = typename iterator_traits<_InputIterator>::value_type;
+         .          .   3864:      if constexpr (__can_use_memchr_for_find<_ValT, _Tp>)
+         .          .   3865:	if constexpr (is_pointer_v<decltype(std::__niter_base(__first))>
+         .          .   3866:#if __glibcxx_concepts && __glibcxx_to_address
+         .          .   3867:			|| contiguous_iterator<_InputIterator>
+         .          .   3868:#endif
+         .          .   3869:		     )
+         .          .   3870:	  {
+         .          .   3871:	    // If conversion to the 1-byte value_type alters the value,
+         .          .   3872:	    // it would not be found by std::find using equality comparison.
+         .          .   3873:	    // We need to check this here, because otherwise something like
+         .          .   3874:	    // memchr("a", 'a'+256, 1) would give a false positive match.
+         .          .   3875:	    if (!(static_cast<_ValT>(__val) == __val))
+         .          .   3876:	      return __last;
+         .          .   3877:	    else if (!__is_constant_evaluated())
+         .          .   3878:	      {
+         .          .   3879:		const int __ival = static_cast<int>(__val);
+         .          .   3880:		if (auto __n = __last - __first; __n > 0)
+         .          .   3881:		  {
+         .          .   3882:#if __glibcxx_concepts && __glibcxx_to_address
+         .          .   3883:		    const void* __p0 = std::to_address(__first);
+         .          .   3884:#else
+         .          .   3885:		    const void* __p0 = std::__niter_base(__first);
+         .          .   3886:#endif
+         .          .   3887:		    if (auto __p1 = __builtin_memchr(__p0, __ival, __n))
+         .          .   3888:		      return __first + ((const char*)__p1 - (const char*)__p0);
+         .          .   3889:		  }
+         .          .   3890:		return __last;
+         .          .   3891:	      }
+         .          .   3892:	  }
+         .          .   3893:#endif
+         .          .   3894:
+         .          .   3895:      return std::__find_if(__first, __last,
+         .          .   3896:			    __gnu_cxx::__ops::__iter_equals_val(__val));
+         .          .   3897:    }
+         .          .   3898:
+         .          .   3899:  /**
+         .          .   3900:   *  @brief Find the first element in a sequence for which a
+         .          .   3901:   *         predicate is true.
+         .          .   3902:   *  @ingroup non_mutating_algorithms
+         .          .   3903:   *  @param  __first  An input iterator.
+         .          .   3904:   *  @param  __last   An input iterator.
+         .          .   3905:   *  @param  __pred   A predicate.
+         .          .   3906:   *  @return   The first iterator @c i in the range @p [__first,__last)
+         .          .   3907:   *  such that @p __pred(*i) is true, or @p __last if no such iterator exists.
+         .          .   3908:  */
+         .          .   3909:  template<typename _InputIterator, typename _Predicate>
+         .          .   3910:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3911:    inline _InputIterator
+         .          .   3912:    find_if(_InputIterator __first, _InputIterator __last,
+         .          .   3913:	    _Predicate __pred)
+         .          .   3914:    {
+         .          .   3915:      // concept requirements
+         .          .   3916:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   3917:      __glibcxx_function_requires(_UnaryPredicateConcept<_Predicate,
+         .          .   3918:	      typename iterator_traits<_InputIterator>::value_type>)
+         .          .   3919:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   3920:
+         .          .   3921:      return std::__find_if(__first, __last,
+         .          .   3922:			    __gnu_cxx::__ops::__pred_iter(__pred));
+         .          .   3923:    }
+         .          .   3924:
+         .          .   3925:  /**
+         .          .   3926:   *  @brief  Find element from a set in a sequence.
+         .          .   3927:   *  @ingroup non_mutating_algorithms
+         .          .   3928:   *  @param  __first1  Start of range to search.
+         .          .   3929:   *  @param  __last1   End of range to search.
+         .          .   3930:   *  @param  __first2  Start of match candidates.
+         .          .   3931:   *  @param  __last2   End of match candidates.
+         .          .   3932:   *  @return   The first iterator @c i in the range
+         .          .   3933:   *  @p [__first1,__last1) such that @c *i == @p *(i2) such that i2 is an
+         .          .   3934:   *  iterator in [__first2,__last2), or @p __last1 if no such iterator exists.
+         .          .   3935:   *
+         .          .   3936:   *  Searches the range @p [__first1,__last1) for an element that is
+         .          .   3937:   *  equal to some element in the range [__first2,__last2).  If
+         .          .   3938:   *  found, returns an iterator in the range [__first1,__last1),
+         .          .   3939:   *  otherwise returns @p __last1.
+         .          .   3940:  */
+         .          .   3941:  template<typename _InputIterator, typename _ForwardIterator>
+         .          .   3942:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3943:    _InputIterator
+         .          .   3944:    find_first_of(_InputIterator __first1, _InputIterator __last1,
+         .          .   3945:		  _ForwardIterator __first2, _ForwardIterator __last2)
+         .          .   3946:    {
+         .          .   3947:      // concept requirements
+         .          .   3948:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   3949:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3950:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   3951:	    typename iterator_traits<_InputIterator>::value_type,
+         .          .   3952:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3953:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   3954:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   3955:
+         .          .   3956:      for (; __first1 != __last1; ++__first1)
+         .          .   3957:	for (_ForwardIterator __iter = __first2; __iter != __last2; ++__iter)
+         .          .   3958:	  if (*__first1 == *__iter)
+         .          .   3959:	    return __first1;
+         .          .   3960:      return __last1;
+         .          .   3961:    }
+         .          .   3962:
+         .          .   3963:  /**
+         .          .   3964:   *  @brief  Find element from a set in a sequence using a predicate.
+         .          .   3965:   *  @ingroup non_mutating_algorithms
+         .          .   3966:   *  @param  __first1  Start of range to search.
+         .          .   3967:   *  @param  __last1   End of range to search.
+         .          .   3968:   *  @param  __first2  Start of match candidates.
+         .          .   3969:   *  @param  __last2   End of match candidates.
+         .          .   3970:   *  @param  __comp    Predicate to use.
+         .          .   3971:   *  @return   The first iterator @c i in the range
+         .          .   3972:   *  @p [__first1,__last1) such that @c comp(*i, @p *(i2)) is true
+         .          .   3973:   *  and i2 is an iterator in [__first2,__last2), or @p __last1 if no
+         .          .   3974:   *  such iterator exists.
+         .          .   3975:   *
+         .          .   3976:
+         .          .   3977:   *  Searches the range @p [__first1,__last1) for an element that is
+         .          .   3978:   *  equal to some element in the range [__first2,__last2).  If
+         .          .   3979:   *  found, returns an iterator in the range [__first1,__last1),
+         .          .   3980:   *  otherwise returns @p __last1.
+         .          .   3981:  */
+         .          .   3982:  template<typename _InputIterator, typename _ForwardIterator,
+         .          .   3983:	   typename _BinaryPredicate>
+         .          .   3984:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   3985:    _InputIterator
+         .          .   3986:    find_first_of(_InputIterator __first1, _InputIterator __last1,
+         .          .   3987:		  _ForwardIterator __first2, _ForwardIterator __last2,
+         .          .   3988:		  _BinaryPredicate __comp)
+         .          .   3989:    {
+         .          .   3990:      // concept requirements
+         .          .   3991:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   3992:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   3993:      __glibcxx_function_requires(_BinaryPredicateConcept<_BinaryPredicate,
+         .          .   3994:	    typename iterator_traits<_InputIterator>::value_type,
+         .          .   3995:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   3996:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   3997:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   3998:
+         .          .   3999:      for (; __first1 != __last1; ++__first1)
+         .          .   4000:	for (_ForwardIterator __iter = __first2; __iter != __last2; ++__iter)
+         .          .   4001:	  if (__comp(*__first1, *__iter))
+         .          .   4002:	    return __first1;
+         .          .   4003:      return __last1;
+         .          .   4004:    }
+         .          .   4005:
+         .          .   4006:  /**
+         .          .   4007:   *  @brief Find two adjacent values in a sequence that are equal.
+         .          .   4008:   *  @ingroup non_mutating_algorithms
+         .          .   4009:   *  @param  __first  A forward iterator.
+         .          .   4010:   *  @param  __last   A forward iterator.
+         .          .   4011:   *  @return   The first iterator @c i such that @c i and @c i+1 are both
+         .          .   4012:   *  valid iterators in @p [__first,__last) and such that @c *i == @c *(i+1),
+         .          .   4013:   *  or @p __last if no such iterator exists.
+         .          .   4014:  */
+         .          .   4015:  template<typename _ForwardIterator>
+         .          .   4016:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4017:    inline _ForwardIterator
+         .          .   4018:    adjacent_find(_ForwardIterator __first, _ForwardIterator __last)
+         .          .   4019:    {
+         .          .   4020:      // concept requirements
+         .          .   4021:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   4022:      __glibcxx_function_requires(_EqualityComparableConcept<
+         .          .   4023:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4024:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4025:
+         .          .   4026:      return std::__adjacent_find(__first, __last,
+         .          .   4027:				  __gnu_cxx::__ops::__iter_equal_to_iter());
+         .          .   4028:    }
+         .          .   4029:
+         .          .   4030:  /**
+         .          .   4031:   *  @brief Find two adjacent values in a sequence using a predicate.
+         .          .   4032:   *  @ingroup non_mutating_algorithms
+         .          .   4033:   *  @param  __first         A forward iterator.
+         .          .   4034:   *  @param  __last          A forward iterator.
+         .          .   4035:   *  @param  __binary_pred   A binary predicate.
+         .          .   4036:   *  @return   The first iterator @c i such that @c i and @c i+1 are both
+         .          .   4037:   *  valid iterators in @p [__first,__last) and such that
+         .          .   4038:   *  @p __binary_pred(*i,*(i+1)) is true, or @p __last if no such iterator
+         .          .   4039:   *  exists.
+         .          .   4040:  */
+         .          .   4041:  template<typename _ForwardIterator, typename _BinaryPredicate>
+         .          .   4042:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4043:    inline _ForwardIterator
+         .          .   4044:    adjacent_find(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4045:		  _BinaryPredicate __binary_pred)
+         .          .   4046:    {
+         .          .   4047:      // concept requirements
+         .          .   4048:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   4049:      __glibcxx_function_requires(_BinaryPredicateConcept<_BinaryPredicate,
+         .          .   4050:	    typename iterator_traits<_ForwardIterator>::value_type,
+         .          .   4051:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4052:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4053:
+         .          .   4054:      return std::__adjacent_find(__first, __last,
+         .          .   4055:			__gnu_cxx::__ops::__iter_comp_iter(__binary_pred));
+         .          .   4056:    }
+         .          .   4057:
+         .          .   4058:  /**
+         .          .   4059:   *  @brief Count the number of copies of a value in a sequence.
+         .          .   4060:   *  @ingroup non_mutating_algorithms
+         .          .   4061:   *  @param  __first  An input iterator.
+         .          .   4062:   *  @param  __last   An input iterator.
+         .          .   4063:   *  @param  __value  The value to be counted.
+         .          .   4064:   *  @return   The number of iterators @c i in the range @p [__first,__last)
+         .          .   4065:   *  for which @c *i == @p __value
+         .          .   4066:  */
+         .          .   4067:  template<typename _InputIterator, typename _Tp>
+         .          .   4068:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4069:    inline typename iterator_traits<_InputIterator>::difference_type
+         .          .   4070:    count(_InputIterator __first, _InputIterator __last, const _Tp& __value)
+         .          .   4071:    {
+         .          .   4072:      // concept requirements
+         .          .   4073:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   4074:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   4075:	    typename iterator_traits<_InputIterator>::value_type, _Tp>)
+         .          .   4076:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4077:
+         .          .   4078:      return std::__count_if(__first, __last,
+         .          .   4079:			     __gnu_cxx::__ops::__iter_equals_val(__value));
+         .          .   4080:    }
+         .          .   4081:
+         .          .   4082:  /**
+         .          .   4083:   *  @brief Count the elements of a sequence for which a predicate is true.
+         .          .   4084:   *  @ingroup non_mutating_algorithms
+         .          .   4085:   *  @param  __first  An input iterator.
+         .          .   4086:   *  @param  __last   An input iterator.
+         .          .   4087:   *  @param  __pred   A predicate.
+         .          .   4088:   *  @return   The number of iterators @c i in the range @p [__first,__last)
+         .          .   4089:   *  for which @p __pred(*i) is true.
+         .          .   4090:  */
+         .          .   4091:  template<typename _InputIterator, typename _Predicate>
+         .          .   4092:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4093:    inline typename iterator_traits<_InputIterator>::difference_type
+         .          .   4094:    count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
+         .          .   4095:    {
+         .          .   4096:      // concept requirements
+         .          .   4097:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   4098:      __glibcxx_function_requires(_UnaryPredicateConcept<_Predicate,
+         .          .   4099:	    typename iterator_traits<_InputIterator>::value_type>)
+         .          .   4100:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4101:
+         .          .   4102:      return std::__count_if(__first, __last,
+         .          .   4103:			     __gnu_cxx::__ops::__pred_iter(__pred));
+         .          .   4104:    }
+         .          .   4105:
+         .          .   4106:  /**
+         .          .   4107:   *  @brief Search a sequence for a matching sub-sequence.
+         .          .   4108:   *  @ingroup non_mutating_algorithms
+         .          .   4109:   *  @param  __first1  A forward iterator.
+         .          .   4110:   *  @param  __last1   A forward iterator.
+         .          .   4111:   *  @param  __first2  A forward iterator.
+         .          .   4112:   *  @param  __last2   A forward iterator.
+         .          .   4113:   *  @return The first iterator @c i in the range @p
+         .          .   4114:   *  [__first1,__last1-(__last2-__first2)) such that @c *(i+N) == @p
+         .          .   4115:   *  *(__first2+N) for each @c N in the range @p
+         .          .   4116:   *  [0,__last2-__first2), or @p __last1 if no such iterator exists.
+         .          .   4117:   *
+         .          .   4118:   *  Searches the range @p [__first1,__last1) for a sub-sequence that
+         .          .   4119:   *  compares equal value-by-value with the sequence given by @p
+         .          .   4120:   *  [__first2,__last2) and returns an iterator to the first element
+         .          .   4121:   *  of the sub-sequence, or @p __last1 if the sub-sequence is not
+         .          .   4122:   *  found.
+         .          .   4123:   *
+         .          .   4124:   *  Because the sub-sequence must lie completely within the range @p
+         .          .   4125:   *  [__first1,__last1) it must start at a position less than @p
+         .          .   4126:   *  __last1-(__last2-__first2) where @p __last2-__first2 is the
+         .          .   4127:   *  length of the sub-sequence.
+         .          .   4128:   *
+         .          .   4129:   *  This means that the returned iterator @c i will be in the range
+         .          .   4130:   *  @p [__first1,__last1-(__last2-__first2))
+         .          .   4131:  */
+         .          .   4132:  template<typename _ForwardIterator1, typename _ForwardIterator2>
+         .          .   4133:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4134:    inline _ForwardIterator1
+         .          .   4135:    search(_ForwardIterator1 __first1, _ForwardIterator1 __last1,
+         .          .   4136:	   _ForwardIterator2 __first2, _ForwardIterator2 __last2)
+         .          .   4137:    {
+         .          .   4138:      // concept requirements
+         .          .   4139:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator1>)
+         .          .   4140:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator2>)
+         .          .   4141:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   4142:	    typename iterator_traits<_ForwardIterator1>::value_type,
+         .          .   4143:	    typename iterator_traits<_ForwardIterator2>::value_type>)
+         .          .   4144:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   4145:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   4146:
+         .          .   4147:      return std::__search(__first1, __last1, __first2, __last2,
+         .          .   4148:			   __gnu_cxx::__ops::__iter_equal_to_iter());
+         .          .   4149:    }
+         .          .   4150:
+         .          .   4151:  /**
+         .          .   4152:   *  @brief Search a sequence for a number of consecutive values.
+         .          .   4153:   *  @ingroup non_mutating_algorithms
+         .          .   4154:   *  @param  __first  A forward iterator.
+         .          .   4155:   *  @param  __last   A forward iterator.
+         .          .   4156:   *  @param  __count  The number of consecutive values.
+         .          .   4157:   *  @param  __val    The value to find.
+         .          .   4158:   *  @return The first iterator @c i in the range @p
+         .          .   4159:   *  [__first,__last-__count) such that @c *(i+N) == @p __val for
+         .          .   4160:   *  each @c N in the range @p [0,__count), or @p __last if no such
+         .          .   4161:   *  iterator exists.
+         .          .   4162:   *
+         .          .   4163:   *  Searches the range @p [__first,__last) for @p count consecutive elements
+         .          .   4164:   *  equal to @p __val.
+         .          .   4165:  */
+         .          .   4166:  template<typename _ForwardIterator, typename _Integer, typename _Tp>
+         .          .   4167:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4168:    inline _ForwardIterator
+         .          .   4169:    search_n(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4170:	     _Integer __count, const _Tp& __val)
+         .          .   4171:    {
+         .          .   4172:      // concept requirements
+         .          .   4173:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   4174:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   4175:	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
+         .          .   4176:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4177:
+         .          .   4178:      return std::__search_n(__first, __last, __count,
+         .          .   4179:			     __gnu_cxx::__ops::__iter_equals_val(__val));
+         .          .   4180:    }
+         .          .   4181:
+         .          .   4182:
+         .          .   4183:  /**
+         .          .   4184:   *  @brief Search a sequence for a number of consecutive values using a
+         .          .   4185:   *         predicate.
+         .          .   4186:   *  @ingroup non_mutating_algorithms
+         .          .   4187:   *  @param  __first        A forward iterator.
+         .          .   4188:   *  @param  __last         A forward iterator.
+         .          .   4189:   *  @param  __count        The number of consecutive values.
+         .          .   4190:   *  @param  __val          The value to find.
+         .          .   4191:   *  @param  __binary_pred  A binary predicate.
+         .          .   4192:   *  @return The first iterator @c i in the range @p
+         .          .   4193:   *  [__first,__last-__count) such that @p
+         .          .   4194:   *  __binary_pred(*(i+N),__val) is true for each @c N in the range
+         .          .   4195:   *  @p [0,__count), or @p __last if no such iterator exists.
+         .          .   4196:   *
+         .          .   4197:   *  Searches the range @p [__first,__last) for @p __count
+         .          .   4198:   *  consecutive elements for which the predicate returns true.
+         .          .   4199:  */
+         .          .   4200:  template<typename _ForwardIterator, typename _Integer, typename _Tp,
+         .          .   4201:	   typename _BinaryPredicate>
+         .          .   4202:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4203:    inline _ForwardIterator
+         .          .   4204:    search_n(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4205:	     _Integer __count, const _Tp& __val,
+         .          .   4206:	     _BinaryPredicate __binary_pred)
+         .          .   4207:    {
+         .          .   4208:      // concept requirements
+         .          .   4209:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   4210:      __glibcxx_function_requires(_BinaryPredicateConcept<_BinaryPredicate,
+         .          .   4211:	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
+         .          .   4212:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4213:
+         .          .   4214:      return std::__search_n(__first, __last, __count,
+         .          .   4215:		__gnu_cxx::__ops::__iter_comp_val(__binary_pred, __val));
+         .          .   4216:    }
+         .          .   4217:
+         .          .   4218:#if __cplusplus >= 201703L
+         .          .   4219:  /** @brief Search a sequence using a Searcher object.
+         .          .   4220:   *
+         .          .   4221:   *  @param  __first        A forward iterator.
+         .          .   4222:   *  @param  __last         A forward iterator.
+         .          .   4223:   *  @param  __searcher     A callable object.
+         .          .   4224:   *  @return @p __searcher(__first,__last).first
+         .          .   4225:  */
+         .          .   4226:  template<typename _ForwardIterator, typename _Searcher>
+         .          .   4227:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   4228:    inline _ForwardIterator
+         .          .   4229:    search(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4230:	   const _Searcher& __searcher)
+         .          .   4231:    { return __searcher(__first, __last).first; }
+         .          .   4232:#endif
+         .          .   4233:
+         .          .   4234:  /**
+         .          .   4235:   *  @brief Perform an operation on a sequence.
+         .          .   4236:   *  @ingroup mutating_algorithms
+         .          .   4237:   *  @param  __first     An input iterator.
+         .          .   4238:   *  @param  __last      An input iterator.
+         .          .   4239:   *  @param  __result    An output iterator.
+         .          .   4240:   *  @param  __unary_op  A unary operator.
+         .          .   4241:   *  @return   An output iterator equal to @p __result+(__last-__first).
+         .          .   4242:   *
+         .          .   4243:   *  Applies the operator to each element in the input range and assigns
+         .          .   4244:   *  the results to successive elements of the output sequence.
+         .          .   4245:   *  Evaluates @p *(__result+N)=unary_op(*(__first+N)) for each @c N in the
+         .          .   4246:   *  range @p [0,__last-__first).
+         .          .   4247:   *
+         .          .   4248:   *  @p unary_op must not alter its argument.
+         .          .   4249:  */
+         .          .   4250:  template<typename _InputIterator, typename _OutputIterator,
+         .          .   4251:	   typename _UnaryOperation>
+         .          .   4252:    _GLIBCXX20_CONSTEXPR
+         .          .   4253:    _OutputIterator
+         .          .   4254:    transform(_InputIterator __first, _InputIterator __last,
+         .          .   4255:	      _OutputIterator __result, _UnaryOperation __unary_op)
+         .          .   4256:    {
+         .          .   4257:      // concept requirements
+         .          .   4258:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   4259:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4260:	    // "the type returned by a _UnaryOperation"
+         .          .   4261:	    __typeof__(__unary_op(*__first))>)
+         .          .   4262:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4263:
+         .          .   4264:      for (; __first != __last; ++__first, (void)++__result)
+         .          .   4265:	*__result = __unary_op(*__first);
+         .          .   4266:      return __result;
+         .          .   4267:    }
+         .          .   4268:
+         .          .   4269:  /**
+         .          .   4270:   *  @brief Perform an operation on corresponding elements of two sequences.
+         .          .   4271:   *  @ingroup mutating_algorithms
+         .          .   4272:   *  @param  __first1     An input iterator.
+         .          .   4273:   *  @param  __last1      An input iterator.
+         .          .   4274:   *  @param  __first2     An input iterator.
+         .          .   4275:   *  @param  __result     An output iterator.
+         .          .   4276:   *  @param  __binary_op  A binary operator.
+         .          .   4277:   *  @return   An output iterator equal to @p result+(last-first).
+         .          .   4278:   *
+         .          .   4279:   *  Applies the operator to the corresponding elements in the two
+         .          .   4280:   *  input ranges and assigns the results to successive elements of the
+         .          .   4281:   *  output sequence.
+         .          .   4282:   *  Evaluates @p
+         .          .   4283:   *  *(__result+N)=__binary_op(*(__first1+N),*(__first2+N)) for each
+         .          .   4284:   *  @c N in the range @p [0,__last1-__first1).
+         .          .   4285:   *
+         .          .   4286:   *  @p binary_op must not alter either of its arguments.
+         .          .   4287:  */
+         .          .   4288:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   4289:	   typename _OutputIterator, typename _BinaryOperation>
+         .          .   4290:    _GLIBCXX20_CONSTEXPR
+         .          .   4291:    _OutputIterator
+         .          .   4292:    transform(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   4293:	      _InputIterator2 __first2, _OutputIterator __result,
+         .          .   4294:	      _BinaryOperation __binary_op)
+         .          .   4295:    {
+         .          .   4296:      // concept requirements
+         .          .   4297:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   4298:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   4299:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4300:	    // "the type returned by a _BinaryOperation"
+         .          .   4301:	    __typeof__(__binary_op(*__first1,*__first2))>)
+         .          .   4302:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   4303:
+         .          .   4304:      for (; __first1 != __last1; ++__first1, (void)++__first2, ++__result)
+         .          .   4305:	*__result = __binary_op(*__first1, *__first2);
+         .          .   4306:      return __result;
+         .          .   4307:    }
+         .          .   4308:
+         .          .   4309:  /**
+         .          .   4310:   *  @brief Replace each occurrence of one value in a sequence with another
+         .          .   4311:   *         value.
+         .          .   4312:   *  @ingroup mutating_algorithms
+         .          .   4313:   *  @param  __first      A forward iterator.
+         .          .   4314:   *  @param  __last       A forward iterator.
+         .          .   4315:   *  @param  __old_value  The value to be replaced.
+         .          .   4316:   *  @param  __new_value  The replacement value.
+         .          .   4317:   *  @return   replace() returns no value.
+         .          .   4318:   *
+         .          .   4319:   *  For each iterator `i` in the range `[__first,__last)` if
+         .          .   4320:   *  `*i == __old_value` then the assignment `*i = __new_value` is performed.
+         .          .   4321:  */
+         .          .   4322:  template<typename _ForwardIterator, typename _Tp>
+         .          .   4323:    _GLIBCXX20_CONSTEXPR
+         .          .   4324:    void
+         .          .   4325:    replace(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4326:	    const _Tp& __old_value, const _Tp& __new_value)
+         .          .   4327:    {
+         .          .   4328:      // concept requirements
+         .          .   4329:      __glibcxx_function_requires(_Mutable_ForwardIteratorConcept<
+         .          .   4330:				  _ForwardIterator>)
+         .          .   4331:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   4332:	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
+         .          .   4333:      __glibcxx_function_requires(_ConvertibleConcept<_Tp,
+         .          .   4334:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4335:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4336:
+         .          .   4337:      for (; __first != __last; ++__first)
+         .          .   4338:	if (*__first == __old_value)
+         .          .   4339:	  *__first = __new_value;
+         .          .   4340:    }
+         .          .   4341:
+         .          .   4342:  /**
+         .          .   4343:   *  @brief Replace each value in a sequence for which a predicate returns
+         .          .   4344:   *         true with another value.
+         .          .   4345:   *  @ingroup mutating_algorithms
+         .          .   4346:   *  @param  __first      A forward iterator.
+         .          .   4347:   *  @param  __last       A forward iterator.
+         .          .   4348:   *  @param  __pred       A predicate.
+         .          .   4349:   *  @param  __new_value  The replacement value.
+         .          .   4350:   *  @return   replace_if() returns no value.
+         .          .   4351:   *
+         .          .   4352:   *  For each iterator `i` in the range `[__first,__last)` if `__pred(*i)`
+         .          .   4353:   *  is true then the assignment `*i = __new_value` is performed.
+         .          .   4354:  */
+         .          .   4355:  template<typename _ForwardIterator, typename _Predicate, typename _Tp>
+         .          .   4356:    _GLIBCXX20_CONSTEXPR
+         .          .   4357:    void
+         .          .   4358:    replace_if(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4359:	       _Predicate __pred, const _Tp& __new_value)
+         .          .   4360:    {
+         .          .   4361:      // concept requirements
+         .          .   4362:      __glibcxx_function_requires(_Mutable_ForwardIteratorConcept<
+         .          .   4363:				  _ForwardIterator>)
+         .          .   4364:      __glibcxx_function_requires(_ConvertibleConcept<_Tp,
+         .          .   4365:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4366:      __glibcxx_function_requires(_UnaryPredicateConcept<_Predicate,
+         .          .   4367:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4368:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4369:
+         .          .   4370:      for (; __first != __last; ++__first)
+         .          .   4371:	if (__pred(*__first))
+         .          .   4372:	  *__first = __new_value;
+         .          .   4373:    }
+         .          .   4374:
+         .          .   4375:  /**
+         .          .   4376:   *  @brief Assign the result of a function object to each value in a
+         .          .   4377:   *         sequence.
+         .          .   4378:   *  @ingroup mutating_algorithms
+         .          .   4379:   *  @param  __first  A forward iterator.
+         .          .   4380:   *  @param  __last   A forward iterator.
+         .          .   4381:   *  @param  __gen    A function object callable with no arguments.
+         .          .   4382:   *  @return   generate() returns no value.
+         .          .   4383:   *
+         .          .   4384:   *  Performs the assignment `*i = __gen()` for each `i` in the range
+         .          .   4385:   *  `[__first, __last)`.
+         .          .   4386:  */
+         .          .   4387:  template<typename _ForwardIterator, typename _Generator>
+         .          .   4388:    _GLIBCXX20_CONSTEXPR
+         .          .   4389:    void
+         .          .   4390:    generate(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4391:	     _Generator __gen)
+         .          .   4392:    {
+         .          .   4393:      // concept requirements
+         .          .   4394:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   4395:      __glibcxx_function_requires(_GeneratorConcept<_Generator,
+         .          .   4396:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4397:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4398:
+         .          .   4399:      for (; __first != __last; ++__first)
+         .          .   4400:	*__first = __gen();
+         .          .   4401:    }
+         .          .   4402:
+         .          .   4403:  /**
+         .          .   4404:   *  @brief Assign the result of a function object to each value in a
+         .          .   4405:   *         sequence.
+         .          .   4406:   *  @ingroup mutating_algorithms
+         .          .   4407:   *  @param  __first  A forward iterator.
+         .          .   4408:   *  @param  __n      The length of the sequence.
+         .          .   4409:   *  @param  __gen    A function object callable with no arguments.
+         .          .   4410:   *  @return   The end of the sequence, i.e., `__first + __n`
+         .          .   4411:   *
+         .          .   4412:   *  Performs the assignment `*i = __gen()` for each `i` in the range
+         .          .   4413:   *  `[__first, __first + __n)`.
+         .          .   4414:   *
+         .          .   4415:   * If `__n` is negative, the function does nothing and returns `__first`.
+         .          .   4416:  */
+         .          .   4417:  // _GLIBCXX_RESOLVE_LIB_DEFECTS
+         .          .   4418:  // DR 865. More algorithms that throw away information
+         .          .   4419:  // DR 426. search_n(), fill_n(), and generate_n() with negative n
+         .          .   4420:  template<typename _OutputIterator, typename _Size, typename _Generator>
+         .          .   4421:    _GLIBCXX20_CONSTEXPR
+         .          .   4422:    _OutputIterator
+         .          .   4423:    generate_n(_OutputIterator __first, _Size __n, _Generator __gen)
+         .          .   4424:    {
+         .          .   4425:      // concept requirements
+         .          .   4426:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4427:	    // "the type returned by a _Generator"
+         .          .   4428:	    __typeof__(__gen())>)
+         .          .   4429:
+         .          .   4430:      typedef __decltype(std::__size_to_integer(__n)) _IntSize;
+         .          .   4431:      for (_IntSize __niter = std::__size_to_integer(__n);
+         .          .   4432:	   __niter > 0; --__niter, (void) ++__first)
+         .          .   4433:	*__first = __gen();
+         .          .   4434:      return __first;
+         .          .   4435:    }
+         .          .   4436:
+         .          .   4437:  /**
+         .          .   4438:   *  @brief Copy a sequence, removing consecutive duplicate values.
+         .          .   4439:   *  @ingroup mutating_algorithms
+         .          .   4440:   *  @param  __first   An input iterator.
+         .          .   4441:   *  @param  __last    An input iterator.
+         .          .   4442:   *  @param  __result  An output iterator.
+         .          .   4443:   *  @return   An iterator designating the end of the resulting sequence.
+         .          .   4444:   *
+         .          .   4445:   *  Copies each element in the range `[__first, __last)` to the range
+         .          .   4446:   *  beginning at `__result`, except that only the first element is copied
+         .          .   4447:   *  from groups of consecutive elements that compare equal.
+         .          .   4448:   *  `unique_copy()` is stable, so the relative order of elements that are
+         .          .   4449:   *  copied is unchanged.
+         .          .   4450:   */
+         .          .   4451:  // _GLIBCXX_RESOLVE_LIB_DEFECTS
+         .          .   4452:  // DR 241. Does unique_copy() require CopyConstructible and Assignable?
+         .          .   4453:  // DR 538. 241 again: Does unique_copy() require CopyConstructible and
+         .          .   4454:  // Assignable?
+         .          .   4455:  template<typename _InputIterator, typename _OutputIterator>
+         .          .   4456:    _GLIBCXX20_CONSTEXPR
+         .          .   4457:    inline _OutputIterator
+         .          .   4458:    unique_copy(_InputIterator __first, _InputIterator __last,
+         .          .   4459:		_OutputIterator __result)
+         .          .   4460:    {
+         .          .   4461:      // concept requirements
+         .          .   4462:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   4463:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4464:	    typename iterator_traits<_InputIterator>::value_type>)
+         .          .   4465:      __glibcxx_function_requires(_EqualityComparableConcept<
+         .          .   4466:	    typename iterator_traits<_InputIterator>::value_type>)
+         .          .   4467:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4468:
+         .          .   4469:      if (__first == __last)
+         .          .   4470:	return __result;
+         .          .   4471:      return std::__unique_copy(__first, __last, __result,
+         .          .   4472:				__gnu_cxx::__ops::__iter_equal_to_iter(),
+         .          .   4473:				std::__iterator_category(__first),
+         .          .   4474:				std::__iterator_category(__result));
+         .          .   4475:    }
+         .          .   4476:
+         .          .   4477:  /**
+         .          .   4478:   *  @brief Copy a sequence, removing consecutive values using a predicate.
+         .          .   4479:   *  @ingroup mutating_algorithms
+         .          .   4480:   *  @param  __first        An input iterator.
+         .          .   4481:   *  @param  __last         An input iterator.
+         .          .   4482:   *  @param  __result       An output iterator.
+         .          .   4483:   *  @param  __binary_pred  A binary predicate.
+         .          .   4484:   *  @return   An iterator designating the end of the resulting sequence.
+         .          .   4485:   *
+         .          .   4486:   *  Copies each element in the range `[__first, __last)` to the range
+         .          .   4487:   *  beginning at `__result`, except that only the first element is copied
+         .          .   4488:   *  from groups of consecutive elements for which `__binary_pred` returns
+         .          .   4489:   *  true.
+         .          .   4490:   *  `unique_copy()` is stable, so the relative order of elements that are
+         .          .   4491:   *  copied is unchanged.
+         .          .   4492:   */
+         .          .   4493:  // _GLIBCXX_RESOLVE_LIB_DEFECTS
+         .          .   4494:  // DR 241. Does unique_copy() require CopyConstructible and Assignable?
+         .          .   4495:  template<typename _InputIterator, typename _OutputIterator,
+         .          .   4496:	   typename _BinaryPredicate>
+         .          .   4497:    _GLIBCXX20_CONSTEXPR
+         .          .   4498:    inline _OutputIterator
+         .          .   4499:    unique_copy(_InputIterator __first, _InputIterator __last,
+         .          .   4500:		_OutputIterator __result,
+         .          .   4501:		_BinaryPredicate __binary_pred)
+         .          .   4502:    {
+         .          .   4503:      // concept requirements -- predicates checked later
+         .          .   4504:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+         .          .   4505:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4506:	    typename iterator_traits<_InputIterator>::value_type>)
+         .          .   4507:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4508:
+         .          .   4509:      if (__first == __last)
+         .          .   4510:	return __result;
+         .          .   4511:      return std::__unique_copy(__first, __last, __result,
+         .          .   4512:			__gnu_cxx::__ops::__iter_comp_iter(__binary_pred),
+         .          .   4513:				std::__iterator_category(__first),
+         .          .   4514:				std::__iterator_category(__result));
+         .          .   4515:    }
+         .          .   4516:
+         .          .   4517:#if __cplusplus <= 201103L || _GLIBCXX_USE_DEPRECATED
+         .          .   4518:#if _GLIBCXX_HOSTED
+         .          .   4519:  /**
+         .          .   4520:   *  @brief Randomly shuffle the elements of a sequence.
+         .          .   4521:   *  @ingroup mutating_algorithms
+         .          .   4522:   *  @param  __first   A forward iterator.
+         .          .   4523:   *  @param  __last    A forward iterator.
+         .          .   4524:   *  @return  Nothing.
+         .          .   4525:   *
+         .          .   4526:   *  Reorder the elements in the range `[__first, __last)` using a random
+         .          .   4527:   *  distribution, so that every possible ordering of the sequence is
+         .          .   4528:   *  equally likely.
+         .          .   4529:   *
+         .          .   4530:   *  @deprecated
+         .          .   4531:   *  Since C++17, `std::random_shuffle` is not part of the C++ standard.
+         .          .   4532:   *  Use `std::shuffle` instead, which was introduced in C++11.
+         .          .   4533:  */
+         .          .   4534:  template<typename _RandomAccessIterator>
+         .          .   4535:    _GLIBCXX14_DEPRECATED_SUGGEST("std::shuffle")
+         .          .   4536:    inline void
+         .          .   4537:    random_shuffle(_RandomAccessIterator __first, _RandomAccessIterator __last)
+         .          .   4538:    {
+         .          .   4539:      // concept requirements
+         .          .   4540:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4541:	    _RandomAccessIterator>)
+         .          .   4542:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4543:
+         .          .   4544:      if (__first == __last)
+         .          .   4545:	return;
+         .          .   4546:
+         .          .   4547:#if RAND_MAX < __INT_MAX__
+         .          .   4548:      if (__builtin_expect((__last - __first) >= RAND_MAX / 4, 0))
+         .          .   4549:	{
+         .          .   4550:	  // Use a xorshift implementation seeded by two calls to rand()
+         .          .   4551:	  // instead of using rand() for all the random numbers needed.
+         .          .   4552:	  unsigned __xss
+         .          .   4553:	    = (unsigned)std::rand() ^ ((unsigned)std::rand() << 15);
+         .          .   4554:	  for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+         .          .   4555:	    {
+         .          .   4556:	      __xss += !__xss;
+         .          .   4557:	      __xss ^= __xss << 13;
+         .          .   4558:	      __xss ^= __xss >> 17;
+         .          .   4559:	      __xss ^= __xss << 5;
+         .          .   4560:	      _RandomAccessIterator __j = __first
+         .          .   4561:					    + (__xss % ((__i - __first) + 1));
+         .          .   4562:	      if (__i != __j)
+         .          .   4563:		std::iter_swap(__i, __j);
+         .          .   4564:	    }
+         .          .   4565:	  return;
+         .          .   4566:	}
+         .          .   4567:#endif
+         .          .   4568:
+         .          .   4569:      for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+         .          .   4570:	{
+         .          .   4571:	  // XXX rand() % N is not uniformly distributed
+         .          .   4572:	  _RandomAccessIterator __j = __first
+         .          .   4573:					+ (std::rand() % ((__i - __first) + 1));
+         .          .   4574:	  if (__i != __j)
+         .          .   4575:	    std::iter_swap(__i, __j);
+         .          .   4576:	}
+         .          .   4577:    }
+         .          .   4578:
+         .          .   4579:  /**
+         .          .   4580:   *  @brief Shuffle the elements of a sequence using a random number
+         .          .   4581:   *         generator.
+         .          .   4582:   *  @ingroup mutating_algorithms
+         .          .   4583:   *  @param  __first   A forward iterator.
+         .          .   4584:   *  @param  __last    A forward iterator.
+         .          .   4585:   *  @param  __rand    The RNG functor or function.
+         .          .   4586:   *  @return  Nothing.
+         .          .   4587:   *
+         .          .   4588:   *  Reorders the elements in the range `[__first, __last)` using `__rand`
+         .          .   4589:   *  to provide a random distribution. Calling `__rand(N)` for a positive
+         .          .   4590:   *  integer `N` should return a randomly chosen integer from the
+         .          .   4591:   *  range `[0, N)`.
+         .          .   4592:   *
+         .          .   4593:   *  @deprecated
+         .          .   4594:   *  Since C++17, `std::random_shuffle` is not part of the C++ standard.
+         .          .   4595:   *  Use `std::shuffle` instead, which was introduced in C++11.
+         .          .   4596:  */
+         .          .   4597:  template<typename _RandomAccessIterator, typename _RandomNumberGenerator>
+         .          .   4598:    _GLIBCXX14_DEPRECATED_SUGGEST("std::shuffle")
+         .          .   4599:    void
+         .          .   4600:    random_shuffle(_RandomAccessIterator __first, _RandomAccessIterator __last,
+         .          .   4601:#if __cplusplus >= 201103L
+         .          .   4602:		   _RandomNumberGenerator&& __rand)
+         .          .   4603:#else
+         .          .   4604:		   _RandomNumberGenerator& __rand)
+         .          .   4605:#endif
+         .          .   4606:    {
+         .          .   4607:      // concept requirements
+         .          .   4608:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4609:	    _RandomAccessIterator>)
+         .          .   4610:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4611:
+         .          .   4612:      if (__first == __last)
+         .          .   4613:	return;
+         .          .   4614:      for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+         .          .   4615:	{
+         .          .   4616:	  _RandomAccessIterator __j = __first + __rand((__i - __first) + 1);
+         .          .   4617:	  if (__i != __j)
+         .          .   4618:	    std::iter_swap(__i, __j);
+         .          .   4619:	}
+         .          .   4620:    }
+         .          .   4621:#endif // HOSTED
+         .          .   4622:#endif // <= C++11 || USE_DEPRECATED
+         .          .   4623:
+         .          .   4624:  /**
+         .          .   4625:   *  @brief Move elements for which a predicate is true to the beginning
+         .          .   4626:   *         of a sequence.
+         .          .   4627:   *  @ingroup mutating_algorithms
+         .          .   4628:   *  @param  __first   A forward iterator.
+         .          .   4629:   *  @param  __last    A forward iterator.
+         .          .   4630:   *  @param  __pred    A predicate functor.
+         .          .   4631:   *  @return  An iterator `middle` such that `__pred(i)` is true for each
+         .          .   4632:   *  iterator `i` in the range `[__first, middle)` and false for each `i`
+         .          .   4633:   *  in the range `[middle, __last)`.
+         .          .   4634:   *
+         .          .   4635:   *  `__pred` must not modify its operand. `partition()` does not preserve
+         .          .   4636:   *  the relative ordering of elements in each group, use
+         .          .   4637:   *  `stable_partition()` if this is needed.
+         .          .   4638:  */
+         .          .   4639:  template<typename _ForwardIterator, typename _Predicate>
+         .          .   4640:    _GLIBCXX20_CONSTEXPR
+         .          .   4641:    inline _ForwardIterator
+         .          .   4642:    partition(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   4643:	      _Predicate   __pred)
+         .          .   4644:    {
+         .          .   4645:      // concept requirements
+         .          .   4646:      __glibcxx_function_requires(_Mutable_ForwardIteratorConcept<
+         .          .   4647:				  _ForwardIterator>)
+         .          .   4648:      __glibcxx_function_requires(_UnaryPredicateConcept<_Predicate,
+         .          .   4649:	    typename iterator_traits<_ForwardIterator>::value_type>)
+         .          .   4650:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4651:
+         .          .   4652:      return std::__partition(__first, __last, __pred,
+         .          .   4653:			      std::__iterator_category(__first));
+         .          .   4654:    }
+         .          .   4655:
+         .          .   4656:
+         .          .   4657:  /**
+         .          .   4658:   *  @brief Sort the smallest elements of a sequence.
+         .          .   4659:   *  @ingroup sorting_algorithms
+         .          .   4660:   *  @param  __first   An iterator.
+         .          .   4661:   *  @param  __middle  Another iterator.
+         .          .   4662:   *  @param  __last    Another iterator.
+         .          .   4663:   *  @return  Nothing.
+         .          .   4664:   *
+         .          .   4665:   *  Sorts the smallest `(__middle - __first)` elements in the range
+         .          .   4666:   *  `[first, last)` and moves them to the range `[__first, __middle)`. The
+         .          .   4667:   *  order of the remaining elements in the range `[__middle, __last)` is
+         .          .   4668:   *  unspecified.
+         .          .   4669:   *  After the sort if `i` and `j` are iterators in the range
+         .          .   4670:   *  `[__first, __middle)` such that `i` precedes `j` and `k` is an iterator
+         .          .   4671:   *  in the range `[__middle, __last)` then `*j < *i` and `*k < *i` are
+         .          .   4672:   *  both false.
+         .          .   4673:  */
+         .          .   4674:  template<typename _RandomAccessIterator>
+         .          .   4675:    _GLIBCXX20_CONSTEXPR
+         .          .   4676:    inline void
+         .          .   4677:    partial_sort(_RandomAccessIterator __first,
+         .          .   4678:		 _RandomAccessIterator __middle,
+         .          .   4679:		 _RandomAccessIterator __last)
+         .          .   4680:    {
+         .          .   4681:      // concept requirements
+         .          .   4682:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4683:	    _RandomAccessIterator>)
+         .          .   4684:      __glibcxx_function_requires(_LessThanComparableConcept<
+         .          .   4685:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4686:      __glibcxx_requires_valid_range(__first, __middle);
+         .          .   4687:      __glibcxx_requires_valid_range(__middle, __last);
+         .          .   4688:      __glibcxx_requires_irreflexive(__first, __last);
+         .          .   4689:
+         .          .   4690:      std::__partial_sort(__first, __middle, __last,
+         .          .   4691:			  __gnu_cxx::__ops::__iter_less_iter());
+         .          .   4692:    }
+         .          .   4693:
+         .          .   4694:  /**
+         .          .   4695:   *  @brief Sort the smallest elements of a sequence using a predicate
+         .          .   4696:   *         for comparison.
+         .          .   4697:   *  @ingroup sorting_algorithms
+         .          .   4698:   *  @param  __first   An iterator.
+         .          .   4699:   *  @param  __middle  Another iterator.
+         .          .   4700:   *  @param  __last    Another iterator.
+         .          .   4701:   *  @param  __comp    A comparison functor.
+         .          .   4702:   *  @return  Nothing.
+         .          .   4703:   *
+         .          .   4704:   *  Sorts the smallest `(__middle - __first)` elements in the range
+         .          .   4705:   *  `[__first, __last)` and moves them to the range `[__first, __middle)`.
+         .          .   4706:   *  The order of the remaining elements in the range `[__middle, __last)` is
+         .          .   4707:   *  unspecified.
+         .          .   4708:   *  After the sort if `i` and `j` are iterators in the range
+         .          .   4709:   *  `[__first, __middle)` such that `i` precedes `j` and `k` is an iterator
+         .          .   4710:   *  in the range `[__middle, __last)` then `*__comp(j, *i)` and
+         .          .   4711:   *  `__comp(*k, *i)` are both false.
+         .          .   4712:  */
+         .          .   4713:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   4714:    _GLIBCXX20_CONSTEXPR
+         .          .   4715:    inline void
+         .          .   4716:    partial_sort(_RandomAccessIterator __first,
+         .          .   4717:		 _RandomAccessIterator __middle,
+         .          .   4718:		 _RandomAccessIterator __last,
+         .          .   4719:		 _Compare __comp)
+         .          .   4720:    {
+         .          .   4721:      // concept requirements
+         .          .   4722:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4723:	    _RandomAccessIterator>)
+         .          .   4724:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   4725:	    typename iterator_traits<_RandomAccessIterator>::value_type,
+         .          .   4726:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4727:      __glibcxx_requires_valid_range(__first, __middle);
+         .          .   4728:      __glibcxx_requires_valid_range(__middle, __last);
+         .          .   4729:      __glibcxx_requires_irreflexive_pred(__first, __last, __comp);
+         .          .   4730:
+         .          .   4731:      std::__partial_sort(__first, __middle, __last,
+         .          .   4732:			  __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   4733:    }
+         .          .   4734:
+         .          .   4735:  /**
+         .          .   4736:   *  @brief Sort a sequence just enough to find a particular position.
+         .          .   4737:   *  @ingroup sorting_algorithms
+         .          .   4738:   *  @param  __first   An iterator.
+         .          .   4739:   *  @param  __nth     Another iterator.
+         .          .   4740:   *  @param  __last    Another iterator.
+         .          .   4741:   *  @return  Nothing.
+         .          .   4742:   *
+         .          .   4743:   *  Rearranges the elements in the range `[__first, __last)` so that `*__nth`
+         .          .   4744:   *  is the same element that would have been in that position had the
+         .          .   4745:   *  whole sequence been sorted. The elements either side of `*__nth` are
+         .          .   4746:   *  not completely sorted, but for any iterator `i` in the range
+         .          .   4747:   *  `[__first, __nth)` and any iterator `j` in the range `[__nth, __last)` it
+         .          .   4748:   *  holds that `*j < *i` is false.
+         .          .   4749:  */
+         .          .   4750:  template<typename _RandomAccessIterator>
+         .          .   4751:    _GLIBCXX20_CONSTEXPR
+         .          .   4752:    inline void
+         .          .   4753:    nth_element(_RandomAccessIterator __first, _RandomAccessIterator __nth,
+         .          .   4754:		_RandomAccessIterator __last)
+         .          .   4755:    {
+         .          .   4756:      // concept requirements
+         .          .   4757:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4758:				  _RandomAccessIterator>)
+         .          .   4759:      __glibcxx_function_requires(_LessThanComparableConcept<
+         .          .   4760:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4761:      __glibcxx_requires_valid_range(__first, __nth);
+         .          .   4762:      __glibcxx_requires_valid_range(__nth, __last);
+         .          .   4763:      __glibcxx_requires_irreflexive(__first, __last);
+         .          .   4764:
+         .          .   4765:      if (__first == __last || __nth == __last)
+         .          .   4766:	return;
+         .          .   4767:
+         .          .   4768:      std::__introselect(__first, __nth, __last,
+         .          .   4769:			 std::__lg(__last - __first) * 2,
+         .          .   4770:			 __gnu_cxx::__ops::__iter_less_iter());
+         .          .   4771:    }
+         .          .   4772:
+         .          .   4773:  /**
+         .          .   4774:   *  @brief Sort a sequence just enough to find a particular position
+         .          .   4775:   *         using a predicate for comparison.
+         .          .   4776:   *  @ingroup sorting_algorithms
+         .          .   4777:   *  @param  __first   An iterator.
+         .          .   4778:   *  @param  __nth     Another iterator.
+         .          .   4779:   *  @param  __last    Another iterator.
+         .          .   4780:   *  @param  __comp    A comparison functor.
+         .          .   4781:   *  @return  Nothing.
+         .          .   4782:   *
+         .          .   4783:   *  Rearranges the elements in the range `[__first, __last)` so that `*__nth`
+         .          .   4784:   *  is the same element that would have been in that position had the
+         .          .   4785:   *  whole sequence been sorted. The elements either side of `*__nth` are
+         .          .   4786:   *  not completely sorted, but for any iterator `i` in the range
+         .          .   4787:   *  `[__first, __nth)` and any iterator `j` in the range `[__nth, __last)`
+         .          .   4788:   *  it holds that `__comp(*j, *i)` is false.
+         .          .   4789:  */
+         .          .   4790:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   4791:    _GLIBCXX20_CONSTEXPR
+         .          .   4792:    inline void
+         .          .   4793:    nth_element(_RandomAccessIterator __first, _RandomAccessIterator __nth,
+         .          .   4794:		_RandomAccessIterator __last, _Compare __comp)
+         .          .   4795:    {
+         .          .   4796:      // concept requirements
+         .          .   4797:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4798:				  _RandomAccessIterator>)
+         .          .   4799:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   4800:	    typename iterator_traits<_RandomAccessIterator>::value_type,
+         .          .   4801:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4802:      __glibcxx_requires_valid_range(__first, __nth);
+         .          .   4803:      __glibcxx_requires_valid_range(__nth, __last);
+         .          .   4804:      __glibcxx_requires_irreflexive_pred(__first, __last, __comp);
+         .          .   4805:
+         .          .   4806:      if (__first == __last || __nth == __last)
+         .          .   4807:	return;
+         .          .   4808:
+         .          .   4809:      std::__introselect(__first, __nth, __last,
+         .          .   4810:			 std::__lg(__last - __first) * 2,
+         .          .   4811:			 __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   4812:    }
+         .          .   4813:
+         .          .   4814:  /**
+         .          .   4815:   *  @brief Sort the elements of a sequence.
+         .          .   4816:   *  @ingroup sorting_algorithms
+         .          .   4817:   *  @param  __first   An iterator.
+         .          .   4818:   *  @param  __last    Another iterator.
+         .          .   4819:   *  @return  Nothing.
+         .          .   4820:   *
+         .          .   4821:   *  Sorts the elements in the range `[__first, __last)` in ascending order,
+         .          .   4822:   *  such that for each iterator `i` in the range `[__first, __last - 1)`,
+         .          .   4823:   *  `*(i+1) < *i` is false.
+         .          .   4824:   *
+         .          .   4825:   *  The relative ordering of equivalent elements is not preserved, use
+         .          .   4826:   *  `stable_sort()` if this is needed.
+         .          .   4827:  */
+         .          .   4828:  template<typename _RandomAccessIterator>
+         .          .   4829:    _GLIBCXX20_CONSTEXPR
+         .          .   4830:    inline void
+         .          .   4831:    sort(_RandomAccessIterator __first, _RandomAccessIterator __last)
+         .          .   4832:    {
+         .          .   4833:      // concept requirements
+         .          .   4834:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4835:	    _RandomAccessIterator>)
+         .          .   4836:      __glibcxx_function_requires(_LessThanComparableConcept<
+         .          .   4837:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4838:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4839:      __glibcxx_requires_irreflexive(__first, __last);
+         .          .   4840:
+         .          .   4841:      std::__sort(__first, __last, __gnu_cxx::__ops::__iter_less_iter());
+         .          .   4842:    }
+         .          .   4843:
+         .          .   4844:  /**
+         .          .   4845:   *  @brief Sort the elements of a sequence using a predicate for comparison.
+         .          .   4846:   *  @ingroup sorting_algorithms
+         .          .   4847:   *  @param  __first   An iterator.
+         .          .   4848:   *  @param  __last    Another iterator.
+         .          .   4849:   *  @param  __comp    A comparison functor.
+         .          .   4850:   *  @return  Nothing.
+         .          .   4851:   *
+         .          .   4852:   *  Sorts the elements in the range `[__first, __last)` in ascending order,
+         .          .   4853:   *  such that `__comp(*(i+1), *i)` is false for every iterator `i` in the
+         .          .   4854:   *  range `[__first, __last - 1)`.
+         .          .   4855:   *
+         .          .   4856:   *  The relative ordering of equivalent elements is not preserved, use
+         .          .   4857:   *  `stable_sort()` if this is needed.
+         .          .   4858:  */
+         .          .   4859:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   4860:    _GLIBCXX20_CONSTEXPR
+         .          .   4861:    inline void
+         .          .   4862:    sort(_RandomAccessIterator __first, _RandomAccessIterator __last,
+         .          .   4863:	 _Compare __comp)
+         .          .   4864:    {
+         .          .   4865:      // concept requirements
+         .          .   4866:      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+         .          .   4867:	    _RandomAccessIterator>)
+         .          .   4868:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   4869:	    typename iterator_traits<_RandomAccessIterator>::value_type,
+         .          .   4870:	    typename iterator_traits<_RandomAccessIterator>::value_type>)
+         .          .   4871:      __glibcxx_requires_valid_range(__first, __last);
+         .          .   4872:      __glibcxx_requires_irreflexive_pred(__first, __last, __comp);
+         .          .   4873:
+         .          .   4874:      std::__sort(__first, __last, __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   4875:    }
+         .          .   4876:
+         .          .   4877:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   4878:	   typename _OutputIterator, typename _Compare>
+         .          .   4879:    _GLIBCXX20_CONSTEXPR
+         .          .   4880:    _OutputIterator
+         .          .   4881:    __merge(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   4882:	    _InputIterator2 __first2, _InputIterator2 __last2,
+         .          .   4883:	    _OutputIterator __result, _Compare __comp)
+         .          .   4884:    {
+         .          .   4885:      while (__first1 != __last1 && __first2 != __last2)
+         .          .   4886:	{
+         .          .   4887:	  if (__comp(__first2, __first1))
+         .          .   4888:	    {
+         .          .   4889:	      *__result = *__first2;
+         .          .   4890:	      ++__first2;
+         .          .   4891:	    }
+         .          .   4892:	  else
+         .          .   4893:	    {
+         .          .   4894:	      *__result = *__first1;
+         .          .   4895:	      ++__first1;
+         .          .   4896:	    }
+         .          .   4897:	  ++__result;
+         .          .   4898:	}
+         .          .   4899:      return std::copy(__first2, __last2,
+         .          .   4900:		       std::copy(__first1, __last1, __result));
+         .          .   4901:    }
+         .          .   4902:
+         .          .   4903:  /**
+         .          .   4904:   *  @brief Merges two sorted ranges.
+         .          .   4905:   *  @ingroup sorting_algorithms
+         .          .   4906:   *  @param  __first1  An iterator.
+         .          .   4907:   *  @param  __first2  Another iterator.
+         .          .   4908:   *  @param  __last1   Another iterator.
+         .          .   4909:   *  @param  __last2   Another iterator.
+         .          .   4910:   *  @param  __result  An iterator pointing to the end of the merged range.
+         .          .   4911:   *  @return   An output iterator equal to @p __result + (__last1 - __first1)
+         .          .   4912:   *            + (__last2 - __first2).
+         .          .   4913:   *
+         .          .   4914:   *  Merges the ranges @p [__first1,__last1) and @p [__first2,__last2) into
+         .          .   4915:   *  the sorted range @p [__result, __result + (__last1-__first1) +
+         .          .   4916:   *  (__last2-__first2)).  Both input ranges must be sorted, and the
+         .          .   4917:   *  output range must not overlap with either of the input ranges.
+         .          .   4918:   *  The sort is @e stable, that is, for equivalent elements in the
+         .          .   4919:   *  two ranges, elements from the first range will always come
+         .          .   4920:   *  before elements from the second.
+         .          .   4921:  */
+         .          .   4922:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   4923:	   typename _OutputIterator>
+         .          .   4924:    _GLIBCXX20_CONSTEXPR
+         .          .   4925:    inline _OutputIterator
+         .          .   4926:    merge(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   4927:	  _InputIterator2 __first2, _InputIterator2 __last2,
+         .          .   4928:	  _OutputIterator __result)
+         .          .   4929:    {
+         .          .   4930:      // concept requirements
+         .          .   4931:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   4932:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   4933:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4934:	    typename iterator_traits<_InputIterator1>::value_type>)
+         .          .   4935:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4936:	    typename iterator_traits<_InputIterator2>::value_type>)
+         .          .   4937:      __glibcxx_function_requires(_LessThanOpConcept<
+         .          .   4938:	    typename iterator_traits<_InputIterator2>::value_type,
+         .          .   4939:	    typename iterator_traits<_InputIterator1>::value_type>)
+         .          .   4940:      __glibcxx_requires_sorted_set(__first1, __last1, __first2);
+         .          .   4941:      __glibcxx_requires_sorted_set(__first2, __last2, __first1);
+         .          .   4942:      __glibcxx_requires_irreflexive2(__first1, __last1);
+         .          .   4943:      __glibcxx_requires_irreflexive2(__first2, __last2);
+         .          .   4944:
+         .          .   4945:      return _GLIBCXX_STD_A::__merge(__first1, __last1,
+         .          .   4946:				     __first2, __last2, __result,
+         .          .   4947:				     __gnu_cxx::__ops::__iter_less_iter());
+         .          .   4948:    }
+         .          .   4949:
+         .          .   4950:  /**
+         .          .   4951:   *  @brief Merges two sorted ranges.
+         .          .   4952:   *  @ingroup sorting_algorithms
+         .          .   4953:   *  @param  __first1  An iterator.
+         .          .   4954:   *  @param  __first2  Another iterator.
+         .          .   4955:   *  @param  __last1   Another iterator.
+         .          .   4956:   *  @param  __last2   Another iterator.
+         .          .   4957:   *  @param  __result  An iterator pointing to the end of the merged range.
+         .          .   4958:   *  @param  __comp    A functor to use for comparisons.
+         .          .   4959:   *  @return   An output iterator equal to @p __result + (__last1 - __first1)
+         .          .   4960:   *            + (__last2 - __first2).
+         .          .   4961:   *
+         .          .   4962:   *  Merges the ranges @p [__first1,__last1) and @p [__first2,__last2) into
+         .          .   4963:   *  the sorted range @p [__result, __result + (__last1-__first1) +
+         .          .   4964:   *  (__last2-__first2)).  Both input ranges must be sorted, and the
+         .          .   4965:   *  output range must not overlap with either of the input ranges.
+         .          .   4966:   *  The sort is @e stable, that is, for equivalent elements in the
+         .          .   4967:   *  two ranges, elements from the first range will always come
+         .          .   4968:   *  before elements from the second.
+         .          .   4969:   *
+         .          .   4970:   *  The comparison function should have the same effects on ordering as
+         .          .   4971:   *  the function used for the initial sort.
+         .          .   4972:  */
+         .          .   4973:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   4974:	   typename _OutputIterator, typename _Compare>
+         .          .   4975:    _GLIBCXX20_CONSTEXPR
+         .          .   4976:    inline _OutputIterator
+         .          .   4977:    merge(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   4978:	  _InputIterator2 __first2, _InputIterator2 __last2,
+         .          .   4979:	  _OutputIterator __result, _Compare __comp)
+         .          .   4980:    {
+         .          .   4981:      // concept requirements
+         .          .   4982:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   4983:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   4984:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4985:	    typename iterator_traits<_InputIterator1>::value_type>)
+         .          .   4986:      __glibcxx_function_requires(_OutputIteratorConcept<_OutputIterator,
+         .          .   4987:	    typename iterator_traits<_InputIterator2>::value_type>)
+         .          .   4988:      __glibcxx_function_requires(_BinaryPredicateConcept<_Compare,
+         .          .   4989:	    typename iterator_traits<_InputIterator2>::value_type,
+         .          .   4990:	    typename iterator_traits<_InputIterator1>::value_type>)
+         .          .   4991:      __glibcxx_requires_sorted_set_pred(__first1, __last1, __first2, __comp);
+         .          .   4992:      __glibcxx_requires_sorted_set_pred(__first2, __last2, __first1, __comp);
+         .          .   4993:      __glibcxx_requires_irreflexive_pred2(__first1, __last1, __comp);
+         .          .   4994:      __glibcxx_requires_irreflexive_pred2(__first2, __last2, __comp);
+         .          .   4995:
+         .          .   4996:      return _GLIBCXX_STD_A::__merge(__first1, __last1,
+         .          .   4997:				__first2, __last2, __result,
+         .          .   4998:				__gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   4999:    }
+         .          .   5000:
+         .          .   5001:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   5002:    _GLIBCXX26_CONSTEXPR
+         .          .   5003:    inline void
+         .          .   5004:    __stable_sort(_RandomAccessIterator __first, _RandomAccessIterator __last,
+         .          .   5005:		  _Compare __comp)
+         .          .   5006:    {
+         .          .   5007:      typedef typename iterator_traits<_RandomAccessIterator>::value_type
+         .          .   5008:	_ValueType;
+         .          .   5009:      typedef typename iterator_traits<_RandomAccessIterator>::difference_type
+         .          .   5010:	_DistanceType;
+         .          .   5011:
+         .          .   5012:      if (__first == __last)
+         .          .   5013:	return;
+         .          .   5014:
+         .          .   5015:#if _GLIBCXX_HOSTED
+         .          .   5016:# if __glibcxx_constexpr_algorithms >= 202306L // >= C++26
+         .          .   5017:      if consteval {
+         .          .   5018:	return std::__inplace_stable_sort(__first, __last, __comp);
+         .          .   5019:      }
+         .          .   5020:# endif
+         .          .   5021:
+         .          .   5022:      typedef _Temporary_buffer<_RandomAccessIterator, _ValueType> _TmpBuf;
+         .          .   5023:      // __stable_sort_adaptive sorts the range in two halves,
+         .          .   5024:      // so the buffer only needs to fit half the range at once.
+         .          .   5025:      _TmpBuf __buf(__first, (__last - __first + 1) / 2);
+         .          .   5026:
+         .          .   5027:      if (__builtin_expect(__buf.requested_size() == __buf.size(), true))
+         .       10ms   5028:	std::__stable_sort_adaptive(__first,
+         .          .   5029:				    __first + _DistanceType(__buf.size()),
+         .          .   5030:				    __last, __buf.begin(), __comp);
+         .          .   5031:      else if (__builtin_expect(__buf.begin() == 0, false))
+         .          .   5032:	std::__inplace_stable_sort(__first, __last, __comp);
+         .          .   5033:      else
+ROUTINE ======================== voxy::game::adventure::validateConstruction in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h
+       7ms        7ms (flat, cum)  0.28% of Total
+         .          .   1499:      typedef typename iterator_traits<_ForwardIterator>::difference_type
+         .          .   1500:	_DistanceType;
+         .          .   1501:
+         .          .   1502:      _DistanceType __len = std::distance(__first, __last);
+         .          .   1503:
+       7ms        7ms   1504:      while (__len > 0)
+         .          .   1505:	{
+         .          .   1506:	  _DistanceType __half = __len >> 1;
+         .          .   1507:	  _ForwardIterator __middle = __first;
+         .          .   1508:	  std::advance(__middle, __half);
+         .          .   1509:	  if (__comp(__middle, __val))
+ROUTINE ======================== voxy::game::adventure::validateConstruction in src/game/adventure/construction_policy.cpp
+     106ms      817ms (flat, cum) 32.55% of Total
+         .          .     39:bool contact(const Solid& a,const Solid& b) noexcept {
+         .          .     40:    for(int axis=0;axis<3;++axis) {
+         .          .     41:        if(std::abs(a.maximum[axis]-b.minimum[axis])>contactTolerance
+         .          .     42:            &&std::abs(b.maximum[axis]-a.minimum[axis])>contactTolerance)continue;
+         .          .     43:        const int u=(axis+1)%3,v=(axis+2)%3;
+       1ms        1ms     44:        if(std::min(a.maximum[u],b.maximum[u])-std::max(a.minimum[u],b.minimum[u])>.019
+         .          .     45:            &&std::min(a.maximum[v],b.maximum[v])-std::max(a.minimum[v],b.minimum[v])>.019)return true;
+         .          .     46:    }
+         .          .     47:    return false;
+         .          .     48:}
+         .          .     49:// Sample every intersected terrain cell and its stud center, including box
+         .          .     50:// edges. Bounds are small installed kit pieces, not arbitrary attacker meshes.
+         .          .     51:std::pair<double,double> terrainRange(const terrain::lego::Surface& surface,const Solid& box) noexcept {
+         .          .     52:    const glm::dvec2 origin(surface.origin());const double cell=surface.cellScale;
+         .          .     53:    const int x0=int(std::floor((box.minimum.x+origin.x)/cell));
+         .          .     54:    const int z0=int(std::floor((box.minimum.z+origin.y)/cell));
+         .          .     55:    const int x1=int(std::floor((box.maximum.x+origin.x-1e-7)/cell));
+         .          .     56:    const int z1=int(std::floor((box.maximum.z+origin.y-1e-7)/cell));
+         .          .     57:    if(x0<0||z0<0||x1>=int(surface.width)-1||z1>=int(surface.height)-1)return {INFINITY,INFINITY};
+         .          .     58:    double minimum=INFINITY,maximum=-INFINITY;
+         .          .     59:    for(int z=z0;z<=z1;++z)for(int x=x0;x<=x1;++x) {
+         .          .     60:        const double top=surface.cellTop(x,z);minimum=std::min(minimum,top);maximum=std::max(maximum,top);
+         .          .     61:        const glm::dvec2 center((x+.5)*cell-origin.x,(z+.5)*cell-origin.y);
+         .          .     62:        const auto nearest=glm::clamp(center,glm::dvec2(box.minimum.x,box.minimum.z),glm::dvec2(box.maximum.x,box.maximum.z));
+         .          .     63:        if(glm::length(center-nearest)<=double(terrain::lego::kStudRadius)*cell)
+         .          .     64:            maximum=std::max(maximum,top+double(terrain::lego::kStudHeight)*cell);
+         .          .     65:    }
+         .          .     66:    return {minimum,maximum};
+         .          .     67:}
+         .          .     68:const WorldPart* partFor(const AdventureState& state,uint64_t id) noexcept {
+      69ms       69ms     69:    for(const auto& structure:state.structures)for(const auto& part:structure.parts)if(part.id==id)return &part;
+         .          .     70:    return nullptr;
+         .          .     71:}
+         .          .     72:// Published parts are ordered, but this validator also accepts arbitrary input
+         .          .     73:// order. Certify once per call and retain the original first-match fallback.
+         .          .     74:class PartLookup {
+         .          .     75:    const AdventureState& state_;
+         .          .     76:    bool sorted_;
+         .          .     77:public:
+         .          .     78:    explicit PartLookup(const AdventureState& state):state_(state),sorted_(
+         .          .     79:        std::all_of(state.structures.begin(),state.structures.end(),[](const auto& structure){
+         .          .     80:            return std::is_sorted(structure.parts.begin(),structure.parts.end(),
+         .          .     81:                [](const auto& a,const auto& b){return a.id<b.id;});
+         .          .     82:        })) {}
+         .          .     83:    const WorldPart* find(uint64_t id) const noexcept {
+         .          .     84:        if(!sorted_)return partFor(state_,id);
+         .          .     85:        for(const auto& structure:state_.structures) {
+         .          .     86:            const auto found=std::lower_bound(structure.parts.begin(),structure.parts.end(),id,
+         .          .     87:                [](const WorldPart& part,uint64_t value){return part.id<value;});
+       5ms        5ms     88:            if(found!=structure.parts.end()&&found->id==id)return &*found;
+         .          .     89:        }
+         .          .     90:        return nullptr;
+         .          .     91:    }
+         .          .     92:};
+         .          .     93:const StructureComponent* componentFor(const AdventureState& state,uint64_t id) noexcept {
+         .          .     94:    for(const auto& c:state.components)if(c.id==id)return &c;
+         .          .     95:    return nullptr;
+         .          .     96:}
+         .          .     97:const StructureComponent* doorFor(const AdventureState& state,uint64_t part) noexcept {
+         .          .     98:    const StructureComponent* found=nullptr;
+         .          .     99:    for(const auto& component:state.components)if(component.part==part) {
+         .          .    100:        if(found||component.kind!=FurnitureKind::Door)return nullptr;
+         .          .    101:        found=&component;
+         .          .    102:    }
+         .          .    103:    return found;
+         .          .    104:}
+         .          .    105:bool compileGeometry(const AdventureState& state,std::vector<Solid>& output,std::vector<bool>* support,std::string& error) {
+         .          .    106:    if(!construction::isValid(state.world)||state.structures.size()>kMaximumStructures) {error="Invalid world construction";return false;}
+         .          .    107:    if(state.components.size()>kMaximumComponents){error="Construction component capacity reached";return false;}
+         .          .    108:    for(const auto& component:state.components)if(component.kind!=FurnitureKind::Door&&component.doorOpen) {
+         .          .    109:        error="Only a door can have an open state";return false;
+         .          .    110:    }
+         .          .    111:    std::vector<Solid> result;std::set<uint64_t> identifiers;size_t count=0;
+         .          .    112:    std::vector<bool> supporting;
+         .          .    113:    for(const auto& structure:state.structures) {
+         .          .    114:        if(!structure.id||!identifiers.insert(structure.id).second){error="Invalid structure identity";return false;}
+         .          .    115:        for(const auto& part:structure.parts) {
+         .          .    116:            const auto* definition=buildingDefinition(part.kind);
+         .          .    117:            if(++count>kMaximumParts||!part.id||!identifiers.insert(part.id).second||!definition
+         .          .    118:                ||part.yawQuarterTurns>3||!construction::isValid(part.position)) {error="Invalid building piece";return false;}
+         .          .    119:            const auto boxes=part.kind==PieceKind::HingedDoor?buildingDefinition(PieceKind::Doorway)->solids:definition->solids;
+         .          .    120:            for(const auto& box:boxes) {
+         .          .    121:                if(result.size()==AdventureSpatialQueries::maximumSolids) {error="Construction collision capacity reached";return false;}
+         .          .    122:                result.push_back(worldBox(state,structure,part,box));
+         .          .    123:                if(support)supporting.push_back(true);
+         .          .    124:            }
+         .          .    125:            if(part.kind==PieceKind::HingedDoor) {
+         .          .    126:                const auto* door=doorFor(state,part.id);
+         .          .    127:                if(!door||door->structure!=structure.id||door->owner!=structure.owner) {error="Door state is missing or invalid";return false;}
+         .          .    128:                if(result.size()==AdventureSpatialQueries::maximumSolids) {error="Construction collision capacity reached";return false;}
+         .          .    129:                result.push_back(worldBox(state,structure,part,doorLeafBox(door->doorOpen)));
+         .          .    130:                if(support)supporting.push_back(false);
+         .          .    131:            }
+         .          .    132:        }
+         .          .    133:    }
+         .          .    134:    if(support)*support=std::move(supporting);
+         .          .    135:    output=std::move(result);error.clear();return true;
+         .          .    136:}
+         .          .    137:bool partMoved(const WorldPart* old,const WorldPart& part) noexcept {
+         .          .    138:    return !old||old->kind!=part.kind||old->position!=part.position||old->yawQuarterTurns!=part.yawQuarterTurns;
+         .          .    139:}
+         .          .    140:bool validateDoorClearance(const AdventureState& before,const AdventureState& after,
+         .          .    141:    const AdventureSpatialQueries& accepted,std::span<const Solid> solids,std::string& error,bool freeBuild) {
+         .          .    142:    const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
+         .          .    143:    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+         .          .    144:    const double radius=(freeBuild?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,height=AdventurePlayer::height*scale;
+         .          .    145:    const Solid player{{},{},feet+glm::dvec3(-radius,0,-radius),feet+glm::dvec3(radius,height,radius)};
+       1ms        1ms    146:    for(const auto& structure:after.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor) {
+         .          .    147:        const auto* door=doorFor(after,part.id);const auto* oldDoor=doorFor(before,part.id);
+         .          .    148:        if(!door){error="Door state is unavailable";return false;}
+         .          .    149:        const bool moved=partMoved(partFor(before,part.id),part);
+         .          .    150:        const bool toggled=oldDoor&&oldDoor->doorOpen!=door->doorOpen;
+         .          .    151:        if(toggled&&!reachableComponent(before,oldDoor->id,accepted,error,freeBuild))return false;
+         .          .    152:        for(const auto& local:doorSweepBoxes()) {
+         .          .    153:            const auto sweep=worldBox(after,structure,part,local);
+         .          .    154:            const auto [lowest,highest]=terrainRange(accepted.terrain(),sweep);(void)lowest;
+         .          .    155:            if(!std::isfinite(highest)||sweep.minimum.y<highest-.021) {error="Leave level ground clear for the door to swing";return false;}
+         .          .    156:            if(!freeBuild&&protectedConstruction(sweep.minimum,sweep.maximum)) {error="Keep the door swing away from town and landmark access";return false;}
+         .          .    157:            // The frame is intentionally inside its own leaf envelope. Every
+         .          .    158:            // other accepted owned part must leave the future swing clear.
+         .          .    159:            for(const auto& solid:solids)if(solid.part.counter!=part.id&&overlaps(sweep,solid)) {
+         .          .    160:                error="Leave the door's swing clear of building pieces";return false;
+         .          .    161:            }
+         .          .    162:            if(moved||toggled) {
+         .          .    163:                if(overlaps(sweep,player)){error="Step outside the door's swing before using it";return false;}
+         .          .    164:                for(const auto& solid:accepted.solids()) {
+         .          .    165:                    // Old owned boxes are replaced by the full candidate above.
+         .          .    166:                    // Installed actors and scenery remain authoritative here.
+         .          .    167:                    if(partFor(before,solid.part.counter)||partFor(after,solid.part.counter))continue;
+         .          .    168:                    // Creative props yield to the candidate's entire reserved
+         .          .    169:                    // door swing at the same commit boundary as their draws.
+         .          .    170:                    if(freeBuild&&isCreativeScenerySolid(solid))continue;
+         .          .    171:                    if(overlaps(sweep,solid)){error="The door's swing is blocked by a character or scenery";return false;}
+         .          .    172:                }
+         .          .    173:            }
+         .          .    174:        }
+         .          .    175:    }
+         .          .    176:    error.clear();return true;
+         .          .    177:}
+         .          .    178:}
+         .          .    179:
+         .          .    180:bool compileSolids(const AdventureState& state,std::vector<Solid>& output,std::string& error) {
+         .          .    181:    return compileGeometry(state,output,nullptr,error);
+         .          .    182:}
+         .          .    183:bool buildingGeometryChanged(const AdventureState& before,const AdventureState& after,uint64_t id) noexcept {
+         .          .    184:    const auto* old=partFor(before,id),*part=partFor(after,id);
+         .          .    185:    if(!part||partMoved(old,*part))return true;
+         .          .    186:    if(part->kind!=PieceKind::HingedDoor)return false;
+         .          .    187:    const auto* a=doorFor(before,id),*b=doorFor(after,id);
+         .          .    188:    return !a||!b||a->doorOpen!=b->doorOpen;
+         .          .    189:}
+         .          .    190:bool compileDoorSwingSolids(const AdventureState& state,std::vector<Solid>& output,std::string& error) {
+         .          .    191:    std::vector<Solid> checked;if(!compileSolids(state,checked,error))return false;
+         .          .    192:    std::vector<Solid> result;
+         .          .    193:    for(const auto& structure:state.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor)
+         .          .    194:        for(const auto& box:doorSweepBoxes()) {
+         .          .    195:            if(result.size()==AdventureSpatialQueries::maximumSolids){error="Door clearance capacity reached";return false;}
+         .          .    196:            result.push_back(worldBox(state,structure,part,box));
+         .          .    197:        }
+         .          .    198:    output=std::move(result);error.clear();return true;
+         .          .    199:}
+         .          .    200:std::optional<double> terrainPlacementHeight(PieceKind kind,uint8_t yaw,glm::dvec2 p,
+         .          .    201:    const terrain::lego::Surface& surface) noexcept {
+         .          .    202:    const auto* definition=buildingDefinition(kind);
+         .          .    203:    if(!definition||yaw>3||!surface.valid()||!std::isfinite(p.x)||!std::isfinite(p.y)
+         .          .    204:        ||std::abs(p.x)>100000||std::abs(p.y)>100000)return std::nullopt;
+         .          .    205:    AdventureState state;WorldStructure structure;
+         .          .    206:    WorldPart part{1,kind,{int32_t(std::round(p.x*50)),0,int32_t(std::round(p.y*50))},yaw,0};
+         .          .    207:    const auto bounds=worldBox(state,structure,part,definition->bounds);
+         .          .    208:    const auto [lowest,highest]=terrainRange(surface,bounds);(void)lowest;
+         .          .    209:    if(!std::isfinite(highest))return std::nullopt;
+         .          .    210:    const double height=double(definition->bounds.maximum.y-definition->bounds.minimum.y)*.02;
+         .          .    211:    return definition->terrainAnchor?std::ceil((highest+.025-height)/.32)*.32
+         .          .    212:        :std::ceil(highest/.02)*.02;
+         .          .    213:}
+         .          .    214:bool validateInstalledGeometry(const AdventureState& state,const AdventureSpatialQueries& queries,std::string& error,bool freeBuild) {
+         .          .    215:    if(!validateConstruction(state,state,queries,error,freeBuild))return false;
+         .          .    216:    std::vector<Solid> solids;if(!compileSolids(state,solids,error))return false;
+         .          .    217:    for(const auto& solid:solids)if(!freeBuild&&protectedConstruction(solid.minimum,solid.maximum)) {
+         .          .    218:        error="A building blocks protected town access";return false;
+         .          .    219:    }
+         .          .    220:    return true;
+         .          .    221:}
+         .          .    222:bool validateConstruction(const AdventureState& before,const AdventureState& after,
+         .          .    223:    const AdventureSpatialQueries& accepted,std::string& error,bool freeBuild) {
+         .          .    224:    if(!accepted.terrain().valid()||before.world!=after.world) {error="World geometry unavailable";return false;}
+         .          .    225:    std::vector<Solid> solids;std::vector<bool> supports;
+         .      217ms    226:    if(!compileGeometry(after,solids,&supports,error)||!validateDoorClearance(before,after,accepted,solids,error,freeBuild))return false;
+         .          .    227:    const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
+         .          .    228:    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+         .          .    229:    const double radius=(freeBuild?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,height=AdventurePlayer::height*scale;
+         .          .    230:    const Solid player{{},{},feet+glm::dvec3(-radius,0,-radius),feet+glm::dvec3(radius,height,radius)};
+         .          .    231:    std::map<uint64_t,std::vector<size_t>> partSolids;
+         .          .    232:    std::set<uint64_t> supported;
+         .       63ms    233:    for(size_t i=0;i<solids.size();++i)partSolids[solids[i].part.counter].push_back(i);
+         .        2ms    234:    const PartLookup beforeParts(before),afterParts(after);
+         .          .    235:    for(const auto& structure:after.structures)for(const auto& part:structure.parts) {
+         .       26ms    236:        const auto* definition=buildingDefinition(part.kind);const auto* old=beforeParts.find(part.id);
+       1ms        2ms    237:        const bool moved=partMoved(old,part);
+         .          .    238:        bool terrainAnchor=false;
+         .       23ms    239:        for(const auto index:partSolids[part.id]) {
+       4ms       91ms    240:            const auto& solid=solids[index];const auto [lowest,highest]=terrainRange(accepted.terrain(),solid);
+         .          .    241:            if(!std::isfinite(lowest)) {error="Build inside the landscape";return false;}
+         .          .    242:            if(definition->terrainAnchor) {
+         .          .    243:                if(solid.minimum.y<=highest+contactTolerance&&solid.maximum.y>=highest+.025
+       2ms        2ms    244:                    &&solid.minimum.y>=lowest-4)terrainAnchor=true;
+         .          .    245:                if(solid.maximum.y<highest+.025) {error="Raise the foundation above the terrain";return false;}
+         .          .    246:            } else if(solid.minimum.y<highest-.021) {error="This piece intersects the terrain";return false;}
+         .          .    247:            if(freeBuild&&supports[index]&&std::abs(solid.minimum.y-highest)<=contactTolerance)terrainAnchor=true;
+         .          .    248:            if(moved) {
+         .          .    249:                if(glm::length(glm::clamp(feet+glm::dvec3(0,height*.5,0),solid.minimum,solid.maximum)-(feet+glm::dvec3(0,height*.5,0)))>12) {error="Move closer to build";return false;}
+         .          .    250:                if(!freeBuild&&protectedConstruction(solid.minimum,solid.maximum)) {error="Keep the town and landmark access clear";return false;}
+         .          .    251:                if(overlaps(solid,player)) {error="Move out of the building preview";return false;}
+         .          .    252:            }
+         .          .    253:        }
+       1ms       38ms    254:        if(terrainAnchor)supported.insert(part.id);
+         .          .    255:    }
+         .       36ms    256:    for(const auto& structure:before.structures)for(const auto& removed:structure.parts)if(!afterParts.find(removed.id)) {
+         .          .    257:        if(glm::length(metres(removed.position)-feet)>12) {error="Move closer to remove this piece";return false;}
+         .          .    258:    }
+         .          .    259:    std::map<uint64_t,std::vector<uint64_t>> neighbors;
+         .        2ms    260:    std::vector<size_t> byX(solids.size());
+         .          .    261:    for(size_t i=0;i<byX.size();++i)byX[i]=i;
+         .       10ms    262:    std::stable_sort(byX.begin(),byX.end(),[&](size_t a,size_t b){return solids[a].minimum.x<solids[b].minimum.x;});
+      12ms       12ms    263:    for(size_t aa=0;aa<byX.size();++aa)for(size_t bb=aa+1;bb<byX.size();++bb) {
+         .          .    264:        const size_t a=byX[aa],b=byX[bb];
+       3ms        8ms    265:        if(solids[b].minimum.x>solids[a].maximum.x+contactTolerance)break;
+         .       19ms    266:        if(solids[a].part==solids[b].part)continue;
+       5ms       19ms    267:        if(overlaps(solids[a],solids[b])) {error="Building pieces overlap";return false;}
+       2ms       44ms    268:        if(supports[a]&&supports[b]&&solids[a].structure==solids[b].structure&&contact(solids[a],solids[b])) {
+         .          .    269:            neighbors[solids[a].part.counter].push_back(solids[b].part.counter);
+         .          .    270:            neighbors[solids[b].part.counter].push_back(solids[a].part.counter);
+         .          .    271:        }
+         .          .    272:    }
+         .        7ms    273:    std::vector<uint64_t> queue(supported.begin(),supported.end());
+         .       43ms    274:    for(size_t i=0;i<queue.size();++i)for(const auto neighbor:neighbors[queue[i]])if(supported.insert(neighbor).second)queue.push_back(neighbor);
+         .          .    275:    if(supported.size()!=partSolids.size()) {error=freeBuild?"Connect this piece to the ground or a supported brick":"Connect every piece to a grounded foundation";return false;}
+         .          .    276:    // An edit may remove a roof used by a registered bed. Keep the bed record;
+         .          .    277:    // recovery revalidates shelter/clearance and falls back to town if needed.
+         .          .    278:    error.clear();return true;
+         .       77ms    279:}
+         .          .    280:bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureSpatialQueries& queries,std::string& error,bool freeBuild) {
+         .          .    281:    const auto* component=componentFor(state,id);const auto* part=component?partFor(state,component->part):nullptr;
+         .          .    282:    if(!part) {error="This furniture is unavailable";return false;}
+         .          .    283:    const auto* definition=buildingDefinition(part->kind);if(!definition) {error="Unknown furniture";return false;}
+         .          .    284:    glm::dvec3 local(0,double(definition->bounds.maximum.y)*.02+.08,0);

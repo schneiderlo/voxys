@@ -1,0 +1,35 @@
+{
+  "our_six_source_files_unchanged_since_measured_build_checks": {
+    "scripts/performance/compare_free_build_benchmark.py": true,
+    "scripts/performance/test_compare_free_build_benchmark.py": true,
+    "src/game/adventure/construction_policy.cpp": false,
+    "src/game/adventure/creative_village.cpp": true,
+    "tests/test_adventure_construction_policy.cpp": true,
+    "tests/test_adventure_world.cpp": true
+  },
+  "preexisting_staged_patch_unchanged": true,
+  "preexisting_physics_logging_file_unchanged": true,
+  "comparators": {
+    "village-comparison": [],
+    "lookup-incremental-comparison": [],
+    "final-comparison": []
+  },
+  "process_snapshots": 72,
+  "observed_compiler_test_profiler_processes": [],
+  "later_construction_policy_edits": {
+    "recorded_at_utc": "2026-09-26T01:16:04.511117+00:00",
+    "full_file_sha256": "9f524251eb0e4f2f52acf7b2e40d8d89c4cbcccf5534d269ad8f36034de4e594",
+    "measured_optimized_regions_unchanged": {
+      "// Published parts are ordered": true,
+      "bool validateConstruction(": true
+    },
+    "scope": "Later frontier/bed/interaction edits are untouched and untested by this audit."
+  },
+  "final_comparator_fault_injection_tests": {
+    "command": "python3 scripts/performance/test_compare_free_build_benchmark.py",
+    "tests": 9,
+    "exit_code": 0
+  },
+  "audit_private_bazel_server_shutdown_exit_code": 0,
+  "whitespace_check_exit_code": 0
+}

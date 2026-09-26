@@ -1,0 +1,26 @@
+File: final-runner
+Type: cpu
+Showing nodes accounting for 217ms, 8.65% of 2510ms total
+Dropped 353 nodes (cum <= 12.55ms)
+Showing top 20 nodes out of 196
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     2510ms   100%  __libc_start_call_main
+         0     0%     0%     2510ms   100%  __libc_start_main_alias_2
+         0     0%     0%     2510ms   100%  _start
+         0     0%     0%     2510ms   100%  main
+       8ms  0.32%  0.32%     2059ms 82.03%  voxy::game::adventure::AdventureRuntime::update
+      15ms   0.6%  0.92%      900ms 35.86%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  0.92%      768ms 30.60%  voxy::game::adventure::AdventureSession::finish
+         0     0%  0.92%      741ms 29.52%  voxy::game::adventure::AdventureSession::preparePlace
+     115ms  4.58%  5.50%      741ms 29.52%  voxy::game::adventure::validateConstruction
+         0     0%  5.50%      711ms 28.33%  __invoke_impl (inline)
+         0     0%  5.50%      711ms 28.33%  __invoke_r (inline)
+         0     0%  5.50%      711ms 28.33%  std::_Function_handler::_M_invoke (partial-inline)
+         0     0%  5.50%      711ms 28.33%  std::function::operator() (inline)
+         0     0%  5.50%      540ms 21.51%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+         0     0%  5.50%      494ms 19.68%  voxy::game::adventure::AdventureRuntime::commit
+      22ms  0.88%  6.37%      374ms 14.90%  voxy::game::adventure::CreativeScenery::admit
+      53ms  2.11%  8.49%      275ms 10.96%  voxy::game::expedition::sweepCoveTerrainSphere
+       2ms  0.08%  8.57%      259ms 10.32%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+         0     0%  8.57%      258ms 10.28%  voxy::game::adventure::AdventureRuntime::undoLastPlacement
+       2ms  0.08%  8.65%      203ms  8.09%  std::__new_allocator::allocate (inline)

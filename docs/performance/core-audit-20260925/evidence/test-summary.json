@@ -1,0 +1,103 @@
+{
+  "original_native_aggregate": {
+    "path": "/tmp/voxys-core-audit-20260925/original-aggregate-test.log",
+    "sha256": "fadcfbb25c0306638f6b67e450f26fef2ebef4f9bd80af882e901004e45aad15",
+    "total": 2628,
+    "suites": 361,
+    "passed": 2606,
+    "failed": 2,
+    "failed_names": [
+      "CannonPhysicsSceneGpu.ThrownBrickFlightBounceAndStackMatchJolt",
+      "FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget"
+    ],
+    "skipped": 20,
+    "skipped_names": [
+      "AdventureBlueprints.GenericEarnedRecipeBuildsTheProvenFullTerrainShortcutWithoutChangingItsSite",
+      "AdventureEncounters.InstalledFullTerrainHasBothWalkingEncountersAndPreservesLegacyPoses",
+      "AdventureHudGpu.CaptureSharedRendererOverCleanGameScreenshotWhenRequested",
+      "AdventureRuntimeIntegration.FullTerrainStartupIdleInputAndSnapshotRestoreRemainAuthoritative",
+      "AdventureTrailSites.FullTerrainPaysForThreePierShortcutAndWalksBothDirectionsAndLongDetour",
+      "CreativeForest.RealTerrainKeepsDistantWoodlandAndBoundedCollision",
+      "CreativeScenery.ActualStartingShelfSupportsAllSixKinds",
+      "CreativeScenery.RealWorldCoverageExtendsBeyondStartingClearing",
+      "CreativeVillageRealTerrain.AllBuildingsAdmitAndCreativeFigureWalksConnectedApproachAndEveryCottage",
+      "CreativeVillageRealTerrain.MotorcycleTraversesVillageLanePastWellWithoutSnagging",
+      "CreativeVillageRealTerrain.OwnedConstructionRemovesWholeBuildingAndDoesNotRespawnItDuringSession",
+      "FreeBuildRuntimeIntegration.CreativeStartupPlacementAndExactRestore",
+      "GpuAuthoredShapes.OptionalActualWallPairContactReplay",
+      "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "RaycastPathGPUTest.DayNightTerrainBenchmark",
+      "RaycastPathGPUTest.LegoHorizonBenchmark",
+      "SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/CannonImpact",
+      "SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/ReleaseConnections",
+      "SourceHouse/ImportedWallRuntimeIntegration.CannonInputAndFullWorldGpuAdmission/RemoveSupport",
+      "WindowGLFWTest.WindowCreation"
+    ],
+    "disabled": 5,
+    "counts_reconcile": true
+  },
+  "candidate_focused_results": [
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_doors"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_doors.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_walkable"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_walkable.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_movement"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_movement.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_navigation"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_navigation.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_pointer"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_pointer.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_encounters"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_encounters.log"
+    },
+    {
+      "command": [
+        "/tmp/voxys-core-audit-20260925/opt-bin/tests/adventure_runtime"
+      ],
+      "exit_code": 1,
+      "log": "/tmp/voxys-core-audit-20260925/final-adventure_runtime.log"
+    }
+  ],
+  "terrain_importer": {
+    "path": "/home/modkin/workspace/schneiderlo/voxys/bazel-testlogs/tools/terrain_diffusion_import_test/test.log",
+    "tests": 11,
+    "unittest_ok_footer": true,
+    "failed_footer": false
+  }
+}

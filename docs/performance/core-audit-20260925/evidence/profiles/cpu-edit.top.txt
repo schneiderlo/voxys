@@ -1,0 +1,26 @@
+File: baseline-runner
+Type: cpu
+Showing nodes accounting for 2192ms, 65.04% of 3370ms total
+Dropped 343 nodes (cum <= 16.85ms)
+Showing top 20 nodes out of 163
+      flat  flat%   sum%        cum   cum%
+     217ms  6.44%  6.44%      780ms 23.15%  voxy::game::adventure::(anonymous namespace)::overlap
+     217ms  6.44% 12.88%      993ms 29.47%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()
+     211ms  6.26% 19.14%      851ms 25.25%  voxy::game::adventure::validateConstruction
+     203ms  6.02% 25.16%      203ms  6.02%  glm::operator- (inline)
+     177ms  5.25% 30.42%      183ms  5.43%  glm::operator+ (inline)
+     166ms  4.93% 35.34%      167ms  4.96%  partFor (inline)
+     138ms  4.09% 39.44%      138ms  4.09%  __memchr_evex
+     135ms  4.01% 43.44%      135ms  4.01%  glm::all (inline)
+      89ms  2.64% 46.08%       98ms  2.91%  std::construct_at (inline)
+      88ms  2.61% 48.69%       88ms  2.61%  glm::greaterThan (inline)
+      87ms  2.58% 51.28%      114ms  3.38%  _int_malloc
+      79ms  2.34% 53.62%       79ms  2.34%  __memmove_avx512_unaligned_erms
+      69ms  2.05% 55.67%      187ms  5.55%  castConvex (inline)
+      61ms  1.81% 57.48%      266ms  7.89%  voxy::game::expedition::sweepCoveTerrainSphere
+      51ms  1.51% 58.99%       86ms  2.55%  _int_free_chunk
+      49ms  1.45% 60.45%      163ms  4.84%  __libc_malloc2
+      41ms  1.22% 61.66%       48ms  1.42%  voxy::game::expedition::CoveInputRouter::tick
+      39ms  1.16% 62.82%       60ms  1.78%  voxy::game::adventure::(anonymous namespace)::Reservations::blocks
+      38ms  1.13% 63.95%       69ms  2.05%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      37ms  1.10% 65.04%       37ms  1.10%  std::_Rb_tree::_S_right (inline)

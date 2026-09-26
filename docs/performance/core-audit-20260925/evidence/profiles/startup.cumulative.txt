@@ -1,0 +1,33 @@
+Some binary filenames not available. Symbolization may be incomplete.
+Try setting PPROF_BINARY_PATH to the search path for local binaries.
+File: baseline-runner
+Type: cpu
+Showing nodes accounting for 702ms, 77.48% of 906ms total
+Dropped 368 nodes (cum <= 4.53ms)
+Showing top 25 nodes out of 130
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%      906ms   100%  __libc_start_call_main
+         0     0%     0%      906ms   100%  __libc_start_main_alias_2
+         0     0%     0%      906ms   100%  _start
+         0     0%     0%      906ms   100%  main
+         0     0%     0%      764ms 84.33%  voxy::game::adventure::AdventureRuntime::initialize
+       2ms  0.22%  0.22%      644ms 71.08%  voxy::core::Sha256::update
+     536ms 59.16% 59.38%      642ms 70.86%  voxy::core::Sha256::transform
+         0     0% 59.38%      197ms 21.74%  voxy::core::sha256
+         0     0% 59.38%      102ms 11.26%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+       1ms  0.11% 59.49%      100ms 11.04%  voxy::game::adventure::CreativeScenery::admit
+      24ms  2.65% 62.14%       75ms  8.28%  voxy::game::adventure::(anonymous namespace)::generateForestTile
+         0     0% 62.14%       66ms  7.28%  voxy::game::adventure::(anonymous namespace)::installedCreativeVillageMesh
+      58ms  6.40% 68.54%       58ms  6.40%  voxy::core::Sha256::loadBigEndian (inline)
+         0     0% 68.54%       55ms  6.07%  voxy::game::adventure::AdventureRuntime::restore
+         0     0% 68.54%       52ms  5.74%  voxy::gpu::Context::initHeadless
+      48ms  5.30% 73.84%       48ms  5.30%  std::__rotr (inline)
+         0     0% 73.84%       48ms  5.30%  std::rotr (inline)
+         0     0% 73.84%       45ms  4.97%  voxy::gpu::Context::createInstance
+         0     0% 73.84%       45ms  4.97%  wgpuCreateInstance
+         0     0% 73.84%       45ms  4.97%  wgpu_core::global::Global::new
+         0     0% 73.84%       45ms  4.97%  wgpu_core::instance::Instance::new
+      33ms  3.64% 77.48%       33ms  3.64%  __memset_avx512_unaligned_erms
+         0     0% 77.48%       32ms  3.53%  std::vector::vector (inline)
+         0     0% 77.48%       31ms  3.42%  std::__fill_a (inline)
+         0     0% 77.48%       31ms  3.42%  std::__fill_a1 (inline)

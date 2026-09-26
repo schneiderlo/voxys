@@ -1,0 +1,114 @@
+File: final-runner
+Type: cpu
+Showing nodes accounting for 1177ms, 87.77% of 1341ms total
+Dropped 186 nodes (cum <= 6.71ms)
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     1341ms   100%  __libc_start_call_main
+         0     0%     0%     1341ms   100%  __libc_start_main_alias_2
+         0     0%     0%     1341ms   100%  _start
+         0     0%     0%     1341ms   100%  main
+       3ms  0.22%  0.22%      682ms 50.86%  voxy::game::adventure::AdventureRuntime::update
+      20ms  1.49%  1.72%      352ms 26.25%  std::__cxx11::basic_string::find (inline)
+       2ms  0.15%  1.86%      304ms 22.67%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+     265ms 19.76% 21.63%      265ms 19.76%  __memchr_evex
+         0     0% 21.63%      263ms 19.61%  std::char_traits::find (inline)
+      14ms  1.04% 22.67%      247ms 18.42%  operator() (inline)
+         0     0% 22.67%      223ms 16.63%  voxy::game::expedition::CoveCamera::update
+       1ms 0.075% 22.74%      222ms 16.55%  voxy::game::adventure::AdventureSpatialQueries::cameraSweep() const::{lambda(void const*, glm::vec, glm::vec, double, unsigned long)#1}::_FUN
+       2ms  0.15% 22.89%      221ms 16.48%  voxy::game::adventure::AdventureSpatialQueries::sweepCapsule
+         0     0% 22.89%      221ms 16.48%  voxy::game::adventure::AdventureSpatialQueries::sweepSphere (inline)
+      57ms  4.25% 27.14%      209ms 15.59%  voxy::game::expedition::sweepCoveTerrainSphere
+       5ms  0.37% 27.52%      131ms  9.77%  voxy::game::adventure::AdventureRuntime::refreshHud
+       6ms  0.45% 27.96%      127ms  9.47%  std::ostream::_M_insert
+      47ms  3.50% 31.47%      125ms  9.32%  castConvex (inline)
+       1ms 0.075% 31.54%      125ms  9.32%  std::__cxx11::basic_string::assign (partial-inline)
+         0     0% 31.54%      124ms  9.25%  std::ostream::operator<< (inline)
+         0     0% 31.54%      122ms  9.10%  std::__cxx11::basic_string::_M_mutate (partial-inline)
+       2ms  0.15% 31.69%      119ms  8.87%  std::__cxx11::basic_string::_M_replace (partial-inline)
+     114ms  8.50% 40.19%      114ms  8.50%  __memmove_avx512_unaligned_erms
+      10ms  0.75% 40.94%      114ms  8.50%  std::char_traits::copy (inline)
+       1ms 0.075% 41.01%      108ms  8.05%  std::__cxx11::basic_string::_S_copy (inline)
+       1ms 0.075% 41.09%      108ms  8.05%  std::num_put::_M_insert_float
+         0     0% 41.09%      103ms  7.68%  std::__cxx11::basic_ostringstream::str (inline)
+         0     0% 41.09%      103ms  7.68%  std::__cxx11::basic_stringbuf::str (inline)
+       2ms  0.15% 41.24%       97ms  7.23%  std::__convert_from_v
+       1ms 0.075% 41.31%       93ms  6.94%  ___vsnprintf
+      11ms  0.82% 42.13%       92ms  6.86%  __printf_buffer
+      38ms  2.83% 44.97%       82ms  6.11%  voxy::game::adventure::AdventureRuntime::updateTarget
+       3ms  0.22% 45.19%       79ms  5.89%  __printf_fp_l_buffer
+      65ms  4.85% 50.04%       79ms  5.89%  voxy::game::expedition::CoveInputRouter::tick (partial-inline)
+      21ms  1.57% 51.60%       75ms  5.59%  __printf_fp_buffer_1.isra.0
+      69ms  5.15% 56.75%       71ms  5.29%  std::char_traits::compare (inline)
+         0     0% 56.75%       65ms  4.85%  voxy::game::adventure::AdventureRuntime::advanceCombat
+         0     0% 56.75%       64ms  4.77%  voxy::game::adventure::AdventurePlayer::advance
+         0     0% 56.75%       64ms  4.77%  voxy::game::adventure::AdventurePlayer::step
+      38ms  2.83% 59.58%       53ms  3.95%  voxy::game::expedition::sampleCoveInput
+       1ms 0.075% 59.66%       51ms  3.80%  std::operator<< (partial-inline)
+       2ms  0.15% 59.81%       48ms  3.58%  glm::detail::compute_length::call (inline)
+         0     0% 59.81%       48ms  3.58%  glm::length (inline)
+       1ms 0.075% 59.88%       48ms  3.58%  voxy::game::adventure::AdventureSpatialQueries::supportHeight
+      29ms  2.16% 62.04%       47ms  3.50%  hack_digit
+      17ms  1.27% 63.31%       46ms  3.43%  std::__ostream_insert
+      39ms  2.91% 66.22%       39ms  2.91%  __memset_avx512_unaligned_erms
+      37ms  2.76% 68.98%       38ms  2.83%  glm::operator* (inline)
+       7ms  0.52% 69.50%       37ms  2.76%  glm::detail::compute_dot::call (inline)
+         0     0% 69.50%       37ms  2.76%  glm::dot (inline)
+       1ms 0.075% 69.57%       35ms  2.61%  std::__new_allocator::allocate (inline)
+         0     0% 69.57%       35ms  2.61%  std::allocator::allocate (inline)
+         0     0% 69.57%       35ms  2.61%  std::allocator_traits::allocate (inline)
+         0     0% 69.57%       34ms  2.54%  operator new
+       6ms  0.45% 70.02%       33ms  2.46%  voxy::game::adventure::AdventureSpatialQueries::candidates
+         0     0% 70.02%       31ms  2.31%  std::__cxx11::basic_string::_M_create (inline)
+         0     0% 70.02%       31ms  2.31%  std::__cxx11::basic_string::_S_allocate (inline)
+         0     0% 70.02%       31ms  2.31%  std::__cxx11::basic_string::basic_string (partial-inline)
+      11ms  0.82% 70.84%       31ms  2.31%  std::basic_streambuf::xsputn
+       5ms  0.37% 71.22%       26ms  1.94%  signature (inline)
+       1ms 0.075% 71.29%       25ms  1.86%  std::__cxx11::basic_string::operator= (partial-inline)
+       1ms 0.075% 71.36%       24ms  1.79%  std::operator+
+      19ms  1.42% 72.78%       20ms  1.49%  voxy::game::adventure::AdventureCombatInputRouter::tick
+      19ms  1.42% 74.20%       19ms  1.42%  __GI___libc_malloc
+      18ms  1.34% 75.54%       18ms  1.34%  __gnu_cxx::__normal_iterator::operator++ (inline)
+       1ms 0.075% 75.62%       18ms  1.34%  voxy::terrain::lego::Surface::cellTop (inline)
+       5ms  0.37% 75.99%       17ms  1.27%  voxy::terrain::lego::top (inline)
+         0     0% 75.99%       15ms  1.12%  std::__cxx11::basic_string::_M_dispose (inline)
+       1ms 0.075% 76.06%       15ms  1.12%  voxy::game::adventure::AdventureRuntime::interactionLabel[abi:cxx11]
+         0     0% 76.06%       15ms  1.12%  voxy::game::adventure::AdventureSpatialQueries::clearCapsule
+       1ms 0.075% 76.14%       14ms  1.04%  __libc_malloc2
+       9ms  0.67% 76.81%       14ms  1.04%  std::__cxx11::basic_string::_M_is_local (inline)
+       2ms  0.15% 76.96%       14ms  1.04%  std::__cxx11::basic_string::append
+         0     0% 76.96%       14ms  1.04%  std::__cxx11::basic_string::~basic_string (inline)
+       8ms   0.6% 77.55%       13ms  0.97%  _int_malloc
+      13ms  0.97% 78.52%       13ms  0.97%  std::__cxx11::basic_string::_M_local_data (inline)
+      13ms  0.97% 79.49%       13ms  0.97%  voxy::game::adventure::AdventureSession::findPart
+       1ms 0.075% 79.57%       12ms  0.89%  std::__cxx11::basic_string::_M_append (inline)
+       3ms  0.22% 79.79%       12ms  0.89%  std::num_put::_M_insert_int
+      12ms  0.89% 80.69%       12ms  0.89%  voxy::Input::wasKeyPressed
+       3ms  0.22% 80.91%       12ms  0.89%  voxy::game::adventure::AdventureRuntime::refreshHud()::{lambda(std::basic_string_view, int, int)#1}::operator()
+       2ms  0.15% 81.06%       12ms  0.89%  voxy::render::AdventureHudRow::operator= (inline)
+      11ms  0.82% 81.88%       11ms  0.82%  __mpn_mul_1
+      11ms  0.82% 82.70%       11ms  0.82%  __sqrt_finite@GLIBC_2.15
+      11ms  0.82% 83.52%       11ms  0.82%  glm::operator- (inline)
+       2ms  0.15% 83.67%       11ms  0.82%  voxy::render::AdventureHudContent::operator= (inline)
+         0     0% 83.67%       10ms  0.75%  std::__cxx11::basic_stringbuf::overflow
+      10ms  0.75% 84.41%       10ms  0.75%  voxy::game::expedition::sweepCoveTerrainSphere()::{lambda(voxy::game::expedition::CoveCamera::SweepResult)#1}::operator()
+       1ms 0.075% 84.49%       10ms  0.75%  voxy::terrain::lego::supportHeight
+       9ms  0.67% 85.16%        9ms  0.67%  __sqrt
+       2ms  0.15% 85.31%        9ms  0.67%  std::__cxx11::basic_string::_M_assign
+       8ms   0.6% 85.91%        8ms   0.6%  [final-runner]
+       8ms   0.6% 86.50%        8ms   0.6%  __mpn_divrem
+         0     0% 86.50%        8ms   0.6%  std::vector::operator= (partial-inline)
+       1ms 0.075% 86.58%        8ms   0.6%  std::vector::push_back (inline)
+         0     0% 86.58%        8ms   0.6%  voxy::Camera::ensureViewProjectionMatrix (inline)
+         0     0% 86.58%        8ms   0.6%  voxy::Camera::inverseViewProjectionMatrix
+       3ms  0.22% 86.80%        8ms   0.6%  voxy::game::adventure::(anonymous namespace)::quote
+       1ms 0.075% 86.88%        8ms   0.6%  voxy::game::adventure::AdventureRuntime::combatLabel[abi:cxx11]
+       1ms 0.075% 86.95%        8ms   0.6%  voxy::render::AdventureHudRow::AdventureHudRow (inline)
+       5ms  0.37% 87.32%        8ms   0.6%  voxy::terrain::lego::plateCount (inline)
+       3ms  0.22% 87.55%        7ms  0.52%  __GI_getenv
+         0     0% 87.55%        7ms  0.52%  std::__new_allocator::deallocate (inline)
+         0     0% 87.55%        7ms  0.52%  std::allocator::deallocate (inline)
+         0     0% 87.55%        7ms  0.52%  std::allocator_traits::deallocate (inline)
+       1ms 0.075% 87.62%        7ms  0.52%  std::array::operator= (inline)
+         0     0% 87.62%        7ms  0.52%  std::vector::emplace_back
+       1ms 0.075% 87.70%        7ms  0.52%  voxy::Camera::ensureProjectionMatrix (inline)
+       1ms 0.075% 87.77%        7ms  0.52%  voxy::render::AdventureHudContent::AdventureHudContent (inline)

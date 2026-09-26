@@ -1,0 +1,1124 @@
+Total: 2.51s
+ROUTINE ======================== VillageReservations in src/game/adventure/creative_village.cpp
+         0       28ms (flat, cum)  1.12% of Total
+         .          .     23:    std::vector<Entry>::difference_type finiteCount_=0;
+         .          .     24:public:
+         .          .     25:    explicit VillageReservations(std::span<const Solid> source):source_(source) {
+         .          .     26:        entries_.reserve(source.size());
+         .          .     27:        for(const auto& solid:source)entries_.push_back({&solid,solid.minimum.x-.5,solid.maximum.x+.5});
+         .        1ms     28:        const auto finiteEnd=std::partition(entries_.begin(),entries_.end(),[](const Entry& entry){
+         .          .     29:            return std::isfinite(entry.lower)&&std::isfinite(entry.prefixUpper);
+         .          .     30:        });
+         .          .     31:        finiteCount_=finiteEnd-entries_.begin();
+         .       27ms     32:        std::sort(entries_.begin(),finiteEnd,[](const Entry& a,const Entry& b){return a.lower<b.lower;});
+         .          .     33:        double upper=-INFINITY;
+         .          .     34:        for(auto it=entries_.begin();it!=finiteEnd;++it) {
+         .          .     35:            upper=std::max(upper,it->prefixUpper);it->prefixUpper=upper;
+         .          .     36:        }
+         .          .     37:    }
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/new_allocator.h
+         0        2ms (flat, cum)  0.08% of Total
+         .          .    167:	    _GLIBCXX_OPERATOR_DELETE(_GLIBCXX_SIZED_DEALLOC(__p, __n),
+         .          .    168:				     std::align_val_t(alignof(_Tp)));
+         .          .    169:	    return;
+         .          .    170:	  }
+         .          .    171:#endif
+         .        2ms    172:	_GLIBCXX_OPERATOR_DELETE(_GLIBCXX_SIZED_DEALLOC(__p, __n));
+         .          .    173:      }
+         .          .    174:
+         .          .    175:#undef _GLIBCXX_SIZED_DEALLOC
+         .          .    176:#undef _GLIBCXX_OPERATOR_DELETE
+         .          .    177:#undef _GLIBCXX_OPERATOR_NEW
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h
+       1ms       26ms (flat, cum)  1.04% of Total
+         .          .   1753:    {
+         .          .   1754:      typename iterator_traits<_RandomAccessIterator>::value_type
+         .          .   1755:	__val = _GLIBCXX_MOVE(*__last);
+         .          .   1756:      _RandomAccessIterator __next = __last;
+         .          .   1757:      --__next;
+       1ms        1ms   1758:      while (__comp(__val, __next))
+         .          .   1759:	{
+         .          .   1760:	  *__last = _GLIBCXX_MOVE(*__next);
+         .          .   1761:	  __last = __next;
+         .          .   1762:	  --__next;
+         .          .   1763:	}
+         .          .   1764:      *__last = _GLIBCXX_MOVE(__val);
+         .          .   1765:    }
+         .          .   1766:
+         .          .   1767:  /// This is a helper function for the sort routine.
+         .          .   1768:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1769:    _GLIBCXX20_CONSTEXPR
+         .          .   1770:    void
+         .          .   1771:    __insertion_sort(_RandomAccessIterator __first,
+         .          .   1772:		     _RandomAccessIterator __last, _Compare __comp)
+         .          .   1773:    {
+         .          .   1774:      if (__first == __last) return;
+         .          .   1775:
+         .          .   1776:      for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+         .          .   1777:	{
+         .          .   1778:	  if (__comp(__i, __first))
+         .          .   1779:	    {
+         .          .   1780:	      typename iterator_traits<_RandomAccessIterator>::value_type
+         .          .   1781:		__val = _GLIBCXX_MOVE(*__i);
+         .          .   1782:	      _GLIBCXX_MOVE_BACKWARD3(__first, __i, __i + 1);
+         .          .   1783:	      *__first = _GLIBCXX_MOVE(__val);
+         .          .   1784:	    }
+         .          .   1785:	  else
+         .          .   1786:	    std::__unguarded_linear_insert(__i,
+         .          .   1787:				__gnu_cxx::__ops::__val_comp_iter(__comp));
+         .          .   1788:	}
+         .          .   1789:    }
+         .          .   1790:
+         .          .   1791:  /// This is a helper function for the sort routine.
+         .          .   1792:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1793:    _GLIBCXX20_CONSTEXPR
+         .          .   1794:    inline void
+         .          .   1795:    __unguarded_insertion_sort(_RandomAccessIterator __first,
+         .          .   1796:			       _RandomAccessIterator __last, _Compare __comp)
+         .          .   1797:    {
+         .          .   1798:      for (_RandomAccessIterator __i = __first; __i != __last; ++__i)
+         .          .   1799:	std::__unguarded_linear_insert(__i,
+         .          .   1800:				__gnu_cxx::__ops::__val_comp_iter(__comp));
+         .          .   1801:    }
+         .          .   1802:
+         .          .   1803:  /**
+         .          .   1804:   *  @doctodo
+         .          .   1805:   *  This controls some aspect of the sort routines.
+         .          .   1806:  */
+         .          .   1807:  enum { _S_threshold = 16 };
+         .          .   1808:
+         .          .   1809:  /// This is a helper function for the sort routine.
+         .          .   1810:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1811:    _GLIBCXX20_CONSTEXPR
+         .          .   1812:    void
+         .          .   1813:    __final_insertion_sort(_RandomAccessIterator __first,
+         .          .   1814:			   _RandomAccessIterator __last, _Compare __comp)
+         .          .   1815:    {
+         .          .   1816:      if (__last - __first > int(_S_threshold))
+         .          .   1817:	{
+         .          .   1818:	  std::__insertion_sort(__first, __first + int(_S_threshold), __comp);
+         .          .   1819:	  std::__unguarded_insertion_sort(__first + int(_S_threshold), __last,
+         .          .   1820:					  __comp);
+         .          .   1821:	}
+         .          .   1822:      else
+         .          .   1823:	std::__insertion_sort(__first, __last, __comp);
+         .          .   1824:    }
+         .          .   1825:
+         .          .   1826:  /// This is a helper function...
+         .          .   1827:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1828:    _GLIBCXX20_CONSTEXPR
+         .          .   1829:    _RandomAccessIterator
+         .          .   1830:    __unguarded_partition(_RandomAccessIterator __first,
+         .          .   1831:			  _RandomAccessIterator __last,
+         .          .   1832:			  _RandomAccessIterator __pivot, _Compare __comp)
+         .          .   1833:    {
+         .          .   1834:      while (true)
+         .          .   1835:	{
+         .          .   1836:	  while (__comp(__first, __pivot))
+         .          .   1837:	    ++__first;
+         .          .   1838:	  --__last;
+         .          .   1839:	  while (__comp(__pivot, __last))
+         .          .   1840:	    --__last;
+         .          .   1841:	  if (!(__first < __last))
+         .          .   1842:	    return __first;
+         .          .   1843:	  std::iter_swap(__first, __last);
+         .          .   1844:	  ++__first;
+         .          .   1845:	}
+         .          .   1846:    }
+         .          .   1847:
+         .          .   1848:  /// This is a helper function...
+         .          .   1849:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1850:    _GLIBCXX20_CONSTEXPR
+         .          .   1851:    inline _RandomAccessIterator
+         .          .   1852:    __unguarded_partition_pivot(_RandomAccessIterator __first,
+         .          .   1853:				_RandomAccessIterator __last, _Compare __comp)
+         .          .   1854:    {
+         .          .   1855:      _RandomAccessIterator __mid = __first + (__last - __first) / 2;
+         .          .   1856:      std::__move_median_to_first(__first, __first + 1, __mid, __last - 1,
+         .          .   1857:				  __comp);
+         .          .   1858:      return std::__unguarded_partition(__first + 1, __last, __first, __comp);
+         .          .   1859:    }
+         .          .   1860:
+         .          .   1861:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1862:    _GLIBCXX20_CONSTEXPR
+         .          .   1863:    inline void
+         .          .   1864:    __partial_sort(_RandomAccessIterator __first,
+         .          .   1865:		   _RandomAccessIterator __middle,
+         .          .   1866:		   _RandomAccessIterator __last,
+         .          .   1867:		   _Compare __comp)
+         .          .   1868:    {
+         .          .   1869:      std::__heap_select(__first, __middle, __last, __comp);
+         .          .   1870:      std::__sort_heap(__first, __middle, __comp);
+         .          .   1871:    }
+         .          .   1872:
+         .          .   1873:  /// This is a helper function for the sort routine.
+         .          .   1874:  template<typename _RandomAccessIterator, typename _Size, typename _Compare>
+         .          .   1875:    _GLIBCXX20_CONSTEXPR
+         .          .   1876:    void
+         .          .   1877:    __introsort_loop(_RandomAccessIterator __first,
+         .          .   1878:		     _RandomAccessIterator __last,
+         .          .   1879:		     _Size __depth_limit, _Compare __comp)
+         .          .   1880:    {
+         .          .   1881:      while (__last - __first > int(_S_threshold))
+         .          .   1882:	{
+         .          .   1883:	  if (__depth_limit == 0)
+         .          .   1884:	    {
+         .          .   1885:	      std::__partial_sort(__first, __last, __last, __comp);
+         .          .   1886:	      return;
+         .          .   1887:	    }
+         .          .   1888:	  --__depth_limit;
+         .          .   1889:	  _RandomAccessIterator __cut =
+         .          .   1890:	    std::__unguarded_partition_pivot(__first, __last, __comp);
+         .          .   1891:	  std::__introsort_loop(__cut, __last, __depth_limit, __comp);
+         .          .   1892:	  __last = __cut;
+         .          .   1893:	}
+         .          .   1894:    }
+         .          .   1895:
+         .          .   1896:  // sort
+         .          .   1897:
+         .          .   1898:  template<typename _RandomAccessIterator, typename _Compare>
+         .          .   1899:    _GLIBCXX20_CONSTEXPR
+         .          .   1900:    inline void
+         .          .   1901:    __sort(_RandomAccessIterator __first, _RandomAccessIterator __last,
+         .          .   1902:	   _Compare __comp)
+         .          .   1903:    {
+         .          .   1904:      if (__first != __last)
+         .          .   1905:	{
+         .       25ms   1906:	  std::__introsort_loop(__first, __last,
+         .          .   1907:				std::__lg(__last - __first) * 2,
+         .          .   1908:				__comp);
+         .          .   1909:	  std::__final_insertion_sort(__first, __last, __comp);
+         .          .   1910:	}
+         .          .   1911:    }
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit in src/game/adventure/creative_village.cpp
+      26ms      123ms (flat, cum)  4.90% of Total
+         .          .     22:    std::vector<Entry> entries_;
+         .          .     23:    std::vector<Entry>::difference_type finiteCount_=0;
+         .          .     24:public:
+         .          .     25:    explicit VillageReservations(std::span<const Solid> source):source_(source) {
+         .          .     26:        entries_.reserve(source.size());
+       2ms        2ms     27:        for(const auto& solid:source)entries_.push_back({&solid,solid.minimum.x-.5,solid.maximum.x+.5});
+         .          .     28:        const auto finiteEnd=std::partition(entries_.begin(),entries_.end(),[](const Entry& entry){
+       1ms        1ms     29:            return std::isfinite(entry.lower)&&std::isfinite(entry.prefixUpper);
+         .          .     30:        });
+         .          .     31:        finiteCount_=finiteEnd-entries_.begin();
+         .          .     32:        std::sort(entries_.begin(),finiteEnd,[](const Entry& a,const Entry& b){return a.lower<b.lower;});
+         .          .     33:        double upper=-INFINITY;
+         .          .     34:        for(auto it=entries_.begin();it!=finiteEnd;++it) {
+         .          .     35:            upper=std::max(upper,it->prefixUpper);it->prefixUpper=upper;
+         .          .     36:        }
+         .          .     37:    }
+         .          .     38:    bool blocks(glm::dvec3 lo,glm::dvec3 hi) const {
+         .          .     39:        for(int axis=0;axis<3;++axis)if(!std::isfinite(lo[axis])||!std::isfinite(hi[axis])) {
+         .          .     40:            for(const auto& solid:source_)if(overlap(lo,hi,solid,.5))return true;
+         .          .     41:            return false;
+         .          .     42:        }
+         .          .     43:        const auto finiteEnd=entries_.begin()+finiteCount_;
+         .          .     44:        const auto end=std::lower_bound(entries_.begin(),finiteEnd,hi.x,
+         .          .     45:            [](const Entry& entry,double value){return entry.lower<value;});
+         .          .     46:        // Every earlier upper is <= lo.x; none can satisfy upper > lo.x.
+         .          .     47:        const auto begin=std::upper_bound(entries_.begin(),end,lo.x,
+         .          .     48:            [](double value,const Entry& entry){return value<entry.prefixUpper;});
+         .          .     49:        for(auto it=begin;it!=end;++it)if(overlap(lo,hi,*it->solid,.5))return true;
+         .          .     50:        // Exceptional expanded X bounds never enter binary-search ordering.
+         .          .     51:        for(auto it=finiteEnd;it!=entries_.end();++it)if(overlap(lo,hi,*it->solid,.5))return true;
+         .          .     52:        return false;
+         .          .     53:    }
+         .          .     54:};
+         .          .     55:std::pair<double,double> ground(const terrain::lego::Surface& s,glm::dvec2 p,glm::dvec2 extent) {
+         .          .     56:    if(!s.valid())return {INFINITY,INFINITY};
+         .          .     57:    const glm::dvec2 origin(s.origin());const double cell=s.cellScale;
+         .          .     58:    const int x0=int(std::floor((p.x-extent.x+origin.x)/cell)),z0=int(std::floor((p.y-extent.y+origin.y)/cell));
+         .          .     59:    const int x1=int(std::floor((p.x+extent.x+origin.x-1e-7)/cell)),z1=int(std::floor((p.y+extent.y+origin.y-1e-7)/cell));
+         .          .     60:    if(x0<0||z0<0||x1>=int(s.width)-1||z1>=int(s.height)-1)return {INFINITY,INFINITY};
+         .          .     61:    double lo=INFINITY,hi=-INFINITY;
+         .          .     62:    for(int z=z0;z<=z1;++z)for(int x=x0;x<=x1;++x){const double y=s.cellTop(x,z);lo=std::min(lo,y);hi=std::max(hi,y);}
+         .          .     63:    return {lo,hi};
+         .          .     64:}
+         .          .     65:std::pair<glm::dvec3,glm::dvec3> transformed(VillageBox b,const CreativeVillagePiece& piece) {
+         .          .     66:    glm::dvec3 lo(INFINITY),hi(-INFINITY);
+         .          .     67:    for(double x:{b.minimum.x,b.maximum.x})for(double y:{b.minimum.y,b.maximum.y})for(double z:{b.minimum.z,b.maximum.z}) {
+         .          .     68:        const auto p=piece.feet+rotate(glm::dvec3(x,y,z)*piece.scale,piece.yaw);lo=glm::min(lo,p);hi=glm::max(hi,p);
+         .          .     69:    }
+         .          .     70:    return {lo,hi};
+         .          .     71:}
+         .          .     72:void add(CreativeVillageGroup& group,construction::WorldNamespace world,CreativeVillagePiece piece) {
+         .          .     73:    const auto bounds=transformed(villageMeshBounds[piece.mesh],piece);
+         .          .     74:    group.minimum=glm::min(group.minimum,bounds.first);group.maximum=glm::max(group.maximum,bounds.second);
+         .          .     75:    group.pieces.push_back(piece);
+         .          .     76:    const auto part=creativeSceneryPartBase-1500000u-group.id;
+         .          .     77:    for(const auto& b:villageMeshSolids(piece.mesh)) {
+         .          .     78:        const auto box=transformed(b,piece);
+         .          .     79:        group.solids.push_back({{world,creativeSceneryStructureId},{world,part},box.first,box.second});
+         .          .     80:    }
+         .          .     81:}
+         .          .     82:CreativeVillageGroup building(uint16_t id,uint8_t mesh,glm::dvec2 center,uint8_t yaw,
+         .          .     83:    const terrain::lego::Surface& terrain,construction::WorldNamespace world) {
+         .          .     84:    CreativeVillageGroup group;group.id=id;group.minimum=glm::dvec3(INFINITY);group.maximum=glm::dvec3(-INFINITY);
+         .          .     85:    const glm::dvec2 extent=(mesh<2||mesh==8)?glm::dvec2(5,4):mesh==9?glm::dvec2(8.5,4):mesh==2?glm::dvec2(3):mesh==3?glm::dvec2(3.5):mesh==4?glm::dvec2(5,3):mesh==10?glm::dvec2(4,2.5):(mesh==11||mesh==12||mesh==14)?glm::dvec2(3,.8):mesh==13?glm::dvec2(1.6,1):glm::dvec2(2.2);
+         .          .     86:    const auto [lo,hi]=ground(terrain,center,(yaw&1)?glm::dvec2(extent.y,extent.x):extent);
+         .          .     87:    if(!std::isfinite(hi)||hi-lo>1.61||lo<double(installedWorld().waterHeight)+2)return group;
+         .          .     88:    const double base=hi+.025;
+         .          .     89:    add(group,world,{7,yaw,{center.x,lo-.025,center.y},{extent.x*2,base-lo+.025,extent.y*2}});
+         .          .     90:    add(group,world,{mesh,yaw,{center.x,base,center.y},{1,1,1}});
+         .          .     91:    if(mesh<4||mesh==8||mesh==9) {
+         .          .     92:        // A generous three-stud doorway and .28-stud steps fit the actual
+         .          .     93:        // 4.76-stud minifigure; no invisible full-building box across the room.
+         .          .     94:        const double front=-extent.y;
+         .          .     95:        const auto entry=glm::dvec3(center.x,0,center.y)+rotate({0,0,front-.5},yaw);
+         .          .     96:        const auto range=ground(terrain,{entry.x,entry.z},{1.7,1.7});
+         .          .     97:        const double floor=base+.32;
+         .          .     98:        const int count=std::clamp(int(std::ceil((floor-range.first)/.28)),1,8);
+         .          .     99:        for(int i=0;i<count;++i) {
+         .          .    100:            const auto p=glm::dvec3(center.x,0,center.y)+rotate({0,0,front-.425-.85*i},yaw);
+         .          .    101:            const auto g=ground(terrain,{p.x,p.z},{1.7,1.7});
+         .          .    102:            const double top=floor-.28*i;
+         .          .    103:            if(!std::isfinite(g.first)||top<=g.second+.18)continue;
+         .          .    104:            add(group,world,{7,yaw,{p.x,g.first-.02,p.z},{3.3,top-g.first+.02,.85}});
+         .          .    105:        }
+         .          .    106:    }
+         .          .    107:    return group;
+         .          .    108:}
+         .          .    109:}
+         .          .    110:CreativeVillage CreativeVillage::admit(const AdventureState& state,const terrain::lego::Surface& terrain,std::span<const Solid> reserved,const CreativeVillage* previous,std::span<const Solid> clearance) {
+         .          .    111:    CreativeVillage out;out.initialized_=true;if(!terrain.valid())return out;
+         .          .    112:    const bool continuing=previous&&previous->initialized_;
+         .          .    113:    size_t total=reserved.size();
+         .       30ms    114:    const VillageReservations reservations(reserved);
+         .          .    115:    const auto admit=[&](CreativeVillageGroup group) {
+         .          .    116:        if(group.pieces.empty())return;
+         .          .    117:        if(continuing&&std::none_of(previous->groups_.begin(),previous->groups_.end(),[&](const auto& g){return g.id==group.id;}))return;
+         .          .    118:        if(reservations.blocks(group.minimum,group.maximum))return;
+         .          .    119:        const auto part=creativeSceneryPartBase-1500000u-group.id;
+         .          .    120:        const auto alias=[&](uint64_t value){return value==creativeSceneryStructureId||value==part;};
+         .          .    121:        for(const auto& structure:state.structures){if(alias(structure.id))return;for(const auto& p:structure.parts)if(alias(p.id))return;}
+         .          .    122:        for(const auto& c:state.components)if(alias(c.id))return;
+         .          .    123:        if(!continuing) {
+         .          .    124:            const glm::dvec3 p(state.player.x,state.player.y,state.player.z);
+         .          .    125:            const Solid player{{},{},p-glm::dvec3(1.12,0,1.12),p+glm::dvec3(1.12,5.7,1.12)};
+         .          .    126:            // Player inside an open cottage is safe: test actual solids rather
+         .          .    127:            // than ejecting them merely for standing under its roof.
+         .          .    128:            for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,player))return;
+         .          .    129:            for(const auto& c:clearance)for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,c,.05))return;
+         .          .    130:        }
+         .          .    131:        if(total+group.solids.size()>AdventureSpatialQueries::maximumSolids)return;
+         .          .    132:        total+=group.solids.size();out.groups_.push_back(std::move(group));
+         .          .    133:    };
+         .          .    134:    uint16_t id=0;
+         .          .    135:    struct House {uint8_t mesh;glm::dvec2 center;uint8_t yaw;};
+         .          .    136:    // Staggered plots leave a central view corridor to the commons and tower.
+         .          .    137:    const std::array houses{
+         .          .    138:        House{0,{1064,-1050},0},House{8,{1082,-1034},0},
+         .          .    139:        House{0,{1127,-1040},0},House{1,{1154,-1044},0},
+         .          .    140:        House{1,{1067,-1086},2},House{9,{1088,-1092},2},
+         .          .    141:        House{8,{1130,-1096},2},House{9,{1168,-1100},2},
+         .          .    142:        House{1,{1048,-1034},0},House{8,{1110,-1011},0},House{1,{1176,-1036},0}};
+         .        3ms    143:    for(const auto& h:houses)admit(building(++id,h.mesh,h.center,h.yaw,terrain,state.world));
+         .        2ms    144:    admit(building(++id,2,{1110,-1035},0,terrain,state.world));
+         .          .    145:    admit(building(++id,3,{1042,-1068},0,terrain,state.world));
+         .          .    146:    for(const glm::dvec2 plot:std::array{glm::dvec2(1044,-1091),glm::dvec2(1086,-1058),glm::dvec2(1146,-1024),glm::dvec2(1173,-1064)})
+         .        2ms    147:        for(double x:{-5.3,5.3})for(double z:{-3.4,3.4})admit(building(++id,4,plot+glm::dvec2(x,z),0,terrain,state.world));
+         .          .    148:    admit(building(++id,6,{1110,-1067},0,terrain,state.world));
+         .          .    149:    for(const glm::dvec2 p:std::array{glm::dvec2(1101,-1055),glm::dvec2(1126,-1060)})admit(building(++id,10,p,0,terrain,state.world));
+         .          .    150:    // Each house has planted frontage, leaving a wide clear entrance.
+         .          .    151:    for(const auto& h:houses)for(double side:{-1.,1.}) {
+         .          .    152:        const auto p=glm::dvec3(h.center.x,0,h.center.y)+rotate({side*5.7,0,-6.8},h.yaw);
+         .          .    153:        admit(building(++id,side<0?11:12,{p.x,p.z},h.yaw,terrain,state.world));
+         .          .    154:    }
+         .          .    155:    for(const glm::dvec2 p:std::array{glm::dvec2(1103,-1055),glm::dvec2(1131,-1058),glm::dvec2(1095,-1089),glm::dvec2(1164,-1105)})admit(building(++id,13,p,0,terrain,state.world));
+         .          .    156:    // Gardens frame the arrival lane without blocking the view of the commons.
+         .          .    157:    // Broken hedgerows leave the house and farm entrances open.
+         .          .    158:    for(const auto p:std::array{glm::dvec2(1190,-1100),glm::dvec2(1182,-1088),glm::dvec2(1170,-1078),
+         .          .    159:        glm::dvec2(1150,-1082),glm::dvec2(1144,-1082),glm::dvec2(1138,-1082)})
+         .          .    160:        admit(building(++id,11,p,0,terrain,state.world));
+         .          .    161:    for(const auto p:std::array{glm::dvec2(1190,-1103),glm::dvec2(1185,-1098),
+         .          .    162:        glm::dvec2(1181,-1092),glm::dvec2(1176,-1086),glm::dvec2(1170,-1081),
+         .          .    163:        glm::dvec2(1148,-1079),glm::dvec2(1142,-1079),glm::dvec2(1136,-1079)})
+         .        1ms    164:        admit(building(++id,12,p,0,terrain,state.world));
+         .          .    165:    for(const auto p:std::array{glm::dvec2(1193,-1087),glm::dvec2(1188,-1080)})
+         .        2ms    166:        admit(building(++id,4,p,0,terrain,state.world));
+         .          .    167:    std::set<std::pair<int,int>> tiles;
+         .          .    168:    const auto lane=[&](glm::dvec2 a,glm::dvec2 b,int halfWidth=1) {
+         .          .    169:        const auto delta=b-a;const int steps=std::max(1,int(std::ceil(glm::length(delta)/1.5)));
+         .          .    170:        const auto forward=glm::length(delta)>0?glm::normalize(delta):glm::dvec2(1,0);const glm::dvec2 side(-forward.y,forward.x);
+         .          .    171:        for(int i=0;i<=steps;++i)for(int j=-halfWidth;j<=halfWidth;++j) {
+         .          .    172:            const auto p=a+delta*(double(i)/steps)+side*double(j*2);
+         .          .    173:            tiles.emplace(int(std::round(p.x/2))*2,int(std::round(p.y/2))*2);
+         .          .    174:        }
+         .          .    175:    };
+         .          .    176:    lane({1194,-1114},{1180,-1090});lane({1180,-1090},{1158,-1070});
+         .        4ms    177:    lane({1042,-1076},{1080,-1072});lane({1080,-1072},{1110,-1070});lane({1110,-1070},{1160,-1070});
+         .          .    178:    lane({1110,-1080},{1110,-1038});
+         .          .    179:    for(const auto& h:houses) {
+         .          .    180:        const auto entry=glm::dvec3(h.center.x,0,h.center.y)+rotate({0,0,-5},h.yaw);
+         .          .    181:        if(h.center.x==1082) {
+         .        1ms    182:            lane({1098,-1070},{1098,-1044},0);lane({1098,-1044},{1082,-1044},0);
+         .          .    183:            lane({1082,-1044},{entry.x,entry.z},0);
+         .          .    184:        } else if(h.center.y==-1011) {
+         .          .    185:            lane({1100,-1058},{1100,-1020},0);lane({1100,-1020},{1110,-1020},0);lane({1110,-1020},{entry.x,entry.z},0);
+         .        2ms    186:        } else lane({h.center.x,-1071},{entry.x,entry.z},0);
+         .          .    187:    }
+         .          .    188:    lane({1042,-1076},{1042,-1072});lane({1146,-1040},{1146,-1030});
+         .        1ms    189:    lane({1158,-1070},{1178,-1070});lane({1180,-1090},{1190,-1091},0);lane({1044,-1084},{1064,-1074});
+         .          .    190:    for(int x=1098;x<=1122;x+=2)for(int z=-1078;z<=-1058;z+=2)tiles.emplace(x,z);
+         .          .    191:    const size_t fixedGroups=out.groups_.size();
+         .          .    192:    for(const auto& [x,z]:tiles) {
+         .        3ms    193:        ++id;const auto [lo,hi]=ground(terrain,{x,z},{1,1});
+         .          .    194:        if(!std::isfinite(hi)||hi-lo>1.61||lo<double(installedWorld().waterHeight)+2)continue;
+         .          .    195:        bool blocked=false;
+      23ms       34ms    196:        for(size_t gi=0;gi<fixedGroups;++gi)if(const auto& g=out.groups_[gi];overlap({x-1.,lo,z-1.},{x+1.,hi+.35,z+1.},{{},{},g.minimum,g.maximum})){blocked=true;break;}
+         .          .    197:        if(blocked)continue;
+         .          .    198:        CreativeVillageGroup group;group.id=id;group.minimum=glm::dvec3(INFINITY);group.maximum=glm::dvec3(-INFINITY);
+         .          .    199:        // Small paving pieces follow each terrace instead of discarding a
+         .          .    200:        // whole 2x2 patch whenever it straddles two terrain elevations.
+         .          .    201:        if(hi-lo<.001) {
+         .        4ms    202:            add(group,state.world,{5,0,{double(x),lo+.002,double(z)},{1,.24/.35,1}});
+         .          .    203:        } else for(double dx:{-.5,.5})for(double dz:{-.5,.5}) {
+         .          .    204:            const auto [tileLo,tileHi]=ground(terrain,{x+dx,z+dz},{.5,.5});
+         .        3ms    205:            add(group,state.world,{5,0,{x+dx,tileLo+.002,z+dz},{.5,(tileHi-tileLo+.24)/.35,.5}});
+         .          .    206:        }
+         .       26ms    207:        admit(std::move(group));
+         .          .    208:    }
+         .          .    209:    return out;
+         .        2ms    210:}
+         .          .    211:bool CreativeVillage::appendSolids(std::vector<Solid>& solids) const {
+         .          .    212:    size_t count=solids.size();for(const auto& group:groups_)count+=group.solids.size();
+         .          .    213:    if(count>AdventureSpatialQueries::maximumSolids)return false;
+         .          .    214:    for(const auto& group:groups_)solids.insert(solids.end(),group.solids.begin(),group.solids.end());
+         .          .    215:    return true;
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(glm::vec, glm::vec, int)#1}::operator() in src/game/adventure/creative_village.cpp
+       3ms        8ms (flat, cum)  0.32% of Total
+         .          .    166:        admit(building(++id,4,p,0,terrain,state.world));
+         .          .    167:    std::set<std::pair<int,int>> tiles;
+         .          .    168:    const auto lane=[&](glm::dvec2 a,glm::dvec2 b,int halfWidth=1) {
+         .          .    169:        const auto delta=b-a;const int steps=std::max(1,int(std::ceil(glm::length(delta)/1.5)));
+         .          .    170:        const auto forward=glm::length(delta)>0?glm::normalize(delta):glm::dvec2(1,0);const glm::dvec2 side(-forward.y,forward.x);
+       1ms        1ms    171:        for(int i=0;i<=steps;++i)for(int j=-halfWidth;j<=halfWidth;++j) {
+         .          .    172:            const auto p=a+delta*(double(i)/steps)+side*double(j*2);
+       2ms        7ms    173:            tiles.emplace(int(std::round(p.x/2))*2,int(std::round(p.y/2))*2);
+         .          .    174:        }
+         .          .    175:    };
+         .          .    176:    lane({1194,-1114},{1180,-1090});lane({1180,-1090},{1158,-1070});
+         .          .    177:    lane({1042,-1076},{1080,-1072});lane({1080,-1072},{1110,-1070});lane({1110,-1070},{1160,-1070});
+         .          .    178:    lane({1110,-1080},{1110,-1038});
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator() in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h
+       3ms        3ms (flat, cum)  0.12% of Total
+         .          .   1504:      while (__len > 0)
+         .          .   1505:	{
+         .          .   1506:	  _DistanceType __half = __len >> 1;
+         .          .   1507:	  _ForwardIterator __middle = __first;
+         .          .   1508:	  std::advance(__middle, __half);
+       1ms        1ms   1509:	  if (__comp(__middle, __val))
+         .          .   1510:	    {
+         .          .   1511:	      __first = __middle;
+         .          .   1512:	      ++__first;
+         .          .   1513:	      __len = __len - __half - 1;
+         .          .   1514:	    }
+         .          .   1515:	  else
+         .          .   1516:	    __len = __half;
+         .          .   1517:	}
+         .          .   1518:      return __first;
+         .          .   1519:    }
+         .          .   1520:
+         .          .   1521:  /**
+         .          .   1522:   *  @brief Finds the first position in which @a val could be inserted
+         .          .   1523:   *         without changing the ordering.
+         .          .   1524:   *  @param  __first   An iterator.
+         .          .   1525:   *  @param  __last    Another iterator.
+         .          .   1526:   *  @param  __val     The search term.
+         .          .   1527:   *  @return         An iterator pointing to the first element <em>not less
+         .          .   1528:   *                  than</em> @a val, or end() if every element is less than
+         .          .   1529:   *                  @a val.
+         .          .   1530:   *  @ingroup binary_search_algorithms
+         .          .   1531:  */
+         .          .   1532:  template<typename _ForwardIterator, typename _Tp>
+         .          .   1533:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1534:    inline _ForwardIterator
+         .          .   1535:    lower_bound(_ForwardIterator __first, _ForwardIterator __last,
+         .          .   1536:		const _Tp& __val)
+         .          .   1537:    {
+         .          .   1538:      // concept requirements
+         .          .   1539:      __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+         .          .   1540:      __glibcxx_function_requires(_LessThanOpConcept<
+         .          .   1541:	    typename iterator_traits<_ForwardIterator>::value_type, _Tp>)
+         .          .   1542:      __glibcxx_requires_partitioned_lower(__first, __last, __val);
+         .          .   1543:
+         .          .   1544:      return std::__lower_bound(__first, __last, __val,
+         .          .   1545:				__gnu_cxx::__ops::__iter_less_val());
+         .          .   1546:    }
+         .          .   1547:
+         .          .   1548:  /// This is a helper function for the sort routines and for random.tcc.
+         .          .   1549:  //  Precondition: __n > 0.
+         .          .   1550:  template<typename _Tp>
+         .          .   1551:    inline _GLIBCXX_CONSTEXPR _Tp
+         .          .   1552:    __lg(_Tp __n)
+         .          .   1553:    {
+         .          .   1554:#if __cplusplus >= 201402L
+         .          .   1555:      return std::__bit_width(make_unsigned_t<_Tp>(__n)) - 1;
+         .          .   1556:#else
+         .          .   1557:#pragma GCC diagnostic push
+         .          .   1558:#pragma GCC diagnostic ignored "-Wlong-long"
+         .          .   1559:      // Use +__n so it promotes to at least int.
+         .          .   1560:      return (sizeof(+__n) * __CHAR_BIT__ - 1)
+         .          .   1561:	       - (sizeof(+__n) == sizeof(long long)
+         .          .   1562:		    ? __builtin_clzll(+__n)
+         .          .   1563:		    : (sizeof(+__n) == sizeof(long)
+         .          .   1564:			 ? __builtin_clzl(+__n)
+         .          .   1565:			 : __builtin_clz(+__n)));
+         .          .   1566:#pragma GCC diagnostic pop
+         .          .   1567:#endif
+         .          .   1568:    }
+         .          .   1569:
+         .          .   1570:_GLIBCXX_BEGIN_NAMESPACE_ALGO
+         .          .   1571:
+         .          .   1572:  /**
+         .          .   1573:   *  @brief Tests a range for element-wise equality.
+         .          .   1574:   *  @ingroup non_mutating_algorithms
+         .          .   1575:   *  @param  __first1  An input iterator.
+         .          .   1576:   *  @param  __last1   An input iterator.
+         .          .   1577:   *  @param  __first2  An input iterator.
+         .          .   1578:   *  @return   A boolean true or false.
+         .          .   1579:   *
+         .          .   1580:   *  This compares the elements of two ranges using @c == and returns true or
+         .          .   1581:   *  false depending on whether all of the corresponding elements of the
+         .          .   1582:   *  ranges are equal.
+         .          .   1583:  */
+         .          .   1584:  template<typename _II1, typename _II2>
+         .          .   1585:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1586:    inline bool
+         .          .   1587:    equal(_II1 __first1, _II1 __last1, _II2 __first2)
+         .          .   1588:    {
+         .          .   1589:      // concept requirements
+         .          .   1590:      __glibcxx_function_requires(_InputIteratorConcept<_II1>)
+         .          .   1591:      __glibcxx_function_requires(_InputIteratorConcept<_II2>)
+         .          .   1592:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   1593:	    typename iterator_traits<_II1>::value_type,
+         .          .   1594:	    typename iterator_traits<_II2>::value_type>)
+         .          .   1595:      __glibcxx_requires_can_increment_range(__first1, __last1, __first2);
+         .          .   1596:
+         .          .   1597:      return std::__equal_aux(__first1, __last1, __first2);
+         .          .   1598:    }
+         .          .   1599:
+         .          .   1600:  /**
+         .          .   1601:   *  @brief Tests a range for element-wise equality.
+         .          .   1602:   *  @ingroup non_mutating_algorithms
+         .          .   1603:   *  @param  __first1  An input iterator.
+         .          .   1604:   *  @param  __last1   An input iterator.
+         .          .   1605:   *  @param  __first2  An input iterator.
+         .          .   1606:   *  @param __binary_pred A binary predicate @link functors
+         .          .   1607:   *                  functor@endlink.
+         .          .   1608:   *  @return         A boolean true or false.
+         .          .   1609:   *
+         .          .   1610:   *  This compares the elements of two ranges using the binary_pred
+         .          .   1611:   *  parameter, and returns true or
+         .          .   1612:   *  false depending on whether all of the corresponding elements of the
+         .          .   1613:   *  ranges are equal.
+         .          .   1614:  */
+         .          .   1615:  template<typename _IIter1, typename _IIter2, typename _BinaryPredicate>
+         .          .   1616:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1617:    inline bool
+         .          .   1618:    equal(_IIter1 __first1, _IIter1 __last1,
+         .          .   1619:	  _IIter2 __first2, _BinaryPredicate __binary_pred)
+         .          .   1620:    {
+         .          .   1621:      // concept requirements
+         .          .   1622:      __glibcxx_function_requires(_InputIteratorConcept<_IIter1>)
+         .          .   1623:      __glibcxx_function_requires(_InputIteratorConcept<_IIter2>)
+         .          .   1624:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1625:
+         .          .   1626:      for (; __first1 != __last1; ++__first1, (void)++__first2)
+         .          .   1627:	if (!bool(__binary_pred(*__first1, *__first2)))
+         .          .   1628:	  return false;
+         .          .   1629:      return true;
+         .          .   1630:    }
+         .          .   1631:
+         .          .   1632:#if __cplusplus >= 201103L
+         .          .   1633:#pragma GCC diagnostic push
+         .          .   1634:#pragma GCC diagnostic ignored "-Wc++17-extensions" // if constexpr
+         .          .   1635:
+         .          .   1636:  // 4-iterator version of std::equal<It1, It2> for use in C++11.
+         .          .   1637:  template<typename _II1, typename _II2>
+         .          .   1638:    _GLIBCXX20_CONSTEXPR
+         .          .   1639:    inline bool
+         .          .   1640:    __equal4(_II1 __first1, _II1 __last1, _II2 __first2, _II2 __last2)
+         .          .   1641:    {
+         .          .   1642:      using _RATag = random_access_iterator_tag;
+         .          .   1643:      using _Cat1 = typename iterator_traits<_II1>::iterator_category;
+         .          .   1644:      using _Cat2 = typename iterator_traits<_II2>::iterator_category;
+         .          .   1645:      using _RAIters = __and_<is_same<_Cat1, _RATag>, is_same<_Cat2, _RATag>>;
+         .          .   1646:      if constexpr (_RAIters::value)
+         .          .   1647:	{
+         .          .   1648:	  if ((__last1 - __first1) != (__last2 - __first2))
+         .          .   1649:	    return false;
+         .          .   1650:	  return _GLIBCXX_STD_A::equal(__first1, __last1, __first2);
+         .          .   1651:	}
+         .          .   1652:      else
+         .          .   1653:	{
+         .          .   1654:	  for (; __first1 != __last1 && __first2 != __last2;
+         .          .   1655:	       ++__first1, (void)++__first2)
+         .          .   1656:	    if (!(*__first1 == *__first2))
+         .          .   1657:	      return false;
+         .          .   1658:	  return __first1 == __last1 && __first2 == __last2;
+         .          .   1659:	}
+         .          .   1660:    }
+         .          .   1661:
+         .          .   1662:  // 4-iterator version of std::equal<It1, It2, BinaryPred> for use in C++11.
+         .          .   1663:  template<typename _II1, typename _II2, typename _BinaryPredicate>
+         .          .   1664:    _GLIBCXX20_CONSTEXPR
+         .          .   1665:    inline bool
+         .          .   1666:    __equal4(_II1 __first1, _II1 __last1, _II2 __first2, _II2 __last2,
+         .          .   1667:	     _BinaryPredicate __binary_pred)
+         .          .   1668:    {
+         .          .   1669:      using _RATag = random_access_iterator_tag;
+         .          .   1670:      using _Cat1 = typename iterator_traits<_II1>::iterator_category;
+         .          .   1671:      using _Cat2 = typename iterator_traits<_II2>::iterator_category;
+         .          .   1672:      using _RAIters = __and_<is_same<_Cat1, _RATag>, is_same<_Cat2, _RATag>>;
+         .          .   1673:      if constexpr (_RAIters::value)
+         .          .   1674:	{
+         .          .   1675:	  if ((__last1 - __first1) != (__last2 - __first2))
+         .          .   1676:	    return false;
+         .          .   1677:	  return _GLIBCXX_STD_A::equal(__first1, __last1, __first2,
+         .          .   1678:				       __binary_pred);
+         .          .   1679:	}
+         .          .   1680:      else
+         .          .   1681:	{
+         .          .   1682:	  for (; __first1 != __last1 && __first2 != __last2;
+         .          .   1683:	       ++__first1, (void)++__first2)
+         .          .   1684:	    if (!bool(__binary_pred(*__first1, *__first2)))
+         .          .   1685:	      return false;
+         .          .   1686:	  return __first1 == __last1 && __first2 == __last2;
+         .          .   1687:	}
+         .          .   1688:    }
+         .          .   1689:#pragma GCC diagnostic pop
+         .          .   1690:#endif // C++11
+         .          .   1691:
+         .          .   1692:#ifdef __glibcxx_robust_nonmodifying_seq_ops // C++ >= 14
+         .          .   1693:  /**
+         .          .   1694:   *  @brief Tests a range for element-wise equality.
+         .          .   1695:   *  @ingroup non_mutating_algorithms
+         .          .   1696:   *  @param  __first1  An input iterator.
+         .          .   1697:   *  @param  __last1   An input iterator.
+         .          .   1698:   *  @param  __first2  An input iterator.
+         .          .   1699:   *  @param  __last2   An input iterator.
+         .          .   1700:   *  @return   A boolean true or false.
+         .          .   1701:   *
+         .          .   1702:   *  This compares the elements of two ranges using @c == and returns true or
+         .          .   1703:   *  false depending on whether all of the corresponding elements of the
+         .          .   1704:   *  ranges are equal.
+         .          .   1705:  */
+         .          .   1706:  template<typename _II1, typename _II2>
+         .          .   1707:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1708:    inline bool
+         .          .   1709:    equal(_II1 __first1, _II1 __last1, _II2 __first2, _II2 __last2)
+         .          .   1710:    {
+         .          .   1711:      // concept requirements
+         .          .   1712:      __glibcxx_function_requires(_InputIteratorConcept<_II1>)
+         .          .   1713:      __glibcxx_function_requires(_InputIteratorConcept<_II2>)
+         .          .   1714:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   1715:	    typename iterator_traits<_II1>::value_type,
+         .          .   1716:	    typename iterator_traits<_II2>::value_type>)
+         .          .   1717:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1718:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   1719:
+         .          .   1720:      return _GLIBCXX_STD_A::__equal4(__first1, __last1, __first2, __last2);
+         .          .   1721:    }
+         .          .   1722:
+         .          .   1723:  /**
+         .          .   1724:   *  @brief Tests a range for element-wise equality.
+         .          .   1725:   *  @ingroup non_mutating_algorithms
+         .          .   1726:   *  @param  __first1  An input iterator.
+         .          .   1727:   *  @param  __last1   An input iterator.
+         .          .   1728:   *  @param  __first2  An input iterator.
+         .          .   1729:   *  @param  __last2   An input iterator.
+         .          .   1730:   *  @param __binary_pred A binary predicate @link functors
+         .          .   1731:   *                  functor@endlink.
+         .          .   1732:   *  @return         A boolean true or false.
+         .          .   1733:   *
+         .          .   1734:   *  This compares the elements of two ranges using the binary_pred
+         .          .   1735:   *  parameter, and returns true or
+         .          .   1736:   *  false depending on whether all of the corresponding elements of the
+         .          .   1737:   *  ranges are equal.
+         .          .   1738:  */
+         .          .   1739:  template<typename _IIter1, typename _IIter2, typename _BinaryPredicate>
+         .          .   1740:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1741:    inline bool
+         .          .   1742:    equal(_IIter1 __first1, _IIter1 __last1,
+         .          .   1743:	  _IIter2 __first2, _IIter2 __last2, _BinaryPredicate __binary_pred)
+         .          .   1744:    {
+         .          .   1745:      // concept requirements
+         .          .   1746:      __glibcxx_function_requires(_InputIteratorConcept<_IIter1>)
+         .          .   1747:      __glibcxx_function_requires(_InputIteratorConcept<_IIter2>)
+         .          .   1748:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1749:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   1750:
+         .          .   1751:      return _GLIBCXX_STD_A::__equal4(__first1, __last1, __first2, __last2,
+         .          .   1752:				      __binary_pred);
+         .          .   1753:    }
+         .          .   1754:#endif // __glibcxx_robust_nonmodifying_seq_ops
+         .          .   1755:
+         .          .   1756:  /**
+         .          .   1757:   *  @brief Performs @b dictionary comparison on ranges.
+         .          .   1758:   *  @ingroup sorting_algorithms
+         .          .   1759:   *  @param  __first1  An input iterator.
+         .          .   1760:   *  @param  __last1   An input iterator.
+         .          .   1761:   *  @param  __first2  An input iterator.
+         .          .   1762:   *  @param  __last2   An input iterator.
+         .          .   1763:   *  @return   A boolean true or false.
+         .          .   1764:   *
+         .          .   1765:   *  <em>Returns true if the sequence of elements defined by the range
+         .          .   1766:   *  [first1,last1) is lexicographically less than the sequence of elements
+         .          .   1767:   *  defined by the range [first2,last2).  Returns false otherwise.</em>
+         .          .   1768:   *  (Quoted from [25.3.8]/1.)  If the iterators are all character pointers,
+         .          .   1769:   *  then this is an inline call to @c memcmp.
+         .          .   1770:  */
+         .          .   1771:  template<typename _II1, typename _II2>
+         .          .   1772:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1773:    inline bool
+         .          .   1774:    lexicographical_compare(_II1 __first1, _II1 __last1,
+         .          .   1775:			    _II2 __first2, _II2 __last2)
+         .          .   1776:    {
+         .          .   1777:#ifdef _GLIBCXX_CONCEPT_CHECKS
+         .          .   1778:      // concept requirements
+         .          .   1779:      typedef typename iterator_traits<_II1>::value_type _ValueType1;
+         .          .   1780:      typedef typename iterator_traits<_II2>::value_type _ValueType2;
+         .          .   1781:#endif
+         .          .   1782:      __glibcxx_function_requires(_InputIteratorConcept<_II1>)
+         .          .   1783:      __glibcxx_function_requires(_InputIteratorConcept<_II2>)
+         .          .   1784:      __glibcxx_function_requires(_LessThanOpConcept<_ValueType1, _ValueType2>)
+         .          .   1785:      __glibcxx_function_requires(_LessThanOpConcept<_ValueType2, _ValueType1>)
+         .          .   1786:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1787:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   1788:
+         .          .   1789:      return std::__lexicographical_compare_aux(__first1, __last1,
+         .          .   1790:						__first2, __last2);
+         .          .   1791:    }
+         .          .   1792:
+         .          .   1793:  /**
+         .          .   1794:   *  @brief Performs @b dictionary comparison on ranges.
+         .          .   1795:   *  @ingroup sorting_algorithms
+         .          .   1796:   *  @param  __first1  An input iterator.
+         .          .   1797:   *  @param  __last1   An input iterator.
+         .          .   1798:   *  @param  __first2  An input iterator.
+         .          .   1799:   *  @param  __last2   An input iterator.
+         .          .   1800:   *  @param  __comp  A @link comparison_functors comparison functor@endlink.
+         .          .   1801:   *  @return   A boolean true or false.
+         .          .   1802:   *
+         .          .   1803:   *  The same as the four-parameter @c lexicographical_compare, but uses the
+         .          .   1804:   *  comp parameter instead of @c <.
+         .          .   1805:  */
+         .          .   1806:  template<typename _II1, typename _II2, typename _Compare>
+         .          .   1807:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1808:    inline bool
+         .          .   1809:    lexicographical_compare(_II1 __first1, _II1 __last1,
+         .          .   1810:			    _II2 __first2, _II2 __last2, _Compare __comp)
+         .          .   1811:    {
+         .          .   1812:      // concept requirements
+         .          .   1813:      __glibcxx_function_requires(_InputIteratorConcept<_II1>)
+         .          .   1814:      __glibcxx_function_requires(_InputIteratorConcept<_II2>)
+         .          .   1815:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1816:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   1817:
+         .          .   1818:      return std::__lexicographical_compare_impl
+         .          .   1819:	(__first1, __last1, __first2, __last2,
+         .          .   1820:	 __gnu_cxx::__ops::__iter_comp_iter(__comp));
+         .          .   1821:    }
+         .          .   1822:
+         .          .   1823:#if __cpp_lib_three_way_comparison
+         .          .   1824:  // Both iterators refer to contiguous ranges of unsigned narrow characters,
+         .          .   1825:  // or std::byte, or big-endian unsigned integers, suitable for comparison
+         .          .   1826:  // using memcmp.
+         .          .   1827:  template<typename _Iter1, typename _Iter2>
+         .          .   1828:    concept __memcmp_ordered_with
+         .          .   1829:      = (__is_memcmp_ordered_with<iter_value_t<_Iter1>,
+         .          .   1830:				  iter_value_t<_Iter2>>::__value)
+         .          .   1831:	  && contiguous_iterator<_Iter1> && contiguous_iterator<_Iter2>;
+         .          .   1832:
+         .          .   1833:  // Return a struct with two members, initialized to the smaller of x and y
+         .          .   1834:  // (or x if they compare equal) and the result of the comparison x <=> y.
+         .          .   1835:  template<typename _Tp>
+         .          .   1836:    constexpr auto
+         .          .   1837:    __min_cmp(_Tp __x, _Tp __y)
+         .          .   1838:    {
+         .          .   1839:      struct _Res {
+         .          .   1840:	_Tp _M_min;
+         .          .   1841:	decltype(__x <=> __y) _M_cmp;
+         .          .   1842:      };
+         .          .   1843:      auto __c = __x <=> __y;
+         .          .   1844:      if (__c > 0)
+         .          .   1845:	return _Res{__y, __c};
+         .          .   1846:      return _Res{__x, __c};
+         .          .   1847:    }
+         .          .   1848:
+         .          .   1849:  /**
+         .          .   1850:   *  @brief Performs dictionary comparison on ranges.
+         .          .   1851:   *  @ingroup sorting_algorithms
+         .          .   1852:   *  @param  __first1  An input iterator.
+         .          .   1853:   *  @param  __last1   An input iterator.
+         .          .   1854:   *  @param  __first2  An input iterator.
+         .          .   1855:   *  @param  __last2   An input iterator.
+         .          .   1856:   *  @param  __comp  A @link comparison_functors comparison functor@endlink.
+         .          .   1857:   *  @return   The comparison category that `__comp(*__first1, *__first2)`
+         .          .   1858:   *		returns.
+         .          .   1859:  */
+         .          .   1860:  template<typename _InputIter1, typename _InputIter2, typename _Comp>
+         .          .   1861:    [[nodiscard]] constexpr auto
+         .          .   1862:    lexicographical_compare_three_way(_InputIter1 __first1,
+         .          .   1863:				      _InputIter1 __last1,
+         .          .   1864:				      _InputIter2 __first2,
+         .          .   1865:				      _InputIter2 __last2,
+         .          .   1866:				      _Comp __comp)
+         .          .   1867:    -> decltype(__comp(*__first1, *__first2))
+         .          .   1868:    {
+         .          .   1869:      // concept requirements
+         .          .   1870:      __glibcxx_function_requires(_InputIteratorConcept<_InputIter1>)
+         .          .   1871:      __glibcxx_function_requires(_InputIteratorConcept<_InputIter2>)
+         .          .   1872:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1873:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   1874:
+         .          .   1875:      using _Cat = decltype(__comp(*__first1, *__first2));
+         .          .   1876:      static_assert(same_as<common_comparison_category_t<_Cat>, _Cat>);
+         .          .   1877:
+         .          .   1878:      if (!std::__is_constant_evaluated())
+         .          .   1879:	if constexpr (same_as<_Comp, __detail::_Synth3way>
+         .          .   1880:		      || same_as<_Comp, compare_three_way>)
+         .          .   1881:	  if constexpr (__memcmp_ordered_with<_InputIter1, _InputIter2>)
+         .          .   1882:	    {
+         .          .   1883:	      const auto [__len, __lencmp] = _GLIBCXX_STD_A::
+         .          .   1884:		__min_cmp(__last1 - __first1, __last2 - __first2);
+         .          .   1885:	      if (__len)
+         .          .   1886:		{
+         .          .   1887:		  const auto __blen = __len * sizeof(*__first1);
+         .          .   1888:		  const auto __c
+         .          .   1889:		    = __builtin_memcmp(&*__first1, &*__first2, __blen) <=> 0;
+         .          .   1890:		  if (__c != 0)
+         .          .   1891:		    return __c;
+         .          .   1892:		}
+         .          .   1893:	      return __lencmp;
+         .          .   1894:	    }
+         .          .   1895:
+         .          .   1896:      while (__first1 != __last1)
+         .          .   1897:	{
+         .          .   1898:	  if (__first2 == __last2)
+         .          .   1899:	    return strong_ordering::greater;
+         .          .   1900:	  if (auto __cmp = __comp(*__first1, *__first2); __cmp != 0)
+         .          .   1901:	    return __cmp;
+         .          .   1902:	  ++__first1;
+         .          .   1903:	  ++__first2;
+         .          .   1904:	}
+         .          .   1905:      return (__first2 == __last2) <=> true; // See PR 94006
+         .          .   1906:    }
+         .          .   1907:
+         .          .   1908:  template<typename _InputIter1, typename _InputIter2>
+         .          .   1909:    constexpr auto
+         .          .   1910:    lexicographical_compare_three_way(_InputIter1 __first1,
+         .          .   1911:				      _InputIter1 __last1,
+         .          .   1912:				      _InputIter2 __first2,
+         .          .   1913:				      _InputIter2 __last2)
+         .          .   1914:    {
+         .          .   1915:      return _GLIBCXX_STD_A::
+         .          .   1916:	lexicographical_compare_three_way(__first1, __last1, __first2, __last2,
+         .          .   1917:					  compare_three_way{});
+         .          .   1918:    }
+         .          .   1919:#endif // three_way_comparison
+         .          .   1920:
+         .          .   1921:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   1922:	   typename _BinaryPredicate>
+         .          .   1923:    _GLIBCXX20_CONSTEXPR
+         .          .   1924:    pair<_InputIterator1, _InputIterator2>
+         .          .   1925:    __mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   1926:	       _InputIterator2 __first2, _BinaryPredicate __binary_pred)
+         .          .   1927:    {
+         .          .   1928:      while (__first1 != __last1 && __binary_pred(__first1, __first2))
+         .          .   1929:	{
+         .          .   1930:	  ++__first1;
+         .          .   1931:	  ++__first2;
+         .          .   1932:	}
+         .          .   1933:      return pair<_InputIterator1, _InputIterator2>(__first1, __first2);
+         .          .   1934:    }
+         .          .   1935:
+         .          .   1936:  /**
+         .          .   1937:   *  @brief Finds the places in ranges which don't match.
+         .          .   1938:   *  @ingroup non_mutating_algorithms
+         .          .   1939:   *  @param  __first1  An input iterator.
+         .          .   1940:   *  @param  __last1   An input iterator.
+         .          .   1941:   *  @param  __first2  An input iterator.
+         .          .   1942:   *  @return   A pair of iterators pointing to the first mismatch.
+         .          .   1943:   *
+         .          .   1944:   *  This compares the elements of two ranges using @c == and returns a pair
+         .          .   1945:   *  of iterators.  The first iterator points into the first range, the
+         .          .   1946:   *  second iterator points into the second range, and the elements pointed
+         .          .   1947:   *  to by the iterators are not equal.
+         .          .   1948:  */
+         .          .   1949:  template<typename _InputIterator1, typename _InputIterator2>
+         .          .   1950:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1951:    inline pair<_InputIterator1, _InputIterator2>
+         .          .   1952:    mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   1953:	     _InputIterator2 __first2)
+         .          .   1954:    {
+         .          .   1955:      // concept requirements
+         .          .   1956:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   1957:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   1958:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   1959:	    typename iterator_traits<_InputIterator1>::value_type,
+         .          .   1960:	    typename iterator_traits<_InputIterator2>::value_type>)
+         .          .   1961:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1962:
+         .          .   1963:      return _GLIBCXX_STD_A::__mismatch(__first1, __last1, __first2,
+         .          .   1964:			     __gnu_cxx::__ops::__iter_equal_to_iter());
+         .          .   1965:    }
+         .          .   1966:
+         .          .   1967:  /**
+         .          .   1968:   *  @brief Finds the places in ranges which don't match.
+         .          .   1969:   *  @ingroup non_mutating_algorithms
+         .          .   1970:   *  @param  __first1  An input iterator.
+         .          .   1971:   *  @param  __last1   An input iterator.
+         .          .   1972:   *  @param  __first2  An input iterator.
+         .          .   1973:   *  @param __binary_pred A binary predicate @link functors
+         .          .   1974:   *         functor@endlink.
+         .          .   1975:   *  @return   A pair of iterators pointing to the first mismatch.
+         .          .   1976:   *
+         .          .   1977:   *  This compares the elements of two ranges using the binary_pred
+         .          .   1978:   *  parameter, and returns a pair
+         .          .   1979:   *  of iterators.  The first iterator points into the first range, the
+         .          .   1980:   *  second iterator points into the second range, and the elements pointed
+         .          .   1981:   *  to by the iterators are not equal.
+         .          .   1982:  */
+         .          .   1983:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   1984:	   typename _BinaryPredicate>
+         .          .   1985:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   1986:    inline pair<_InputIterator1, _InputIterator2>
+         .          .   1987:    mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   1988:	     _InputIterator2 __first2, _BinaryPredicate __binary_pred)
+         .          .   1989:    {
+         .          .   1990:      // concept requirements
+         .          .   1991:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   1992:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   1993:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   1994:
+         .          .   1995:      return _GLIBCXX_STD_A::__mismatch(__first1, __last1, __first2,
+         .          .   1996:	__gnu_cxx::__ops::__iter_comp_iter(__binary_pred));
+         .          .   1997:    }
+         .          .   1998:
+         .          .   1999:#if __glibcxx_robust_nonmodifying_seq_ops // C++ >= 14
+         .          .   2000:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   2001:	   typename _BinaryPredicate>
+         .          .   2002:    _GLIBCXX20_CONSTEXPR
+         .          .   2003:    pair<_InputIterator1, _InputIterator2>
+         .          .   2004:    __mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   2005:	       _InputIterator2 __first2, _InputIterator2 __last2,
+         .          .   2006:	       _BinaryPredicate __binary_pred)
+         .          .   2007:    {
+         .          .   2008:      while (__first1 != __last1 && __first2 != __last2
+         .          .   2009:	     && __binary_pred(__first1, __first2))
+         .          .   2010:	{
+         .          .   2011:	  ++__first1;
+         .          .   2012:	  ++__first2;
+         .          .   2013:	}
+         .          .   2014:      return pair<_InputIterator1, _InputIterator2>(__first1, __first2);
+         .          .   2015:    }
+         .          .   2016:
+         .          .   2017:  /**
+         .          .   2018:   *  @brief Finds the places in ranges which don't match.
+         .          .   2019:   *  @ingroup non_mutating_algorithms
+         .          .   2020:   *  @param  __first1  An input iterator.
+         .          .   2021:   *  @param  __last1   An input iterator.
+         .          .   2022:   *  @param  __first2  An input iterator.
+         .          .   2023:   *  @param  __last2   An input iterator.
+         .          .   2024:   *  @return   A pair of iterators pointing to the first mismatch.
+         .          .   2025:   *
+         .          .   2026:   *  This compares the elements of two ranges using @c == and returns a pair
+         .          .   2027:   *  of iterators.  The first iterator points into the first range, the
+         .          .   2028:   *  second iterator points into the second range, and the elements pointed
+         .          .   2029:   *  to by the iterators are not equal.
+         .          .   2030:  */
+         .          .   2031:  template<typename _InputIterator1, typename _InputIterator2>
+         .          .   2032:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   2033:    inline pair<_InputIterator1, _InputIterator2>
+         .          .   2034:    mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   2035:	     _InputIterator2 __first2, _InputIterator2 __last2)
+         .          .   2036:    {
+         .          .   2037:      // concept requirements
+         .          .   2038:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   2039:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   2040:      __glibcxx_function_requires(_EqualOpConcept<
+         .          .   2041:	    typename iterator_traits<_InputIterator1>::value_type,
+         .          .   2042:	    typename iterator_traits<_InputIterator2>::value_type>)
+         .          .   2043:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   2044:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   2045:
+         .          .   2046:      return _GLIBCXX_STD_A::__mismatch(__first1, __last1, __first2, __last2,
+         .          .   2047:			     __gnu_cxx::__ops::__iter_equal_to_iter());
+         .          .   2048:    }
+         .          .   2049:
+         .          .   2050:  /**
+         .          .   2051:   *  @brief Finds the places in ranges which don't match.
+         .          .   2052:   *  @ingroup non_mutating_algorithms
+         .          .   2053:   *  @param  __first1  An input iterator.
+         .          .   2054:   *  @param  __last1   An input iterator.
+         .          .   2055:   *  @param  __first2  An input iterator.
+         .          .   2056:   *  @param  __last2   An input iterator.
+         .          .   2057:   *  @param __binary_pred A binary predicate @link functors
+         .          .   2058:   *         functor@endlink.
+         .          .   2059:   *  @return   A pair of iterators pointing to the first mismatch.
+         .          .   2060:   *
+         .          .   2061:   *  This compares the elements of two ranges using the binary_pred
+         .          .   2062:   *  parameter, and returns a pair
+         .          .   2063:   *  of iterators.  The first iterator points into the first range, the
+         .          .   2064:   *  second iterator points into the second range, and the elements pointed
+         .          .   2065:   *  to by the iterators are not equal.
+         .          .   2066:  */
+         .          .   2067:  template<typename _InputIterator1, typename _InputIterator2,
+         .          .   2068:	   typename _BinaryPredicate>
+         .          .   2069:    _GLIBCXX_NODISCARD _GLIBCXX20_CONSTEXPR
+         .          .   2070:    inline pair<_InputIterator1, _InputIterator2>
+         .          .   2071:    mismatch(_InputIterator1 __first1, _InputIterator1 __last1,
+         .          .   2072:	     _InputIterator2 __first2, _InputIterator2 __last2,
+         .          .   2073:	     _BinaryPredicate __binary_pred)
+         .          .   2074:    {
+         .          .   2075:      // concept requirements
+         .          .   2076:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator1>)
+         .          .   2077:      __glibcxx_function_requires(_InputIteratorConcept<_InputIterator2>)
+         .          .   2078:      __glibcxx_requires_valid_range(__first1, __last1);
+         .          .   2079:      __glibcxx_requires_valid_range(__first2, __last2);
+         .          .   2080:
+         .          .   2081:      return _GLIBCXX_STD_A::__mismatch(__first1, __last1, __first2, __last2,
+         .          .   2082:			     __gnu_cxx::__ops::__iter_comp_iter(__binary_pred));
+         .          .   2083:    }
+         .          .   2084:#endif
+         .          .   2085:
+         .          .   2086:_GLIBCXX_END_NAMESPACE_ALGO
+         .          .   2087:
+         .          .   2088:  // Implementation of std::find_if, also used in std::remove_if and others.
+         .          .   2089:  template<typename _Iterator, typename _Predicate>
+         .          .   2090:    _GLIBCXX20_CONSTEXPR
+         .          .   2091:    inline _Iterator
+         .          .   2092:    __find_if(_Iterator __first, _Iterator __last, _Predicate __pred)
+         .          .   2093:    {
+         .          .   2094:#pragma GCC unroll 4
+       2ms        2ms   2095:      while (__first != __last && !__pred(__first))
+         .          .   2096:	++__first;
+         .          .   2097:      return __first;
+         .          .   2098:    }
+         .          .   2099:
+         .          .   2100:  template<typename _InputIterator, typename _Predicate>
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator() in /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_iterator.h
+       1ms        1ms (flat, cum)  0.04% of Total
+         .          .   1137:
+         .          .   1138:      __attribute__((__always_inline__))
+         .          .   1139:      _GLIBCXX14_CONSTEXPR
+         .          .   1140:      __normal_iterator&
+         .          .   1141:      operator+=(difference_type __n) _GLIBCXX_NOEXCEPT
+       1ms        1ms   1142:      { _M_current += __n; return *this; }
+         .          .   1143:
+         .          .   1144:      _GLIBCXX_NODISCARD __attribute__((__always_inline__))
+         .          .   1145:      _GLIBCXX_CONSTEXPR
+         .          .   1146:      __normal_iterator
+         .          .   1147:      operator+(difference_type __n) const _GLIBCXX_NOEXCEPT
+ROUTINE ======================== voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator() in src/game/adventure/creative_village.cpp
+      14ms       40ms (flat, cum)  1.59% of Total
+         .          .     44:        const auto end=std::lower_bound(entries_.begin(),finiteEnd,hi.x,
+         .          .     45:            [](const Entry& entry,double value){return entry.lower<value;});
+         .          .     46:        // Every earlier upper is <= lo.x; none can satisfy upper > lo.x.
+         .          .     47:        const auto begin=std::upper_bound(entries_.begin(),end,lo.x,
+         .          .     48:            [](double value,const Entry& entry){return value<entry.prefixUpper;});
+         .        2ms     49:        for(auto it=begin;it!=end;++it)if(overlap(lo,hi,*it->solid,.5))return true;
+         .          .     50:        // Exceptional expanded X bounds never enter binary-search ordering.
+         .          .     51:        for(auto it=finiteEnd;it!=entries_.end();++it)if(overlap(lo,hi,*it->solid,.5))return true;
+         .          .     52:        return false;
+         .          .     53:    }
+         .          .     54:};
+         .          .     55:std::pair<double,double> ground(const terrain::lego::Surface& s,glm::dvec2 p,glm::dvec2 extent) {
+         .          .     56:    if(!s.valid())return {INFINITY,INFINITY};
+         .          .     57:    const glm::dvec2 origin(s.origin());const double cell=s.cellScale;
+         .          .     58:    const int x0=int(std::floor((p.x-extent.x+origin.x)/cell)),z0=int(std::floor((p.y-extent.y+origin.y)/cell));
+         .          .     59:    const int x1=int(std::floor((p.x+extent.x+origin.x-1e-7)/cell)),z1=int(std::floor((p.y+extent.y+origin.y-1e-7)/cell));
+         .          .     60:    if(x0<0||z0<0||x1>=int(s.width)-1||z1>=int(s.height)-1)return {INFINITY,INFINITY};
+         .          .     61:    double lo=INFINITY,hi=-INFINITY;
+         .          .     62:    for(int z=z0;z<=z1;++z)for(int x=x0;x<=x1;++x){const double y=s.cellTop(x,z);lo=std::min(lo,y);hi=std::max(hi,y);}
+         .          .     63:    return {lo,hi};
+         .          .     64:}
+         .          .     65:std::pair<glm::dvec3,glm::dvec3> transformed(VillageBox b,const CreativeVillagePiece& piece) {
+         .          .     66:    glm::dvec3 lo(INFINITY),hi(-INFINITY);
+         .          .     67:    for(double x:{b.minimum.x,b.maximum.x})for(double y:{b.minimum.y,b.maximum.y})for(double z:{b.minimum.z,b.maximum.z}) {
+         .          .     68:        const auto p=piece.feet+rotate(glm::dvec3(x,y,z)*piece.scale,piece.yaw);lo=glm::min(lo,p);hi=glm::max(hi,p);
+         .          .     69:    }
+         .          .     70:    return {lo,hi};
+         .          .     71:}
+         .          .     72:void add(CreativeVillageGroup& group,construction::WorldNamespace world,CreativeVillagePiece piece) {
+         .          .     73:    const auto bounds=transformed(villageMeshBounds[piece.mesh],piece);
+         .          .     74:    group.minimum=glm::min(group.minimum,bounds.first);group.maximum=glm::max(group.maximum,bounds.second);
+         .          .     75:    group.pieces.push_back(piece);
+         .          .     76:    const auto part=creativeSceneryPartBase-1500000u-group.id;
+         .          .     77:    for(const auto& b:villageMeshSolids(piece.mesh)) {
+         .          .     78:        const auto box=transformed(b,piece);
+         .          .     79:        group.solids.push_back({{world,creativeSceneryStructureId},{world,part},box.first,box.second});
+         .          .     80:    }
+         .          .     81:}
+         .          .     82:CreativeVillageGroup building(uint16_t id,uint8_t mesh,glm::dvec2 center,uint8_t yaw,
+         .          .     83:    const terrain::lego::Surface& terrain,construction::WorldNamespace world) {
+         .          .     84:    CreativeVillageGroup group;group.id=id;group.minimum=glm::dvec3(INFINITY);group.maximum=glm::dvec3(-INFINITY);
+         .          .     85:    const glm::dvec2 extent=(mesh<2||mesh==8)?glm::dvec2(5,4):mesh==9?glm::dvec2(8.5,4):mesh==2?glm::dvec2(3):mesh==3?glm::dvec2(3.5):mesh==4?glm::dvec2(5,3):mesh==10?glm::dvec2(4,2.5):(mesh==11||mesh==12||mesh==14)?glm::dvec2(3,.8):mesh==13?glm::dvec2(1.6,1):glm::dvec2(2.2);
+         .          .     86:    const auto [lo,hi]=ground(terrain,center,(yaw&1)?glm::dvec2(extent.y,extent.x):extent);
+         .          .     87:    if(!std::isfinite(hi)||hi-lo>1.61||lo<double(installedWorld().waterHeight)+2)return group;
+         .          .     88:    const double base=hi+.025;
+         .          .     89:    add(group,world,{7,yaw,{center.x,lo-.025,center.y},{extent.x*2,base-lo+.025,extent.y*2}});
+         .          .     90:    add(group,world,{mesh,yaw,{center.x,base,center.y},{1,1,1}});
+         .          .     91:    if(mesh<4||mesh==8||mesh==9) {
+         .          .     92:        // A generous three-stud doorway and .28-stud steps fit the actual
+         .          .     93:        // 4.76-stud minifigure; no invisible full-building box across the room.
+         .          .     94:        const double front=-extent.y;
+         .          .     95:        const auto entry=glm::dvec3(center.x,0,center.y)+rotate({0,0,front-.5},yaw);
+         .          .     96:        const auto range=ground(terrain,{entry.x,entry.z},{1.7,1.7});
+         .          .     97:        const double floor=base+.32;
+         .          .     98:        const int count=std::clamp(int(std::ceil((floor-range.first)/.28)),1,8);
+         .          .     99:        for(int i=0;i<count;++i) {
+         .          .    100:            const auto p=glm::dvec3(center.x,0,center.y)+rotate({0,0,front-.425-.85*i},yaw);
+         .          .    101:            const auto g=ground(terrain,{p.x,p.z},{1.7,1.7});
+         .          .    102:            const double top=floor-.28*i;
+         .          .    103:            if(!std::isfinite(g.first)||top<=g.second+.18)continue;
+         .          .    104:            add(group,world,{7,yaw,{p.x,g.first-.02,p.z},{3.3,top-g.first+.02,.85}});
+         .          .    105:        }
+         .          .    106:    }
+         .          .    107:    return group;
+         .          .    108:}
+         .          .    109:}
+         .          .    110:CreativeVillage CreativeVillage::admit(const AdventureState& state,const terrain::lego::Surface& terrain,std::span<const Solid> reserved,const CreativeVillage* previous,std::span<const Solid> clearance) {
+         .          .    111:    CreativeVillage out;out.initialized_=true;if(!terrain.valid())return out;
+         .          .    112:    const bool continuing=previous&&previous->initialized_;
+         .          .    113:    size_t total=reserved.size();
+         .          .    114:    const VillageReservations reservations(reserved);
+         .          .    115:    const auto admit=[&](CreativeVillageGroup group) {
+         .          .    116:        if(group.pieces.empty())return;
+         .        5ms    117:        if(continuing&&std::none_of(previous->groups_.begin(),previous->groups_.end(),[&](const auto& g){return g.id==group.id;}))return;
+         .        4ms    118:        if(reservations.blocks(group.minimum,group.maximum))return;
+         .          .    119:        const auto part=creativeSceneryPartBase-1500000u-group.id;
+      10ms       10ms    120:        const auto alias=[&](uint64_t value){return value==creativeSceneryStructureId||value==part;};
+       4ms       16ms    121:        for(const auto& structure:state.structures){if(alias(structure.id))return;for(const auto& p:structure.parts)if(alias(p.id))return;}
+         .          .    122:        for(const auto& c:state.components)if(alias(c.id))return;
+         .          .    123:        if(!continuing) {
+         .          .    124:            const glm::dvec3 p(state.player.x,state.player.y,state.player.z);
+         .          .    125:            const Solid player{{},{},p-glm::dvec3(1.12,0,1.12),p+glm::dvec3(1.12,5.7,1.12)};
+         .          .    126:            // Player inside an open cottage is safe: test actual solids rather
+         .          .    127:            // than ejecting them merely for standing under its roof.
+         .          .    128:            for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,player))return;
+         .          .    129:            for(const auto& c:clearance)for(const auto& b:group.solids)if(overlap(b.minimum,b.maximum,c,.05))return;
+         .          .    130:        }
+         .          .    131:        if(total+group.solids.size()>AdventureSpatialQueries::maximumSolids)return;
+         .        3ms    132:        total+=group.solids.size();out.groups_.push_back(std::move(group));
+         .          .    133:    };
+         .          .    134:    uint16_t id=0;
+         .          .    135:    struct House {uint8_t mesh;glm::dvec2 center;uint8_t yaw;};
+         .          .    136:    // Staggered plots leave a central view corridor to the commons and tower.
+         .          .    137:    const std::array houses{
+ROUTINE ======================== ~VillageReservations in src/game/adventure/creative_village.cpp
+         0        2ms (flat, cum)  0.08% of Total
+         .          .     14:bool overlap(glm::dvec3 lo,glm::dvec3 hi,const Solid& b,double margin=0) {
+         .          .     15:    return glm::all(glm::lessThan(lo,b.maximum+glm::dvec3(margin)))&&glm::all(glm::greaterThan(hi,b.minimum-glm::dvec3(margin)));
+         .          .     16:}
+         .          .     17:// Admission only asks whether any reservation overlaps. Keep the exact narrow
+         .          .     18:// predicate while excluding X intervals that cannot meet its strict bounds.
+         .        2ms     19:class VillageReservations {
+         .          .     20:    struct Entry {const Solid* solid;double lower,prefixUpper;};
+         .          .     21:    std::span<const Solid> source_;
+         .          .     22:    std::vector<Entry> entries_;
+         .          .     23:    std::vector<Entry>::difference_type finiteCount_=0;
+         .          .     24:public:

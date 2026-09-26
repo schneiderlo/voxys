@@ -1,9 +1,49 @@
 #!/usr/bin/env python3
-"""Compare matching, repeated same-host creative-core benchmark runs."""
+"""Compare matching, repeated same-host creative-core benchmark runs.
+
+Before aggregation, both inputs must have finite positive ordered latency
+quantiles, finite positive RSS/throughput, nonnegative integer outcome counts,
+and positive integer accepted-edit sample counts (or null for idle workloads).
+"""
 import argparse
 import json
+import math
 import pathlib
 import statistics
+
+
+def positive_finite(value):
+    if type(value) not in (int, float):
+        return False
+    try:
+        return value > 0 and math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def invalid_metrics(metrics):
+    # Ratios require strictly positive, finite measurements. Counts must be
+    # integers (not JSON booleans); idle accepted-edit timings stay null.
+    errors = []
+    for operation in ("update", "serialization", "accepted_edit_update"):
+        distribution = metrics.get(operation)
+        if operation == "accepted_edit_update" and distribution is None:
+            continue
+        quantiles = ([distribution.get(key) for key in ("p50_us", "p95_us", "p99_us")]
+                     if isinstance(distribution, dict) else [])
+        if not quantiles or not all(positive_finite(value) for value in quantiles):
+            errors.append(f"{operation}: latency quantiles must be finite and positive")
+        elif quantiles != sorted(quantiles):
+            errors.append(f"{operation}: latency quantiles must be nondecreasing")
+    for key in ("peak_rss_kib", "updates_per_second"):
+        if not positive_finite(metrics.get(key)):
+            errors.append(f"{key} must be finite and positive")
+    for key in ("accepted_placements", "removed_parts", "valid_observations", "invalid_observations"):
+        value = metrics.get(key)
+        if type(value) is not int or value < 0:
+            errors.append(f"{key} must be a nonnegative integer")
+    return errors
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("baseline", type=pathlib.Path)
@@ -26,16 +66,20 @@ for source in files:
         failures.append(f"Missing {other}")
         continue
     baseline, candidate = (json.loads(p.read_text()) for p in (source, other))
+    failures_before = len(failures)
     for label, metrics in (("baseline", baseline), ("candidate", candidate)):
+        failures.extend(f"{source.name}: {label} {error}" for error in invalid_metrics(metrics))
         accepted_edits = metrics.get("accepted_edit_update")
         if "accepted_edit_update" not in metrics or (metrics["workload"] == "edit" and
-                (not isinstance(accepted_edits, dict) or accepted_edits.get("count", 0) <= 0)):
+                (not isinstance(accepted_edits, dict) or type(accepted_edits.get("count")) is not int
+                 or accepted_edits["count"] <= 0)):
             failures.append(f"{source.name}: {label} missing accepted edit timings")
         elif metrics["workload"] == "idle" and accepted_edits is not None:
             failures.append(f"{source.name}: {label} idle workload accepted an edit")
     if isinstance(baseline.get("accepted_edit_update"), dict) and isinstance(candidate.get("accepted_edit_update"), dict):
         if baseline["accepted_edit_update"].get("count") != candidate["accepted_edit_update"].get("count"):
             failures.append(f"{source.name}: accepted edit timing count differs")
+    measurements_valid = len(failures) == failures_before
     for key in ("scope", "parts", "frames", "workload", "accepted_placements", "removed_parts",
                 "valid_observations", "invalid_observations", "archive_sha256", "terrain_sha256"):
         if baseline[key] != candidate[key]:
@@ -44,10 +88,13 @@ for source in files:
     for suffix in (".jsonl", ".save"):
         if (args.baseline / (stem + suffix)).read_bytes() != (args.candidate / (stem + suffix)).read_bytes():
             failures.append(f"{stem + suffix}: exact output mismatch")
-    groups.setdefault((baseline["parts"], baseline["workload"]), []).append((baseline, candidate))
+    if measurements_valid:
+        groups.setdefault((baseline["parts"], baseline["workload"]), []).append((baseline, candidate))
 
 report = []
 for (parts, workload), pairs in sorted(groups.items()):
+    if len(pairs) != 3:
+        continue  # A rejected repeat cannot contribute to performance medians.
     item = {"parts": parts, "workload": workload, "repeats": len(pairs)}
     for operation in ("update", "serialization", "accepted_edit_update"):
         if operation == "accepted_edit_update" and (workload == "idle" or

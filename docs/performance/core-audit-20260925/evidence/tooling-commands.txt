@@ -1,0 +1,3 @@
+nix-build '<nixpkgs>' -A gperftools -A pprof --max-jobs 0 --no-out-link > /tmp/voxys-core-audit-20260925/profiler-install.log 2>&1
+node --test ui/test-ui.mjs ui/test-shared.mjs scripts/test_data_packs.mjs scripts/test_loading_roller.mjs scripts/test_webgpu_startup.mjs scripts/test_startup_budget.mjs scripts/test_frame_budget.mjs scripts/test_webgpu_timestamp_compat.mjs scripts/performance/test_gameplay_work.mjs scripts/performance/test_gpu_hang_trace.mjs > /tmp/voxys-core-audit-20260925/baseline-js-tests.log 2>&1
+python3 scripts/performance/test_compare_free_build_benchmark.py > /tmp/voxys-core-audit-20260925/baseline-benchmark-guard-tests.log 2>&1

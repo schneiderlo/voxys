@@ -1,0 +1,54 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from gmock_main.cc
+Note: Google Test filter = CreativeVillage.*:AdventureConstructionPolicy.*
+[==========] Running 18 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from CreativeVillage
+[ RUN      ] CreativeVillage.ReservationsMatchLinearOracleAtStrictMarginsAndExceptionalBounds
+[       OK ] CreativeVillage.ReservationsMatchLinearOracleAtStrictMarginsAndExceptionalBounds (106 ms)
+[ RUN      ] CreativeVillage.LinearOraclePreservesNamespaceRefusalsCapacityAndWholeGroupOrder
+[       OK ] CreativeVillage.LinearOraclePreservesNamespaceRefusalsCapacityAndWholeGroupOrder (40 ms)
+[----------] 2 tests from CreativeVillage (146 ms total)
+
+[----------] 16 tests from AdventureConstructionPolicy
+[ RUN      ] AdventureConstructionPolicy.DuplicateBeforeIdsUseTheFirstMatchingPart
+[       OK ] AdventureConstructionPolicy.DuplicateBeforeIdsUseTheFirstMatchingPart (0 ms)
+[ RUN      ] AdventureConstructionPolicy.DuplicateBeforeIdsRespectOriginalStructureOrder
+[       OK ] AdventureConstructionPolicy.DuplicateBeforeIdsRespectOriginalStructureOrder (0 ms)
+[ RUN      ] AdventureConstructionPolicy.UnchangedPartsMayHaveIndependentBeforeAndAfterOrder
+[       OK ] AdventureConstructionPolicy.UnchangedPartsMayHaveIndependentBeforeAndAfterOrder (0 ms)
+[ RUN      ] AdventureConstructionPolicy.UnchangedStructuresMayBeReorderedWithoutMovingParts
+[       OK ] AdventureConstructionPolicy.UnchangedStructuresMayBeReorderedWithoutMovingParts (0 ms)
+[ RUN      ] AdventureConstructionPolicy.MissingBeforeIdsRemainNewPlacements
+[       OK ] AdventureConstructionPolicy.MissingBeforeIdsRemainNewPlacements (0 ms)
+[ RUN      ] AdventureConstructionPolicy.MissingAfterIdsRemainRemovals
+[       OK ] AdventureConstructionPolicy.MissingAfterIdsRemainRemovals (0 ms)
+[ RUN      ] AdventureConstructionPolicy.GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate
+[       OK ] AdventureConstructionPolicy.GroundedPiecesMustStaySupportedAndRefusalsDoNotMutate (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TerrainProtectedAccessPlayerAndReachFailBeforePublication
+[       OK ] AdventureConstructionPolicy.TerrainProtectedAccessPlayerAndReachFailBeforePublication (0 ms)
+[ RUN      ] AdventureConstructionPolicy.QuarterTurnsPreserveOpeningAndActualFurnitureBounds
+[       OK ] AdventureConstructionPolicy.QuarterTurnsPreserveOpeningAndActualFurnitureBounds (0 ms)
+[ RUN      ] AdventureConstructionPolicy.BedNeedsRoofWallsAndClearRecoveryBesideFurniture
+[       OK ] AdventureConstructionPolicy.BedNeedsRoofWallsAndClearRecoveryBesideFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.LargerHouseAndRotatedBedUseTheSameShelterRule
+[       OK ] AdventureConstructionPolicy.LargerHouseAndRotatedBedUseTheSameShelterRule (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TransfersAndCraftingRequireReachableUnblockedFurniture
+[       OK ] AdventureConstructionPolicy.TransfersAndCraftingRequireReachableUnblockedFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.GatherRequiresRealNodeReachAndUnblockedSight
+[       OK ] AdventureConstructionPolicy.GatherRequiresRealNodeReachAndUnblockedSight (0 ms)
+[ RUN      ] AdventureConstructionPolicy.TerrainPlacementIncludesAllRectangularCorners
+[       OK ] AdventureConstructionPolicy.TerrainPlacementIncludesAllRectangularCorners (0 ms)
+[ RUN      ] AdventureConstructionPolicy.OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture
+[       OK ] AdventureConstructionPolicy.OptionalStarterRoomIsAChargedLayoutWithRealDoorAndUsefulFurniture (0 ms)
+[ RUN      ] AdventureConstructionPolicy.PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts
+[       OK ] AdventureConstructionPolicy.PlayerClimbsCatalogStairsAndTraversesTwoRoofedRoomLayouts (1 ms)
+[----------] 16 tests from AdventureConstructionPolicy (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 18 tests from 2 test suites ran. (148 ms total)
+[  PASSED  ] 18 tests.

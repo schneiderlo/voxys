@@ -1,0 +1,188 @@
+{
+  "changed": [
+    "BUILD",
+    "scripts/performance/compare_free_build_benchmark.py",
+    "scripts/performance/test_compare_free_build_benchmark.py",
+    "src/CMakeLists.txt",
+    "src/app/application.cpp",
+    "src/app/application.hpp",
+    "src/core/config.cpp",
+    "src/core/config.hpp",
+    "src/engine/platform/native/entry.cpp",
+    "src/engine/platform/native/native_adventure_saves.cpp",
+    "src/engine/platform/native/native_adventure_saves.hpp",
+    "src/engine/platform/wasm/entry.cpp",
+    "src/game/BUILD",
+    "src/game/adventure/adventure_runtime.hpp",
+    "src/game/adventure/adventure_save.cpp",
+    "src/game/adventure/adventure_save.hpp",
+    "src/game/adventure/adventure_session.cpp",
+    "src/game/adventure/adventure_session.hpp",
+    "src/game/adventure/building_catalog.cpp",
+    "src/game/adventure/building_catalog.hpp",
+    "src/game/adventure/construction_policy.cpp",
+    "src/game/adventure/creative_village.cpp",
+    "src/game/adventure/item_catalog.cpp",
+    "src/game/adventure/item_catalog.hpp",
+    "src/render/adventure_hud.cpp",
+    "src/render/adventure_hud.hpp",
+    "src/render/adventure_hud_navigation.cpp",
+    "tests/BUILD",
+    "tests/CMakeLists.txt",
+    "tests/test_adventure_construction_policy.cpp",
+    "tests/test_adventure_hud.cpp",
+    "tests/test_adventure_world.cpp",
+    "tests/test_config.cpp",
+    "tests/test_native_adventure_saves.cpp"
+  ],
+  "missing": [],
+  "staged_patch_unchanged": true,
+  "recorded_at_utc": "2026-09-26T00:56:46.899596+00:00",
+  "files": {
+    "BUILD": {
+      "mtime_utc": "2026-09-26T00:45:47.309584+00:00",
+      "sha256": "024337aebc52d9bbe48f43c92b862770f4ce70dd407be5dd7f89caec0afb01de"
+    },
+    "scripts/performance/compare_free_build_benchmark.py": {
+      "mtime_utc": "2026-09-26T00:32:55.752969+00:00",
+      "sha256": "91d8a7ff0b54ed27e7880c3155635bcd7a0b074572e476ce0d27ccd39b718a7a"
+    },
+    "scripts/performance/test_compare_free_build_benchmark.py": {
+      "mtime_utc": "2026-09-26T00:32:55.752969+00:00",
+      "sha256": "516a91e7c4d5e3c13dcdd34592baec909873ae552e74ecf059c19d8add2067c0"
+    },
+    "src/CMakeLists.txt": {
+      "mtime_utc": "2026-09-26T00:54:42.956679+00:00",
+      "sha256": "bdf580a58b9b29960d731f5aa3ea3e363284822644e7cf518d583e6f345ec69a"
+    },
+    "src/app/application.cpp": {
+      "mtime_utc": "2026-09-26T00:45:47.307102+00:00",
+      "sha256": "2a11e2945be58acb30447c71297d4f1b5dd8b7d2dc9c0a4e181d477ab155a547"
+    },
+    "src/app/application.hpp": {
+      "mtime_utc": "2026-09-26T00:45:47.304762+00:00",
+      "sha256": "b69a2ff70bd72b6b2f29f594c9c31d1ac8c43587a6b3063cb0247c6fa46b663b"
+    },
+    "src/core/config.cpp": {
+      "mtime_utc": "2026-09-26T00:45:47.304531+00:00",
+      "sha256": "f89bc8973c982bc67baaab06f966644bfefbac21638ea7313abd12a7c0dee862"
+    },
+    "src/core/config.hpp": {
+      "mtime_utc": "2026-09-26T00:45:47.304134+00:00",
+      "sha256": "60dffcd8bc55e6fbd5c82e587b1a2a0b7ca8554e7f4f5165d30737a21dc51be5"
+    },
+    "src/engine/platform/native/entry.cpp": {
+      "mtime_utc": "2026-09-26T00:45:47.307990+00:00",
+      "sha256": "4ef571aa8326abef9305836163b11ebb7da54b169d75960593c30b0752b21872"
+    },
+    "src/engine/platform/native/native_adventure_saves.cpp": {
+      "mtime_utc": "2026-09-26T00:45:47.308439+00:00",
+      "sha256": "6ed075c9fdb581aef1aea263db2e16c3be4c1d62a8a31501d8c527263eab3798"
+    },
+    "src/engine/platform/native/native_adventure_saves.hpp": {
+      "mtime_utc": "2026-09-26T00:45:47.308518+00:00",
+      "sha256": "a92676e3105d9b01e931ac99ca29feb9d093b77215577ba788f36d3c33b3ee12"
+    },
+    "src/engine/platform/wasm/entry.cpp": {
+      "mtime_utc": "2026-09-26T00:45:47.308268+00:00",
+      "sha256": "daf5aed665ccc319b7011cb07b97435d324df6289e8bb484d6492985187aa97b"
+    },
+    "src/game/BUILD": {
+      "mtime_utc": "2026-09-26T00:54:42.956491+00:00",
+      "sha256": "e13405033d33893b73eec729048262fb690becb872c633f59dd407cf81af5671"
+    },
+    "src/game/adventure/adventure_runtime.hpp": {
+      "mtime_utc": "2026-09-26T00:56:23.048899+00:00",
+      "sha256": "f355c8aa53d1050519d185e8a7fe7fddebc19dd32d997acb156f367dd146f094"
+    },
+    "src/game/adventure/adventure_save.cpp": {
+      "mtime_utc": "2026-09-26T00:47:37.792629+00:00",
+      "sha256": "315a24881a7a085492dd76bd4016440c2ae2c98277cc65a5c4f7ed920cd61691"
+    },
+    "src/game/adventure/adventure_save.hpp": {
+      "mtime_utc": "2026-09-26T00:47:37.792553+00:00",
+      "sha256": "8d48d4acbf31138d13a72a9d9ceadfe594d922e1fd31a75c61f08bd40d8f849a"
+    },
+    "src/game/adventure/adventure_session.cpp": {
+      "mtime_utc": "2026-09-26T00:51:14.163661+00:00",
+      "sha256": "5e32c05d5a21322f5d1fe46900e2bda36a7f4f56ff40bb4dc5aea74cd3e36fd4"
+    },
+    "src/game/adventure/adventure_session.hpp": {
+      "mtime_utc": "2026-09-26T00:51:14.162820+00:00",
+      "sha256": "91944eb4477a3cba6034dbbbcaa8bea94525f44c2faabeca9939d527a6b0e912"
+    },
+    "src/game/adventure/building_catalog.cpp": {
+      "mtime_utc": "2026-09-26T00:49:18.549246+00:00",
+      "sha256": "8220917810c725d6e86a90fadb23921cb705abd56b705ecf250935697e158631"
+    },
+    "src/game/adventure/building_catalog.hpp": {
+      "mtime_utc": "2026-09-26T00:48:45.818111+00:00",
+      "sha256": "a44f8cf5eb0199bf38fae45430b24b534a952ecd6d431b38ded5be211b3d76fd"
+    },
+    "src/game/adventure/construction_policy.cpp": {
+      "mtime_utc": "2026-09-26T00:42:42.957749+00:00",
+      "sha256": "6901b013cf486c22427ec1eeb022561714c7cb5a2ff403fe9cb3023a7160287b"
+    },
+    "src/game/adventure/creative_village.cpp": {
+      "mtime_utc": "2026-09-26T00:41:46.699475+00:00",
+      "sha256": "f69a8e5dc2a2f0385507bd646f6182432139a77fdc4b01bcafae30f563424f53"
+    },
+    "src/game/adventure/item_catalog.cpp": {
+      "mtime_utc": "2026-09-26T00:46:39.917161+00:00",
+      "sha256": "11e522666bfb88963ede61efaf7fd643386f92ec7ad2330fa85638aa77c9df10"
+    },
+    "src/game/adventure/item_catalog.hpp": {
+      "mtime_utc": "2026-09-26T00:46:39.916591+00:00",
+      "sha256": "8dbad4b72622920a6cc9d4a508617f45a751934bbcf7b9af5bd2fbf94d66bce8"
+    },
+    "src/render/adventure_hud.cpp": {
+      "mtime_utc": "2026-09-26T00:52:41.508279+00:00",
+      "sha256": "4d1fd0458fe762532ecd18e7725444f5957917e5bf5ddfa6c3c4d267f508346c"
+    },
+    "src/render/adventure_hud.hpp": {
+      "mtime_utc": "2026-09-26T00:46:19.207118+00:00",
+      "sha256": "d260880b14299c4689cf150e6c4ee3a1db7cdb98883b3157a9d5b197c41b94a4"
+    },
+    "src/render/adventure_hud_navigation.cpp": {
+      "mtime_utc": "2026-09-26T00:52:23.026852+00:00",
+      "sha256": "b3c1999b12303a07c37f6f0499236299a554f9661683b4f0de4edf9adb3a6f58"
+    },
+    "tests/BUILD": {
+      "mtime_utc": "2026-09-26T00:50:54.302947+00:00",
+      "sha256": "c121e9eaa910e043388468526dc1199fafb26fc5a8ff989feaf0bcb2466a1a17"
+    },
+    "tests/CMakeLists.txt": {
+      "mtime_utc": "2026-09-26T00:50:54.303239+00:00",
+      "sha256": "41cda62cba94ae8694d63525413e88bc943f147296826c7cd070e1198eff74fb"
+    },
+    "tests/test_adventure_construction_policy.cpp": {
+      "mtime_utc": "2026-09-26T00:41:30.123983+00:00",
+      "sha256": "65a5c75b562f4a6f08f43446bac903fa232fbd3e05d323a441e1ffc3ee6a0fe5"
+    },
+    "tests/test_adventure_hud.cpp": {
+      "mtime_utc": "2026-09-26T00:50:03.731172+00:00",
+      "sha256": "93a7e84f200e1b44452c5f4b3c28467af64a042185f362eb4db255d558f19795"
+    },
+    "tests/test_adventure_world.cpp": {
+      "mtime_utc": "2026-09-26T00:29:46.170706+00:00",
+      "sha256": "73f3dc96a1bf00bf8004506bb9dcb31c788ef96535157f2f0dedde786ac02e6f"
+    },
+    "tests/test_config.cpp": {
+      "mtime_utc": "2026-09-26T00:46:16.522183+00:00",
+      "sha256": "6a1936ff52d5f7bb2a0e465f7f48a80a7dc38224162f56c01ac5708af65961e9"
+    },
+    "tests/test_native_adventure_saves.cpp": {
+      "mtime_utc": "2026-09-26T00:52:36.329588+00:00",
+      "sha256": "341e217c0b67b89a9b98d9a3db7af9a6d57864127287342a91ac63f6d4c02b79"
+    }
+  },
+  "our_changed_files": [
+    "scripts/performance/compare_free_build_benchmark.py",
+    "scripts/performance/test_compare_free_build_benchmark.py",
+    "src/game/adventure/construction_policy.cpp",
+    "src/game/adventure/creative_village.cpp",
+    "tests/test_adventure_construction_policy.cpp",
+    "tests/test_adventure_world.cpp"
+  ],
+  "final_executable_preserved_at_utc": "2026-09-26T00:44:45.895983+00:00"
+}

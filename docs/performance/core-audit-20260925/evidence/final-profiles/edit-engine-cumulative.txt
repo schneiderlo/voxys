@@ -1,0 +1,58 @@
+File: final-runner
+Type: cpu
+Active filters:
+   show=voxy::
+Showing nodes accounting for 2066ms, 82.31% of 2510ms total
+Dropped 76 nodes (cum <= 12.55ms)
+Showing top 50 nodes out of 57
+      flat  flat%   sum%        cum   cum%
+      15ms   0.6%   0.6%     2059ms 82.03%  voxy::game::adventure::AdventureRuntime::update
+      41ms  1.63%  2.23%      900ms 35.86%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  2.23%      768ms 30.60%  voxy::game::adventure::AdventureSession::finish
+         0     0%  2.23%      741ms 29.52%  voxy::game::adventure::AdventureSession::preparePlace
+     521ms 20.76% 22.99%      741ms 29.52%  voxy::game::adventure::validateConstruction
+       7ms  0.28% 23.27%      540ms 21.51%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+         0     0% 23.27%      494ms 19.68%  voxy::game::adventure::AdventureRuntime::commit
+     158ms  6.29% 29.56%      374ms 14.90%  voxy::game::adventure::CreativeScenery::admit
+     247ms  9.84% 39.40%      275ms 10.96%  voxy::game::expedition::sweepCoveTerrainSphere
+     189ms  7.53% 46.93%      259ms 10.32%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+         0     0% 46.93%      258ms 10.28%  voxy::game::adventure::AdventureRuntime::undoLastPlacement
+       5ms   0.2% 47.13%      149ms  5.94%  voxy::game::adventure::AdventureSpatialQueries::sweepCapsule
+       1ms  0.04% 47.17%      149ms  5.94%  voxy::game::expedition::CoveCamera::update
+         0     0% 47.17%      147ms  5.86%  voxy::game::adventure::AdventureSpatialQueries::cameraSweep() const::{lambda(void const*, glm::vec, glm::vec, double, unsigned long)#1}::_FUN
+         0     0% 47.17%      147ms  5.86%  voxy::game::adventure::AdventureSpatialQueries::sweepSphere (inline)
+      50ms  1.99% 49.16%      139ms  5.54%  voxy::game::adventure::AdventureRuntime::refreshHud
+         0     0% 49.16%      137ms  5.46%  voxy::game::adventure::AdventureSpatialQueries::raycast
+      55ms  2.19% 51.35%      120ms  4.78%  voxy::game::adventure::CreativeVillage::admit
+      98ms  3.90% 55.26%      116ms  4.62%  voxy::game::adventure::(anonymous namespace)::compileGeometry
+      57ms  2.27% 57.53%       87ms  3.47%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      63ms  2.51% 60.04%       66ms  2.63%  voxy::game::adventure::(anonymous namespace)::Reservations::blocks
+      55ms  2.19% 62.23%       57ms  2.27%  voxy::game::adventure::AdventureSession::validate
+      57ms  2.27% 64.50%       57ms  2.27%  voxy::game::expedition::CoveInputRouter::tick
+       4ms  0.16% 64.66%       57ms  2.27%  voxy::terrain::lego::Surface::cellTop (inline)
+      53ms  2.11% 66.77%       53ms  2.11%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]() const::{lambda(std::ostream&)#1}::operator()
+      32ms  1.27% 68.05%       53ms  2.11%  voxy::terrain::lego::top (inline)
+      41ms  1.63% 69.68%       52ms  2.07%  voxy::game::expedition::sampleCoveInput
+      11ms  0.44% 70.12%       50ms  1.99%  voxy::game::adventure::AdventureRuntime::refreshNavigation
+      40ms  1.59% 71.71%       50ms  1.99%  voxy::game::adventure::AdventureSpatialQueries::publish
+       2ms  0.08% 71.79%       45ms  1.79%  voxy::game::adventure::AdventurePlayer::advance
+         0     0% 71.79%       45ms  1.79%  voxy::game::adventure::AdventureRuntime::advanceCombat
+       1ms  0.04% 71.83%       43ms  1.71%  voxy::game::adventure::AdventurePlayer::step
+      38ms  1.51% 73.35%       38ms  1.51%  voxy::game::adventure::AdventureRuntime::appendBlacksmith
+         0     0% 73.35%       33ms  1.31%  voxy::game::adventure::validateInstalledGeometry
+       1ms  0.04% 73.39%       32ms  1.27%  voxy::game::adventure::AdventureSession::prepareRemove
+      24ms  0.96% 74.34%       31ms  1.24%  voxy::game::adventure::AdventureNavigationCache::rasterize
+      12ms  0.48% 74.82%       29ms  1.16%  voxy::game::adventure::AdventureSpatialQueries::supportHeight
+      25ms     1% 75.82%       28ms  1.12%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()
+       9ms  0.36% 76.18%       27ms  1.08%  voxy::game::construction::DurableId::operator== (inline)
+      19ms  0.76% 76.93%       20ms   0.8%  voxy::game::adventure::AdventureSpatialQueries::candidates
+       7ms  0.28% 77.21%       18ms  0.72%  voxy::game::adventure::CreativeScenery::operator=
+      18ms  0.72% 77.93%       18ms  0.72%  voxy::game::construction::WorldNamespace::operator== (inline)
+      17ms  0.68% 78.61%       17ms  0.68%  voxy::game::adventure::(anonymous namespace)::worldBox
+         0     0% 78.61%       17ms  0.68%  voxy::game::adventure::AdventureRuntime::interactionLabel[abi:cxx11]
+      17ms  0.68% 79.28%       17ms  0.68%  voxy::game::adventure::AdventureSession::findPart
+      16ms  0.64% 79.92%       16ms  0.64%  voxy::game::adventure::(anonymous namespace)::overlap
+      16ms  0.64% 80.56%       16ms  0.64%  voxy::game::adventure::CreativeVillage::appendSolids
+      15ms   0.6% 81.16%       15ms   0.6%  voxy::game::expedition::sweepCoveTerrainSphere()::{lambda(voxy::game::expedition::CoveCamera::SweepResult)#1}::operator()
+      15ms   0.6% 81.75%       15ms   0.6%  voxy::terrain::lego::plateCount (inline)
+      14ms  0.56% 82.31%       14ms  0.56%  voxy::game::adventure::(anonymous namespace)::Reservations::Reservations

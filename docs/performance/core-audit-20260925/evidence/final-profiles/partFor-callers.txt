@@ -1,0 +1,76 @@
+File: final-runner
+Type: cpu
+Active filters:
+   focus=partFor
+Showing nodes accounting for 55ms, 2.19% of 2510ms total
+----------------------------------------------------------+-------------
+      flat  flat%   sum%        cum   cum%   calls calls% + context 	 	 
+----------------------------------------------------------+-------------
+                                              55ms   100% |   validateDoorClearance (inline)
+      54ms  2.15%  2.15%       55ms  2.19%                | partFor
+                                               1ms  1.82% |   std::vector::end (inline)
+----------------------------------------------------------+-------------
+                                               1ms   100% |   std::vector::end (inline)
+       1ms  0.04%  2.19%        1ms  0.04%                | __gnu_cxx::__normal_iterator::__normal_iterator
+----------------------------------------------------------+-------------
+                                              55ms   100% |   __invoke_r (inline)
+         0     0%  2.19%       55ms  2.19%                | __invoke_impl
+                                              55ms   100% |   std::_Function_handler::_M_invoke (inline)
+----------------------------------------------------------+-------------
+                                              55ms   100% |   std::_Function_handler::_M_invoke (inline)
+         0     0%  2.19%       55ms  2.19%                | __invoke_r
+                                              55ms   100% |   __invoke_impl (inline)
+----------------------------------------------------------+-------------
+                                              55ms   100% |   __libc_start_main_alias_2
+         0     0%  2.19%       55ms  2.19%                | __libc_start_call_main
+                                              55ms   100% |   main
+----------------------------------------------------------+-------------
+                                              55ms   100% |   _start
+         0     0%  2.19%       55ms  2.19%                | __libc_start_main_alias_2
+                                              55ms   100% |   __libc_start_call_main
+----------------------------------------------------------+-------------
+         0     0%  2.19%       55ms  2.19%                | _start
+                                              55ms   100% |   __libc_start_main_alias_2
+----------------------------------------------------------+-------------
+                                              55ms   100% |   __libc_start_call_main
+         0     0%  2.19%       55ms  2.19%                | main
+                                              55ms   100% |   voxy::game::adventure::AdventureRuntime::update
+----------------------------------------------------------+-------------
+                                              55ms   100% |   __invoke_impl (inline)
+                                              55ms   100% |   std::function::operator()
+         0     0%  2.19%       55ms  2.19%                | std::_Function_handler::_M_invoke
+                                              55ms   100% |   __invoke_r (inline)
+                                              55ms   100% |   voxy::game::adventure::validateConstruction
+----------------------------------------------------------+-------------
+                                              55ms   100% |   voxy::game::adventure::AdventureSession::finish (inline)
+         0     0%  2.19%       55ms  2.19%                | std::function::operator()
+                                              55ms   100% |   std::_Function_handler::_M_invoke
+----------------------------------------------------------+-------------
+                                               1ms   100% |   partFor (inline)
+         0     0%  2.19%        1ms  0.04%                | std::vector::end
+                                               1ms   100% |   __gnu_cxx::__normal_iterator::__normal_iterator (inline)
+----------------------------------------------------------+-------------
+                                              55ms   100% |   voxy::game::adventure::validateConstruction (inline)
+         0     0%  2.19%       55ms  2.19%                | validateDoorClearance
+                                              55ms   100% |   partFor (inline)
+----------------------------------------------------------+-------------
+                                              55ms   100% |   main
+         0     0%  2.19%       55ms  2.19%                | voxy::game::adventure::AdventureRuntime::update
+                                              55ms   100% |   voxy::game::adventure::AdventureRuntime::updateTarget
+----------------------------------------------------------+-------------
+                                              55ms   100% |   voxy::game::adventure::AdventureRuntime::update
+         0     0%  2.19%       55ms  2.19%                | voxy::game::adventure::AdventureRuntime::updateTarget
+                                              55ms   100% |   voxy::game::adventure::AdventureSession::preparePlace
+----------------------------------------------------------+-------------
+                                              55ms   100% |   voxy::game::adventure::AdventureSession::preparePlace
+         0     0%  2.19%       55ms  2.19%                | voxy::game::adventure::AdventureSession::finish
+                                              55ms   100% |   std::function::operator() (inline)
+----------------------------------------------------------+-------------
+                                              55ms   100% |   voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0%  2.19%       55ms  2.19%                | voxy::game::adventure::AdventureSession::preparePlace
+                                              55ms   100% |   voxy::game::adventure::AdventureSession::finish
+----------------------------------------------------------+-------------
+                                              55ms   100% |   std::_Function_handler::_M_invoke
+         0     0%  2.19%       55ms  2.19%                | voxy::game::adventure::validateConstruction
+                                              55ms   100% |   validateDoorClearance (inline)
+----------------------------------------------------------+-------------

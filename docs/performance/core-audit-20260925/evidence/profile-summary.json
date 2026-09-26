@@ -1,0 +1,205 @@
+{
+  "scope": "Fresh native optimized creative CPU replay, 768 parts. Diagnostic profiles overlapped the baseline GPU suite; no latency, throughput or FPS claim. CPU uses 36000 updates, heap and I/O 3600.",
+  "binary_sha256": "b75aa50202f1bdbd7b767f83db68bc3c4094157f649e893bff6b87a9ca20c6c6",
+  "profile_sha256": {
+    "cpu-edit.prof": "7210302998f265bbf258b82076ef0a9cfc35e3c11c66d27287f664d5b60d8fb1",
+    "cpu-idle.prof": "8d2dea56a320ee24d24d2b6c492368289ca7e3748f174a5ca05adc30b3f0164b",
+    "alloc-edit.0001.heap": "d4c13ab867b173c0cd69bd505d6c92d1ee52411e05c7fcfe858e9618285e7dea",
+    "io-edit.strace": "2f85b06bb9dffd07273c3037e5f4665053057aee126a7892e3899072d2e6f863"
+  },
+  "cpu_sampled_ms": {
+    "edit": 3370,
+    "idle": 900
+  },
+  "cpu_edit_hotspots": [
+    {
+      "flat": "10ms",
+      "flat_pct": 0.3,
+      "inclusive": "1058ms",
+      "inclusive_pct": 31.39,
+      "function": "voxy::game::adventure::CreativeVillage::admit"
+    },
+    {
+      "flat": "211ms",
+      "flat_pct": 6.26,
+      "inclusive": "851ms",
+      "inclusive_pct": 25.25,
+      "function": "voxy::game::adventure::validateConstruction (partial-inline)"
+    },
+    {
+      "flat": "61ms",
+      "flat_pct": 1.81,
+      "inclusive": "266ms",
+      "inclusive_pct": 7.89,
+      "function": "voxy::game::expedition::sweepCoveTerrainSphere"
+    },
+    {
+      "flat": "1ms",
+      "flat_pct": 0.03,
+      "inclusive": "218ms",
+      "inclusive_pct": 6.47,
+      "function": "voxy::game::adventure::AdventureRuntime::json[abi:cxx11]"
+    },
+    {
+      "flat": "166ms",
+      "flat_pct": 4.93,
+      "inclusive": "167ms",
+      "inclusive_pct": 4.96,
+      "function": "partFor (inline)"
+    }
+  ],
+  "cpu_idle_hotspots": [
+    {
+      "flat": "0",
+      "flat_pct": 0.0,
+      "inclusive": "198ms",
+      "inclusive_pct": 22.0,
+      "function": "voxy::game::adventure::AdventureRuntime::json[abi:cxx11]"
+    },
+    {
+      "flat": "44ms",
+      "flat_pct": 4.89,
+      "inclusive": "137ms",
+      "inclusive_pct": 15.22,
+      "function": "voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)"
+    },
+    {
+      "flat": "2ms",
+      "flat_pct": 0.22,
+      "inclusive": "93ms",
+      "inclusive_pct": 10.33,
+      "function": "voxy::game::adventure::AdventureRuntime::refreshHud"
+    },
+    {
+      "flat": "29ms",
+      "flat_pct": 3.22,
+      "inclusive": "59ms",
+      "inclusive_pct": 6.56,
+      "function": "voxy::game::adventure::AdventureRuntime::updateTarget"
+    },
+    {
+      "flat": "48ms",
+      "flat_pct": 5.33,
+      "inclusive": "49ms",
+      "inclusive_pct": 5.44,
+      "function": "voxy::game::expedition::CoveInputRouter::tick (partial-inline)"
+    }
+  ],
+  "source_hotspots": [
+    {
+      "source": "src/game/adventure/creative_village.cpp:79",
+      "operation": "Exact reservation overlap loop",
+      "flat_ms": 201,
+      "inclusive_ms": 969,
+      "inclusive_pct": 28.753709198813056
+    },
+    {
+      "source": "src/game/adventure/construction_policy.cpp:69",
+      "operation": "partFor nested scans",
+      "flat_ms": 166,
+      "inclusive_ms": 167,
+      "inclusive_pct": 4.955489614243323
+    }
+  ],
+  "allocation": {
+    "allocated_objects": 1065129,
+    "allocated_bytes": 447024012,
+    "allocated_mib": 426.3153190612793,
+    "byte_hotspots": [
+      {
+        "flat": "112346.62kB",
+        "flat_pct": 25.74,
+        "inclusive": "115182.83kB",
+        "inclusive_pct": 26.38,
+        "function": "voxy::game::adventure::AdventureRuntime::json[abi:cxx11]"
+      },
+      {
+        "flat": "62955.39kB",
+        "flat_pct": 14.42,
+        "inclusive": "87811.16kB",
+        "inclusive_pct": 20.11,
+        "function": "voxy::game::adventure::CreativeScenery::admit"
+      },
+      {
+        "flat": "23821.48kB",
+        "flat_pct": 5.46,
+        "inclusive": "63387.27kB",
+        "inclusive_pct": 14.52,
+        "function": "voxy::game::adventure::validateConstruction"
+      },
+      {
+        "flat": "52120.12kB",
+        "flat_pct": 11.94,
+        "inclusive": "52120.12kB",
+        "inclusive_pct": 11.94,
+        "function": "voxy::game::adventure::AdventureRuntime::appendBlacksmith"
+      },
+      {
+        "flat": "49334.66kB",
+        "flat_pct": 11.3,
+        "inclusive": "49334.66kB",
+        "inclusive_pct": 11.3,
+        "function": "voxy::game::adventure::(anonymous namespace)::compileGeometry"
+      }
+    ],
+    "object_hotspots": [
+      {
+        "flat": "518821",
+        "flat_pct": 48.71,
+        "inclusive": "658971",
+        "inclusive_pct": 61.87,
+        "function": "voxy::game::adventure::validateConstruction"
+      },
+      {
+        "flat": "174554",
+        "flat_pct": 16.39,
+        "inclusive": "174554",
+        "inclusive_pct": 16.39,
+        "function": "voxy::game::adventure::(anonymous namespace)::compileGeometry"
+      },
+      {
+        "flat": "129933",
+        "flat_pct": 12.2,
+        "inclusive": "129933",
+        "inclusive_pct": 12.2,
+        "function": "voxy::game::adventure::AdventureSession::validate"
+      },
+      {
+        "flat": "60502",
+        "flat_pct": 5.68,
+        "inclusive": "128411",
+        "inclusive_pct": 12.06,
+        "function": "voxy::game::adventure::AdventureRuntime::refreshHud"
+      },
+      {
+        "flat": "6062",
+        "flat_pct": 0.57,
+        "inclusive": "39368",
+        "inclusive_pct": 3.7,
+        "function": "voxy::game::adventure::AdventureRuntime::json[abi:cxx11]"
+      }
+    ]
+  },
+  "io": {
+    "begin": "53922 00:37:33.123229 write(2, \"VOXY_REPLAY_BEGIN\\n\", 18) = 18 <0.000017>",
+    "end": "53922 00:37:33.566279 write(2, \"VOXY_REPLAY_END\\n\", 16) = 16 <0.000051>",
+    "syscalls_excluding_markers": {
+      "ioctl": 60,
+      "brk": 6
+    },
+    "syscall_duration_seconds_diagnostic_only": {
+      "ioctl": 0.001159,
+      "brk": 0.000154
+    },
+    "gpu_queries": 60,
+    "file_network_data_calls": 0,
+    "unparsed_lines": []
+  },
+  "cautions": [
+    "CPU exclusive percentages use UNFILTERED reports. -show=voxy:: folds filtered frames into visible parents, so its flat column is engine-attributed rather than raw self samples.",
+    "Inclusive percentages overlap (village is inside scenery; partFor is inside validation); never add them.",
+    "Benchmark validity-string search consumes 28.78% inclusive idle CPU; it is harness work, not a game optimization opportunity.",
+    "Allocation percentages are volume rather than retained memory or CPU time; filtered reports fold allocator frames into engine callers.",
+    "No startup/durable save/network workload was measured in the replay I/O interval."
+  ]
+}

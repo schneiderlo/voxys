@@ -87,6 +87,77 @@ class AcceptanceGuard(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('accepted edit', result.stdout)
 
+    def test_invalid_measurements_fail_on_either_side(self):
+        fields = [(operation, quantile)
+                  for operation in ('update', 'serialization', 'accepted_edit_update')
+                  for quantile in ('p50_us', 'p95_us', 'p99_us')]
+        fields += [('peak_rss_kib',), ('updates_per_second',)]
+        for directory in (self.baseline, self.candidate):
+            path = directory / '768-edit-1.metrics.json'
+            original = path.read_text()
+            for fields_to_set in fields:
+                for invalid in (float('nan'), float('inf'), float('-inf'),
+                                0, -1, True, '1', 10 ** 400):
+                    with self.subTest(side=directory.name, field=fields_to_set, value=invalid):
+                        metrics = json.loads(original)
+                        target = metrics
+                        for field in fields_to_set[:-1]:
+                            target = target[field]
+                        target[fields_to_set[-1]] = invalid
+                        path.write_text(json.dumps(metrics))
+                        result = self.compare()
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+                        self.assertIn('finite and positive', result.stdout)
+                        # Reject before medians/ratios; the diagnostic remains valid JSON.
+                        self.assertTrue(json.loads(result.stdout)['failures'])
+            path.write_text(original)
+
+    def test_unordered_quantiles_fail(self):
+        path = self.candidate / '768-edit-1.metrics.json'
+        original = path.read_text()
+        for operation in ('update', 'serialization', 'accepted_edit_update'):
+            with self.subTest(operation=operation):
+                metrics = json.loads(original)
+                metrics[operation]['p95_us'] = 50
+                path.write_text(json.dumps(metrics))
+                result = self.compare()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('nondecreasing', result.stdout)
+
+    def test_identical_invalid_counts_fail(self):
+        paths = [directory / '768-edit-1.metrics.json'
+                 for directory in (self.baseline, self.candidate)]
+        original = [path.read_text() for path in paths]
+        for field in ('accepted_placements', 'removed_parts', 'valid_observations',
+                      'invalid_observations', 'accepted_edit_update'):
+            for invalid in (float('nan'), float('inf'), float('-inf'), -1, 1.5, True, '1'):
+                with self.subTest(field=field, value=invalid):
+                    for path, text in zip(paths, original):
+                        metrics = json.loads(text)
+                        if field == 'accepted_edit_update':
+                            metrics[field]['count'] = invalid
+                        else:
+                            metrics[field] = invalid
+                        path.write_text(json.dumps(metrics))
+                    result = self.compare()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn('accepted edit' if field == 'accepted_edit_update'
+                                  else 'nonnegative integer', result.stdout)
+
+    def test_zero_outcome_counts_and_fractional_timings_pass(self):
+        for directory in (self.baseline, self.candidate):
+            for path in directory.glob('*.metrics.json'):
+                metrics = json.loads(path.read_text())
+                if metrics['workload'] == 'idle':
+                    metrics.update(accepted_placements=0, removed_parts=0)
+                metrics.update(valid_observations=0, invalid_observations=600)
+                for operation in ('update', 'serialization', 'accepted_edit_update'):
+                    if metrics[operation] is not None:
+                        metrics[operation].update(p50_us=.1, p95_us=.1, p99_us=.2)
+                path.write_text(json.dumps(metrics))
+        result = self.compare()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

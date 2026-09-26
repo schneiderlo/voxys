@@ -1,0 +1,41 @@
+File: baseline-runner
+Type: alloc_space
+Active filters:
+   show=voxy::
+Showing nodes accounting for 429418.52kB, 98.37% of 436546.89kB total
+Dropped 27 nodes (cum <= 2182.73kB)
+      flat  flat%   sum%        cum   cum%
+    0.13kB 3e-05% 3e-05% 321306.33kB 73.60%  voxy::game::adventure::AdventureRuntime::update
+10386.94kB  2.38%  2.38% 194479.06kB 44.55%  voxy::game::adventure::AdventureRuntime::prepareGeometry
+         0     0%  2.38% 186547.63kB 42.73%  voxy::game::adventure::AdventureRuntime::commit
+112346.62kB 25.74% 28.11% 115182.83kB 26.38%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+62955.39kB 14.42% 42.54% 87811.16kB 20.11%  voxy::game::adventure::CreativeScenery::admit
+         0     0% 42.54% 78483.42kB 17.98%  voxy::game::adventure::AdventureRuntime::undoLastPlacement
+         0     0% 42.54% 72557.42kB 16.62%  voxy::game::adventure::AdventureSession::preparePlace
+    2.03kB 0.00046% 42.54% 69727.07kB 15.97%  voxy::game::adventure::AdventureRuntime::updateTarget
+         0     0% 42.54% 64766.50kB 14.84%  voxy::game::adventure::AdventureSession::finish
+23821.48kB  5.46% 47.99% 63387.27kB 14.52%  voxy::game::adventure::validateConstruction
+52120.12kB 11.94% 59.93% 52120.12kB 11.94%  voxy::game::adventure::AdventureRuntime::appendBlacksmith
+49334.66kB 11.30% 71.23% 49334.66kB 11.30%  voxy::game::adventure::(anonymous namespace)::compileGeometry
+22825.31kB  5.23% 76.46% 22825.31kB  5.23%  voxy::game::adventure::CreativeVillage::appendSolids
+15653.88kB  3.59% 80.05% 21390.12kB  4.90%  voxy::game::adventure::AdventureRuntime::refreshNavigation
+15103.67kB  3.46% 83.51% 18902.32kB  4.33%  voxy::game::adventure::AdventureRuntime::refreshHud
+14955.19kB  3.43% 86.93% 14955.19kB  3.43%  voxy::game::adventure::AdventureRuntime::appendCannon
+11821.95kB  2.71% 89.64% 11821.95kB  2.71%  voxy::game::adventure::AdventureSpatialQueries::publish
+10116.11kB  2.32% 91.96% 10116.11kB  2.32%  voxy::game::adventure::AdventureSpatialQueries::operator=
+         0     0% 91.96%  9222.22kB  2.11%  voxy::game::adventure::AdventureRuntime::prepareActors
+ 7598.97kB  1.74% 93.70%  7598.97kB  1.74%  voxy::game::adventure::AdventureSession::addPart
+  262.97kB  0.06% 93.76%  6582.80kB  1.51%  voxy::game::adventure::CreativeScenery::appendSolids
+         0     0% 93.76%  5916.47kB  1.36%  voxy::game::adventure::validateInstalledGeometry
+   61.45kB 0.014% 93.77%  5617.22kB  1.29%  voxy::game::adventure::CreativeVillage::admit
+ 5075.51kB  1.16% 94.94%  5075.51kB  1.16%  voxy::game::adventure::AdventureSession::validate
+         0     0% 94.94%  4662.41kB  1.07%  voxy::game::adventure::compileSolids (inline)
+         0     0% 94.94%  4050.41kB  0.93%  voxy::game::adventure::AdventureSession::begin
+   10.50kB 0.0024% 94.94%  4050.41kB  0.93%  voxy::game::adventure::AdventureState::operator= (inline)
+ 4039.91kB  0.93% 95.86%  4039.91kB  0.93%  voxy::game::adventure::WorldStructure::WorldStructure
+         0     0% 95.86%  3858.45kB  0.88%  voxy::game::adventure::AdventureSession::prepareRemove
+    3072kB   0.7% 96.57%     3072kB   0.7%  voxy::game::adventure::AdventureNavigationCache::rasterize
+ 2917.84kB  0.67% 97.24%  2917.84kB  0.67%  voxy::game::adventure::(anonymous namespace)::add
+ 2649.02kB  0.61% 97.84%  2649.02kB  0.61%  voxy::game::adventure::(anonymous namespace)::Reservations::Reservations
+         0     0% 97.84%  2442.22kB  0.56%  voxy::game::adventure::compileDoorSwingSolids
+ 2286.88kB  0.52% 98.37%  2286.88kB  0.52%  voxy::game::adventure::CreativeVillage::admit()::{lambda(voxy::game::adventure::CreativeVillageGroup)#1}::operator()

@@ -1,0 +1,26 @@
+File: baseline-runner
+Type: cpu
+Showing nodes accounting for 297ms, 33.00% of 900ms total
+Dropped 168 nodes (cum <= 4.50ms)
+Showing top 20 nodes out of 112
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%      900ms   100%  __libc_start_call_main
+         0     0%     0%      900ms   100%  __libc_start_main_alias_2
+         0     0%     0%      900ms   100%  _start
+         0     0%     0%      900ms   100%  main
+       4ms  0.44%  0.44%      439ms 48.78%  voxy::game::adventure::AdventureRuntime::update
+      18ms  2.00%  2.44%      259ms 28.78%  std::__cxx11::basic_string::find (inline)
+         0     0%  2.44%      198ms 22.00%  voxy::game::adventure::AdventureRuntime::json[abi:cxx11]
+     184ms 20.44% 22.89%      184ms 20.44%  __memchr_evex
+         0     0% 22.89%      184ms 20.44%  std::char_traits::find (inline)
+       1ms  0.11% 23.00%      157ms 17.44%  operator() (inline)
+       1ms  0.11% 23.11%      148ms 16.44%  voxy::game::expedition::CoveCamera::update
+         0     0% 23.11%      146ms 16.22%  voxy::game::adventure::AdventureSpatialQueries::cameraSweep() const::{lambda(void const*, glm::vec, glm::vec, double, unsigned long)#1}::_FUN
+         0     0% 23.11%      146ms 16.22%  voxy::game::adventure::AdventureSpatialQueries::sweepSphere (inline)
+         0     0% 23.11%      145ms 16.11%  voxy::game::adventure::AdventureSpatialQueries::sweepCapsule
+      44ms  4.89% 28.00%      137ms 15.22%  voxy::game::expedition::sweepCoveTerrainSphere (partial-inline)
+       2ms  0.22% 28.22%       93ms 10.33%  voxy::game::adventure::AdventureRuntime::refreshHud
+       2ms  0.22% 28.44%       91ms 10.11%  std::ostream::_M_insert
+       1ms  0.11% 28.56%       89ms  9.89%  std::ostream::operator<< (inline)
+      36ms  4.00% 32.56%       81ms  9.00%  castConvex (inline)
+       4ms  0.44% 33.00%       79ms  8.78%  std::num_put::_M_insert_float

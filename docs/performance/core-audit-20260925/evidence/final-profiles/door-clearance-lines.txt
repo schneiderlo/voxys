@@ -1,0 +1,35 @@
+Total: 2.51s
+ROUTINE ======================== validateDoorClearance in src/game/adventure/construction_policy.cpp
+       1ms      125ms (flat, cum)  4.98% of Total
+         .          .    141:    const AdventureSpatialQueries& accepted,std::span<const Solid> solids,std::string& error,bool freeBuild) {
+         .          .    142:    const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
+         .          .    143:    const double scale=freeBuild?AdventurePlayer::creativeScale:1;
+         .          .    144:    const double radius=(freeBuild?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,height=AdventurePlayer::height*scale;
+         .          .    145:    const Solid player{{},{},feet+glm::dvec3(-radius,0,-radius),feet+glm::dvec3(radius,height,radius)};
+       1ms        1ms    146:    for(const auto& structure:after.structures)for(const auto& part:structure.parts)if(part.kind==PieceKind::HingedDoor) {
+         .          .    147:        const auto* door=doorFor(after,part.id);const auto* oldDoor=doorFor(before,part.id);
+         .          .    148:        if(!door){error="Door state is unavailable";return false;}
+         .          .    149:        const bool moved=partMoved(partFor(before,part.id),part);
+         .          .    150:        const bool toggled=oldDoor&&oldDoor->doorOpen!=door->doorOpen;
+         .          .    151:        if(toggled&&!reachableComponent(before,oldDoor->id,accepted,error,freeBuild))return false;
+         .          .    152:        for(const auto& local:doorSweepBoxes()) {
+         .          .    153:            const auto sweep=worldBox(after,structure,part,local);
+         .          .    154:            const auto [lowest,highest]=terrainRange(accepted.terrain(),sweep);(void)lowest;
+         .          .    155:            if(!std::isfinite(highest)||sweep.minimum.y<highest-.021) {error="Leave level ground clear for the door to swing";return false;}
+         .          .    156:            if(!freeBuild&&protectedConstruction(sweep.minimum,sweep.maximum)) {error="Keep the door swing away from town and landmark access";return false;}
+         .          .    157:            // The frame is intentionally inside its own leaf envelope. Every
+         .          .    158:            // other accepted owned part must leave the future swing clear.
+         .          .    159:            for(const auto& solid:solids)if(solid.part.counter!=part.id&&overlaps(sweep,solid)) {
+         .          .    160:                error="Leave the door's swing clear of building pieces";return false;
+         .          .    161:            }
+         .          .    162:            if(moved||toggled) {
+         .          .    163:                if(overlaps(sweep,player)){error="Step outside the door's swing before using it";return false;}
+         .          .    164:                for(const auto& solid:accepted.solids()) {
+         .          .    165:                    // Old owned boxes are replaced by the full candidate above.
+         .          .    166:                    // Installed actors and scenery remain authoritative here.
+         .      124ms    167:                    if(partFor(before,solid.part.counter)||partFor(after,solid.part.counter))continue;
+         .          .    168:                    // Creative props yield to the candidate's entire reserved
+         .          .    169:                    // door swing at the same commit boundary as their draws.
+         .          .    170:                    if(freeBuild&&isCreativeScenerySolid(solid))continue;
+         .          .    171:                    if(overlaps(sweep,solid)){error="The door's swing is blocked by a character or scenery";return false;}
+         .          .    172:                }

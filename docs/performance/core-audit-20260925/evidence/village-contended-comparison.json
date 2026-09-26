@@ -1,0 +1,509 @@
+{
+  "groups": [
+    {
+      "parts": 0,
+      "workload": "edit",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.662,
+          "candidate": 11.01,
+          "ratio": 0.9440919224832789,
+          "limit": 36.662
+        },
+        "p95_us": {
+          "baseline": 38.441,
+          "candidate": 35.395,
+          "ratio": 0.9207616867407196,
+          "limit": 63.441
+        },
+        "p99_us": {
+          "baseline": 52.999,
+          "candidate": 46.466,
+          "ratio": 0.876733523274024,
+          "limit": 77.999
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 22.252,
+          "candidate": 21.25,
+          "ratio": 0.9549703397447421,
+          "limit": 47.251999999999995
+        },
+        "p95_us": {
+          "baseline": 28.413,
+          "candidate": 25.017,
+          "ratio": 0.8804772463309049,
+          "limit": 53.413
+        },
+        "p99_us": {
+          "baseline": 71.893,
+          "candidate": 61.955,
+          "ratio": 0.861766792316359,
+          "limit": 96.893
+        }
+      },
+      "accepted_edit_update": {
+        "p50_us": {
+          "baseline": 11155.379,
+          "candidate": 2845.502,
+          "ratio": 0.25507891753386414,
+          "limit": 12270.916900000002
+        },
+        "p95_us": {
+          "baseline": 11804.415,
+          "candidate": 3071.412,
+          "ratio": 0.2601918011184798,
+          "limit": 13575.07725
+        },
+        "p99_us": {
+          "baseline": 11804.415,
+          "candidate": 3071.412,
+          "ratio": 0.2601918011184798,
+          "limit": 14165.298
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 270748,
+        "candidate": 271436
+      },
+      "updates_per_second": {
+        "baseline": 18452.057226779736,
+        "candidate": 36808.71658219697
+      }
+    },
+    {
+      "parts": 0,
+      "workload": "idle",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.321,
+          "candidate": 11.301,
+          "ratio": 0.9982333716102818,
+          "limit": 36.321
+        },
+        "p95_us": {
+          "baseline": 11.562,
+          "candidate": 11.462,
+          "ratio": 0.9913509773395607,
+          "limit": 36.562
+        },
+        "p99_us": {
+          "baseline": 13.224,
+          "candidate": 15.118,
+          "ratio": 1.1432244404113732,
+          "limit": 38.224000000000004
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 20.999,
+          "candidate": 20.849,
+          "ratio": 0.9928568027048907,
+          "limit": 45.998999999999995
+        },
+        "p95_us": {
+          "baseline": 21.981,
+          "candidate": 22.702,
+          "ratio": 1.0328010554569855,
+          "limit": 46.981
+        },
+        "p99_us": {
+          "baseline": 24.345,
+          "candidate": 30.988,
+          "ratio": 1.2728691723146437,
+          "limit": 49.345
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 271084,
+        "candidate": 271476
+      },
+      "updates_per_second": {
+        "baseline": 65028.94519636872,
+        "candidate": 65091.14278783629
+      }
+    },
+    {
+      "parts": 64,
+      "workload": "edit",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.812,
+          "candidate": 11.131,
+          "ratio": 0.9423467660006773,
+          "limit": 36.812
+        },
+        "p95_us": {
+          "baseline": 39.633,
+          "candidate": 37.509,
+          "ratio": 0.9464082961168723,
+          "limit": 64.63300000000001
+        },
+        "p99_us": {
+          "baseline": 89.486,
+          "candidate": 84.747,
+          "ratio": 0.9470419953959278,
+          "limit": 114.486
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 22.753,
+          "candidate": 21.61,
+          "ratio": 0.9497648661714938,
+          "limit": 47.753
+        },
+        "p95_us": {
+          "baseline": 43.11,
+          "candidate": 26.85,
+          "ratio": 0.6228253305497565,
+          "limit": 68.11
+        },
+        "p99_us": {
+          "baseline": 101.128,
+          "candidate": 97.131,
+          "ratio": 0.9604758326081797,
+          "limit": 126.128
+        }
+      },
+      "accepted_edit_update": {
+        "p50_us": {
+          "baseline": 11788.095,
+          "candidate": 3172.119,
+          "ratio": 0.26909513369208515,
+          "limit": 12966.9045
+        },
+        "p95_us": {
+          "baseline": 13599.814,
+          "candidate": 3316.679,
+          "ratio": 0.24387679125611572,
+          "limit": 15639.7861
+        },
+        "p99_us": {
+          "baseline": 13599.814,
+          "candidate": 3316.679,
+          "ratio": 0.24387679125611572,
+          "limit": 16319.7768
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 271084,
+        "candidate": 271552
+      },
+      "updates_per_second": {
+        "baseline": 16730.403073564656,
+        "candidate": 31258.680524728006
+      }
+    },
+    {
+      "parts": 64,
+      "workload": "idle",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.441,
+          "candidate": 11.491,
+          "ratio": 1.0043702473560003,
+          "limit": 36.441
+        },
+        "p95_us": {
+          "baseline": 11.943,
+          "candidate": 11.781,
+          "ratio": 0.9864355689525246,
+          "limit": 36.943
+        },
+        "p99_us": {
+          "baseline": 16.651,
+          "candidate": 14.437,
+          "ratio": 0.8670350129121374,
+          "limit": 41.650999999999996
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 21.019,
+          "candidate": 21.009,
+          "ratio": 0.9995242399733575,
+          "limit": 46.019
+        },
+        "p95_us": {
+          "baseline": 24.336,
+          "candidate": 23.183,
+          "ratio": 0.9526216305062459,
+          "limit": 49.336
+        },
+        "p99_us": {
+          "baseline": 42.419,
+          "candidate": 29.675,
+          "ratio": 0.699568589547137,
+          "limit": 67.419
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 271376,
+        "candidate": 271500
+      },
+      "updates_per_second": {
+        "baseline": 60402.43525169342,
+        "candidate": 60353.46105053347
+      }
+    },
+    {
+      "parts": 256,
+      "workload": "edit",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.792,
+          "candidate": 11.662,
+          "ratio": 0.9889755766621439,
+          "limit": 36.792
+        },
+        "p95_us": {
+          "baseline": 39.192,
+          "candidate": 37.87,
+          "ratio": 0.9662686262502551,
+          "limit": 64.19200000000001
+        },
+        "p99_us": {
+          "baseline": 267.939,
+          "candidate": 268.148,
+          "ratio": 1.0007800282900212,
+          "limit": 321.52680000000004
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 22.913,
+          "candidate": 22.692,
+          "ratio": 0.9903548204076289,
+          "limit": 47.913
+        },
+        "p95_us": {
+          "baseline": 45.705,
+          "candidate": 31.259,
+          "ratio": 0.683929548189476,
+          "limit": 70.705
+        },
+        "p99_us": {
+          "baseline": 198.128,
+          "candidate": 180.095,
+          "ratio": 0.9089830816441897,
+          "limit": 237.75359999999998
+        }
+      },
+      "accepted_edit_update": {
+        "p50_us": {
+          "baseline": 12391.527,
+          "candidate": 3655.329,
+          "ratio": 0.29498616272231826,
+          "limit": 13630.6797
+        },
+        "p95_us": {
+          "baseline": 14313.64,
+          "candidate": 3986.424,
+          "ratio": 0.27850525792181446,
+          "limit": 16460.685999999998
+        },
+        "p99_us": {
+          "baseline": 14313.64,
+          "candidate": 3986.424,
+          "ratio": 0.27850525792181446,
+          "limit": 17176.368
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 271196,
+        "candidate": 271164
+      },
+      "updates_per_second": {
+        "baseline": 13136.218344149465,
+        "candidate": 20744.928843078887
+      }
+    },
+    {
+      "parts": 256,
+      "workload": "idle",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 11.842,
+          "candidate": 11.481,
+          "ratio": 0.9695152845803073,
+          "limit": 36.842
+        },
+        "p95_us": {
+          "baseline": 15.118,
+          "candidate": 11.933,
+          "ratio": 0.7893239846540547,
+          "limit": 40.118
+        },
+        "p99_us": {
+          "baseline": 19.626,
+          "candidate": 14.867,
+          "ratio": 0.7575155406093957,
+          "limit": 44.626000000000005
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 21.66,
+          "candidate": 21.37,
+          "ratio": 0.9866112650046168,
+          "limit": 46.66
+        },
+        "p95_us": {
+          "baseline": 34.735,
+          "candidate": 24.696,
+          "ratio": 0.7109831581977832,
+          "limit": 59.735
+        },
+        "p99_us": {
+          "baseline": 59.411,
+          "candidate": 28.793,
+          "ratio": 0.48464089141741423,
+          "limit": 84.411
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 270876,
+        "candidate": 271248
+      },
+      "updates_per_second": {
+        "baseline": 52965.73621512646,
+        "candidate": 55261.12632122445
+      }
+    },
+    {
+      "parts": 768,
+      "workload": "edit",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 12.564,
+          "candidate": 12.583,
+          "ratio": 1.0015122572429163,
+          "limit": 37.564
+        },
+        "p95_us": {
+          "baseline": 37.4,
+          "candidate": 38.292,
+          "ratio": 1.0238502673796792,
+          "limit": 62.4
+        },
+        "p99_us": {
+          "baseline": 1010.99,
+          "candidate": 1005.741,
+          "ratio": 0.9948080594268983,
+          "limit": 1213.1879999999999
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 25.578,
+          "candidate": 25.227,
+          "ratio": 0.9862772695285011,
+          "limit": 50.578
+        },
+        "p95_us": {
+          "baseline": 39.433,
+          "candidate": 45.144,
+          "ratio": 1.1448279359926965,
+          "limit": 64.43299999999999
+        },
+        "p99_us": {
+          "baseline": 495.04,
+          "candidate": 449.005,
+          "ratio": 0.9070075145442792,
+          "limit": 594.048
+        }
+      },
+      "accepted_edit_update": {
+        "p50_us": {
+          "baseline": 14644.817,
+          "candidate": 5532.8,
+          "ratio": 0.37779918997963585,
+          "limit": 16109.298700000001
+        },
+        "p95_us": {
+          "baseline": 17488.654,
+          "candidate": 6494.98,
+          "ratio": 0.37138249747522023,
+          "limit": 20111.9521
+        },
+        "p99_us": {
+          "baseline": 17488.654,
+          "candidate": 6494.98,
+          "ratio": 0.37138249747522023,
+          "limit": 20986.384799999996
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 283644,
+        "candidate": 284104
+      },
+      "updates_per_second": {
+        "baseline": 8287.773084972072,
+        "candidate": 10793.162434459307
+      }
+    },
+    {
+      "parts": 768,
+      "workload": "idle",
+      "repeats": 3,
+      "update": {
+        "p50_us": {
+          "baseline": 12.534,
+          "candidate": 12.323,
+          "ratio": 0.9831657890537737,
+          "limit": 37.534
+        },
+        "p95_us": {
+          "baseline": 13.335,
+          "candidate": 16.04,
+          "ratio": 1.2028496437945255,
+          "limit": 38.335
+        },
+        "p99_us": {
+          "baseline": 16.36,
+          "candidate": 20.528,
+          "ratio": 1.2547677261613692,
+          "limit": 41.36
+        }
+      },
+      "serialization": {
+        "p50_us": {
+          "baseline": 24.054,
+          "candidate": 23.845,
+          "ratio": 0.9913112164296999,
+          "limit": 49.054
+        },
+        "p95_us": {
+          "baseline": 33.943,
+          "candidate": 39.834,
+          "ratio": 1.173555666853254,
+          "limit": 58.943
+        },
+        "p99_us": {
+          "baseline": 42.76,
+          "candidate": 55.062,
+          "ratio": 1.2876987839101965,
+          "limit": 67.75999999999999
+        }
+      },
+      "peak_rss_kib": {
+        "baseline": 271100,
+        "candidate": 271308
+      },
+      "updates_per_second": {
+        "baseline": 41104.058200240775,
+        "candidate": 40588.75248236864
+      }
+    }
+  ],
+  "failures": []
+}

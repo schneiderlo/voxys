@@ -1,0 +1,14 @@
+Total: 3.37s
+ROUTINE ======================== partFor in src/game/adventure/construction_policy.cpp
+     166ms      167ms (flat, cum)  4.96% of Total
+         .          .     64:            maximum=std::max(maximum,top+double(terrain::lego::kStudHeight)*cell);
+         .          .     65:    }
+         .          .     66:    return {minimum,maximum};
+         .          .     67:}
+         .          .     68:const WorldPart* partFor(const AdventureState& state,uint64_t id) noexcept {
+     166ms      167ms     69:    for(const auto& structure:state.structures)for(const auto& part:structure.parts)if(part.id==id)return &part;
+         .          .     70:    return nullptr;
+         .          .     71:}
+         .          .     72:const StructureComponent* componentFor(const AdventureState& state,uint64_t id) noexcept {
+         .          .     73:    for(const auto& c:state.components)if(c.id==id)return &c;
+         .          .     74:    return nullptr;

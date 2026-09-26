@@ -1,0 +1,62 @@
+diff --git a/src/game/adventure/creative_village.cpp b/src/game/adventure/creative_village.cpp
+index 6f063184..83529a3b 100644
+--- a/src/game/adventure/creative_village.cpp
++++ b/src/game/adventure/creative_village.cpp
+@@ -14,6 +14,44 @@ glm::dvec3 rotate(glm::dvec3 p,uint8_t yaw) {
+ bool overlap(glm::dvec3 lo,glm::dvec3 hi,const Solid& b,double margin=0) {
+     return glm::all(glm::lessThan(lo,b.maximum+glm::dvec3(margin)))&&glm::all(glm::greaterThan(hi,b.minimum-glm::dvec3(margin)));
+ }
++// Admission only asks whether any reservation overlaps. Keep the exact narrow
++// predicate while excluding X intervals that cannot meet its strict bounds.
++class VillageReservations {
++    struct Entry {const Solid* solid;double lower,prefixUpper;};
++    std::span<const Solid> source_;
++    std::vector<Entry> entries_;
++    std::vector<Entry>::difference_type finiteCount_=0;
++public:
++    explicit VillageReservations(std::span<const Solid> source):source_(source) {
++        entries_.reserve(source.size());
++        for(const auto& solid:source)entries_.push_back({&solid,solid.minimum.x-.5,solid.maximum.x+.5});
++        const auto finiteEnd=std::partition(entries_.begin(),entries_.end(),[](const Entry& entry){
++            return std::isfinite(entry.lower)&&std::isfinite(entry.prefixUpper);
++        });
++        finiteCount_=finiteEnd-entries_.begin();
++        std::sort(entries_.begin(),finiteEnd,[](const Entry& a,const Entry& b){return a.lower<b.lower;});
++        double upper=-INFINITY;
++        for(auto it=entries_.begin();it!=finiteEnd;++it) {
++            upper=std::max(upper,it->prefixUpper);it->prefixUpper=upper;
++        }
++    }
++    bool blocks(glm::dvec3 lo,glm::dvec3 hi) const {
++        for(int axis=0;axis<3;++axis)if(!std::isfinite(lo[axis])||!std::isfinite(hi[axis])) {
++            for(const auto& solid:source_)if(overlap(lo,hi,solid,.5))return true;
++            return false;
++        }
++        const auto finiteEnd=entries_.begin()+finiteCount_;
++        const auto end=std::lower_bound(entries_.begin(),finiteEnd,hi.x,
++            [](const Entry& entry,double value){return entry.lower<value;});
++        // Every earlier upper is <= lo.x; none can satisfy upper > lo.x.
++        const auto begin=std::upper_bound(entries_.begin(),end,lo.x,
++            [](double value,const Entry& entry){return value<entry.prefixUpper;});
++        for(auto it=begin;it!=end;++it)if(overlap(lo,hi,*it->solid,.5))return true;
++        // Exceptional expanded X bounds never enter binary-search ordering.
++        for(auto it=finiteEnd;it!=entries_.end();++it)if(overlap(lo,hi,*it->solid,.5))return true;
++        return false;
++    }
++};
+ std::pair<double,double> ground(const terrain::lego::Surface& s,glm::dvec2 p,glm::dvec2 extent) {
+     if(!s.valid())return {INFINITY,INFINITY};
+     const glm::dvec2 origin(s.origin());const double cell=s.cellScale;
+@@ -73,10 +111,11 @@ CreativeVillage CreativeVillage::admit(const AdventureState& state,const terrain
+     CreativeVillage out;out.initialized_=true;if(!terrain.valid())return out;
+     const bool continuing=previous&&previous->initialized_;
+     size_t total=reserved.size();
++    const VillageReservations reservations(reserved);
+     const auto admit=[&](CreativeVillageGroup group) {
+         if(group.pieces.empty())return;
+         if(continuing&&std::none_of(previous->groups_.begin(),previous->groups_.end(),[&](const auto& g){return g.id==group.id;}))return;
+-        for(const auto& b:reserved)if(overlap(group.minimum,group.maximum,b,.5))return;
++        if(reservations.blocks(group.minimum,group.maximum))return;
+         const auto part=creativeSceneryPartBase-1500000u-group.id;
+         const auto alias=[&](uint64_t value){return value==creativeSceneryStructureId||value==part;};
+         for(const auto& structure:state.structures){if(alias(structure.id))return;for(const auto& p:structure.parts)if(alias(p.id))return;}

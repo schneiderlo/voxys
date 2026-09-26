@@ -1,0 +1,26 @@
+File: final-runner
+Type: cpu
+Showing nodes accounting for 1246ms, 49.64% of 2510ms total
+Dropped 353 nodes (cum <= 12.55ms)
+Showing top 20 nodes out of 196
+      flat  flat%   sum%        cum   cum%
+     130ms  5.18%  5.18%      130ms  5.18%  __memchr_evex
+     115ms  4.58%  9.76%      741ms 29.52%  voxy::game::adventure::validateConstruction
+     101ms  4.02% 13.78%      110ms  4.38%  std::construct_at (inline)
+      93ms  3.71% 17.49%       93ms  3.71%  __memmove_avx512_unaligned_erms
+      84ms  3.35% 20.84%      116ms  4.62%  _int_malloc
+      81ms  3.23% 24.06%      196ms  7.81%  castConvex (inline)
+      56ms  2.23% 26.29%      172ms  6.85%  __libc_malloc2
+      54ms  2.15% 28.45%       55ms  2.19%  partFor (inline)
+      53ms  2.11% 30.56%      275ms 10.96%  voxy::game::expedition::sweepCoveTerrainSphere
+      51ms  2.03% 32.59%       51ms  2.03%  std::_Rb_tree_insert_and_rebalance
+      50ms  1.99% 34.58%       57ms  2.27%  voxy::game::expedition::CoveInputRouter::tick
+      48ms  1.91% 36.49%       50ms  1.99%  glm::operator* (inline)
+      45ms  1.79% 38.29%       47ms  1.87%  std::char_traits::compare
+      43ms  1.71% 40.00%       86ms  3.43%  _int_free_chunk
+      43ms  1.71% 41.71%       66ms  2.63%  voxy::game::adventure::(anonymous namespace)::Reservations::blocks
+      43ms  1.71% 43.43%       87ms  3.47%  voxy::game::adventure::(anonymous namespace)::terrainRange
+      42ms  1.67% 45.10%       66ms  2.63%  hack_digit
+      41ms  1.63% 46.73%       52ms  2.07%  voxy::game::expedition::sampleCoveInput
+      37ms  1.47% 48.21%       37ms  1.47%  glm::operator- (inline)
+      36ms  1.43% 49.64%       73ms  2.91%  std::_Rb_tree::_M_lower_bound (inline)

@@ -1,0 +1,13 @@
+Compiler command: nix-shell --run 'c++ --version'
+Compiler: g++ (GCC) 15.2.0
+Bazel version file: .bazelversion = 8.5.0
+Direct version command (avoids contacting an active build server):
+/home/modkin/.cache/bazelisk/downloads/sha256/18255229d933b8da10151bdef223a302744296b09af8af1988c93faa1ea3c71f/bin/bazel --version
+Output: bazel 8.5.0
+Bazelisk: v1.28.1
+Bazelisk path: /nix/store/bnxk2g7srfbmm0ghhlzimkzshpwls211-bazelisk-1.28.1/bin/bazelisk
+Nix rc: /nix/store/p4fk0nsk1qmw29q5nhaaky6w6xvy2zs0-voxys-nix.bazelrc
+A wrapper `bazel --version` attempt rejected the startup option. A subsequent
+`bazel --batch version` client tried to acquire the busy default server lock and
+was terminated before acquiring it; the original suite continued uninterrupted.
+The direct binary command above produced the recorded version.
