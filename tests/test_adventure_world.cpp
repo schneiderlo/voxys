@@ -516,6 +516,127 @@ struct CreativeScene {
     AdventureState state;
     CreativeScene(){state.world=id(1).world;const auto p=creativeSpawn(surface,1.12);state.player={p.x,p.y,p.z,creativeStartYaw};}
 };
+// Continuing admission can only retain previously admitted groups. This oracle
+// uses the public group geometry and the original strict linear predicate;
+// it is independent of any reservation index used by the implementation.
+std::vector<CreativeVillageGroup> retainedVillageGroups(const CreativeVillage& previous,
+    const AdventureState& state,std::span<const AdventureSpatialQueries::Solid> reserved) {
+    std::vector<CreativeVillageGroup> result;
+    size_t count=reserved.size();
+    for(const auto& group:previous.groups()) {
+        bool blocked=false;
+        for(const auto& solid:reserved) {
+            bool overlaps=true;
+            for(int axis=0;axis<3;++axis)
+                overlaps=overlaps&&group.minimum[axis]<solid.maximum[axis]+.5
+                    &&group.maximum[axis]>solid.minimum[axis]-.5;
+            blocked=blocked||overlaps;
+        }
+        const auto part=creativeSceneryPartBase-1500000u-group.id;
+        const auto aliases=[&](uint64_t value){return value==creativeSceneryStructureId||value==part;};
+        for(const auto& structure:state.structures) {
+            blocked=blocked||aliases(structure.id);
+            for(const auto& piece:structure.parts)blocked=blocked||aliases(piece.id);
+        }
+        for(const auto& component:state.components)blocked=blocked||aliases(component.id);
+        if(blocked||count+group.solids.size()>AdventureSpatialQueries::maximumSolids)continue;
+        count+=group.solids.size();result.push_back(group);
+    }
+    return result;
+}
+void expectVillageGroups(const CreativeVillage& actual,std::span<const CreativeVillageGroup> expected) {
+    ASSERT_EQ(actual.groups().size(),expected.size());
+    for(size_t i=0;i<expected.size();++i) {
+        const auto& a=actual.groups()[i];const auto& e=expected[i];
+        SCOPED_TRACE(::testing::Message()<<"group index="<<i<<" id="<<e.id);
+        EXPECT_EQ(a.id,e.id);EXPECT_EQ(a.minimum,e.minimum);EXPECT_EQ(a.maximum,e.maximum);
+        ASSERT_EQ(a.pieces.size(),e.pieces.size());ASSERT_EQ(a.solids.size(),e.solids.size());
+        for(size_t j=0;j<e.pieces.size();++j) {
+            EXPECT_EQ(a.pieces[j].mesh,e.pieces[j].mesh);EXPECT_EQ(a.pieces[j].yaw,e.pieces[j].yaw);
+            EXPECT_EQ(a.pieces[j].feet,e.pieces[j].feet);EXPECT_EQ(a.pieces[j].scale,e.pieces[j].scale);
+        }
+        for(size_t j=0;j<e.solids.size();++j) {
+            EXPECT_EQ(a.solids[j].structure,e.solids[j].structure);EXPECT_EQ(a.solids[j].part,e.solids[j].part);
+            EXPECT_EQ(a.solids[j].minimum,e.solids[j].minimum);EXPECT_EQ(a.solids[j].maximum,e.solids[j].maximum);
+        }
+    }
+}
+}
+TEST(CreativeVillage, ReservationsMatchLinearOracleAtStrictMarginsAndExceptionalBounds) {
+    CreativeScene scene;const auto original=CreativeVillage::admit(scene.state,scene.surface,{});
+    ASSERT_GT(original.groups().size(),100u);
+    const auto& group=original.groups().front();
+    ASSERT_GT(group.pieces.size(),1u);ASSERT_GT(group.solids.size(),1u);
+    std::vector<AdventureSpatialQueries::Solid> probes{box(55,group.minimum,group.maximum)};
+    for(int axis=0;axis<3;++axis) {
+        for(int side=0;side<2;++side) {
+            const double edge=side?group.maximum[axis]+.5:group.minimum[axis]-.5;
+            for(const double value:std::array{std::nextafter(edge,-INFINITY),edge,std::nextafter(edge,INFINITY)}) {
+                auto probe=box(55,group.minimum,group.maximum);
+                if(side){probe.minimum[axis]=value;probe.maximum[axis]=value+1;}
+                else {probe.minimum[axis]=value-1;probe.maximum[axis]=value;}
+                probes.push_back(probe);
+            }
+        }
+        auto degenerate=box(55,group.minimum,group.maximum);
+        degenerate.minimum[axis]=degenerate.maximum[axis]=(group.minimum[axis]+group.maximum[axis])*.5;
+        probes.push_back(degenerate);
+        auto reversed=degenerate;reversed.minimum[axis]+=.125;reversed.maximum[axis]-=.125;
+        probes.push_back(reversed); // The .5 margin still gives this interval width.
+        auto nan=box(55,group.minimum,group.maximum);nan.minimum[axis]=std::numeric_limits<double>::quiet_NaN();
+        probes.push_back(nan);nan=box(55,group.minimum,group.maximum);nan.maximum[axis]=std::numeric_limits<double>::quiet_NaN();
+        probes.push_back(nan);
+    }
+    // Negative Z coordinates already exercise negative bucket boundaries. These
+    // finite and infinite intervals require no integer conversion in the oracle.
+    probes.push_back(box(55,{-1e100,-1e100,-1e100},{1e100,1e100,1e100}));
+    probes.push_back(box(55,{1e100,1e100,1e100},{1e101,1e101,1e101}));
+    probes.push_back(box(55,{-INFINITY,-INFINITY,-INFINITY},{INFINITY,INFINITY,INFINITY}));
+    probes.push_back(box(55,{INFINITY,INFINITY,INFINITY},{INFINITY,INFINITY,INFINITY}));
+    for(size_t i=0;i<probes.size();++i) {
+        SCOPED_TRACE(::testing::Message()<<"probe="<<i);
+        std::vector<AdventureSpatialQueries::Solid> reserved(64,box(55,{-9000,0,-9000},{-8999,1,-8999}));
+        reserved.push_back(probes[i]);reserved.push_back(probes[i]);
+        // Reservation IDs and namespaces do not participate in overlap checks.
+        reserved.back().structure.world.bytes[1]=29;reserved.back().part.world=reserved.back().structure.world;
+        for(int order=0;order<2;++order) {
+            const auto expected=retainedVillageGroups(original,scene.state,reserved);
+            const auto actual=CreativeVillage::admit(scene.state,scene.surface,reserved,&original);
+            expectVillageGroups(actual,expected);
+            const auto cleared=CreativeVillage::admit(scene.state,scene.surface,{},&actual);
+            expectVillageGroups(cleared,expected); // Suppression survives removal of the reservation.
+            std::reverse(reserved.begin(),reserved.end());
+        }
+    }
+}
+TEST(CreativeVillage, LinearOraclePreservesNamespaceRefusalsCapacityAndWholeGroupOrder) {
+    CreativeScene scene;const auto original=CreativeVillage::admit(scene.state,scene.surface,{});
+    ASSERT_GT(original.groups().size(),100u);
+    const auto reservedPart=creativeSceneryPartBase-1500000u-original.groups().front().id;
+    for(int alias=0;alias<4;++alias) {
+        auto state=scene.state;
+        state.structures.push_back({alias==0?creativeSceneryStructureId:1,1,0,{}, {}});
+        if(alias==1)state.structures.back().id=reservedPart;
+        if(alias==2)state.structures.back().parts.push_back({reservedPart,PieceKind::Floor,{},0,0});
+        if(alias==3){StructureComponent component;component.id=reservedPart;state.components.push_back(component);}
+        const auto expected=retainedVillageGroups(original,state,{});
+        const auto actual=CreativeVillage::admit(state,scene.surface,{},&original);
+        expectVillageGroups(actual,expected);
+        expectVillageGroups(CreativeVillage::admit(scene.state,scene.surface,{},&actual),expected);
+        if(alias==0)EXPECT_TRUE(actual.groups().empty());
+        else EXPECT_EQ(actual.groups().size()+1,original.groups().size());
+    }
+    const auto firstSize=original.groups().front().solids.size();
+    ASSERT_GT(firstSize,1u);
+    for(const auto spare:std::array<size_t,4>{0,firstSize-1,firstSize,firstSize+1}) {
+        SCOPED_TRACE(::testing::Message()<<"spare collision slots="<<spare);
+        std::vector<AdventureSpatialQueries::Solid> reserved(AdventureSpatialQueries::maximumSolids-spare,
+            box(55,{-9000,0,-9000},{-8999,1,-8999}));
+        const auto expected=retainedVillageGroups(original,scene.state,reserved);
+        const auto actual=CreativeVillage::admit(scene.state,scene.surface,reserved,&original);
+        expectVillageGroups(actual,expected);
+        expectVillageGroups(CreativeVillage::admit(scene.state,scene.surface,{},&actual),expected);
+    }
 }
 TEST(CreativeScenery, DeterministicClearSpawnAndSharedPhysicalGeometry) {
     CreativeScene s;const auto first=CreativeScenery::admit(s.state,s.surface,{}),second=CreativeScenery::admit(s.state,s.surface,{});
