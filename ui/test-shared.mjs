@@ -2,10 +2,12 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {installShared} from './src/shared.js';
+import {installFrontierAudio} from './src/frontier_audio.js';
 
-function fixture(t){
+function fixture(t,soundPreference=null){
     const dom=new JSDOM('<canvas id="voxy-canvas" tabindex="0"></canvas>',{url:'http://localhost/',pretendToBeVisual:true});
     const w=dom.window,doc=w.document,canvas=doc.querySelector('canvas');
+    if(soundPreference!==null)w.localStorage.setItem('voxys.frontier.audio.v1',String(soundPreference));
     canvas.getBoundingClientRect=()=>({left:10,top:20,width:640,height:360});
     const control=(label,action,value,x=20,extra={})=>({label,action,value,x,y:600,width:100,height:60,intent:0,row:-1,enabled:true,...extra});
     let state={creative:true,ready:true,mode:'build',piece:10,menuToken:1,observation:'1',rows:[],dirty:true,saveStatus:'Unsaved build',hud:{width:1280,height:720,controls:[control('Brick 2 × 4',2,10),control('Colours',38,0,130)]}};
@@ -181,4 +183,121 @@ test('gameplay announcements are not masked by persistent save status or repeate
     assert.equal(live.textContent,'Storage is full.');
     f.update({});assert.equal(live.textContent,'Storage is full.');
     f.update({saveFailure:''});assert.equal(live.textContent,'Saved build');
+});
+
+test('frontier publishes real expedition data and announces milestones without moving control focus',t=>{
+    const f=fixture(t),live=f.doc.querySelector('[role=status]');
+    f.update({frontier:true,piece:17,mode:'explore',region:'Dawnreach Highlands',chapter:'THE FIRST LIGHT',
+        health:73,maxHealth:100,wood:24,stone:18,scrap:7,objectiveTitle:'Rekindle the ridge beacon',
+        objectiveDetail:'Build a path to the old signal tower.',objectiveDistance:'84 m'});
+    assert(f.doc.body.classList.contains('voxy-frontier'));
+    const readout=f.doc.getElementById('shared-hud-world-status');
+    assert.match(readout.textContent,/Health 73 of 100/);assert.match(readout.textContent,/Wood 24/);
+    assert.match(readout.textContent,/84 m/);assert.match(live.textContent,/Rekindle the ridge beacon/);
+    const button=f.doc.querySelector('.shared-hud-peer');button.focus();
+    f.update({wood:29,health:61,objectiveDistance:'68 m'});
+    assert.equal(f.doc.activeElement,button);assert.match(readout.textContent,/Wood 29/);
+    assert.match(readout.textContent,/Health 61 of 100/);
+    assert.match(live.textContent,/Rekindle the ridge beacon/,'Distance/resource ticks do not repeat announcements');
+    f.update({milestone:'BEACON REKINDLED',objectiveTitle:'Beyond the ridge',objectiveDetail:'Discover the next valley.'});
+    assert.equal(live.textContent,'BEACON REKINDLED');
+    f.update({});assert.equal(live.textContent,'BEACON REKINDLED');
+    f.app.cleanup();assert.equal(f.doc.getElementById('shared-hud-world-status'),null);
+    assert.equal(f.doc.body.classList.contains('voxy-frontier'),false);
+});
+
+test('frontier journal and station menus retain exact row intents and shared keyboard focus',t=>{
+    const f=fixture(t);
+    f.update({frontier:true,piece:24,mode:'explore',hud:{...f.state.hud,controls:[f.control('Journal',16,0)]}});
+    const journal=f.doc.querySelector('.shared-hud-peer');journal.focus();journal.click();
+    assert(f.calls.some(([action])=>action===16));
+    f.update({mode:'journal',menuTitle:'Expedition journal',menuSelected:0,hud:{...f.state.hud,controls:[f.control('Track beacon',10,3,20,{intent:67,row:0})]}});
+    assert.equal(f.doc.activeElement.getAttribute('aria-label'),'Track beacon');
+    assert.equal(f.doc.getElementById('shared-hud-accessibility').getAttribute('aria-modal'),'true');
+    for(const mode of ['bag','workbench','chest','dialogue']) {
+        f.update({mode});assert.equal(f.doc.querySelectorAll('.shared-hud-peer').length,1,mode);
+    }
+    f.doc.querySelector('.shared-hud-peer').click();
+    assert(f.calls.some(([action,intent])=>action===10&&intent===67));
+});
+
+function audioFixture(t){
+    const dom=new JSDOM('<canvas/>',{pretendToBeVisual:true}),w=dom.window;
+    let opened=0,closed=0,current=null,hidden=false;
+    const sources=[],params=[];
+    const param=()=>{const result={value:0,events:[],cancelScheduledValues(){},setTargetAtTime(value,time){this.events.push([value,time]);},
+        setValueAtTime(value,time){this.events.push([value,time]);},exponentialRampToValueAtTime(value,time){this.events.push([value,time]);}};params.push(result);return result;};
+    const node=()=>({connect(){},disconnect(){this.disconnected=true;}});
+    const source=kind=>{const result={...node(),kind,frequency:param(),playbackRate:param(),start(time){this.startedAt=time;},stop(time){this.stoppedAt=time;}};sources.push(result);return result;};
+    Object.defineProperty(w.document,'hidden',{get:()=>hidden});
+    w.AudioContext=class {
+        constructor(){opened++;current=this;this.state='running';this.currentTime=0;this.sampleRate=8000;this.destination={};}
+        createGain(){return {...node(),gain:param()};}
+        createOscillator(){return source('tone');}
+        createBufferSource(){return source('noise');}
+        createBuffer(_channels,length){return {getChannelData:()=>new Float32Array(length)};}
+        createBiquadFilter(){return {...node(),Q:param(),frequency:param()};}
+        createStereoPanner(){return {...node(),pan:param()};}
+        createDynamicsCompressor(){return {...node(),threshold:param(),knee:param(),ratio:param(),attack:param(),release:param()};}
+        close(){closed++;return Promise.resolve();}
+    };
+    const audio=installFrontierAudio(w);
+    const update=(changes={})=>{state={...state,...changes};audio.update(state);};
+    let state={frontier:true,audioSequence:'1',audioEvent:'gather',audioEnabled:true,audioMood:'silent',audioPace:0};
+    t.after(()=>{audio.cleanup();dom.window.close();});
+    return {audio,sources,params,update,get opened(){return opened;},get closed(){return closed;},
+        unlock(){w.document.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true}));},
+        advance(seconds){current.currentTime+=seconds;for(const item of sources)if(!item.disconnected&&item.stoppedAt<=current.currentTime)item.onended?.();},
+        visible(value){hidden=!value;w.document.dispatchEvent(new w.Event('visibilitychange'));},
+        get live(){return sources.filter(item=>!item.disconnected);},
+    };
+}
+
+test('frontier audio only plays fresh accepted events after a gesture and respects mute',t=>{
+    const f=audioFixture(t),event=(audioSequence,audioEvent='gather',audioEnabled=true)=>f.update({audioSequence,audioEvent,audioEnabled});
+    event('1');event('2');assert.equal(f.opened,0);assert.equal(f.sources.length,0);
+    f.unlock();assert.equal(f.opened,1);assert.equal(f.sources.length,0,'Unlock never replays the previous event');
+    event('3');const gathered=f.sources.length;assert(gathered>0);assert(f.sources.some(source=>source.kind==='noise'),'Gather has a physical impact texture');
+    event('3');assert.equal(f.sources.length,gathered);
+    event('4','beacon',false);assert.equal(f.sources.length,gathered);
+    event('4','beacon',true);assert.equal(f.sources.length,gathered,'Unmuting does not replay a muted event');
+    f.advance(.2);event('5','beacon');assert(f.sources.length>gathered);
+    const beacon=f.sources.length;event('6','unsupported');assert.equal(f.sources.length,beacon);
+    f.audio.cleanup();assert.equal(f.closed,1);assert.equal(f.live.length,0);event('7');assert.equal(f.sources.length,beacon);
+    f.unlock();assert.equal(f.opened,1);
+});
+
+test('frontier ambience evolves on accepted observations and stops across mute, menus and hidden tabs',t=>{
+    const f=audioFixture(t);f.update({audioMood:'explore'});f.unlock();f.update();
+    assert(f.sources.length>0,'Existing state observations start wind after unlock');
+    f.advance(.2);f.update();assert(f.sources.some(source=>source.kind==='tone'),'Exploration has a sparse tonal score');
+    f.advance(8);const count=f.sources.length;f.update();assert(f.sources.length>count,'Idle observations advance the soundtrack');
+    f.update({audioEnabled:false});f.advance(.2);assert.equal(f.live.length,0,'Mute retires current and future scheduled voices');
+    const muted=f.sources.length;f.advance(60);f.update({audioSequence:'2',audioEvent:'beacon'});assert.equal(f.sources.length,muted);
+    f.update({audioEnabled:true,audioMood:'silent'});assert.equal(f.sources.length,muted,'No missed event or ambience enters a silent menu');
+    f.update({audioMood:'camp'});assert(f.sources.length>muted);f.visible(false);f.advance(1);assert.equal(f.live.length,0);
+    const hidden=f.sources.length;f.advance(60);f.update({audioSequence:'3',audioEvent:'hit'});assert.equal(f.sources.length,hidden);
+    f.visible(true);f.update();assert(f.sources.length-hidden<15,'Returning schedules current ambience, not a backlog');
+    f.update({frontier:false});f.advance(1);assert.equal(f.live.length,0,'Leaving the expedition retires all audio');
+});
+
+test('frontier footsteps follow authoritative pace and sound work remains bounded under rapid events',t=>{
+    const f=audioFixture(t);f.update({audioMood:'combat'});f.unlock();f.update();
+    f.advance(.15);f.update();const still=f.sources.length;
+    f.update({audioPace:1});f.advance(.2);f.update();assert(f.sources.length>still,'Grounded movement creates footsteps');
+    f.update({audioPace:0});f.advance(.2);const stationary=f.sources.length;f.update();assert.equal(f.sources.length,stationary,'Stationary players have no footsteps');
+    for(let i=2;i<200;i++)f.update({audioSequence:String(i),audioEvent:'beacon'});
+    assert(f.live.length<=48,'Rapid input cannot accumulate an unbounded audio graph');
+    f.advance(20);f.update({audioMood:'silent'});f.advance(1);assert.equal(f.live.length,0,'All generated sources have finite lifetimes');
+});
+
+test('frontier sound preference restores through an accepted engine action and persists independently of saves',t=>{
+    const f=fixture(t,false);
+    f.update({frontier:true,audioEnabled:true});
+    assert(f.calls.some(([action,value])=>action===41&&value===0));
+    assert.equal(f.w.localStorage.getItem('voxys.frontier.audio.v1'),'false');
+    f.update({audioEnabled:false});
+    f.update({audioEnabled:true});
+    assert.equal(f.w.localStorage.getItem('voxys.frontier.audio.v1'),'true');
+    assert.equal(f.calls.filter(([action])=>action===41).length,1,'Do not restore over a later accepted user choice');
 });

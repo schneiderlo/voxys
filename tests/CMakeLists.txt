@@ -17,6 +17,11 @@ enable_testing()
 # ─────────────────────────────────────────────────────────────────────────────
 set(TEST_SOURCES
     test_adventure_session.cpp
+    test_frontier_session.cpp
+    test_frontier_building.cpp
+    test_frontier_world.cpp
+    test_frontier_interactions.cpp
+    test_frontier_combat.cpp
     test_adventure_doors.cpp
     test_adventure_door_geometry.cpp
     test_adventure_world.cpp
@@ -1196,3 +1201,23 @@ target_link_libraries(imported_stack_tests PRIVATE voxy_core gtest gtest_main)
 set_project_warnings(imported_stack_tests)
 gtest_discover_tests(imported_stack_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DISCOVERY_MODE PRE_TEST TEST_PREFIX "imported_stack.")
+
+add_executable(frontier_session_tests test_frontier_session.cpp)
+target_link_libraries(frontier_session_tests PRIVATE voxy_core gtest gtest_main)
+gtest_discover_tests(frontier_session_tests)
+
+add_executable(frontier_building_tests test_frontier_building.cpp)
+target_link_libraries(frontier_building_tests PRIVATE voxy_core gtest gtest_main)
+gtest_discover_tests(frontier_building_tests)
+
+add_executable(frontier_world_tests test_frontier_world.cpp)
+target_link_libraries(frontier_world_tests PRIVATE voxy_core gtest gtest_main)
+gtest_discover_tests(frontier_world_tests)
+
+add_executable(frontier_interactions_tests test_frontier_interactions.cpp)
+target_link_libraries(frontier_interactions_tests PRIVATE voxy_core gtest gtest_main)
+gtest_discover_tests(frontier_interactions_tests)
+
+add_executable(frontier_combat_tests test_frontier_combat.cpp)
+target_link_libraries(frontier_combat_tests PRIVATE voxy_core gtest gtest_main)
+gtest_discover_tests(frontier_combat_tests)

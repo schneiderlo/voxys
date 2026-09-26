@@ -1,5 +1,7 @@
 #pragma once
 #include "game/adventure/adventure_session.hpp"
+#include "game/adventure/frontier_world.hpp"
+#include "game/adventure/frontier_combat.hpp"
 #include "game/adventure/building_blueprints.hpp"
 #include "game/adventure/adventure_preferences.hpp"
 #include "game/adventure/adventure_player.hpp"
@@ -34,7 +36,7 @@ namespace voxy::game::adventure {
 class CannonPhysicsScene;
 class AdventureRuntime {
 public:
-    explicit AdventureRuntime(bool freeBuild=false);
+    explicit AdventureRuntime(bool freeBuild=false,bool frontier=false);
     ~AdventureRuntime();
     static bool stageWorld(std::string_view world,std::string_view archiveHex);
     bool initialize(terrain::lego::Surface,WGPUDevice,WGPUQueue,
@@ -54,7 +56,7 @@ public:
     bool restore(std::span<const std::byte>,construction::WorldNamespace,std::string&);
     bool consumeSaveRequest() noexcept {return std::exchange(saveRequested_,false);}
     void saveCompleted(std::string status);
-    bool isPaused() const noexcept { return menu_ != Menu::None; }
+    bool isPaused() const noexcept { return menu_ != Menu::None && !(frontier_ && (menu_==Menu::Catalog || menu_==Menu::Colours)); }
     const AdventureState& state() const {return session_->state();}
     const AdventureContent& content() const {return content_;}
     const AdventureSpatialQueries& spatialQueries() const noexcept {return queries_;}
@@ -64,7 +66,7 @@ private:
     enum class MenuOperation {Close,Catalog,Save,Recover,TextScale,Contrast,Motion,Starter,Journal,
         EquipUtility,CompassTarget,SelectPiece,AcceptQuest,CompleteQuest,CraftHammer,CraftCompass,Transfer,EquipTool,Bag,CraftStaff,AcceptTrailQuest,CompleteTrailQuest,SelectQuest,BuildRecipe,
         Settings,Controls,ChooseCombat,BindingDevice,SetBinding,InvertX,InvertY,OrbitToggle,MouseSensitivity,PadSensitivity,MoveDeadzone,LookDeadzone,ResetPreferences,RetryPreferences,
-        GuideTopics,GuideTopic,GuideExit,Paint,Motorbike,Cannon,Undo,Rotate,Raise,Lower,Remove,Colours,FinishBuilding};
+        GuideTopics,GuideTopic,GuideExit,Paint,Motorbike,Cannon,Undo,Rotate,Raise,Lower,Remove,Colours,FinishBuilding,FrontierCraft,FrontierSound,FrontierTrack};
     struct MenuCommand {MenuOperation operation;uint64_t argument=0;TransferItems transfer{};};
     struct PendingAction {
         int action=0,value=0;uint32_t menuToken=0;
@@ -115,6 +117,48 @@ private:
     bool applyPreferences(const AdventurePreferences&,bool force=false);
     std::string combatLabel() const;
     void refreshHud();
+    void initializeFrontierActors();
+    void advanceFrontier(double,AdventureCombat::Input);
+    bool commitFrontierEvent(std::optional<AdventureSession::PreparedChange>);
+    void checkpointFrontier();
+    std::string frontierInteractionLabel() const;
+    void useFrontier();
+    void frontierSound(std::string_view);
+    void frontierRecover();
+    void fillFrontierHud();
+    void renderFrontier(glm::dvec3 origin);
+    void sampleFrontierFeedback();
+    void frontierBurst(glm::dvec3,uint32_t,uint8_t kind=0);
+    void frontierUndo();
+    void frontierRedo();
+    bool frontierEditTarget(bool repaint);
+    struct FrontierActor {
+        uint32_t id=0; AdventurePlayer controller;
+        double cooldown=0,windup=0,stagger=0;
+        FrontierAttackState attack{};
+        bool active=false;
+    };
+    std::vector<FrontierActor> frontierActors_;
+    FrontierWorld frontierWorld_;
+    double frontierAttackSeconds_=0,frontierHurtSeconds_=0,frontierDodgeSeconds_=0,frontierTime_=0;
+    double frontierAutosaveSeconds_=0,frontierMilestoneSeconds_=0,frontierSeconds_=0;
+    glm::dvec2 frontierDodgeDirection_{};
+    std::string frontierAudioEvent_,frontierMilestone_;
+    uint64_t frontierAudioSequence_=0;
+    uint32_t frontierTrackedSite_=0;
+    bool frontierAudioEnabled_=true,frontierAutoRun_=false;
+    struct FrontierBurst {glm::dvec3 point{};double started=0;uint32_t paint=0;uint8_t kind=0;};
+    std::vector<FrontierBurst> frontierBursts_;
+    FrontierProgress frontierPresented_;
+    std::vector<uint32_t> frontierPresentedDepletion_;
+    bool frontierFeedbackInitialized_=false;
+    struct FrontierEdit {
+        std::optional<RemovedPartSnapshot> before,after;
+    };
+    std::vector<FrontierEdit> frontierUndo_,frontierRedo_;
+    bool frontierHistoryApplying_=false;
+    std::optional<RemovedPartSnapshot> frontierMoving_;
+
     void refreshNavigation();
     uint64_t nearbyComponent() const;
     std::string interactionLabel() const;
@@ -232,7 +276,7 @@ private:
     glm::dvec3 observedRayFrom_{},observedRayTo_{};
     AdventureSpatialQueries::RayHit observedRayHit_{};
     bool padAim_=false,observedMouseCaptured_=false,observedPadConnected_=false;
-    bool freeBuild_=false;
+    bool freeBuild_=false,frontier_=false;
     bool building_=false,previewValid_=false,hasTarget_=false,saveRequested_=false;
     bool discontinuity_=true;
     PieceKind selected_=PieceKind::Foundation;

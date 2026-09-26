@@ -1,4 +1,5 @@
 import {createBridge} from './bridge.js';
+import {installFrontierAudio} from './frontier_audio.js';
 
 // The GPU draws every visible control on both platforms. These transparent,
 // non-pointer peers give the browser the same hit targets as focusable semantic
@@ -12,14 +13,25 @@ export function installShared(engine,environment=globalThis){
     const live=doc.createElement('div');live.className='shared-hud-sr';
     live.setAttribute('role','status');live.setAttribute('aria-live','polite');
     const help=doc.createElement('p');help.id='shared-hud-help';help.className='shared-hud-sr';
-    help.textContent='1 to 6 choose the visible hotbar slots. B switches building and exploring. Tab opens pieces while building. P opens colours. Escape opens the menu. Tab through controls; Enter selects.';
+    const controlsHelp='1 to 6 choose the visible hotbar slots. B switches building and exploring. Tab opens pieces while building. P opens colours. Escape opens the menu. Tab through controls; Enter selects.';
+    help.textContent=controlsHelp;
+    const worldStatus=doc.createElement('p');worldStatus.id='shared-hud-world-status';worldStatus.className='shared-hud-sr';
+    worldStatus.setAttribute('aria-label','Expedition status');
     const originalDescription=canvas.getAttribute('aria-describedby');
-    canvas.setAttribute('aria-describedby',[originalDescription,help.id].filter(Boolean).join(' '));
-    doc.body.append(host,live,help);
-    const hadAdventure=doc.body.classList.contains('voxy-adventure'),hadBuild=doc.body.classList.contains('voxy-build');
+    canvas.setAttribute('aria-describedby',[originalDescription,help.id,worldStatus.id].filter(Boolean).join(' '));
+    doc.body.append(host,live,help,worldStatus);
+    const hadAdventure=doc.body.classList.contains('voxy-adventure'),hadBuild=doc.body.classList.contains('voxy-build'),hadFrontier=doc.body.classList.contains('voxy-frontier');
     doc.body.classList.add('voxy-adventure','voxy-build');
     let bridge,state,signature='',lastAnnouncement='',announcementState=null,previousMode=null,stopped=false,requestedFocus=null;
+    const soundPreferenceKey='voxys.frontier.audio.v1';
+    let savedSound=null,restoringSound=false,soundRestoreDispatched=false;
+    try {const stored=environment.localStorage?.getItem(soundPreferenceKey);if(stored==='true'||stored==='false'){savedSound=stored==='true';restoringSound=true;}}catch{}
     const peers=new Map();
+    const audio=installFrontierAudio(environment);
+    const restoreSound=()=>{
+        if(restoringSound&&!soundRestoreDispatched&&bridge&&state?.frontier&&state.ready!==false&&!state.pending)
+            soundRestoreDispatched=bridge.action(41,savedSound?1:0);
+    };
     const modal=()=>state&&!['build','explore'].includes(state.mode);
     const syncBounds=()=>{
         const b=canvas.getBoundingClientRect();
@@ -30,6 +42,17 @@ export function installShared(engine,environment=globalThis){
         if(stopped)return;
         state=next;host.dataset.mode=next.mode||'unavailable';
         if(next.failed){host.replaceChildren();peers.clear();signature='';announcementState=null;announce('Game controls are unavailable. Reload to try again. Saved builds are kept.');return;}
+        doc.body.classList.toggle('voxy-frontier',hadFrontier||next.frontier===true);
+        if(next.frontier&&typeof next.audioEnabled==='boolean') {
+            if(restoringSound&&next.audioEnabled===savedSound)restoringSound=false;
+            if(!restoringSound)try{environment.localStorage?.setItem(soundPreferenceKey,String(next.audioEnabled));}catch{}
+        }
+        help.textContent=next.frontier?'WASD moves. Space jumps. E interacts with the highlighted object. H toggles sound. '+controlsHelp:controlsHelp;
+        worldStatus.textContent=next.frontier?[
+            next.region,next.chapter,next.maxHealth>0?`Health ${next.health} of ${next.maxHealth}.`:'',
+            Number.isFinite(next.wood)?`Wood ${next.wood}.`:'',Number.isFinite(next.stone)?`Stone ${next.stone}.`:'',Number.isFinite(next.scrap)?`Scrap ${next.scrap}.`:'',
+            next.objectiveTitle,next.objectiveDetail,next.objectiveDistance,next.objectiveProgress,
+        ].filter(Boolean).join(' '):'';
         host.setAttribute('role',modal()?'dialog':'group');
         host.setAttribute('aria-label',modal()?(next.menuTitle||'Game menu'):'Game controls');
         if(modal())host.setAttribute('aria-modal','true');else host.removeAttribute('aria-modal');
@@ -53,7 +76,7 @@ export function installShared(engine,environment=globalThis){
                     button.addEventListener('focus',()=>{bridge?.own(true);const target=button.hudControl;if(target.intent&&Number.isInteger(target.row)&&target.row>=0)bridge?.action(26,target.intent,button.hudToken);});
                     button.addEventListener('click',()=>{
                         const target=button.hudControl;
-                        const opensMenu=[9,13,23,24,29,31,38].includes(target.action);
+                        const opensMenu=[9,13,16,23,24,29,31,38,40].includes(target.action);
                         const keepMenuFocus=modal()||opensMenu;
                         if(keepMenuFocus)requestedFocus={mode:null,reverse:false,afterObservation:state.observation};
                         if(bridge?.action(target.action,target.action===10?target.intent:target.value,button.hudToken)){
@@ -109,12 +132,18 @@ export function installShared(engine,environment=globalThis){
                 (request.reverse?buttons.at(-1):selected||buttons[0]).focus({preventScroll:true});
             }
         }
-        const currentAnnouncement={failure:next.saveFailure||'',save:next.saveStatus||'',status:next.status||''};
+        const currentAnnouncement={failure:next.saveFailure||'',save:next.saveStatus||'',status:next.status||'',
+            objective:next.frontier?next.objectiveTitle||'':'',milestone:next.frontier?next.milestone||'':''};
         const previousAnnouncement=announcementState;announcementState=currentAnnouncement;
         if(currentAnnouncement.failure)announce(currentAnnouncement.failure);
+        else if(currentAnnouncement.milestone&&currentAnnouncement.milestone!==previousAnnouncement?.milestone)
+            announce(currentAnnouncement.milestone);
+        else if(currentAnnouncement.objective&&currentAnnouncement.objective!==previousAnnouncement?.objective)
+            announce([currentAnnouncement.objective,next.objectiveDetail].filter(Boolean).join('. '));
         else if(currentAnnouncement.save!==previousAnnouncement?.save||previousAnnouncement?.failure)
             announce(currentAnnouncement.save||currentAnnouncement.status);
         else if(currentAnnouncement.status!==previousAnnouncement?.status)announce(currentAnnouncement.status);
+        restoreSound();
     };
     const enterControls=event=>{
         if(event.key!=='Tab'||!state||state.failed)return;
@@ -155,11 +184,13 @@ export function installShared(engine,environment=globalThis){
     canvas.addEventListener('keydown',enterControls);
     const resize=environment.ResizeObserver?new environment.ResizeObserver(syncBounds):null;resize?.observe(canvas);
     environment.addEventListener('resize',syncBounds);
-    bridge=createBridge(engine,environment,publish);syncBounds();
+    bridge=createBridge(engine,environment,publish,next=>audio.update(next));syncBounds();
+    restoreSound();
     return {refresh:()=>bridge.refresh(),cleanup(){
-        if(stopped)return;stopped=true;bridge.cleanup();resize?.disconnect();environment.removeEventListener('resize',syncBounds);canvas.removeEventListener('keydown',enterControls);
-        host.remove();live.remove();help.remove();
+        if(stopped)return;stopped=true;audio.cleanup();bridge.cleanup();resize?.disconnect();environment.removeEventListener('resize',syncBounds);canvas.removeEventListener('keydown',enterControls);
+        host.remove();live.remove();help.remove();worldStatus.remove();
         if(originalDescription===null)canvas.removeAttribute('aria-describedby');else canvas.setAttribute('aria-describedby',originalDescription);
         if(!hadAdventure)doc.body.classList.remove('voxy-adventure');if(!hadBuild)doc.body.classList.remove('voxy-build');
+        if(!hadFrontier)doc.body.classList.remove('voxy-frontier');
     }};
 }

@@ -26,7 +26,7 @@
     // only some experiences read. Everything else is in voxy_wasm.data.
     // LEGO-terrain experiences need only the seabed albedo from the terrain
     // materials; the procedural terrain (voxy.cfg) and RIDGEBREAK need all.
-    const legoTerrain=new Set(['build','adventure','lego','lego-world']);
+    const legoTerrain=new Set(['build','frontier','adventure','lego','lego-world']);
     function packsFor(experience){
         experience=String(experience);
         if(experience.startsWith('salvage'))return ['salvage'];
@@ -129,6 +129,6 @@
     if(!location||location.pathname.endsWith('/')||!global.navigator?.gpu)return;
     const manifest=parseManifest(global.voxyReleaseFiles);
     if(!manifest)return;
-    const experience=new URLSearchParams(location.search).get('experience')||'build';
+    const experience=new URLSearchParams(location.search).get('experience')||'frontier';
     global.voxyStartupDownloads=start({manifest,packs:packsFor(experience)});
 })(globalThis);

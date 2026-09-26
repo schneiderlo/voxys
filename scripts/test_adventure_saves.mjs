@@ -87,8 +87,8 @@ test('legacy bootstrap and schema2 publication retain one world and wait for con
     const reopened=await api.open({world,environment:f.environment});assert.deepEqual(reopened.loadedBytes,current);await reopened.close();
 });
 test('bootstrap accepts only explicit old and new schemas even with a valid checksum',async()=>{
-    for(const schema of [1,2,3,4,5,6])assert(await api.checkArchive(await payload(world,schema),world,{crypto:webcrypto}));
-    for(const schema of [0,7,255,0xffffffff])assert.equal(await api.checkArchive(await payload(world,schema),world,{crypto:webcrypto}),false);
+    for(const schema of [1,2,3,4,5,6,7])assert(await api.checkArchive(await payload(world,schema),world,{crypto:webcrypto}));
+    for(const schema of [0,8,255,0xffffffff])assert.equal(await api.checkArchive(await payload(world,schema),world,{crypto:webcrypto}),false);
 });
 
 test('schema2 to schema3 keeps confirmed bytes until validated publication succeeds',async()=>{
@@ -161,4 +161,30 @@ test('creative saves and shortcuts stay isolated from adventure worlds',async()=
     assert.deepEqual(opened,['voxys-free-build-v1','voxys-free-build-v1','voxys-adventure-v1']);
     await assert.rejects(api.open({profile:'unknown',environment}),/profile/);
     await assert.rejects(api.open({profile:'build',world,environment}),/missing/);
+});
+
+
+test('frontier saves, resume metadata and world locks use an independent profile',async()=>{
+    const rows=new Map(),metadata=new Map([[api.metadataKey,world],['voxys-free-build-current-v1',world]]),opened=[];
+    const bytes=await payload();
+    for(const database of ['voxys-adventure-v1','voxys-free-build-v1'])rows.set(database+':'+world,{generation:3n,payload:bytes});
+    const environment={crypto:webcrypto,localStorage:{getItem:k=>metadata.get(k),setItem:(k,v)=>metadata.set(k,v)}};
+    environment.VoxyExpeditionStore={async openStore(id,validate,{databaseName}){
+        opened.push(databaseName);const key=databaseName+':'+id;
+        return {async load(){return rows.get(key)||{generation:0n,payload:new Uint8Array()};},
+            async publish(generation,payload){assert(await validate(payload));rows.set(key,{generation:generation+1n,payload});return {generation:generation+1n};},async close(){}};
+    }};
+    const frontier=await api.open({profile:'frontier',environment});
+    assert.notEqual(frontier.world,world);assert.equal(frontier.loadedBytes.length,0);
+    await frontier.setValidator(()=>true);const frontierBytes=await payload(frontier.world,7);
+    await frontier.publish(frontierBytes);await frontier.close();
+    assert.equal(api.confirmedWorld(environment,'frontier'),frontier.world);
+    assert.equal(api.confirmedWorld(environment,'adventure'),world);
+    assert.equal(api.confirmedWorld(environment,'build'),world);
+    const reopened=await api.open({profile:'frontier',environment});
+    assert.equal(reopened.world,frontier.world);assert.deepEqual(reopened.loadedBytes,frontierBytes);await reopened.close();
+    await assert.rejects(api.open({profile:'frontier',world,environment}),/missing/);
+    assert.deepEqual(opened,['voxys-frontier-v1','voxys-frontier-v1','voxys-frontier-v1']);
+    assert.deepEqual(rows.get('voxys-adventure-v1:'+world).payload,bytes);
+    assert.deepEqual(rows.get('voxys-free-build-v1:'+world).payload,bytes);
 });

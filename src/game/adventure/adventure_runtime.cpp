@@ -391,10 +391,10 @@ std::string costLabel(MaterialCost cost) {
     return result.empty()?"No materials":result;
 }
 }
-AdventureRuntime::AdventureRuntime(bool freeBuild):routingPreferences_(adventureRoutingPreferences(preferences_)),freeBuild_(freeBuild){
+AdventureRuntime::AdventureRuntime(bool freeBuild,bool frontier):routingPreferences_(adventureRoutingPreferences(preferences_)),freeBuild_(freeBuild||frontier),frontier_(frontier){
     if(freeBuild_) {
         auto settings=orbit_.settings();settings.distanceLimit=expedition::CoveCamera::extendedMaximumDistance;
-        (void)orbit_.settings(settings);(void)orbit_.setUserDistance(10.5);
+        (void)orbit_.settings(settings);(void)orbit_.setUserDistance(frontier_?18.:10.5);
     }
 }
 AdventureRuntime::~AdventureRuntime(){
@@ -504,6 +504,13 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         resetQuickSlots();catalogCategory_=1;
         status_="Choose a brick, aim and build.";saveStatus_="Unsaved build";
     }
+    if(frontier_) {
+        if(!frontierWorld_.initialize(surface,content_,error))return false;
+        spawn=frontierWorld_.start();resetQuickSlots();building_=false;catalogCategory_=0;
+        status_="Dawnreach is dark. Gather supplies, build your way inland and rekindle its three beacons.";
+        frontierMilestone_="DAWNREACH / THE FIRST LIGHT";frontierMilestoneSeconds_=8;interactionFeedbackSeconds_=10;
+        saveStatus_="New adventure";
+    }
     construction::WorldNamespace world;std::random_device random;
     for(auto& byte:world.bytes)byte=static_cast<uint8_t>(random());
     world.bytes[6]=(world.bytes[6]&15)|64;world.bytes[8]=(world.bytes[8]&63)|128;
@@ -526,10 +533,10 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     if(pendingBootstrap)world=pendingBootstrap->world;
 #endif
     session_=AdventureSession::create(world,content_,error);
-    if(session_&&freeBuild_&&!session_->updatePlayer({spawn.x,spawn.y,spawn.z,creativeStartYaw},100,error))return false;
+    if(session_&&freeBuild_&&!session_->updatePlayer({spawn.x,spawn.y,spawn.z,frontier_?content_.town.yaw:creativeStartYaw},100,error))return false;
     std::vector<AdventureSpatialQueries::Solid> markers;if(!freeBuild_)appendMarkers(world,surface,markers);
     if(!session_||!queries_.publish(markers,session_->state().revision+1)
-        ||!player_.initialize(queries_,spawn,installedWorld().waterHeight,freeBuild_?creativeStartYaw:0,
+        ||!player_.initialize(queries_,spawn,installedWorld().waterHeight,frontier_?content_.town.yaw:freeBuild_?creativeStartYaw:0,
             freeBuild_?AdventurePlayer::creativeScale:1,freeBuild_?AdventurePlayer::creativeRadius:AdventurePlayer::radius)) {error="Could not start on safe ground.";return false;}
     robot_=freeBuild_?assets::loadBuilderAsset(installedPath("data/adventure/builder-r01"),error)
         :assets::loadHumanAsset(installedPath("data/adventure/human-r01"),error);
@@ -611,6 +618,7 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
         cannon_.heading=-std::numbers::pi/2;
         cannon_.yaw=-.0360332748563;cannon_.elevation=.0726767584712;
     }
+    if(frontier_){blacksmithFeet_.reset();cannonFeet_.reset();wall_.reset();wallSource_.reset();}
 #if defined(VOXY_NATIVE)
     if(!saves_->loadedBytes().empty()&&!restore(saves_->loadedBytes(),world,error))return false;
 #else
@@ -627,7 +635,8 @@ bool AdventureRuntime::initialize(terrain::lego::Surface surface,WGPUDevice devi
     town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);fieldHome_=fieldHomeReadiness(state(),walkQueries_);
     if(!freeBuild_&&!combat_.initialize(content_,walkQueries_,installedWorld().waterHeight)) {error="The trail navigation is unavailable.";return false;}
     for(size_t i=0;i<residentFacing_.size();++i)residentFacing_[i]=town_.entries()[i].yaw;
-    if(freeBuild_) {
+    if(frontier_)initializeFrontierActors();
+    if(freeBuild_&&!frontier_) {
         const auto p=player_.feet()+glm::dvec3(std::cos(player_.facingYaw())*3.2,0,-std::sin(player_.facingYaw())*3.2);
         (void)motorbike_.place(queries_,p,player_.facingYaw(),installedWorld().waterHeight);
     }
@@ -638,6 +647,27 @@ CandidateValidator AdventureRuntime::validator() const {
     return [this](const AdventureState& before,const AdventureState& after,std::string& error){
         if(after.health>before.health&&!encounters_.safeRest(before.player,walkQueries_)) {
             error="Reach a safe place before resting.";return false;
+        }
+        if(frontier_) {
+            if(!frontierWorld_.protectedEdit(before,after,error))return false;
+            if(after.health>before.health && before.health)for(const auto& enemy:frontierActors_)
+                if(enemy.active&&glm::length(enemy.controller.feet()-player_.feet())<24) {
+                    error="Move away from the raiders before resting.";return false;
+                }
+            if(before.structures!=after.structures) {
+                std::vector<AdventureSpatialQueries::Solid> parts;
+                if(!compileSolids(after,parts,error))return false;
+                for(const auto& part:parts)for(const auto& installed:queries_.solids())
+                    if(installed.structure.counter==frontierSceneryId&&intersects(part,installed,-.015)) {
+                        error="Keep the landmark and resource surfaces clear. Build beside or above them.";return false;
+                    }
+                AdventureSpatialQueries check;
+                if(!check.bindTerrain(queries_.terrain())||!check.publish(parts,after.revision+1))return false;
+                for(const auto& enemy:frontierActors_)if(enemy.active
+                    &&!check.clearCapsule(enemy.controller.feet(),enemy.controller.bodyRadius(),enemy.controller.bodyHeight())) {
+                    error="Leave room around the raiders.";return false;
+                }
+            }
         }
         return validateConstruction(before,after,queries_,error,freeBuild_)
             &&(freeBuild_||village_.validateNewConstruction(before,after,error))
@@ -663,11 +693,12 @@ bool AdventureRuntime::prepareGeometry(const AdventureState& state,AdventureSpat
         residents={};village={};sites={};
         std::vector<AdventureSpatialQueries::Solid> swings;
         if(!compileDoorSwingSolids(state,swings,error))return false;
+        if(frontier_&&!frontierWorld_.appendSolids(state,solids)){error="Frontier geometry capacity reached.";return false;}
         auto reserved=solids;reserved.insert(reserved.end(),swings.begin(),swings.end());
         std::vector<AdventureSpatialQueries::Solid> blacksmithSolids;
         appendBlacksmith(state,blacksmithSolids,reserved,preserveInstalled);
         appendCannon(state,blacksmithSolids,reserved,preserveInstalled);
-        std::vector<AdventureSpatialQueries::Solid> clearance;
+        auto clearance=frontier_?frontierWorld_.clearance():std::vector<AdventureSpatialQueries::Solid>{};
         if(preserveInstalled&&motorbike_.available()) {
             const auto feet=motorbike_.state().feet;
             clearance.push_back({{},{},feet-glm::dvec3(3.5,.5,3.5),feet+glm::dvec3(3.5,6,3.5)});
@@ -770,8 +801,26 @@ bool AdventureRuntime::commit(std::optional<AdventureSession::PreparedChange> pr
         if(!after||!after->available){status_="That change would block a trail character. Leave room around them.";return false;}
     }
     const auto changed=prepared->changedPart();
+    const auto capture=[&](const AdventureState& world)->std::optional<RemovedPartSnapshot> {
+        for(const auto& structure:world.structures)for(const auto& part:structure.parts)if(part.id==changed) {
+            RemovedPartSnapshot result{part,structure.id,structure.origin,{}};
+            for(const auto& component:world.components)if(component.part==changed)result.component=component;
+            return result;
+        }
+        return {};
+    };
+    FrontierEdit edit;
+    if(frontier_&&changed&&!frontierHistoryApplying_)edit={capture(state()),capture(prepared->state())};
     const auto placed=changed&&!AdventureSession::findPart(state(),changed)&&AdventureSession::findPart(prepared->state(),changed)?changed:0;
     if(!session_->commit(std::move(*prepared),status_))return false;
+    if(frontier_&&changed) {
+        if(const auto* piece=AdventureSession::findPart(state(),changed))
+            frontierBurst(metres(piece->position)+glm::dvec3(0,.6,0),0xffd77c,1);
+    }
+    if(frontier_&&changed&&!frontierHistoryApplying_) {
+        if(frontierUndo_.size()>=64)frontierUndo_.erase(frontierUndo_.begin());
+        frontierUndo_.push_back(std::move(edit));frontierRedo_.clear();
+    }
     // The player holds the address of queries_, not its replaceable packet.
     ++staticGeometryEpoch_;walkQueries_=std::move(next);queries_=std::move(actors);encounters_=std::move(encounters);town_=std::move(residents);village_=std::move(village);trailSites_=std::move(sites);scenery_=std::move(scenery);if(homeChanged)fieldHome_=fieldHomeReadiness(state(),walkQueries_);lastPlaced_=placed?placed:lastPlaced_;
     saveStatus_="Changes not saved";
@@ -790,6 +839,7 @@ bool AdventureRuntime::prepareActors(const AdventureState& state,const Adventure
 }
 void AdventureRuntime::advanceCombat(double seconds,AdventureCombat::Input input) {
     if(!std::isfinite(seconds)||seconds<0)return;
+    if(frontier_){advanceFrontier(seconds,input);return;}
     if(freeBuild_) {
         player_.advance(seconds,input.movement);
         const auto p=player_.feet();std::string error;
@@ -875,7 +925,7 @@ AdventureRuntime::PendingAction AdventureRuntime::observedAction(int action,int 
     return pending;
 }
 void AdventureRuntime::action(int action,int value) {
-    if(freeBuild_&&(action==14||action==16||action==17||action==18||action==24||action==27||action==28))return;
+    if(freeBuild_&&!frontier_&&(action==14||action==16||action==17||action==18||action==24||action==27||action==28))return;
     if(action==15){
         const bool owned=value!=0;
         // Canvas pointerdown reaffirms world focus before its mouse event is
@@ -888,7 +938,7 @@ void AdventureRuntime::action(int action,int value) {
     // Focus is presentation metadata. Apply its token-validated selection
     // before the next input tick so pad Confirm cannot activate the old row.
     if(action==26){if(const auto row=menuIntents_.resolve(value))menuSelection_=static_cast<int>(*row);return;}
-    if(action>=1&&action<=39&&action!=26&&pendingActions_.size()<32) {
+    if(action>=1&&action<=45&&action!=26&&pendingActions_.size()<32) {
         // A queued door use keeps the observed target and desired state.
         // A second queued click cannot reinterpret Open as Close after commit.
         pendingActions_.push_back(observedAction(action,value,menuIntents_.token()));
@@ -988,14 +1038,15 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
     // still checks actual support/contact; nearby distance alone cannot admit it.
     if(!preview_.structure)for(const auto& structure:state().structures)
         for(const auto& part:structure.parts)if(glm::length(metres(part.position)-p)<4.1){preview_.structure=structure.id;break;}
-    const bool cachePreview=cacheRay&&blueprint_==BlueprintKind::None;
+    const bool cachePreview=cacheRay&&!frontierMoving_&&blueprint_==BlueprintKind::None;
     const PreviewKey key{state().world,state().epoch,state().revision,state().lastRequestSequence,
         queries_.revision(),preview_.structure,preview_.kind,preview_.position,preview_.yawQuarterTurns,preview_.paint};
     if(cachePreview&&previewResult_&&previewResult_->key==key) {
         previewValid_=previewResult_->valid;previewReason_=previewResult_->reason;return;
     }
     previewReason_.clear();
-    auto candidate=blueprint_!=BlueprintKind::None?session_->prepareBuildRecipe(stamp(),blueprint_,preview_.position,yaw_,validator(),previewReason_)
+    auto candidate=frontierMoving_?session_->prepareMovePart(stamp(),frontierMoving_->part.id,preview_.position,yaw_,validator(),previewReason_)
+        :blueprint_!=BlueprintKind::None?session_->prepareBuildRecipe(stamp(),blueprint_,preview_.position,yaw_,validator(),previewReason_)
         :session_->preparePlace(stamp(),preview_,validator(),previewReason_);
     previewValid_=bool(candidate);
     if(previewValid_)previewReason_="Ready to place";
@@ -1003,7 +1054,7 @@ void AdventureRuntime::updateTarget(const Camera& camera,const Input& input,uint
 }
 uint64_t AdventureRuntime::nearbyComponent() const {
     double best=3.25*player_.bodyScale();uint64_t result=0;
-    for(const auto& component:state().components)if(!freeBuild_||component.kind==FurnitureKind::Door)if(const auto* part=AdventureSession::findPart(state(),component.part)) {
+    for(const auto& component:state().components)if(!freeBuild_||frontier_||component.kind==FurnitureKind::Door)if(const auto* part=AdventureSession::findPart(state(),component.part)) {
         double distance=glm::length(metres(part->position)-player_.feet());
         if(component.part==targetPart_)distance-=.25;
         std::string reason;
@@ -1055,6 +1106,7 @@ void AdventureRuntime::cycleCompass() {
     }
 }
 std::string AdventureRuntime::interactionLabel() const {
+    if(frontier_)return frontierInteractionLabel();
     if(!state().health)return "Return to home / town";
     if(nearbyLoot())return "Collect trail loot";
     if(const auto* resident=residentDefinition(town_.nearestInteractable(state().player,queries_,targetPart_)))
@@ -1079,6 +1131,7 @@ void AdventureRuntime::useDoor(uint64_t id,bool open,uint64_t expectedRevision) 
         status_=open?"Door opened.":"Door closed.";
 }
 void AdventureRuntime::use(bool allowDoor) {
+    if(frontier_){useFrontier();return;}
     if(freeBuild_) {
         const auto* component=AdventureSession::findComponent(state(),nearbyComponent());
         if(allowDoor&&component&&component->kind==FurnitureKind::Door)useDoor(component->id,!component->doorOpen,component->revision);
@@ -1170,7 +1223,7 @@ void AdventureRuntime::craftAtBench(bool compass) {
     }
 }
 void AdventureRuntime::attachPhysics(physics::PhysicsWorld& world) {
-    if(!freeBuild_||physics_)return;
+    if(!freeBuild_||frontier_||physics_)return;
     physics_=&world;cannonPhysics_=std::make_unique<CannonPhysicsScene>();
     cannonEventsReady_=world.setEventReadbackEnabled(true);
     cannonEventsThrough_=world.encodedTick();
@@ -1374,6 +1427,7 @@ void AdventureRuntime::changeImportedWall(bool rebuild, bool removeSupport) {
     }
 }
 void AdventureRuntime::toggleCannon() {
+    if(frontier_)return;
     ++interactionStatusSerial_;
     if(usingCannon_&&cannon_.liveShots()){status_="Wait for the cannonball to land.";return;}
     if(usingCannon_&&wallLocked()){status_="Wait for the pieces to settle, or rebuild the wall.";return;}
@@ -1432,6 +1486,7 @@ void AdventureRuntime::fireCannon() {
         :physics_->encodedTick()<cannon_.nextShotTick?"Reloading…":"Wait for a cannonball to clear.";
 }
 void AdventureRuntime::toggleMotorbike() {
+    if(frontier_){status_="The frontier is explored on foot. Shift: sprint / V: autorun.";return;}
     ++interactionStatusSerial_;
     if(!freeBuild_)return;
     if(usingCannon_){status_="Press C to leave the cannon first.";return;}
@@ -1456,6 +1511,7 @@ void AdventureRuntime::toggleMotorbike() {
     player_.discardPendingInput();discontinuity_=true;
 }
 void AdventureRuntime::recover() {
+    if(frontier_){frontierRecover();return;}
     if(cannon_.liveShots()){status_="Wait for the cannonball to land.";return;}
     if(wallLocked()){status_="Rebuild the wall before returning home.";return;}
     if(usingCannon_)toggleCannon();
@@ -1512,7 +1568,7 @@ bool AdventureRuntime::closeCurrentMode() {
     if(menu_==Menu::Controls){menu_=Menu::Settings;menuSelection_=0;return true;}
     if(menu_==Menu::Settings){menu_=Menu::Main;menuSelection_=0;return true;}
     if(menu_!=Menu::None){menu_=Menu::None;menuSelection_=0;player_.discardPendingInput();return true;}
-    if(building_){building_=false;if(freeBuild_)status_.clear();player_.discardPendingInput();return true;}
+    if(building_){frontierMoving_.reset();building_=false;if(freeBuild_)status_.clear();player_.discardPendingInput();return true;}
     return false;
 }
 void AdventureRuntime::toggleColours() {
@@ -1530,10 +1586,14 @@ void AdventureRuntime::resetQuickSlots() {
     quickSlots_={QuickSlot{PieceKind::Brick2x2,0xe53b33},QuickSlot{PieceKind::Brick2x4,0xf3f2eb},
         QuickSlot{PieceKind::Floor,0},QuickSlot{PieceKind::Foundation,0x3ba85c},
         QuickSlot{PieceKind::Doorway,0xf3f2eb},QuickSlot{PieceKind::HingedDoor,0}};
+    if(frontier_)quickSlots_={QuickSlot{PieceKind::FrontierFoundation,0},QuickSlot{PieceKind::FrontierDeck,0},
+        QuickSlot{PieceKind::FrontierStairs,0},QuickSlot{PieceKind::FrontierWall,0},
+        QuickSlot{PieceKind::FrontierRoof,0},QuickSlot{PieceKind::FrontierWorkbench,0}};
     selectQuickSlot(0);
 }
 void AdventureRuntime::selectQuickSlot(size_t slot) {
     if(slot>=quickSlots_.size())return;
+    frontierMoving_.reset();
     activeQuickSlot_=slot;selected_=quickSlots_[slot].kind;selectedPaint_=quickSlots_[slot].paint;
     blueprint_=BlueprintKind::None;heightSteps_=0;building_=true;menu_=Menu::None;
 }
@@ -1541,6 +1601,7 @@ void AdventureRuntime::rememberQuickSlot() {
     if(freeBuild_)quickSlots_[activeQuickSlot_]={selected_,selectedPaint_};
 }
 void AdventureRuntime::undoLastPlacement() {
+    if(frontier_){frontierUndo();return;}
     if(lastBlueprint_?commit(session_->prepareRemoveStructure(stamp(),lastBlueprint_,validator(),status_))
         :lastPlaced_&&commit(session_->prepareRemove(stamp(),lastPlaced_,validator(),status_))) {
         lastPlaced_=0;lastBlueprint_=0;status_=freeBuild_?"Last placement undone.":"Last placement undone. Materials returned.";
@@ -1557,6 +1618,13 @@ void AdventureRuntime::activateMenuIntent(int intent) {
     if(!row||*row>=menuCommands_.size())return;
     const auto command=menuCommands_[*row];
     switch(command.operation) {
+    case MenuOperation::FrontierCraft:
+        if(frontier_&&commit(session_->prepareCraftQuarryHammer(stamp(),bench_,validator(),status_))) {
+            frontierSound("craft");status_="Quarry hammer crafted. Equip it from your bag to mine cut stone.";
+        }
+        break;
+    case MenuOperation::FrontierSound:frontierAudioEnabled_=!frontierAudioEnabled_;break;
+    case MenuOperation::FrontierTrack:frontierTrackedSite_=uint32_t(command.argument);menu_=Menu::None;break;
     case MenuOperation::Close:(void)closeCurrentMode();break;
     case MenuOperation::Catalog:if(wallLocked()){status_="Rebuild the wall before building.";break;}if(usingCannon_)toggleCannon();if(riding_){status_="Press M to get off before building.";break;}building_=true;menu_=Menu::Catalog;menuSelection_=0;break;
     case MenuOperation::Save:saveRequested_=true;saveStatus_="Saving...";break;
@@ -1682,6 +1750,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     menuIntents_.beginFrame();
     const double residentSeconds=std::isfinite(seconds)?std::clamp(seconds,0.,.25):0.;
     const auto previousInteraction=interactionStatusSerial_;
+    const auto previousFrontierStatus=frontier_?status_:std::string{};
     saveFeedbackSeconds_=std::max(0.,saveFeedbackSeconds_-residentSeconds);
     interactionFeedbackSeconds_=std::max(0.,interactionFeedbackSeconds_-residentSeconds);
     hudPixelScale_=1;
@@ -1771,7 +1840,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     } else if(inputRouter_.pressed(A::Workshop)) {
         if(usingCannon_)status_="Press C to leave the cannon first.";
         else if(riding_)status_="Press M to get off before building.";
-        else {building_=!building_;if(freeBuild_&&!building_)status_.clear();heightSteps_=0;input.releaseMouse();}
+        else {frontierMoving_.reset();building_=!building_;if(freeBuild_&&!building_)status_.clear();heightSteps_=0;input.releaseMouse();}
     }
     if(freeBuild_&&input.focused()&&!uiInputOwned_&&!dismissedMenu
         &&(pressed(Key::P)||pad.pressed(PadButton::LeftStick))) {
@@ -1782,16 +1851,25 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         &&(pressed(Key::Tab)||(freeBuild_&&pad.pressed(PadButton::Alternate)))) {
         menu_=Menu::Catalog;menuSelection_=freeBuild_?0:int(selected_)-1;player_.discardPendingInput();
     }
-    if(freeBuild_&&pressed(Key::M)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleMotorbike();
-    if(freeBuild_&&pressed(Key::C)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleCannon();
+    if(freeBuild_&&!frontier_&&pressed(Key::M)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleMotorbike();
+    if(freeBuild_&&!frontier_&&pressed(Key::C)&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu)toggleCannon();
+    if(frontier_&&input.focused()&&!uiInputOwned_&&menu_==Menu::None&&!dismissedMenu) {
+        if(pressed(Key::H))frontierAudioEnabled_=!frontierAudioEnabled_;
+        if(pressed(Key::V))frontierAutoRun_=!frontierAutoRun_;
+        if(pressed(Key::J))openJournal();
+        if(pressed(Key::I)){menu_=Menu::Bag;menuSelection_=0;}
+        if(building_&&pressed(Key::G))(void)frontierEditTarget(false);
+        if(building_&&pressed(Key::T))(void)frontierEditTarget(true);
+        if(building_&&pressed(Key::Y)&&(input.isKeyDown(Key::LeftControl)||input.isKeyDown(Key::RightControl)))frontierRedo();
+    }
     updateImportedWall();
     updateCannonPhysics();
     if(physics_)brickThrower_.retire(*physics_);
     if(!usingCannon_&&menu_==Menu::None&&input.focused())cannon_.aim(0,0,seconds);
     if(inputRouter_.pressed(A::Save)||pressed(static_cast<Key>(294))) {saveRequested_=true;saveStatus_="Saving...";}
-    combatInput_.tick(sample,!freeBuild_&&menu_==Menu::None&&!building_&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked,preferences_,
+    combatInput_.tick(sample,(!freeBuild_||frontier_)&&menu_==Menu::None&&!building_&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked,preferences_,
         {input.wasMouseButtonPressed(MouseButton::Left),input.wasMouseButtonPressed(MouseButton::Right),input.wasMouseButtonPressed(MouseButton::Middle)});
-    const auto throwCount=brickThrower_.input(freeBuild_&&!building_&&!usingCannon_&&!wallLocked()
+    const auto throwCount=brickThrower_.input(freeBuild_&&!frontier_&&!building_&&!usingCannon_&&!wallLocked()
         &&menu_==Menu::None&&!uiInputOwned_&&!hudPointerOwned_&&!hudClicked&&!dismissedMenu
         &&input.focused()&&inputRouter_.mouseGesturesAllowed()&&!inputRouter_.pressed(A::Workshop),
         input.wasMouseButtonPressed(MouseButton::Left),input.wasMouseButtonPressed(MouseButton::Right),
@@ -1800,6 +1878,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
     // edges from that frame. Routed actions already require release to rearm.
     if(menu_!=Menu::None||uiInputOwned_||dismissedMenu||!input.focused()) {
         if(riding_)motorbike_.pause();
+        if(frontier_&&!isPaused()&&input.focused())advanceFrontier(seconds,{});
         player_.discardPendingInput();combatSeconds_=0;pendingAttack_=false;pendingDodge_=false;pendingJump_=false;
         const bool horizontal=menu_==Menu::Colours||menu_==Menu::Catalog;
         const bool hudKeyboard=sharedHudVisible&&!uiInputOwned_;
@@ -1851,7 +1930,12 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         player_.discardPendingInput();motorbike_.pause();
         character_.update(seconds,player_.mode(),0,0,false);
     } else {
-        const auto movement=inputRouter_.movement();const double yaw=orbit_.pose().valid?orbit_.pose().yaw:player_.facingYaw();
+        auto movement=inputRouter_.movement();
+        if(frontier_&&frontierAutoRun_) {
+            if(movement[0]!=0||movement[1]!=0||building_||!state().health)frontierAutoRun_=false;
+            else movement[1]=1;
+        }
+        const double yaw=orbit_.pose().valid?orbit_.pose().yaw:player_.facingYaw();
         const bool attack=combatInput_.pressed(CombatAction::Attack);
         const bool dodge=combatInput_.pressed(CombatAction::Dodge);
         if(riding_) {
@@ -1905,7 +1989,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             const auto origin=glm::dvec3(cameraPosition.sector)*double(physics::kWorldSectorSize);
             camera.setWorldPosition(cameraPosition.sector,cameraPosition.local);camera.lookAt(glm::vec3(pose.viewTarget-origin));discontinuity_=false;
         }
-        character_.update(seconds,player_.mode(),glm::length(glm::dvec2(player_.worldVelocity().x,player_.worldVelocity().z))/player_.bodyScale(),player_.worldVelocity().y,state().combat.player.attackImpactTick!=0);
+        character_.update(seconds,player_.mode(),glm::length(glm::dvec2(player_.worldVelocity().x,player_.worldVelocity().z))/player_.bodyScale(),player_.worldVelocity().y,frontier_?frontierAttackSeconds_>.2:state().combat.player.attackImpactTick!=0);
         swimAnimation_.update(seconds,player_.mode()==AdventurePlayer::Mode::Swimming,
             player_.worldVelocity(),player_.bodyScale(),preferences_.reducedMotion);
         updateTarget(camera,input,width,height);
@@ -1914,11 +1998,11 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             if(buildRouter_.pressed(A::RotateY))yaw_=uint8_t((yaw_+1)%4);
             if(buildRouter_.pressed(A::PreviousPart)) {
                 if(freeBuild_)selectQuickSlot((activeQuickSlot_+quickSlots_.size()-1)%quickSlots_.size());
-                else {selected_=PieceKind((int(selected_)+int(kBuildingPieceCount)-2)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
+                else {selected_=PieceKind((int(selected_)+int(kLegacyBuildingPieceCount)-2)%int(kLegacyBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
             }
             if(pad.pressed(PadButton::RightShoulder)) {
                 if(freeBuild_)selectQuickSlot((activeQuickSlot_+1)%quickSlots_.size());
-                else {selected_=PieceKind(int(selected_)%int(kBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
+                else {selected_=PieceKind(int(selected_)%int(kLegacyBuildingPieceCount)+1);blueprint_=BlueprintKind::None;heightSteps_=0;}
             }
             if(pressed(static_cast<Key>(266))||pad.pressed(PadButton::Up))++heightSteps_;
             if(pressed(static_cast<Key>(267))||pad.pressed(PadButton::Down))--heightSteps_;
@@ -1933,30 +2017,41 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         const auto command=pending.action,value=pending.value;
         // A queued control belongs to the menu/mode that displayed it. Save is
         // global; every other control must still have that published context.
-        if(command!=8&&pending.menuToken!=menuIntents_.token())continue;
+        if(command!=8&&command!=41&&pending.menuToken!=menuIntents_.token())continue;
         if(usingCannon_&&command!=33&&command!=34&&command!=35&&command!=36&&command!=37&&command!=8&&command!=9&&command!=10&&command!=20&&command!=25&&command!=31) {status_="Press C to leave the cannon first.";continue;}
         if(riding_&&(command==1||command==2||command==4||command==5||command==6||command==7||command==13||command==21||command==23||command==38||command==39)) {
             status_="Press M to get off before building.";continue;
         }
         switch(command) {
+        case 40:
+            if(frontier_&&menu_==Menu::Workbench&&commit(session_->prepareCraftQuarryHammer(stamp(),bench_,validator(),status_)))frontierSound("craft");
+            break;
+        case 41:if(frontier_)frontierAudioEnabled_=value!=0;break;
+        case 42:if(frontier_)frontierRedo();break;
+        case 43:if(frontier_)(void)frontierEditTarget(false);break;
+        case 44:if(frontier_)(void)frontierEditTarget(true);break;
+        case 45:if(frontier_)frontierAutoRun_=!frontierAutoRun_;break;
         case 32:if(freeBuild_&&menu_==Menu::None)toggleMotorbike();break;
         case 33:if(freeBuild_&&menu_==Menu::None)toggleCannon();break;
         case 34:if(usingCannon_&&menu_==Menu::None)fireCannon();break;
         case 35:if(usingCannon_&&menu_==Menu::None)changeImportedWall(false);break;
         case 36:if(usingCannon_&&menu_==Menu::None)changeImportedWall(true);break;
         case 37:if(usingCannon_&&menu_==Menu::None)changeImportedWall(false,true);break;
-        case 1:building_=!building_;if(freeBuild_&&!building_)status_.clear();menu_=Menu::None;break;
-        case 2:if(value>0&&pieceKindValid(uint32_t(value))){blueprint_=BlueprintKind::None;selected_=PieceKind(value);rememberQuickSlot();building_=true;menu_=Menu::None;heightSteps_=0;}break;
+        case 1:frontierMoving_.reset();building_=!building_;if(freeBuild_&&!building_)status_.clear();menu_=Menu::None;break;
+        case 2:if(value>0&&pieceKindValid(uint32_t(value))&&(frontier_||!isFrontierPiece(PieceKind(value)))){blueprint_=BlueprintKind::None;selected_=PieceKind(value);rememberQuickSlot();building_=true;menu_=Menu::None;heightSteps_=0;}break;
         case 39:
             if(freeBuild_&&!wallLocked()&&value>=1&&value<=int(quickSlots_.size()))selectQuickSlot(static_cast<size_t>(value-1));
             break;
         case 3:yaw_=uint8_t((yaw_+1)%4);break;
         case 4:if(building_&&menu_==Menu::None) {
             updateTarget(camera,input,width,height);
-            auto candidate=previewValid_?(blueprint_!=BlueprintKind::None?session_->prepareBuildRecipe(stamp(),blueprint_,preview_.position,yaw_,validator(),status_)
+            auto candidate=previewValid_?(frontierMoving_?session_->prepareMovePart(stamp(),frontierMoving_->part.id,preview_.position,yaw_,validator(),status_)
+                :blueprint_!=BlueprintKind::None?session_->prepareBuildRecipe(stamp(),blueprint_,preview_.position,yaw_,validator(),status_)
                 :session_->preparePlace(stamp(),preview_,validator(),status_)):std::nullopt;
             const auto structure=candidate?candidate->changedStructure():0;
             if(commit(std::move(candidate))) {
+                frontierMoving_.reset();
+                if(frontier_)frontierSound("place");
                 lastBlueprint_=blueprint_!=BlueprintKind::None?structure:0;
                 status_=blueprint_==BlueprintKind::StarterRoom?"Room built. Step through the doorway and use its bed."
                     :blueprint_==BlueprintKind::WideStoneStep?"Wide stone step built. Finish building to walk across it.":(freeBuild_?"Placed.":"Placed. Remove returns its materials.");
@@ -1964,6 +2059,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             } else if(!previewValid_)status_=previewReason_;
         }break;
         case 5:
+            if(frontierMoving_){frontierMoving_.reset();status_="Move cancelled.";break;}
             if(pending.removeScenery)status_="Place a brick here to make room for your build.";
             else if(isVillagePartId(pending.removePart))status_="Village scenery belongs to the town. Build beside it.";
             else if(isTrailPartId(pending.removePart))status_="This landmark belongs to the trail. Build beside it.";
@@ -1986,7 +2082,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         case 18:cycleCompass();break;
         case 20:(void)closeCurrentMode();break;
         case 21:building_=true;menu_=Menu::None;player_.discardPendingInput();break;
-        case 22:building_=false;if(freeBuild_)status_.clear();menu_=Menu::None;player_.discardPendingInput();break;
+        case 22:frontierMoving_.reset();building_=false;if(freeBuild_)status_.clear();menu_=Menu::None;player_.discardPendingInput();break;
         case 23:building_=true;menu_=menu_==Menu::Catalog?Menu::None:Menu::Catalog;menuSelection_=0;player_.discardPendingInput();break;
         case 24:menu_=Menu::Bag;menuSelection_=0;player_.discardPendingInput();break;
         case 25:menuSelection_=std::clamp(menuSelection_+std::clamp(value,-1,1),0,std::max(0,int(menuCommands_.size())-1));break;
@@ -2035,9 +2131,16 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
             }
         }
     }
+    if(frontier_) {
+        if(!isPaused())frontierAutosaveSeconds_+=std::min(seconds,.25);
+        if(frontierAutosaveSeconds_>=25&&state().revision!=savedRevision_&&saveFailure_.empty()) {
+            saveRequested_=true;saveStatus_="Saving...";
+        }
+        if(saveRequested_){checkpointFrontier();frontierAutosaveSeconds_=0;}
+    }
 #if defined(VOXY_NATIVE)
     if(saves_) {
-        if(auto completion=saves_->poll())saveCompleted(completion->saved?(freeBuild_?"Saved build":"Saved adventure"):completion->message);
+        if(auto completion=saves_->poll())saveCompleted(completion->saved?(freeBuild_&&!frontier_?"Saved build":"Saved adventure"):completion->message);
         if(!saves_->busy()&&consumeSaveRequest()) {
             std::vector<std::byte> bytes;std::string error;
             if(!snapshot(bytes,error)||!saves_->requestSave(std::move(bytes),error))saveCompleted(error);
@@ -2057,6 +2160,7 @@ void AdventureRuntime::update(double seconds,Input& input,Camera& camera,uint32_
         ?wallInspectionPoint_
         :cannon_.muzzle(*cannonFeet_)+cannon_.direction()*40.;
     observedViewProjection_=glm::dmat4(camera.projectionMatrix()*camera.viewMatrix());observedWidth_=width;observedHeight_=height;
+    if(frontier_&&status_!=previousFrontierStatus)++interactionStatusSerial_;
     if(interactionStatusSerial_!=previousInteraction)interactionFeedbackSeconds_=6;
     refreshHud();
     refreshNavigation();
@@ -2141,10 +2245,10 @@ void AdventureRuntime::refreshHud() {
     const auto* blueprint=buildingBlueprintDefinition(blueprint_);
     hud.selected=std::string(blueprint?blueprint->name:buildingDefinition(selected_)->name);
     hud.status=building_?previewReason_:status_;
-    hud.context="Health "+std::to_string(state().health)+" / 100. "+(saveFailure_.empty()?combatLabel():saveFailure_);hud.pieceKind=blueprint_==BlueprintKind::StarterRoom?0:static_cast<uint8_t>(selected_);
+    hud.context="Health "+std::to_string(state().health)+" / 100. "+(saveFailure_.empty()?combatLabel():saveFailure_);hud.pieceKind=blueprint_==BlueprintKind::StarterRoom?0:static_cast<uint8_t>(buildingIconKind(selected_));
     hud.paletteCategory=static_cast<render::AdventurePaletteCategory>(catalogCategory_);hud.pickerOpen=menu_==Menu::Catalog;
     const auto cost=blueprint?blueprint->cost:buildingDefinition(selected_)->cost;
-    hud.cost=freeBuild_?"Unlimited pieces":costLabel(cost);
+    hud.cost=content_.freeBuilding?"Unlimited pieces":costLabel(cost);
     const auto readiness=firstHomeReadiness(state(),queries_);
     const auto compass=trailCompassReadout(state(),queries_,trailSites_,compassTarget_);
     const auto fieldHome=fieldHome_;
@@ -2178,7 +2282,7 @@ void AdventureRuntime::refreshHud() {
     if(menu_==Menu::Main) {
         menuTitle_="Paused";menuText_=saveStatus_;menuStatus_=status_;
         add(freeBuild_?(building_?"Return to building":"Return to exploring"):"Return to adventure",true,{O::Close});add("Building pieces",true,{O::Catalog});
-        add(freeBuild_?"Save build":"Save adventure",true,{O::Save});add(freeBuild_?"Return to start":"Return to home / town",true,{O::Recover});
+        add(freeBuild_&&!frontier_?"Save build":"Save adventure",true,{O::Save});add(freeBuild_?"Return to start":"Return to home / town",true,{O::Recover});
         add("Comfort and controls",true,{O::Settings});
         add("How to play",true,{O::GuideTopics});
         if(freeBuild_) {
@@ -2192,10 +2296,30 @@ void AdventureRuntime::refreshHud() {
                 add("Finish building",canBuild,{O::FinishBuilding});
             }
             add("Undo last placement",!riding_&&!usingCannon_&&!wallLocked()&&(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_),{O::Undo});
-            add(riding_?"Get off motorbike":"Ride motorbike",!usingCannon_&&!wallLocked(),{O::Motorbike});
-            add(usingCannon_?"Leave cannon":"Use cannon",!riding_&&cannonVisible()&&!wallLocked()&&!cannon_.liveShots(),{O::Cannon});
+            if(!frontier_)add(riding_?"Get off motorbike":"Ride motorbike",!usingCannon_&&!wallLocked(),{O::Motorbike});
+            if(!frontier_)add(usingCannon_?"Leave cannon":"Use cannon",!riding_&&cannonVisible()&&!wallLocked()&&!cannon_.liveShots(),{O::Cannon});
         }
-        if(!freeBuild_){add("Starter room",true,{O::Starter});add("Quest journal",true,{O::Journal});add("Open bag",true,{O::Bag});}
+        if(!freeBuild_)add("Starter room",true,{O::Starter});
+        if(!freeBuild_||frontier_){add("Quest journal",true,{O::Journal});add("Open bag",true,{O::Bag});}
+    } else if(frontier_&&(menu_==Menu::GuideTopics||menu_==Menu::Guide)) {
+        constexpr std::array<std::string_view,6> titles{"Explore Dawnreach","Shape your own route","Make a home","Rekindle the beacons","Fight and retreat","Keep your progress"};
+        const std::array<std::string,6> text{
+            "WASD moves, Space jumps and Shift sprints. Right-drag looks around. V toggles autorun. Follow the gold compass marker toward a place worth reaching. E gathers nearby wood, stone and salvage; its prompt tells you what you will use. J opens your journal and I your bag.",
+            "B opens building. Choose with 1-6; Tab opens the full catalogue. Aim and click to place. R rotates; Page Up/Down changes height. Stairs and decks create real routes. Every piece costs materials and removal refunds them. Ctrl+Z undoes; Ctrl+Y redoes. G moves your aimed piece, T repaints it in the selected colour. Escape closes the menu.",
+            "Build a field workbench to craft tools and repair beacons. Store supplies in your chest. Put a bed beneath a roof with walls on three sides, leaving room to stand beside it. Use the sheltered bed to heal and make that camp your recovery point. Clear nearby raiders before resting.",
+            "Climb the Broken Stair for salvage. Build a workbench beside Dawnreach Beacon, approach its gold altar and press E. Restoration costs 12 wood, 12 stone and 8 scrap. The first flame teaches the quarry hammer and supplies its first craft. Mine cut stone at the Old Quarry to restore the other two lights. Choose a destination in your journal to track it.",
+            "Equip a trail staff or quarry hammer in your bag. Attack with "+combatBindingLabel(preferences_,CombatAction::Attack,false)+" and dodge with "+combatBindingLabel(preferences_,CombatAction::Dodge,false)+". Raiders raise their staff and mark the ground before striking. Dodge away, then counter. Your walls block attacks and change pursuit. Collect defeated raiders' supplies with E.",
+            "Progress saves automatically after discoveries and gathering, and periodically as you travel. Save also creates a checkpoint immediately. Defeat keeps your items, buildings and earned progress. Press E to recover at a valid camp. H toggles browser sound. Your frontier adventure has its own save, separate from free building."};
+        if(menu_==Menu::GuideTopics) {
+            menuTitle_="How to play";menuText_="Explore, gather, build, and bring the frontier back to life.";
+            for(size_t i=0;i<titles.size();++i)add(std::string(titles[i]),true,{O::GuideTopic,i});
+        } else {
+            const auto topic=std::min(size_t(guideTopic_),titles.size()-1);
+            menuTitle_=titles[topic];menuText_=text[topic];
+            if(topic+1<titles.size())add("Next tip",true,{O::GuideTopic,topic+1});
+            add("All topics",true,{O::GuideTopics});
+        }
+        add("Return to expedition",true,{O::GuideExit});
     } else if(menu_==Menu::GuideTopics||menu_==Menu::Guide) {
         const auto exitLabel=guideReturnMenu_==Menu::Main?"Back to menu":building_?"Return to building":freeBuild_?"Return to exploring":"Return to adventure";
         const auto guideCard=[&](AdventureGuideTopic topic){return freeBuild_?creativeGuideCard(topic,preferences_,guideGamepad_):adventureGuideCard(topic,preferences_,guideGamepad_);};
@@ -2227,7 +2351,8 @@ void AdventureRuntime::refreshHud() {
         add("Controller look speed: "+percentage(preferences_.padSensitivity),true,{O::PadSensitivity});
         add("Movement deadzone: "+percentage(preferences_.moveDeadzone),true,{O::MoveDeadzone});
         add("Look deadzone: "+percentage(preferences_.lookDeadzone),true,{O::LookDeadzone});
-        if(!freeBuild_)add("Attack and dodge controls",true,{O::Controls});
+        if(!freeBuild_||frontier_)add("Attack and dodge controls",true,{O::Controls});
+        if(frontier_)toggle("Sound",frontierAudioEnabled_,O::FrontierSound);
         add(freeBuild_?"Reset comfort settings":"Reset comfort and combat controls",true,{O::ResetPreferences});
         add("Save settings again",true,{O::RetryPreferences});add("Back",true,{O::Close});
     } else if(menu_==Menu::Controls) {
@@ -2275,11 +2400,13 @@ void AdventureRuntime::refreshHud() {
         }
         for(const auto& definition:buildingCatalog()) {
             const auto kind=definition.kind;
-            const uint8_t category=kind==PieceKind::Bed||kind==PieceKind::Chest||kind==PieceKind::Workbench?2
+            if(!frontier_&&isFrontierPiece(kind))continue;
+            if(frontier_&&!isFrontierPiece(kind)&&kind!=PieceKind::Brick1x2&&kind!=PieceKind::Brick2x2&&kind!=PieceKind::Brick2x4&&kind!=PieceKind::Beam&&kind!=PieceKind::Pier)continue;
+            const uint8_t category=definition.furniture!=FurnitureKind::None?2
                 :kind==PieceKind::Brick1x2||kind==PieceKind::Brick2x2||kind==PieceKind::Brick2x4?1:0;
             if(category!=catalogCategory_)continue;
-            add(std::string(definition.name),true,{O::SelectPiece,static_cast<uint64_t>(kind)},static_cast<uint8_t>(kind));
-            hud.rows.back().detail=freeBuild_?"Unlimited":costLabel(definition.cost);
+            add(std::string(definition.name),true,{O::SelectPiece,static_cast<uint64_t>(kind)},static_cast<uint8_t>(buildingIconKind(kind)));
+            hud.rows.back().detail=content_.freeBuilding?"Unlimited":costLabel(definition.cost);
         }
     } else if(menu_==Menu::Dialogue) {
         const auto* resident=residentDefinition(dialogueNpc_);const auto dialogue=homeDialogue(dialogueNpc_,state(),readiness);
@@ -2303,10 +2430,24 @@ void AdventureRuntime::refreshHud() {
         };
         add("Craft trail staff",canCraft({4,0,4},ItemKind::TrailStaff),{O::CraftStaff,bench_});hud.rows.back().detail="4 wood / 4 scrap";
         add("Craft field hammer",canCraft({4,0,2},ItemKind::FieldHammer),{O::CraftHammer,bench_});hud.rows.back().detail="4 wood / 2 scrap";
+        if(frontier_) {
+            add("Craft quarry hammer",state().frontier.quarryUnlockRevision&&canCraft({4,4,4},ItemKind::QuarryHammer),{O::FrontierCraft,bench_});
+            hud.rows.back().detail=state().frontier.quarryUnlockRevision?"4 wood / 4 stone / 4 scrap":"Restore the first beacon to learn this recipe";
+        }
         const bool unlocked=trailCompassRecipeUnlocked(state().firstHome);
-        add(unlocked?"Craft trail compass":"Trail compass: help Moss first",unlocked&&canCraft({2,0,4},ItemKind::TrailCompass),{O::CraftCompass,bench_});
-        hud.rows.back().detail="2 wood / 4 scrap";equipRow();add("Close workbench",true,{O::Close});
+        if(!frontier_)add(unlocked?"Craft trail compass":"Trail compass: help Moss first",unlocked&&canCraft({2,0,4},ItemKind::TrailCompass),{O::CraftCompass,bench_});
+        if(!frontier_){hud.rows.back().detail="2 wood / 4 scrap";equipRow();}add("Close workbench",true,{O::Close});
         if(!reachable)menuStatus_=reason;
+    } else if(menu_==Menu::Journal&&frontier_) {
+        menuTitle_="The Dawnreach expedition";
+        menuText_="Restore three beacons. Build a bench at the first, then craft a quarry hammer for cut stone. Choose a destination below to track.";
+        menuStatus_=status_;
+        for(const auto& site:frontierWorld_.destinations()) {
+            const auto* progress=frontierSite(state(),site.id);
+            add(std::string(site.name),true,{O::FrontierTrack,site.id});
+            hud.rows.back().detail=progress&&progress->restoredRevision?"Restored":progress&&progress->rewardClaimRevision?"Supplies recovered":progress&&progress->discoveredRevision?"Discovered / track destination":"Unexplored / track destination";
+        }
+        add("Return to expedition",true,{O::Close});
     } else if(menu_==Menu::Journal) {
         menuTitle_="Your journal";menuText_=homeObjective(state(),readiness);
         menuStatus_=state().firstHome.phase==QuestPhase::Completed?"Completed / Trail Compass recipe learned"
@@ -2354,7 +2495,7 @@ void AdventureRuntime::refreshHud() {
         if(state().equippedTool.kind!=ItemKind::None)add("Equipped: "+std::string(itemDefinition(state().equippedTool.kind)->name),false,{O::Close});
         if(compass.equipped)equipRow();
         for(uint8_t i=0;i<state().backpack.size();++i)if(const auto stack=state().backpack[i];stack.quantity) {
-            const bool tool=stack.kind==ItemKind::FieldHammer||stack.kind==ItemKind::TrailStaff,utility=stack.kind==ItemKind::TrailCompass;
+            const bool tool=stack.kind==ItemKind::FieldHammer||stack.kind==ItemKind::QuarryHammer||stack.kind==ItemKind::TrailStaff,utility=stack.kind==ItemKind::TrailCompass;
             add(std::string(tool||utility?"Equip ":"")+std::string(itemDefinition(stack.kind)->name)+" ("+std::to_string(stack.quantity)+")",
                 tool||utility,{utility?O::EquipUtility:O::EquipTool,i});
         }
@@ -2413,7 +2554,7 @@ void AdventureRuntime::refreshHud() {
         for(size_t i=0;i<quickSlots_.size();++i) {
             const auto& slot=quickSlots_[i];
             auto row=button(buildingDefinition(slot.kind)->name,39,static_cast<int>(i+1));
-            row.pieceKind=static_cast<uint8_t>(slot.kind);row.paint=slot.paint;row.enabled=canBuild&&menu_==Menu::None;
+            row.pieceKind=static_cast<uint8_t>(buildingIconKind(slot.kind));row.paint=slot.paint;row.enabled=canBuild&&menu_==Menu::None;
             hud.hotbar.push_back(std::move(row));
         }
         for(size_t i=0;i<creativeColours.size();++i) {
@@ -2430,7 +2571,7 @@ void AdventureRuntime::refreshHud() {
             hud.buildControls[3].detail=padAim_?"L3":"P";
             hud.buildControls[8].detail=padAim_?"View":"B";
             for(auto& row:hud.buildControls)row.enabled=canBuild;
-            hud.buildControls[2].enabled=canBuild&&(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_);
+            hud.buildControls[2].enabled=canBuild&&(frontier_?!frontierUndo_.empty():(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_));
             hud.buildControls[6].enabled=canBuild&&targetPart_&&targetPart_!=blacksmithPartId&&targetPart_!=blacksmithWallPartId
                 &&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_);
         }
@@ -2449,6 +2590,7 @@ void AdventureRuntime::refreshHud() {
         }
     }
     hudContent_=hud;hud_.setContent(std::move(hud));
+    if(frontier_)fillFrontierHud();
 }
 bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,
     WGPUTextureView linearDepth,WGPUTextureView environment,WGPUTextureView rayDepth,
@@ -2465,11 +2607,15 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
         }
         const auto transform=model(part,origin);
         render::MeshDrawInstance instance{.assetIndex=0,
-            .meshIndex=uint32_t(door?PieceKind::Doorway:part.kind)-1,
+            .meshIndex=uint32_t(buildingIconKind(part.kind))-1,
             .modelMatrix=glm::mat4(transform),.tintColor=tint,
             .emissiveBoost=preview?.12f:0.f,.castsSunShadow=!preview,.baseColorOverride=paint,
             .surface=preview?glm::vec4(0):glm::vec4(0,0,1,0)};
-        meshes_.addInstance(instance);
+        for(const auto& visual:buildingVisuals(part.kind)) {
+            instance.meshIndex=uint32_t(visual.source)-1;
+            instance.modelMatrix=glm::mat4(glm::scale(glm::translate(transform,visual.offset),visual.scale));
+            meshes_.addInstance(instance);
+        }
         if(door) {
             instance.assetIndex=7;instance.meshIndex=0;
             instance.modelMatrix=glm::mat4(transform*doorLeafTransform(doorOpen));
@@ -2523,6 +2669,20 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
             }
             return true;
         };
+        const auto forestTint=[&](glm::dvec3 point,float tone) {
+            glm::vec3 tint(tone);
+            if(frontier_) {
+                const glm::dvec2 p(point.x,point.z);
+                const float ember=float(1.-glm::smoothstep(25.,105.,glm::length(p-glm::dvec2(1120,-955))));
+                const float storm=float(1.-glm::smoothstep(25.,110.,glm::length(p-glm::dvec2(1385,-950))));
+                const float meadow=float((1.-glm::smoothstep(70.,180.,glm::length(p-glm::dvec2(1190,-1090))))
+                    *(.5+.5*std::sin(point.x*.12+point.z*.08)));
+                tint*=glm::mix(glm::vec3(1),glm::vec3(1.4f,1.0f,.70f),meadow*.65f);
+                tint*=glm::mix(glm::vec3(1),glm::vec3(.73f,.93f,1.30f),storm);
+                tint*=glm::mix(glm::vec3(1),glm::vec3(2.25f,.84f,.40f),ember);
+            }
+            return glm::vec4(tint,1);
+        };
         if(forestDrawEpoch_!=staticGeometryEpoch_ || forestDrawOrigin_!=origin) {
             // Compare exact membership, not a probabilistic hash. Near/far
             // collision reclassification need not rebuild immutable tree data.
@@ -2542,7 +2702,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                     *glm::rotate(glm::dmat4(1),double(prop.yawQuarterTurns)*std::numbers::pi/2,glm::dvec3(0,1,0));
                 const float tone=.94f+.01f*float((prop.id*2654435761u>>24)%13u);
                 forestDraws_.push_back({prop,{.assetIndex=18,.meshIndex=prop.forestVariant,
-                    .modelMatrix=glm::mat4(transform),.tintColor={tone,tone,tone,1},.castsSunShadow=false,.surface={0,0,1,0}}});
+                    .modelMatrix=glm::mat4(transform),.tintColor=forestTint(prop.feet,tone),.castsSunShadow=false,.surface={0,0,1,0}}});
             };
             for(const auto& prop:scenery_.props())cache(prop);
             for(const auto& prop:scenery_.distantTrees())cache(prop);
@@ -2628,7 +2788,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 *glm::rotate(glm::dmat4(1),double(prop.yawQuarterTurns)*std::numbers::pi/2,glm::dvec3(0,1,0));
             const float tone=tree?.94f+.01f*float((prop.id*2654435761u>>24)%13u):1.f;
             meshes_.addInstance({.assetIndex=asset,.meshIndex=forest?uint32_t(prop.forestVariant):uint32_t(prop.kind),
-                .modelMatrix=glm::mat4(transform),.tintColor={tone,tone, tone,1},.castsSunShadow=shadow,.surface={0,0,1,0}});
+                .modelMatrix=glm::mat4(transform),.tintColor=tree?forestTint(prop.feet,tone):glm::vec4(tone,tone,tone,1),.castsSunShadow=shadow,.surface={0,0,1,0}});
         };
         for(const auto& prop:scenery_.props())drawProp(prop);
     }
@@ -2711,6 +2871,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
         }
     }
     } // Legacy adventure scenery and actors.
+    if(frontier_)renderFrontier(origin);
     if(building_&&hasTarget_&&menu_==Menu::None) {
         std::string error;
         const auto ghosts=blueprint_!=BlueprintKind::None?buildingBlueprintLayout(blueprint_,preview_.position,yaw_,error):std::vector<PlacePart>{preview_};
@@ -2849,11 +3010,19 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
                 footContacts[name=="robot_foot_l"?0:1]={center.x,lower.y,center.z,.7f};
             }
         }
-        for(uint32_t i=0;i<pose.drawCount;++i)meshes_.addInstance({.assetIndex=1,.meshIndex=pose.draws[i].meshIndex,.modelMatrix=pose.draws[i].modelMatrix,.surface={0,0,1,0}});
-        if(state().equippedTool.kind==ItemKind::TrailStaff) {
+        const auto playerTint=frontier_&&frontierHurtSeconds_>.45?glm::vec4(1.3f,.58f,.42f,1):glm::vec4(1);
+        for(uint32_t i=0;i<pose.drawCount;++i)meshes_.addInstance({.assetIndex=1,.meshIndex=pose.draws[i].meshIndex,.modelMatrix=pose.draws[i].modelMatrix,.tintColor=playerTint,.surface={0,0,1,0}});
+        if(state().equippedTool.kind==ItemKind::TrailStaff||state().equippedTool.kind==ItemKind::QuarryHammer||state().equippedTool.kind==ItemKind::FieldHammer) {
             // Attach a small wooden beam to the actual exported right-hand
             // anchor. It follows the accepted tool clip; hits use the resolver.
             const auto staff=trailStaffModel(pose.anchors[2]);
+            if(state().equippedTool.kind!=ItemKind::TrailStaff) {
+                // The shaft basis is already stretched along local X. Fit a
+                // compact perpendicular head around its end, centring brick Y.
+                const auto head=staff*glm::translate(glm::dmat4(1),glm::dvec3(.9,-.5,0))*glm::scale(glm::dmat4(1),glm::dvec3(.24,1.1,1.4));
+                meshes_.addInstance({.assetIndex=0,.meshIndex=uint32_t(PieceKind::Brick2x2)-1,.modelMatrix=glm::mat4(head),
+                    .baseColorOverride={.3f,.42f,.48f,1},.surface={0,0,1,0}});
+            }
             meshes_.addInstance({.assetIndex=0,.meshIndex=uint32_t(PieceKind::Beam)-1,.modelMatrix=glm::mat4(staff),
                 .tintColor=glm::vec4(1),.surface={0,0,1,0}});
         }
@@ -2877,7 +3046,7 @@ std::string AdventureRuntime::json() const {
     size_t parts=0;for(const auto& s:state().structures)parts+=s.parts.size();
     const auto* blueprint=buildingBlueprintDefinition(blueprint_);
     const auto cost=blueprint?blueprint->cost:buildingDefinition(selected_)->cost;
-    std::ostringstream out;out<<std::setprecision(17)<<"{\"costText\":"<<quote(freeBuild_?"Unlimited pieces":costLabel(cost))<<",\"creative\":"<<(freeBuild_?"true":"false")<<",\"build\":"<<(building_?"true":"false")<<",\"selected\":"<<quote(blueprint?blueprint->name:buildingDefinition(selected_)->name)
+    std::ostringstream out;out<<std::setprecision(17)<<"{\"costText\":"<<quote(content_.freeBuilding?"Unlimited pieces":costLabel(cost))<<",\"creative\":"<<(freeBuild_?"true":"false")<<",\"build\":"<<(building_?"true":"false")<<",\"selected\":"<<quote(blueprint?blueprint->name:buildingDefinition(selected_)->name)
         <<",\"blueprintKind\":"<<int(blueprint_)<<",\"piece\":"<<(blueprint_==BlueprintKind::StarterRoom?0:int(selected_))<<",\"status\":"<<quote(status_)<<",\"previewReason\":"<<quote(previewReason_)<<",\"interaction\":"<<quote(interactionLabel())
         <<",\"statusEvent\":"<<quote(std::to_string(interactionStatusSerial_))
         <<",\"valid\":"<<(previewValid_?"true":"false")<<",\"wood\":"<<itemCount(state().backpack,ItemKind::Wood)
@@ -2898,6 +3067,22 @@ std::string AdventureRuntime::json() const {
         <<",\"attackControl\":"<<quote(combatBindingLabel(preferences_,CombatAction::Attack,padAim_))
         <<",\"dodgeControl\":"<<quote(combatBindingLabel(preferences_,CombatAction::Dodge,padAim_))
         <<",\"lookControl\":"<<quote(preferences_.orbitToggle?"Click the right mouse button to start or stop looking. The right stick looks around.":"Hold the right mouse button to look around, or use the right stick.");
+    if(frontier_)out<<",\"frontier\":true,\"region\":"<<quote(hudContent_.region)
+        <<",\"chapter\":"<<quote(hudContent_.chapter)<<",\"objectiveTitle\":"<<quote(hudContent_.objectiveTitle)
+        <<",\"objectiveDetail\":"<<quote(hudContent_.objectiveDetail)<<",\"objectiveDistance\":"<<quote(hudContent_.objectiveDistance)
+        <<",\"objectiveProgress\":"<<quote(hudContent_.objectiveProgress)<<",\"milestone\":"<<quote(hudContent_.milestone)
+        <<",\"objectiveBearingDegrees\":"<<hudContent_.objectiveBearingDegrees<<",\"objectiveBearingVisible\":"<<(hudContent_.objectiveBearingVisible?"true":"false")
+        <<",\"maxHealth\":100,\"audioEnabled\":"<<(frontierAudioEnabled_?"true":"false")
+        <<",\"audioEvent\":"<<quote(frontierAudioEvent_)<<",\"audioSequence\":"<<quote(std::to_string(frontierAudioSequence_));
+    if(frontier_) {
+        bool threat=false;
+        for(const auto& actor:frontierActors_)if(actor.active&&glm::length(actor.controller.feet()-player_.feet())<32){threat=true;break;}
+        const bool quiet=menu_!=Menu::None||!state().health;
+        const auto mood=quiet?"silent":threat?"combat":glm::length(player_.feet()-frontierWorld_.resident())<24?"camp":"explore";
+        const auto pace=quiet||player_.mode()!=AdventurePlayer::Mode::Walking||frontierDodgeSeconds_>0?0:
+            glm::length(player_.worldVelocity())>8.5?2:glm::length(player_.worldVelocity())>.8?1:0;
+        out<<",\"audioMood\":"<<quote(mood)<<",\"audioPace\":"<<pace;
+    }
     if(freeBuild_)out<<",\"forest\":{\"seed\":"<<CreativeScenery::forestSeed
         <<",\"recipe\":"<<CreativeScenery::forestRecipeVersion<<",\"drawDistance\":"<<CreativeScenery::forestDrawDistance
         <<",\"nearProps\":"<<scenery_.props().size()<<",\"distantTrees\":"<<scenery_.distantTrees().size()
@@ -2943,7 +3128,7 @@ std::string AdventureRuntime::json() const {
     }
     out<<"],\"colourAvailable\":"<<(freeBuild_?"true":"false")
         <<",\"colourPickerOpen\":"<<(menu_==Menu::Colours?"true":"false")
-        <<",\"canUndo\":"<<(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_?"true":"false")
+        <<",\"canUndo\":"<<((frontier_?!frontierUndo_.empty():(AdventureSession::findPart(state(),lastPlaced_)||lastBlueprint_))?"true":"false")
         <<",\"canRemove\":"<<(targetPart_&&targetPart_!=blacksmithPartId&&targetPart_!=blacksmithWallPartId&&!isVillagePartId(targetPart_)&&!isTrailPartId(targetPart_)?"true":"false");
     if(freeBuild_) {
         out<<",\"hud\":{\"width\":"<<hudWidth_<<",\"height\":"<<hudHeight_<<",\"controls\":[";
@@ -3115,15 +3300,24 @@ bool AdventureRuntime::restore(std::span<const std::byte> bytes,construction::Wo
     saveFeedbackSeconds_=0;interactionFeedbackSeconds_=0;
     selectedPaint_=0;brickScroll_=0;building_=freeBuild_;blueprint_=BlueprintKind::None;selected_=freeBuild_?PieceKind::Brick2x4:PieceKind::Foundation;
     if(freeBuild_)resetQuickSlots();
+    if(frontier_) {
+        building_=false;frontierMoving_.reset();frontierUndo_.clear();frontierRedo_.clear();
+        frontierFeedbackInitialized_=false;frontierBursts_.clear();
+        frontierAutoRun_=false;initializeFrontierActors();
+    }
     menu_=Menu::None;menuSelection_=0;heightSteps_=0;lastPlaced_=0;lastBlueprint_=0;
     guideReturnMenu_=Menu::None;guideReturnSelection_=0;guideTopic_=AdventureGuideTopic::Movement;guideGamepad_=false;
     bench_=0;chest_=0;dialogueNpc_=0;journalQuest_=1;targetPart_=0;
     pendingActions_.clear();previewValid_=false;hasTarget_=false;previewReason_.clear();
     player_.discardPendingInput();inputRouter_.reset();buildRouter_.reset();combatInput_.reset();
     (void)menuIntents_.publish("restored-checkpoint",{});
-    discontinuity_=true;status_=resizedRecovery?"Your build is restored. The resized figure moved to nearby clear ground.":freeBuild_?"Your build is restored.":"Welcome home. Your adventure is restored.";
+    discontinuity_=true;
+    if(frontier_) {
+        status_=resizedRecovery?"Your expedition is restored. You moved to nearby clear ground.":"Your expedition continues. Your buildings, supplies and beacons are restored.";
+        frontierMilestone_="THE EXPEDITION CONTINUES";frontierMilestoneSeconds_=4;interactionFeedbackSeconds_=4;
+    } else status_=resizedRecovery?"Your build is restored. The resized figure moved to nearby clear ground.":freeBuild_?"Your build is restored.":"Welcome home. Your adventure is restored.";
     migrationDirty_=metadata.migrated||resizedRecovery;
-    saveStatus_=migrationDirty_?"World updated. Save to keep the new format.":(freeBuild_?"Saved build loaded":"Saved adventure loaded");
+    saveStatus_=migrationDirty_?"World updated. Save to keep the new format.":(frontier_?"Saved expedition loaded":freeBuild_?"Saved build loaded":"Saved adventure loaded");
     savedRevision_=state().revision;refreshHud();return true;
 }
 }

@@ -39,16 +39,18 @@ test('bridge publishes only changed snapshots so an idle poll does not re-render
     b.cleanup();f.close();
 });
 test('engine ticks do not publish unchanged controls, but pending completion and preferences stay current',()=>{
-    const f=fixture(),published=[],preferenceTicks=[];
+    const f=fixture(),published=[],preferenceTicks=[],soundTicks=[];
     f.w.VoxyAdventurePreferences={install:()=>({tick:state=>preferenceTicks.push(state.preferencesRevision),cleanup(){}})};
     f.state={...f.state,preferencesRevision:'1',cannon:{available:true,nearby:false,ready:true,shots:0}};
-    const b=createBridge(f.engine,f.w,state=>published.push(state));
+    const b=createBridge(f.engine,f.w,state=>published.push(state),state=>soundTicks.push(state.observation));
     for(let tick=2;tick<=101;tick++){
         f.advance({player:{tick:String(tick),x:tick},camera:{yaw:tick/10},forest:{selectionMs:tick/100},
             cannon:{...f.state.cannon,shots:tick,yaw:tick/10},preferencesRevision:String(tick)});
         b.refresh();
     }
     assert.equal(published.length,1,'Frame diagnostics must not invalidate the controls');
+    assert.equal(soundTicks.length,101,'Audio advances on the existing poll without causing DOM updates');
+    assert.equal(soundTicks.at(-1),f.state.observation,'Audio receives the latest accepted observation');
     assert.equal(preferenceTicks.at(-1),'101','Preference transport must still see fresh accepted revisions');
     assert.equal(b.action(3),true);assert.equal(published.at(-1).pending,true);
     assert.equal(published.at(-1).observation,f.state.observation,'Admission uses the latest observation');
@@ -58,6 +60,13 @@ test('engine ticks do not publish unchanged controls, but pending completion and
     f.advance({cannon:{...f.state.cannon,nearby:true}});b.refresh();
     assert.equal(published.length,4);assert.equal(published.at(-1).cannon.nearby,true);
     f.state={...f.state,menuToken:2};assert.equal(b.action(10,65,1),false,'Stale menu input is still rejected');
+    b.cleanup();f.close();
+});
+test('optional sound output failure leaves accepted game controls available',()=>{
+    const f=fixture(),published=[];
+    const b=createBridge(f.engine,f.w,state=>published.push(state),()=>{throw Error('Output device removed');});
+    assert.equal(published.at(-1).failed,undefined);assert.equal(b.action(3),true);
+    f.advance({piece:8});b.refresh();assert.equal(published.at(-1).piece,8);
     b.cleanup();f.close();
 });
 test('pending input publishes the next accepted frame without idle animation work',()=>{

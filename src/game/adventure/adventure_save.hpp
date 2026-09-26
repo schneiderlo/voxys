@@ -2,7 +2,8 @@
 #include "game/adventure/adventure_session.hpp"
 
 namespace voxy::game::adventure {
-inline constexpr uint32_t kAdventureSaveSchema=6;
+inline constexpr uint32_t kAdventureSaveSchema=6; // Frozen legacy/creative wire format.
+inline constexpr uint32_t kFrontierSaveSchema=7;
 inline constexpr size_t kMaximumAdventureSaveBytes=1024*1024;
 inline constexpr size_t kAdventureSchema3ExtensionBytes=298;
 // Frozen schema 1–5 content identities, independent of later catalogs.

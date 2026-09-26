@@ -242,6 +242,21 @@ void creativeIcon(Painter& p,int action,glm::vec4 b,glm::vec4 ink=chalk) {
     case 6:p.centerText("Z",b,ink,20);break;
     case 29:p.centerText("?",b,ink,22);break;
     case 7:p.centerText("E",b,ink,20);break;
+    case 24: // Backpack: straps, flap and a small pocket.
+        p.stroke({x-10,y-7,20,20},ink,5,2);
+        p.stroke({x-5,y-12,10,8},ink,4,2);
+        bar(-7,-2,14,2);p.stroke({x-5,y+3,10,6},ink,2,1.5f);break;
+    case 16: // Journal: two open pages.
+        p.stroke({x-12,y-9,12,19},ink,2,1.5f);
+        p.stroke({x,y-9,12,19},ink,2,1.5f);
+        for(float dy:{-4.f,1.f,6.f}){bar(-9,dy,6,1);bar(3,dy,6,1);}break;
+    case 27:p.centerText("/",b,ink,28);break;
+    case 28:p.centerText(">>",b,ink,17);break;
+    case 11:p.centerText("+",b,ink,25);break;
+    case 40:bar(-11,-10,22,8);bar(-2,-3,4,16);break;
+    case 43:p.centerText("G",b,ink,20);break;
+    case 44:creativeIcon(p,38,b,ink);break;
+    case 42:p.centerText("Y",b,ink,20);break;
     default:p.centerText("...",b,ink,20);break;
     }
 }
@@ -272,6 +287,17 @@ void creativeBareControl(Painter& p,const AdventureHudRow& row,glm::vec4 b) {
 }
 void creativeTop(Painter& p,const AdventureHudContent& c) {
     if(c.topActions.empty())return;
+    if(c.frontier&&(p.width<760||p.height<540)) {
+        const size_t count=std::min(c.topActions.size(),p.height<400?size_t{2}:size_t{4});
+        // Keep the final Menu action when only two vertical controls fit.
+        for(size_t i=0;i<count;++i) {
+            const auto& row=c.topActions[i+1==count?c.topActions.size()-1:i];
+            const glm::vec4 box{p.width-56,12+number(i)*52,44,44};
+            p.rounded(box,p.contrast?night:glm::vec4(.055f,.085f,.065f,.64f),22);
+            creativeBareControl(p,row,box);
+        }
+        return;
+    }
     const size_t count=std::min(c.topActions.size(),size_t{4});
     const float cell=44,gap=8,all=number(count)*cell+number(count-1)*gap;
     const float y=p.width>=760&&p.height>=540?(p.width>=1100?250.f:218.f):12.f;
@@ -319,17 +345,22 @@ void creativeHotbar(Painter& p,const AdventureHudContent& c,float areaWidth=0) {
 }
 void creativeHints(Painter& p,const AdventureHudContent& c) {
     std::vector<const AdventureHudRow*> rows;
-    for(int action:{23,3,38,22}) {
+    const std::vector<int> actions=c.frontier&&p.width>=620?std::vector<int>{23,3,38,43,44,6,42,5,22}:std::vector<int>{23,3,38,22};
+    for(int action:actions) {
         if(p.width<500&&action==22)continue;
         const auto item=std::find_if(c.buildControls.begin(),c.buildControls.end(),[&](const auto& row){return row.action==action;});
         if(item!=c.buildControls.end())rows.push_back(&*item);
     }
     if(rows.empty())return;
+    if(c.frontier&&rows.size()>4) {
+        const size_t capacity=std::max(size_t{4},static_cast<size_t>((p.width-24)/88));
+        if(rows.size()>capacity){const auto* last=rows.back();rows.resize(capacity);rows.back()=last;}
+    }
     const float cell=std::min(112.f,(p.width-24)/number(rows.size())),all=cell*number(rows.size());
     for(size_t i=0;i<rows.size();++i) {
         const auto& row=*rows[i];const glm::vec4 box{(p.width-all)*.5f+number(i)*cell,p.height-45,cell,44};
         const std::string_view key=!row.detail.empty()?std::string_view(row.detail):row.action==23?"Tab":row.action==3?"R":row.action==38?"P":"B";
-        const float font=p.pixels*.80f,kw=std::max(20.f,measureAdventureHudText(key,font)+8);
+        const float font=c.frontier?std::min(16.f,p.pixels*.80f):p.pixels*.80f,kw=std::max(20.f,measureAdventureHudText(key,font)+8);
         const float labelWidth=measureAdventureHudText(row.label,font),content=std::min(cell-6,kw+6+labelWidth),x=box.x+(cell-content)*.5f;
         p.rounded({x,box.y+11,kw,22},{.93f,.94f,.86f,.40f},4);
         p.rounded({x+1,box.y+12,kw-2,20},{.055f,.085f,.065f,.72f},3);
@@ -377,6 +408,60 @@ void creativePieceDisk(Painter& p,const AdventureHudRow& row,glm::vec2 center,fl
     const float target=selected?56.f:44.f;
     p.out.hits.push_back({{center.x-target*.5f,center.y-target*.5f,target,target},row.action,row.value,row.intent,index,row.enabled,row.label});
 }
+
+void frontierReadouts(Painter& p,const AdventureHudContent& c) {
+    const bool navigation=p.width>=760&&p.height>=540;
+    const float scale=p.pixels/18,margin=p.width>=1200?32.f:22.f;
+    const float left=p.width<500?12.f:margin;
+    // On smaller viewports the portrait/map are hidden by the navigation pass;
+    // keep the actual health and resources without consuming the aiming area.
+    float y=navigation?std::max(138.f,63.f+54.6f*scale):12.f;
+    const float readoutWidth=std::min(p.width-left-(navigation?16.f:76.f),navigation?360.f:286.f);
+    if(!navigation&&std::isfinite(c.maxHealth)&&c.maxHealth>0) {
+        const float health=std::isfinite(c.health)?std::clamp(c.health,0.f,c.maxHealth):0.f;
+        const float barWidth=std::min(160.f,readoutWidth*.52f);
+        p.rounded({left,y+8,barWidth,7},{.03f,.055f,.035f,.8f},3.5f);
+        if(health>0)p.rounded({left,y+8,barWidth*health/c.maxHealth,7},health<=c.maxHealth*.3f?glm::vec4(1,.42f,.3f,1):glm::vec4(.57f,.83f,.53f,1),3.5f);
+        p.shadowText(std::to_string(static_cast<int>(health))+" / "+std::to_string(static_cast<int>(c.maxHealth)),
+            {left+barWidth+9,y,readoutWidth-barWidth-9,22*scale},chalk,14*scale);
+        y+=30*scale;
+    }
+    const float resourceFont=std::min(17.f,14*scale),cell=readoutWidth/3;
+    const std::array<std::string,3> resources{"WOOD "+std::to_string(c.wood),"STONE "+std::to_string(c.stone),"SCRAP "+std::to_string(c.scrap)};
+    p.rounded({left-6,y-5,readoutWidth+12,resourceFont*1.3f+10},{.055f,.085f,.065f,p.contrast?1.f:.70f},8);
+    for(size_t i=0;i<resources.size();++i)
+        p.text(resources[i],{left+number(i)*cell,y,cell-5,resourceFont*1.3f},i==2?glm::vec4(1,.86f,.52f,1):chalk,1,resourceFont);
+    y+=resourceFont*1.3f+25;
+
+    if(!c.objectiveTitle.empty()&&(c.milestone.empty()||p.width>=1180)) {
+        const float boxWidth=std::min(readoutWidth,navigation?p.width*.40f:readoutWidth);
+        const float titleSize=std::min(22.f,18*scale),titleHeight=titleSize*1.3f;
+        const float detailSize=std::min(19.f,15*scale),detailPitch=detailSize*1.3f;
+        const float lowerLimit=p.height*.46f;
+        const bool detail=!c.objectiveDetail.empty()&&y+titleHeight+detailPitch*2+30<lowerLimit;
+        const std::string progress=c.objectiveDistance+(c.objectiveDistance.empty()||c.objectiveProgress.empty()?"":"  /  ")+c.objectiveProgress;
+        const bool footer=!progress.empty()&&y+titleHeight+(detail?detailPitch*2+6:0)+detailPitch+9<lowerLimit;
+        const float boxHeight=titleHeight+(detail?detailPitch*2+6:0)+(footer?detailPitch+9:0)+12;
+        // At minimum supported heights controls take precedence. Never cover
+        // the center aim with a large objective sheet or a truncated tracker.
+        if(y+titleHeight+6<std::max(lowerLimit,112.f)) {
+            p.rounded({left-6,y-6,boxWidth+12,boxHeight},{.035f,.075f,.075f,p.contrast?1.f:.72f},9);
+            p.rounded({left-6,y-3,3,boxHeight-6},gold,1.5f);
+            p.text(c.objectiveTitle,{left+8,y,boxWidth-12,titleHeight},gold,1,titleSize);y+=titleHeight;
+            if(detail){y+=6;p.text(c.objectiveDetail,{left+8,y,boxWidth-14,detailPitch*2},chalk,2,detailSize);y+=detailPitch*2;}
+            if(footer){y+=9;p.text(progress,{left+8,y,boxWidth-14,detailPitch},fog,1,detailSize);}
+        }
+    }
+    if(!c.milestone.empty()&&p.width>=620&&p.height>=540) {
+        const float width=std::min(p.width*.40f,460.f),x=(p.width-width)*.5f;
+        const float font=std::min(25.f,21*scale),height=font*1.3f+26;
+        const float top=navigation?182.f:110.f;
+        p.rounded({x,top,width,height},{.045f,.10f,.11f,p.contrast?1.f:.94f},12);
+        p.stroke({x,top,width,height},{.95f,.77f,.28f,.75f},12,1.5f);
+        p.centerText(c.milestone,{x+16,top+7,width-32,height-14},gold,font);
+    }
+}
+
 AdventureHudLayout layoutCreativeHud(const AdventureHudContent& c,uint32_t width,uint32_t height) {
     AdventureHudLayout result;
     const float w=static_cast<float>(width),h=static_cast<float>(height),margin=12;
@@ -384,6 +469,8 @@ AdventureHudLayout layoutCreativeHud(const AdventureHudContent& c,uint32_t width
     const float pixels=18*scale,pitch=pixels*1.3f,available=w-2*margin;
     result.canvas.bodyPixels=pixels;
     Painter p{result,w,h,pixels,c.highContrast,true,c.paint};
+    if(c.frontier&&(c.mode==AdventureHudMode::Explore||c.mode==AdventureHudMode::Build||c.mode==AdventureHudMode::Catalog)
+        &&!c.colourPickerOpen)frontierReadouts(p,c);
     const auto finish=[&](){
         if(!c.hoverLabel.empty()&&c.hoverBounds.z>=44&&c.hoverBounds.w>=44) {
             const float tw=std::min(available,measureAdventureHudText(c.hoverLabel,pixels)+24),th=pitch+12;
@@ -398,20 +485,31 @@ AdventureHudLayout layoutCreativeHud(const AdventureHudContent& c,uint32_t width
     };
     if(c.mode==AdventureHudMode::Explore) {
         creativeTop(p,c);
-        const size_t count=std::min(c.quickActions.size(),size_t{4});
-        const float cell=std::min(112.f,(available-8*number(count?count-1:0))/number(std::max(count,size_t{1})));
+        const size_t count=std::min(c.quickActions.size(),c.frontier?
+            std::min(size_t{6},static_cast<size_t>((available+8)/52)):size_t{4});
+        const float cell=std::min(c.frontier?152.f:112.f,(available-8*number(count?count-1:0))/number(std::max(count,size_t{1})));
         const float all=number(count)*cell+8*number(count?count-1:0),y=h-margin-44;
         for(size_t i=0;i<count;++i) {
             const auto& row=c.quickActions[i];const glm::vec4 box{(w-all)*.5f+number(i)*(cell+8),y,cell,44};
             p.rounded(box,{.065f,.10f,.07f,.54f},12);
-            creativeIcon(p,row.action,{box.x,box.y,38,44},row.enabled?chalk:fog);
-            p.text(row.label,{box.x+38,box.y+(44-pitch)*.5f,box.z-44,pitch},row.enabled?chalk:fog);
+            if(c.frontier&&cell<90)p.centerText(row.label,{box.x+4,box.y,box.z-8,44},row.enabled?chalk:fog,std::min(16.f,pixels));
+            else {
+                if(c.frontier&&!row.detail.empty()) {
+                    const glm::vec4 key{box.x+5,box.y+10,30,24};
+                    p.stroke(key,{.93f,.94f,.86f,.50f},4,1);
+                    p.centerText(row.detail,key,row.enabled?chalk:fog,12);
+                } else creativeIcon(p,row.action,{box.x,box.y,38,44},row.enabled?chalk:fog);
+                p.text(row.label,{box.x+38,box.y+(44-pitch)*.5f,box.z-44,pitch},row.enabled?chalk:fog);
+            }
             result.hits.push_back({box,row.action,row.value,row.intent,SIZE_MAX,row.enabled,row.label});
         }
-        const auto& feedback=c.status.empty()?c.context:c.status;
+        const auto& feedback=c.frontier&&!c.context.empty()?c.context:c.status.empty()?c.context:c.status;
         if(!feedback.empty()&&h>=340) {
             const float fw=std::min(available,measureAdventureHudText(feedback,pixels)+24);
+            if(c.frontier)p.rounded({(w-fw)*.5f,y-pitch-20,fw,pitch+16},{.035f,.07f,.06f,.85f},9);
             p.centerText(feedback,{(w-fw)*.5f,y-pitch-12,fw,pitch},chalk);
+            if(c.frontier&&!c.status.empty()&&c.status!=feedback&&h>=480)
+                p.centerText(c.status,{margin,y-pitch*2-30,available,pitch},c.tone==CoveHudTone::Blocked?glm::vec4(1,.74f,.58f,1):gold,std::min(pixels,17.f));
         }
         return finish();
     }
@@ -534,6 +632,10 @@ AdventureHudLayout layoutCreativeHud(const AdventureHudContent& c,uint32_t width
     creativeTop(p,c);
     creativeHotbar(p,c);
     creativeHints(p,c);
+    if(c.frontier&&!c.cost.empty()&&h>=360) {
+        const auto label=c.selected+"  /  "+c.cost;
+        p.centerText(label,{margin,h-(w<620?161.f:177.f),available,pitch},chalk,std::min(pixels,18.f),true);
+    }
     if(!c.status.empty()&&h>=500&&w>=860) {
         const float statusWidth=std::min(340.f,w*.29f);
         p.text(c.status,{margin+4,h-190,statusWidth,pitch},c.tone==CoveHudTone::Blocked?glm::vec4(1,.74f,.58f,1):chalk);

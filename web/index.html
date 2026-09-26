@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Voxys — Building Adventure</title>
+    <title>Voxys — Frontier</title>
     <script>
         // Keep the directory entry on the same URL as the working app page.
         // Browsers cache / and /index.html as separate documents.
@@ -73,6 +73,11 @@
         <p class="hint">
             For Firefox, enable <code>dom.webgpu.enabled</code> in <code>about:config</code>
         </p>
+        <p id="error-save-note" hidden>Saved worlds remain on this device. Starting a new expedition keeps them separate.</p>
+        <div id="error-actions" hidden style="margin-top: 24px;">
+            <a id="error-retry" href="" style="display: inline-block; padding: 12px 20px; margin: 6px; border: 1px solid currentColor; border-radius: 8px; color: var(--color-text); text-decoration: none;">Retry</a>
+            <a id="error-new-expedition" href="" hidden style="padding: 12px 20px; margin: 6px; border-radius: 8px; background: #efd083; color: #252c34; text-decoration: none;">Start a new expedition</a>
+        </div>
     </div>
 
     <div id="overlay" style="display: none;">
@@ -543,11 +548,12 @@
     <script>
         // Global module reference
         let voxyModule = null;
-        // Free building is the main entry. Legacy scene URLs retain
+        // Frontier is the main entry. Legacy scene URLs retain
         // their own content and saved-world identities.
-        const experience = new URLSearchParams(location.search).get('experience') || 'build';
+        const experience = new URLSearchParams(location.search).get('experience') || 'frontier';
         const creative = experience === 'build';
-        const adventure = creative || experience === 'adventure';
+        const frontier = experience === 'frontier';
+        const adventure = creative || frontier || experience === 'adventure';
         const legoShore = experience === 'lego';
         const legoWorld = experience === 'lego-world';
         const salvageAssembly = experience === 'salvage-assembly';
@@ -890,7 +896,12 @@
         }
 
         // Short, in-world loading messages keep the first impression focused.
-        const loadingPhrases = creative ? [
+        const loadingPhrases = frontier ? [
+            "Following the old signal...",
+            "Opening the frontier...",
+            "Gathering your expedition gear...",
+            "The ridge is waiting..."
+        ] : creative ? [
             "Opening your building space...",
             "Preparing the bricks...",
             "Making room for your ideas..."
@@ -1098,7 +1109,7 @@
 
                 // Set the text of the landing face
                 if (this.faces[targetIndex]) {
-                    this.faces[targetIndex].textContent = creative ? "READY TO BUILD" : adventure ? "ADVENTURE READY" : "READY_TO_RENDER";
+                    this.faces[targetIndex].textContent = frontier ? "THE FRONTIER AWAITS" : creative ? "READY TO BUILD" : adventure ? "ADVENTURE READY" : "READY_TO_RENDER";
                     this.faces[targetIndex].style.color = "var(--color-accent)";
                 }
             }
@@ -1237,6 +1248,25 @@
             }
         }
 
+        function showInitializationFailure(error, message, canStartExpedition, href = location.href) {
+            canStartExpedition = canStartExpedition && new URL(href).searchParams.get('new') !== '1';
+            error.style.display = 'flex';
+            error.querySelector('h2').textContent = canStartExpedition ? 'Expedition could not load' : 'Initialization Failed';
+            error.querySelector('p').textContent = message;
+            for (const help of error.querySelectorAll('ul, .hint')) help.hidden = true;
+            error.querySelector('#error-actions').hidden = false;
+            error.querySelector('#error-retry').href = href;
+            error.querySelector('#error-save-note').hidden = !canStartExpedition;
+            const fresh = error.querySelector('#error-new-expedition');
+            fresh.hidden = !canStartExpedition;
+            if (canStartExpedition) {
+                const url = new URL(href);
+                url.searchParams.delete('world');
+                url.searchParams.set('new', '1');
+                fresh.href = url.href;
+            }
+        }
+
         let roller = null;
 
         async function init() {
@@ -1244,6 +1274,7 @@
             const error = document.getElementById('error');
             const overlay = document.getElementById('overlay');
             const canvas = document.getElementById('voxy-canvas');
+            let loadingFrontierSave = false;
 
             // Right click is a game action. Suppress the browser context menu
             // on the canvas so the input reaches the game without a popup.
@@ -1368,6 +1399,7 @@
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
+                            : frontier ? ['--config', 'frontier.cfg']
                             : creative ? ['--config', 'free_build.cfg']
                             : adventure ? ['--config', 'adventure.cfg']
                             : salvageCove ? ['--config', 'salvage_cove.cfg']
@@ -1448,10 +1480,11 @@
                 if(coveWorld!==null)await VoxyCoveSaves.resume(voxyModule,coveWorld,coveArguments);
                 if (!adventure) await VoxyLoader.waitForVoxyInitialization(voxyModule);
                 if(adventure) {
-                    document.title=creative?'Voxys — Free Build':'Voxys — Building Adventure';
+                    document.title=frontier?'Voxys — Frontier':creative?'Voxys — Free Build':'Voxys — Building Adventure';
                     canvas.tabIndex=0;canvas.addEventListener('pointerdown',()=>{canvas.focus({preventScroll:true});voxyModule._adventure_action(15,0);});
                     const params=new URLSearchParams(location.search);
-                    const store=await VoxyAdventureSaves.open({profile:creative?'build':'adventure',newWorld:params.get('new')==='1',world:params.get('world')||undefined});
+                    loadingFrontierSave=frontier;
+                    const store=await VoxyAdventureSaves.open({profile:frontier?'frontier':creative?'build':'adventure',newWorld:params.get('new')==='1',world:params.get('world')||undefined});
                     const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
                     try {
                         if(voxyModule.ccall('adventure_stage','number',['string','string'],[store.world,hex(store.loadedBytes)])!==1)
@@ -1461,6 +1494,7 @@
                         await store.setValidator(bytes=>voxyModule.ccall('adventure_validate_hex','number',['string'],[hex(bytes)])===1);
                     }
                     catch(error){await store.close();throw error;}
+                    loadingFrontierSave=false;
                     let saveAgain=false;
                     window.voxyAdventureSaveRequested=async()=>{
                         if(store.busy){saveAgain=true;return;}
@@ -1475,14 +1509,14 @@
                             try {
                                 const savedUrl=new URL(location.href);savedUrl.searchParams.delete('new');savedUrl.searchParams.set('world',store.world);history.replaceState(null,'',savedUrl);
                             }catch{}
-                            voxyModule.ccall('adventure_save_completed',null,['string'],[creative?'Saved build':'Saved adventure']);
+                            voxyModule.ccall('adventure_save_completed',null,['string'],[frontier?'Saved frontier':creative?'Saved build':'Saved adventure']);
                         }catch(error){voxyModule.ccall('adventure_save_completed',null,['string'],[String(error.message||error)]);}
                         finally {
                             if(saveAgain&&!store.closed){saveAgain=false;void window.voxyAdventureSaveRequested();}
                         }
                     };
                     VoxyCoveSaves.installContinue();
-                    if(creative)window.VoxyBuildUI.installShared(voxyModule,window);
+                    if(creative||frontier)window.VoxyBuildUI.installShared(voxyModule,window);
                     else window.VoxyAdventureUI.install(voxyModule,window);
                 }
 
@@ -1857,9 +1891,7 @@
                 });
 
                 loading.style.display = 'none';
-                error.style.display = 'block';
-                error.querySelector('h2').textContent = 'Initialization Failed';
-                error.querySelector('p').textContent = err.message;
+                showInitializationFailure(error, err.message, loadingFrontierSave);
             }
         }
 

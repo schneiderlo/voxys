@@ -273,6 +273,7 @@ struct ApplicationConfig {
     bool salvagePreviewEnabled = false;
     bool adventureEnabled = false;
     bool freeBuildEnabled = false;
+    bool frontierEnabled = false;
     std::optional<std::string> salvageAssetFixtureRegistry;
     std::optional<std::string> salvageAssetFixtureCatalog;
     std::string salvageAssetFixtureGuides = "off";

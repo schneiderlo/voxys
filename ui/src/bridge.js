@@ -1,5 +1,6 @@
 // All accepted game state comes from C++. The UI owns presentation only.
-const modes=new Set(['build','explore','catalog','colours','pause','settings','controls','combat-binding','binding-choice','guide']);
+const modes=new Set(['build','explore','catalog','colours','pause','settings','controls','combat-binding','binding-choice','guide',
+    'bag','journal','workbench','chest','dialogue']);
 // Only presentation data invalidates the DOM. The engine's observation, player
 // tick, camera and physics diagnostics change even while every control is idle.
 // Keep this projection in step with the fields read by main.jsx and shared.js;
@@ -7,13 +8,15 @@ const modes=new Set(['build','explore','catalog','colours','pause','settings','c
 const presentationFields=['ready','failed','message','mode','piece','paint','quickSlot','parts','rows','menuToken','menuSelected',
     'menuTitle','menuText','catalogCategory','status','statusEvent','saveStatus','saveFailure','dirty',
     'preferencesStatus','textScale','highContrast','reducedMotion','valid','previewReason','colourAvailable',
-    'canUndo','canRemove','riding','swimming','interaction','hud'];
+    'canUndo','canRemove','riding','swimming','interaction','hud','frontier','chapter','region',
+    'objectiveTitle','objectiveDetail','objectiveDistance','objectiveProgress','milestone','health','maxHealth','wood','stone','scrap',
+    'audioEvent','audioSequence','audioEnabled','audioMood','audioPace'];
 const cannonFields=['available','nearby','active','ready','awaitingHit','wallBusy','wallReleased','wallFailed',
     'wallMessage','error','inspectingWall','impacts'];
 const presentationSignature=state=>JSON.stringify([
     ...presentationFields.map(key=>state[key]),state.cannon&&cannonFields.map(key=>state.cannon[key]),
 ]);
-export function createBridge(engine,environment,notify){
+export function createBridge(engine,environment,notify,observe=null){
     let stopped=false,owned=false,latest=null,pending=null,preferences=null,dirty=false,pendingFrame=null,pendingFramesRemaining=0;
     const dispatch=(action,value=0)=>engine._adventure_action(action,value);
     const own=value=>{if(owned!==value){owned=value;dispatch(15,value?1:0);}};
@@ -25,7 +28,7 @@ export function createBridge(engine,environment,notify){
     }
     function parse(raw){
         const state=JSON.parse(raw);
-        if(!state||state.creative!==true||!modes.has(state.mode)||!Number.isInteger(state.piece)||state.piece<1||state.piece>15
+        if(!state||state.creative!==true||!modes.has(state.mode)||!Number.isInteger(state.piece)||state.piece<1||state.piece>(state.frontier===true?24:15)
             ||!Number.isInteger(state.menuToken)||!Array.isArray(state.rows))throw Error('Building controls are unavailable.');
         return state;
     }
@@ -55,11 +58,16 @@ export function createBridge(engine,environment,notify){
             // Preference persistence is driven by its own accepted revision,
             // including revisions that do not change a visible label.
             preferences?.tick(state);
+            // Optional presentation-only observers (procedural sound) need the
+            // existing polling cadence without republishing unchanged DOM data.
+            try{observe?.(state);}catch{/* Optional sound cannot block controls. */}
             const signature=unchanged?previousSignature:presentationSignature(state);previousSignature=signature;
             if(signature===publishedSignature&&isPending===publishedPending)return;
             publishedSignature=signature;publishedPending=isPending;
             notify({...state,pending:isPending});
-        }catch(error){cancelPendingFrame();latest=null;previousRaw=null;publishedSignature=null;notify({failed:true,message:String(error.message)});}
+        }catch(error){cancelPendingFrame();latest=null;previousRaw=null;publishedSignature=null;
+            const failure={failed:true,message:String(error.message)};
+            try{observe?.(failure);}catch{}notify(failure);}
     }
     const worldFocus=()=>{environment.document.getElementById('voxy-canvas')?.focus({preventScroll:true});own(false);};
     const action=(id,value=0,expectedToken=null)=>{

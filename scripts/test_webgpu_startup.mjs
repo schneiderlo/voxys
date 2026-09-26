@@ -64,3 +64,56 @@ test('main-route lighting defaults survive slow initialization and apply once', 
         ['lighting.exposure', 1.15, 1],
     ]);
 });
+
+const pageSource = await readFile(new URL('../web/index.html', import.meta.url), 'utf8');
+const failureViewSource = pageSource.slice(pageSource.indexOf('function showInitializationFailure('), pageSource.indexOf('let roller = null;'));
+function failureView(message, canStartExpedition, href) {
+    const fields = new Map(['h2','p','#error-actions','#error-retry','#error-save-note','#error-new-expedition']
+        .map(key => [key, {hidden: true, textContent: '', href: ''}]));
+    const help = [{hidden: false}, {hidden: false}];
+    const error = {style: {}, querySelector: key => fields.get(key), querySelectorAll: () => help};
+    const context = vm.createContext({URL});
+    vm.runInContext(failureViewSource, context);
+    context.showInitializationFailure(error, message, canStartExpedition, href);
+    return {error, fields, help};
+}
+
+test('Frontier save failure offers a separate expedition without replacing the bookmarked world', () => {
+    const href = 'https://example.test/game/index.html?experience=frontier&world=saved-world&debug=1#view';
+    const {error, fields, help} = failureView('The saved world is incompatible.', true, href);
+    assert.equal(error.style.display, 'flex');
+    assert.equal(fields.get('h2').textContent, 'Expedition could not load');
+    assert.equal(fields.get('p').textContent, 'The saved world is incompatible.');
+    assert.equal(fields.get('#error-retry').href, href, 'Retry retains the exact original world URL');
+    assert.equal(fields.get('#error-actions').hidden, false);
+    assert.equal(fields.get('#error-save-note').hidden, false);
+    assert.equal(fields.get('#error-new-expedition').hidden, false);
+    const fresh = new URL(fields.get('#error-new-expedition').href);
+    assert.equal(fresh.origin, 'https://example.test');
+    assert.equal(fresh.pathname, '/game/index.html');
+    assert.equal(fresh.searchParams.get('experience'), 'frontier');
+    assert.equal(fresh.searchParams.get('world'), null);
+    assert.equal(fresh.searchParams.get('new'), '1');
+    assert.equal(fresh.searchParams.get('debug'), '1');
+    assert.equal(fresh.hash, '#view');
+    assert(help.every(item => item.hidden), 'Save failures do not show unrelated browser support instructions');
+});
+
+test('default Frontier bookmarks can start fresh while other startup failures only offer Retry', () => {
+    const href = 'https://example.test/index.html?world=old-world';
+    const frontier = failureView('The world could not start.', true, href);
+    const fresh = new URL(frontier.fields.get('#error-new-expedition').href);
+    assert.equal(fresh.searchParams.get('new'), '1');
+    assert.equal(fresh.searchParams.has('world'), false);
+    assert.equal(fresh.searchParams.has('experience'), false, 'The default profile remains unchanged');
+    const graphics = failureView('No graphics device.', false, href);
+    assert.equal(graphics.fields.get('h2').textContent, 'Initialization Failed');
+    assert.equal(graphics.fields.get('#error-retry').href, href);
+    assert.equal(graphics.fields.get('#error-new-expedition').hidden, true);
+    assert.equal(graphics.fields.get('#error-save-note').hidden, true);
+    const starting = failureView('The renderer could not start.', true, 'https://example.test/index.html?experience=frontier&new=1');
+    assert.equal(starting.fields.get('h2').textContent, 'Initialization Failed');
+    assert.equal(starting.fields.get('#error-new-expedition').hidden, true, 'A fresh-start failure does not offer the same fresh-start URL');
+    assert.equal(starting.fields.get('#error-save-note').hidden, true);
+    assert.equal(starting.fields.get('#error-retry').href, 'https://example.test/index.html?experience=frontier&new=1');
+});

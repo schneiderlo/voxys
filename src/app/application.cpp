@@ -1617,7 +1617,7 @@ bool Application::init(const ApplicationConfig& config) {
 
         if (!initSalvagePreview()) return failInitialization();
         if(config_.adventureEnabled) {
-            adventure_=std::make_unique<game::adventure::AdventureRuntime>(config_.freeBuildEnabled);
+            adventure_=std::make_unique<game::adventure::AdventureRuntime>(config_.freeBuildEnabled,config_.frontierEnabled);
             std::string error;
             if(!adventure_->initialize({heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale},
                 gpuContext_->getDevice(),gpuContext_->getQueue(),config_.shaderDir,config_.colorFormat,error)) {
@@ -5169,6 +5169,7 @@ bool Application::initRenderers() {
         blitConfig.shaderPath = config_.shaderDir / "ray_blit.wgsl";
         blitConfig.colorFormat = config_.colorFormat;
         blitConfig.dayNightSky = config_.freeBuildEnabled;
+        blitConfig.frontierVisuals = config_.frontierEnabled;
         blitConfig.heightScale = config_.heightScale;
         blitConfig.cellScale = config_.cellScale;
     blitConfig.enableOpaqueScene = config_.salvageAssetFixtureWaterAnchor || config_.adventureEnabled;

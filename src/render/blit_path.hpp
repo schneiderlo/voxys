@@ -53,6 +53,7 @@ struct BlitPathConfig {
     float cellScale;                     ///< World-space size per heightmap cell
     bool dayNightSky = false;             ///< Bake neutral clouds once for the live sky
     bool coveVisuals = false;             ///< Explicit playable-Cove material/presentation profile
+    bool frontierVisuals = false;         ///< Dawnreach regional terrain palette and worn routes
     bool enableOpaqueScene = false;       ///< Authored opaque objects before water
     float fogDensity;                    ///< Exponential fog density
 

@@ -935,6 +935,11 @@ cc_test(
     size = "large",
     timeout = "eternal",
     srcs = TEST_SRCS + [
+        "test_frontier_session.cpp",
+        "test_frontier_building.cpp",
+        "test_frontier_world.cpp",
+        "test_frontier_interactions.cpp",
+        "test_frontier_combat.cpp",
         "test_adventure_movement.cpp",
         "test_adventure_pointer.cpp",
         "test_adventure_walkable.cpp",
@@ -1586,4 +1591,40 @@ cc_test(
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = ["//src/game:imported_wall_physics", "//src/gpu:gpu", "@googletest//:gtest_main"],
     data = ["//shaders:shaders", "//data:adventure_runtime"],
+)
+
+cc_test(
+    name = "frontier_session",
+    srcs = ["test_frontier_session.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "frontier_building",
+    srcs = ["test_frontier_building.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "frontier_world",
+    srcs = ["test_frontier_world.cpp", "//src/game:adventure/frontier_world.cpp", "//src/game:adventure/frontier_world.hpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:adventure_core", "//src/core:sha256", "@googletest//:gtest_main"],
+    data = ["//data:adventure_runtime", "//shaders:shaders"],
+)
+
+cc_test(
+    name = "frontier_interactions",
+    srcs = ["test_frontier_interactions.cpp", "//src/game:adventure/frontier_world.cpp", "//src/game:adventure/frontier_world.hpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = ["//src/game:adventure_core", "//src/core:sha256", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "frontier_combat",
+    srcs = ["test_frontier_combat.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
 )

@@ -46,7 +46,7 @@ test('manifest parsing accepts only a written release manifest',()=>{
 
 test('LEGO-terrain experiences need no optional pack; others request theirs',()=>{
     const api=load();
-    for(const experience of ['build','adventure','lego','lego-world'])assert.deepEqual([...api.packsFor(experience)],[]);
+    for(const experience of ['build','frontier','adventure','lego','lego-world'])assert.deepEqual([...api.packsFor(experience)],[]);
     assert.deepEqual([...api.packsFor('salvage-cove')],['salvage']);
     assert.deepEqual([...api.packsFor('ridgebreak')],['moto','materials']);
     assert.deepEqual([...api.packsFor('terrain')],['materials']);

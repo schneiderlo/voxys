@@ -3,7 +3,11 @@
 })(globalThis,function(){
     'use strict';
     const databaseName='voxys-adventure-v1',metadataKey='voxys-adventure-current-v1';
-    const profiles={adventure:{databaseName,metadataKey},build:{databaseName:'voxys-free-build-v1',metadataKey:'voxys-free-build-current-v1'}};
+    const profiles={
+        adventure:{databaseName,metadataKey},
+        build:{databaseName:'voxys-free-build-v1',metadataKey:'voxys-free-build-current-v1'},
+        frontier:{databaseName:'voxys-frontier-v1',metadataKey:'voxys-frontier-current-v1'},
+    };
     function profileFor(name='adventure'){if(!Object.hasOwn(profiles,name))throw Error('Unknown save profile.');return profiles[name];}
     const maximumPayloadBytes=1024*1024;
     const validWorld=value=>typeof value==='string'&&/^[0-9a-f]{32}$/.test(value)&&!/^[0]+$/.test(value);
@@ -24,7 +28,7 @@
         if(!validWorld(world)||!(input instanceof Uint8Array)||input.length<288||input.length>maximumPayloadBytes)return false;
         const bytes=input.slice(),view=new DataView(bytes.buffer);
         const schema=view.getUint32(8,true);
-        if(!equal(bytes.subarray(0,8),new TextEncoder().encode('VXADHOME'))||(schema!==1&&schema!==2&&schema!==3&&schema!==4&&schema!==5&&schema!==6))return false;
+        if(!equal(bytes.subarray(0,8),new TextEncoder().encode('VXADHOME'))||(schema!==1&&schema!==2&&schema!==3&&schema!==4&&schema!==5&&schema!==6&&schema!==7))return false;
         if(Array.from(bytes.subarray(12,28),v=>v.toString(16).padStart(2,'0')).join('')!==world)return false;
         const digest=new Uint8Array(await environment.crypto.subtle.digest('SHA-256',bytes.subarray(0,-32)));
         return equal(digest,bytes.subarray(-32));

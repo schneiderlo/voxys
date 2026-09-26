@@ -1220,4 +1220,15 @@ TEST(ConfigGameModeTest, CreativeBuildingSelectsLegoTerrainExplicitly) {
     EXPECT_EQ(resolved.mode,GameMode::FreeBuild);EXPECT_TRUE(resolved.legoTerrain());
 }
 
+TEST(ConfigGameModeTest, FrontierUsesFullLegoTerrainAndRejectsOtherBootstraps) {
+    Config config;config.game.mode="frontier";
+    const auto resolved=resolveGameMode(config);ASSERT_TRUE(resolved.ready());
+    EXPECT_EQ(resolved.mode,GameMode::Frontier);EXPECT_TRUE(resolved.legoTerrain());
+    EXPECT_EQ(resolved.terrainSizeHint(),8192u);
+    config.wreckwaterClient.presentFields=kWreckwaterClientServerField;
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::ConflictingBootstrap);
+    config.wreckwaterClient={};config.game.assetFixtureRegistry="fixture.json";
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::InvalidAssetFixture);
+}
+
 } // namespace voxy::config

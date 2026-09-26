@@ -1,0 +1,1822 @@
+{
+  "schema": 1,
+  "asset_id": "voxys-frontier-building-kit-r01",
+  "lattice_metres": 0.02,
+  "character_height": 4.76,
+  "character_radius": 1.12,
+  "pieces": [
+    {
+      "id": 16,
+      "key": "frontier_foundation",
+      "name": "Stone foundation",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -150
+        ],
+        "maximum": [
+          150,
+          16,
+          150
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            -150
+          ],
+          "maximum": [
+            150,
+            16,
+            150
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 0,
+        "stone": 8,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": true,
+      "icon": "Foundation",
+      "visuals": [
+        {
+          "source": "Foundation",
+          "offset": [
+            -2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            -2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            -2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            0,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            0,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Foundation",
+          "offset": [
+            2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "key": "frontier_deck",
+      "name": "Bridge deck",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -150
+        ],
+        "maximum": [
+          150,
+          16,
+          150
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            -150
+          ],
+          "maximum": [
+            150,
+            16,
+            150
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false,
+      "icon": "Floor",
+      "visuals": [
+        {
+          "source": "Floor",
+          "offset": [
+            -2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            -2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            -2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            0,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            0,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Floor",
+          "offset": [
+            2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "key": "frontier_wall",
+      "name": "Shelter wall",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -8
+        ],
+        "maximum": [
+          150,
+          288,
+          8
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            -8
+          ],
+          "maximum": [
+            150,
+            288,
+            8
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 10,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false,
+      "icon": "Wall",
+      "visuals": [
+        {
+          "source": "Wall",
+          "offset": [
+            -2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            -2,
+            2.88,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            0,
+            2.88,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            2,
+            2.88,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "key": "frontier_doorway",
+      "name": "Wide doorway",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -8
+        ],
+        "maximum": [
+          150,
+          288,
+          8
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            -8
+          ],
+          "maximum": [
+            -100,
+            272,
+            8
+          ]
+        },
+        {
+          "minimum": [
+            100,
+            0,
+            -8
+          ],
+          "maximum": [
+            150,
+            272,
+            8
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            272,
+            -8
+          ],
+          "maximum": [
+            150,
+            288,
+            8
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false,
+      "icon": "Doorway",
+      "visuals": [
+        {
+          "source": "Wall",
+          "offset": [
+            -2.5,
+            0,
+            0
+          ],
+          "scale": [
+            0.5,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            2.5,
+            0,
+            0
+          ],
+          "scale": [
+            0.5,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            -2.5,
+            2.88,
+            0
+          ],
+          "scale": [
+            0.5,
+            0.8888888888888888,
+            1
+          ]
+        },
+        {
+          "source": "Wall",
+          "offset": [
+            2.5,
+            2.88,
+            0
+          ],
+          "scale": [
+            0.5,
+            0.8888888888888888,
+            1
+          ]
+        },
+        {
+          "source": "Beam",
+          "offset": [
+            -2,
+            5.44,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Beam",
+          "offset": [
+            0,
+            5.44,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Beam",
+          "offset": [
+            2,
+            5.44,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "key": "frontier_roof",
+      "name": "Shelter roof",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -150
+        ],
+        "maximum": [
+          150,
+          16,
+          150
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            -150
+          ],
+          "maximum": [
+            150,
+            16,
+            150
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false,
+      "icon": "Roof",
+      "visuals": [
+        {
+          "source": "Roof",
+          "offset": [
+            -2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            -2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            -2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            0,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            0,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            2,
+            0,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            2,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Roof",
+          "offset": [
+            2,
+            0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "key": "frontier_stairs",
+      "name": "Trail stairs",
+      "bounds": {
+        "minimum": [
+          -150,
+          0,
+          -150
+        ],
+        "maximum": [
+          150,
+          144,
+          150
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -150,
+            0,
+            134
+          ],
+          "maximum": [
+            -50,
+            8,
+            150
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            0,
+            117
+          ],
+          "maximum": [
+            -50,
+            16,
+            134
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            0,
+            100
+          ],
+          "maximum": [
+            -50,
+            24,
+            117
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            0,
+            84
+          ],
+          "maximum": [
+            -50,
+            32,
+            100
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            0,
+            67
+          ],
+          "maximum": [
+            -50,
+            40,
+            84
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            0,
+            50
+          ],
+          "maximum": [
+            -50,
+            48,
+            67
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            134
+          ],
+          "maximum": [
+            50,
+            8,
+            150
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            117
+          ],
+          "maximum": [
+            50,
+            16,
+            134
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            100
+          ],
+          "maximum": [
+            50,
+            24,
+            117
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            84
+          ],
+          "maximum": [
+            50,
+            32,
+            100
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            67
+          ],
+          "maximum": [
+            50,
+            40,
+            84
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            0,
+            50
+          ],
+          "maximum": [
+            50,
+            48,
+            67
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            134
+          ],
+          "maximum": [
+            150,
+            8,
+            150
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            117
+          ],
+          "maximum": [
+            150,
+            16,
+            134
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            100
+          ],
+          "maximum": [
+            150,
+            24,
+            117
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            84
+          ],
+          "maximum": [
+            150,
+            32,
+            100
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            67
+          ],
+          "maximum": [
+            150,
+            40,
+            84
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            0,
+            50
+          ],
+          "maximum": [
+            150,
+            48,
+            67
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            34
+          ],
+          "maximum": [
+            -50,
+            56,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            17
+          ],
+          "maximum": [
+            -50,
+            64,
+            34
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            0
+          ],
+          "maximum": [
+            -50,
+            72,
+            17
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            -16
+          ],
+          "maximum": [
+            -50,
+            80,
+            0
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            -33
+          ],
+          "maximum": [
+            -50,
+            88,
+            -16
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            48,
+            -50
+          ],
+          "maximum": [
+            -50,
+            96,
+            -33
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            34
+          ],
+          "maximum": [
+            50,
+            56,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            17
+          ],
+          "maximum": [
+            50,
+            64,
+            34
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            0
+          ],
+          "maximum": [
+            50,
+            72,
+            17
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            -16
+          ],
+          "maximum": [
+            50,
+            80,
+            0
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            -33
+          ],
+          "maximum": [
+            50,
+            88,
+            -16
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            48,
+            -50
+          ],
+          "maximum": [
+            50,
+            96,
+            -33
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            34
+          ],
+          "maximum": [
+            150,
+            56,
+            50
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            17
+          ],
+          "maximum": [
+            150,
+            64,
+            34
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            0
+          ],
+          "maximum": [
+            150,
+            72,
+            17
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            -16
+          ],
+          "maximum": [
+            150,
+            80,
+            0
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            -33
+          ],
+          "maximum": [
+            150,
+            88,
+            -16
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            48,
+            -50
+          ],
+          "maximum": [
+            150,
+            96,
+            -33
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -66
+          ],
+          "maximum": [
+            -50,
+            104,
+            -50
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -83
+          ],
+          "maximum": [
+            -50,
+            112,
+            -66
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -100
+          ],
+          "maximum": [
+            -50,
+            120,
+            -83
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -116
+          ],
+          "maximum": [
+            -50,
+            128,
+            -100
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -133
+          ],
+          "maximum": [
+            -50,
+            136,
+            -116
+          ]
+        },
+        {
+          "minimum": [
+            -150,
+            96,
+            -150
+          ],
+          "maximum": [
+            -50,
+            144,
+            -133
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -66
+          ],
+          "maximum": [
+            50,
+            104,
+            -50
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -83
+          ],
+          "maximum": [
+            50,
+            112,
+            -66
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -100
+          ],
+          "maximum": [
+            50,
+            120,
+            -83
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -116
+          ],
+          "maximum": [
+            50,
+            128,
+            -100
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -133
+          ],
+          "maximum": [
+            50,
+            136,
+            -116
+          ]
+        },
+        {
+          "minimum": [
+            -50,
+            96,
+            -150
+          ],
+          "maximum": [
+            50,
+            144,
+            -133
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -66
+          ],
+          "maximum": [
+            150,
+            104,
+            -50
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -83
+          ],
+          "maximum": [
+            150,
+            112,
+            -66
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -100
+          ],
+          "maximum": [
+            150,
+            120,
+            -83
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -116
+          ],
+          "maximum": [
+            150,
+            128,
+            -100
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -133
+          ],
+          "maximum": [
+            150,
+            136,
+            -116
+          ]
+        },
+        {
+          "minimum": [
+            50,
+            96,
+            -150
+          ],
+          "maximum": [
+            150,
+            144,
+            -133
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 4,
+        "scrap": 0
+      },
+      "furniture": "None",
+      "terrain_anchor": false,
+      "icon": "Stair",
+      "visuals": [
+        {
+          "source": "Stair",
+          "offset": [
+            -2,
+            0.0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            0,
+            0.0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            2,
+            0.0,
+            2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            -2,
+            0.96,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            0,
+            0.96,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            2,
+            0.96,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            -2,
+            1.92,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            0,
+            1.92,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "source": "Stair",
+          "offset": [
+            2,
+            1.92,
+            -2
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "key": "frontier_bed",
+      "name": "Camp bed",
+      "bounds": {
+        "minimum": [
+          -62,
+          0,
+          -125
+        ],
+        "maximum": [
+          62,
+          100,
+          125
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -62,
+            0,
+            -125
+          ],
+          "maximum": [
+            -42,
+            50,
+            -105
+          ]
+        },
+        {
+          "minimum": [
+            -62,
+            0,
+            105
+          ],
+          "maximum": [
+            -42,
+            50,
+            125
+          ]
+        },
+        {
+          "minimum": [
+            42,
+            0,
+            -125
+          ],
+          "maximum": [
+            62,
+            50,
+            -105
+          ]
+        },
+        {
+          "minimum": [
+            42,
+            0,
+            105
+          ],
+          "maximum": [
+            62,
+            50,
+            125
+          ]
+        },
+        {
+          "minimum": [
+            -62,
+            50,
+            -125
+          ],
+          "maximum": [
+            62,
+            80,
+            125
+          ]
+        },
+        {
+          "minimum": [
+            -62,
+            80,
+            -125
+          ],
+          "maximum": [
+            62,
+            100,
+            -105
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 2
+      },
+      "furniture": "Bed",
+      "terrain_anchor": false,
+      "icon": "Bed",
+      "visuals": [
+        {
+          "source": "Bed",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            2.5,
+            2.5,
+            2.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "key": "frontier_chest",
+      "name": "Supply chest",
+      "bounds": {
+        "minimum": [
+          -62,
+          0,
+          -62
+        ],
+        "maximum": [
+          62,
+          120,
+          62
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -62,
+            0,
+            -62
+          ],
+          "maximum": [
+            62,
+            120,
+            62
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 6,
+        "stone": 0,
+        "scrap": 2
+      },
+      "furniture": "Chest",
+      "terrain_anchor": false,
+      "icon": "Chest",
+      "visuals": [
+        {
+          "source": "Chest",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            2.5,
+            2.5,
+            2.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "key": "frontier_workbench",
+      "name": "Field workbench",
+      "bounds": {
+        "minimum": [
+          -125,
+          0,
+          -62
+        ],
+        "maximum": [
+          125,
+          120,
+          62
+        ]
+      },
+      "solids": [
+        {
+          "minimum": [
+            -125,
+            0,
+            -62
+          ],
+          "maximum": [
+            -105,
+            90,
+            -42
+          ]
+        },
+        {
+          "minimum": [
+            -125,
+            0,
+            42
+          ],
+          "maximum": [
+            -105,
+            90,
+            62
+          ]
+        },
+        {
+          "minimum": [
+            105,
+            0,
+            -62
+          ],
+          "maximum": [
+            125,
+            90,
+            -42
+          ]
+        },
+        {
+          "minimum": [
+            105,
+            0,
+            42
+          ],
+          "maximum": [
+            125,
+            90,
+            62
+          ]
+        },
+        {
+          "minimum": [
+            -125,
+            90,
+            -62
+          ],
+          "maximum": [
+            125,
+            120,
+            62
+          ]
+        }
+      ],
+      "cost": {
+        "wood": 8,
+        "stone": 0,
+        "scrap": 4
+      },
+      "furniture": "Workbench",
+      "terrain_anchor": false,
+      "icon": "Workbench",
+      "visuals": [
+        {
+          "source": "Workbench",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            2.5,
+            2.5,
+            2.5
+          ]
+        }
+      ]
+    }
+  ]
+}

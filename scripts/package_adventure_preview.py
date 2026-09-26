@@ -10,12 +10,18 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary-directory',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
-    parser.add_argument('--profile',choices=('adventure','free-build'),default='adventure')
+    parser.add_argument('--profile',choices=('adventure','free-build','frontier'),default='adventure')
     args=parser.parse_args()
     root=Path(__file__).resolve().parent.parent
-    binaries=[args.binary_directory/name for name in ('voxy_wasm.js','voxy_wasm.wasm','voxy_wasm.data')]
-    for path in binaries:
-        if not path.is_file():raise SystemExit(f'Missing build output: {path}')
+    # CMake and Bazel retain different executable names in the generated glue.
+    # Keep those names intact so its embedded WASM/data references stay valid.
+    suffixes=('.js','.wasm','.data')
+    stems=[stem for stem in ('voxy_wasm','voxy_wasm_cc')
+           if all((args.binary_directory/(stem+suffix)).is_file() for suffix in suffixes)]
+    if len(stems)!=1:
+        raise SystemExit('Expected exactly one complete voxy_wasm.* or voxy_wasm_cc.* build in '+str(args.binary_directory))
+    stem=stems[0]
+    binaries=[args.binary_directory/(stem+suffix) for suffix in suffixes]
     glue=binaries[0].read_text()
     required=('_adventure_action','_adventure_preferences_action','_get_adventure_state_json','_adventure_stage',
               '_adventure_snapshot_hex','_adventure_validate_hex',
@@ -33,12 +39,17 @@ def main():
             raise SystemExit('Stale building UI: '+path+'. Run npm --prefix ui run build.')
     shutil.copytree(root/'web',args.output)
     for path in binaries:shutil.copy2(path,args.output/path.name)
+    if stem!='voxy_wasm':
+        # Adapt only host templates, never the generated Emscripten glue.
+        for name in ('index.html','data_packs.js'):
+            path=args.output/name
+            path.write_text(path.read_text().replace('voxy_wasm.',stem+'.'))
     digest=hashlib.sha256()
     for path in sorted(args.output.iterdir()):
         if path.is_file():digest.update(path.name.encode());digest.update(path.read_bytes())
     build_id=args.profile+'-'+digest.hexdigest()[:16]
     for path in args.output.iterdir():
-        if path.suffix in ('.html','.js','.css'):
+        if path.suffix in ('.html','.js','.css') and path.name not in {binary.name for binary in binaries}:
             text=path.read_text()
             if '__VOXY_BUILD_ID__' in text:path.write_text(text.replace('__VOXY_BUILD_ID__',build_id))
     manifest={'buildId':build_id,'files':{path.name:hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(args.output.iterdir()) if path.is_file()}}

@@ -39,7 +39,7 @@ TEST(NativeAdventureSavesTest, MissingForeignAndBusyWorldsCannotSilentlyStartFre
     EXPECT_FALSE(NativeAdventureSaves::open(folder.root,"0102030405060708090a0b0c0d0e0f10",false,content,error));
     auto owner=NativeAdventureSaves::open(folder.root,{},true,content,error);ASSERT_TRUE(owner)<<error;
     EXPECT_FALSE(NativeAdventureSaves::open(folder.root,owner->world(),false,content,error));EXPECT_NE(error.find("another game window"),std::string::npos);
-    const auto bytes=freshBytes(*owner,content);auto bad=bytes;bad[0]=std::byte{};EXPECT_FALSE(owner->requestSave(bad,error));EXPECT_FALSE(owner->busy());
+    const auto bytes=freshBytes(*owner,content);ASSERT_FALSE(bytes.empty());auto bad=bytes;bad[0]=std::byte{};EXPECT_FALSE(owner->requestSave(bad,error));EXPECT_FALSE(owner->busy());
     auto foreign=AdventureSession::create({{'d','i','f','f','e','r','e','n','t'}},content,error);ASSERT_TRUE(foreign);
     std::vector<std::byte> wrong;ASSERT_TRUE(AdventureSaveCodec::encode(foreign->state(),content,wrong,error));EXPECT_FALSE(owner->requestSave(wrong,error));
 }
@@ -155,4 +155,29 @@ TEST(NativeAdventureSavesTest, CreativeNamespaceNeverSelectsOrOverwritesAdventur
     auto oldAgain=NativeAdventureSaves::open(folder.root,{},false,legacy,error);ASSERT_TRUE(oldAgain)<<error;EXPECT_EQ(oldAgain->world(),oldId);EXPECT_EQ(oldAgain->loadedBytes(),oldBytes);
     EXPECT_FALSE(NativeAdventureSaves::open(folder.root,oldId,false,creative,error));
 }
+TEST(NativeAdventureSavesTest, FrontierNamespaceNeverSelectsOrOverwritesEitherOlderProfile) {
+    AdventureFolder folder;auto legacy=testContent(),creative=legacy,frontier=legacy;std::string error;
+    creative.freeBuilding=true;creative.identity.bytes[0]^=std::byte{0x40};
+    frontier.frontier=true;frontier.identity.bytes[0]^=std::byte{0x20};
+    frontier.frontierSites={{1,frontier.town,FrontierSiteKind::Beacon,{}}};
+    std::vector<std::pair<AdventureContent,std::string>> oldWorlds;
+    for(const auto& content:{legacy,creative}) {
+        auto old=NativeAdventureSaves::open(folder.root,{},true,content,error);ASSERT_TRUE(old)<<error;
+        const auto bytes=freshBytes(*old,content);ASSERT_TRUE(old->requestSave(bytes,error));
+        const auto saved=wait(*old);ASSERT_TRUE(saved);ASSERT_TRUE(saved->saved);
+        oldWorlds.emplace_back(content,old->world());
+    }
+    auto fresh=NativeAdventureSaves::open(folder.root,{},false,frontier,error);ASSERT_TRUE(fresh)<<error;
+    EXPECT_TRUE(fresh->loadedBytes().empty());const auto id=fresh->world();const auto bytes=freshBytes(*fresh,frontier);
+    ASSERT_TRUE(fresh->requestSave(bytes,error));const auto saved=wait(*fresh);ASSERT_TRUE(saved);ASSERT_TRUE(saved->saved);fresh.reset();
+    EXPECT_TRUE(std::filesystem::is_regular_file(folder.root/"frontier-v1"/id/"current"));
+    auto reopened=NativeAdventureSaves::open(folder.root,{},false,frontier,error);ASSERT_TRUE(reopened)<<error;
+    EXPECT_EQ(reopened->world(),id);EXPECT_EQ(reopened->loadedBytes(),bytes);reopened.reset();
+    for(const auto& [content,oldId]:oldWorlds) {
+        auto old=NativeAdventureSaves::open(folder.root,{},false,content,error);ASSERT_TRUE(old)<<error;
+        EXPECT_EQ(old->world(),oldId);EXPECT_FALSE(old->loadedBytes().empty());
+        EXPECT_FALSE(NativeAdventureSaves::open(folder.root,oldId,false,frontier,error));
+    }
+}
+
 }

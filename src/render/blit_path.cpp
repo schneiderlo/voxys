@@ -2076,10 +2076,12 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
     
     WGPUFragmentState fragmentState{};
     fragmentState.module = shaderModule_;
-    WGPUConstantEntry coveVisuals{};
-    coveVisuals.key = gpu::toStringView("COVE_VISUALS");
-    coveVisuals.value = config.coveVisuals ? 1.0 : 0.0;
-    fragmentState.constantCount = 1; fragmentState.constants = &coveVisuals;
+    std::array<WGPUConstantEntry,2> visualConstants{};
+    visualConstants[0].key = gpu::toStringView("COVE_VISUALS");
+    visualConstants[0].value = config.coveVisuals ? 1.0 : 0.0;
+    visualConstants[1].key = gpu::toStringView("FRONTIER_VISUALS");
+    visualConstants[1].value = config.frontierVisuals ? 1.0 : 0.0;
+    fragmentState.constantCount = visualConstants.size(); fragmentState.constants = visualConstants.data();
     WGPU_SET_ENTRY_POINT(fragmentState, "fs");
     fragmentState.targetCount = 1;
     fragmentState.targets = &colorTarget;

@@ -18,6 +18,7 @@ set(GAME_SOURCES
     game/adventure/building_blueprints.cpp
     game/adventure/item_catalog.cpp
     game/adventure/adventure_session.cpp
+    game/adventure/frontier_state.cpp
     game/adventure/adventure_save.cpp
     game/adventure/world_definition.cpp
     game/adventure/spatial_queries.cpp
@@ -32,6 +33,10 @@ set(GAME_SOURCES
     game/adventure/imported_assembly.cpp
     game/adventure/cannon_physics_scene.cpp
     game/adventure/adventure_runtime.cpp
+    game/adventure/frontier_world.cpp
+    game/adventure/frontier_runtime.cpp
+    game/adventure/frontier_presentation.cpp
+    game/adventure/frontier_editing.cpp
     game/adventure/adventure_navigation.cpp
     game/adventure/quests.cpp
     game/adventure/town_residents.cpp

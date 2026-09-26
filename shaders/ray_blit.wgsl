@@ -72,6 +72,7 @@ fn cycleSkyRadiance(direction : vec3<f32>, neutral : vec3<f32>,
 
 // Opt-in playable Cove profile; all other scenes preserve their reference appearance.
 override COVE_VISUALS : bool = false;
+override FRONTIER_VISUALS : bool = false;
 
 // BEGIN GENERATED SCENE SUN SHADOW
 struct SunShadowUniforms {
@@ -728,6 +729,38 @@ fn legoMaterialLayout(cell: vec2<i32>) -> u32 {
     if ((packed&0x1000u)!=0u && (packed>>16u)==key) { return packed; }
     return legoFallbackLayout(c);
 }
+fn frontierRouteDistance(p: vec2<f32>, a: vec2<f32>, b: vec2<f32>) -> f32 {
+    let ab = b-a;
+    return length(p-a-ab*clamp(dot(p-a,ab)/dot(ab,ab),0.0,1.0));
+}
+// Broad, world-anchored habitat colour preserves exact brick geometry. Colour
+// is constant across each stud/cell and remains stable as the camera moves.
+// Only the Frontier pipeline enables this installed region's worn footpaths.
+fn frontierGroundColor(base: vec3<f32>, worldPos: vec3<f32>) -> vec3<f32> {
+    if (!FRONTIER_VISUALS) { return base; }
+    let p = floor(worldPos.xz)+vec2<f32>(0.5);
+    let region = 1.0-smoothstep(370.0,580.0,length(p-vec2<f32>(1245.0,-1010.0)));
+    let habitatMix = clamp(0.5+0.24*sin(p.x*0.083+sin(p.y*0.027)*2.0)
+        +0.22*sin(p.y*0.051-p.x*0.039),0.0,1.0);
+    let green = smoothstep(0.025,0.10,base.g-max(base.r,base.b));
+    var habitat = mix(vec3<f32>(0.105,0.205,0.082),vec3<f32>(0.34,0.335,0.115),
+        smoothstep(0.42,0.80,habitatMix));
+    let storm = 1.0-smoothstep(26.0,92.0,length(p-vec2<f32>(1385.0,-950.0)));
+    let quarry = 1.0-smoothstep(18.0,60.0,length(p-vec2<f32>(1210.0,-914.0)));
+    let ember = 1.0-smoothstep(28.0,87.0,length(p-vec2<f32>(1120.0,-955.0)));
+    habitat = mix(habitat,mix(vec3<f32>(0.075,0.17,0.18),vec3<f32>(0.18,0.25,0.27),habitatMix),storm);
+    habitat = mix(habitat,mix(vec3<f32>(0.21,0.12,0.045),vec3<f32>(0.43,0.26,0.085),habitatMix),ember);
+    var colour = mix(base,habitat,green*0.82);
+    colour = mix(colour,vec3<f32>(0.255,0.315,0.35)*(0.84+habitatMix*0.22),quarry*0.78);
+    var route = frontierRouteDistance(p,vec2<f32>(1180.0,-1100.0),vec2<f32>(1225.0,-1082.0));
+    route = min(route,frontierRouteDistance(p,vec2<f32>(1225.0,-1082.0),vec2<f32>(1308.0,-1062.0)));
+    route = min(route,frontierRouteDistance(p,vec2<f32>(1308.0,-1062.0),vec2<f32>(1384.0,-967.0)));
+    route = min(route,frontierRouteDistance(p,vec2<f32>(1384.0,-967.0),vec2<f32>(1210.0,-924.0)));
+    route = min(route,frontierRouteDistance(p,vec2<f32>(1210.0,-924.0),vec2<f32>(1120.0,-965.0)));
+    let worn = (1.0-smoothstep(1.35+habitatMix,3.0+habitatMix*1.5,route))*0.82;
+    colour = mix(colour,mix(vec3<f32>(0.31,0.245,0.155),vec3<f32>(0.46,0.39,0.255),habitatMix),worn);
+    return mix(base,colour,region);
+}
 fn sampleLegoStudy(worldPos: vec3<f32>, worldX: vec3<f32>, worldY: vec3<f32>,
                     normal: vec3<f32>, topDistance: f32) -> TerrainSurface {
     let scale = camera.metrics.y;
@@ -791,7 +824,7 @@ fn sampleLegoStudy(worldPos: vec3<f32>, worldX: vec3<f32>, worldY: vec3<f32>,
     // Restrained shade variation disappears before it becomes distant noise.
     // Older native Naga needs an addressable array for runtime indexing.
     var paletteColors = LEGO_PALETTE;
-    let color = mix(paletteColors[(palette/3u)*3u+1u],paletteColors[palette],detail);
+    let color = frontierGroundColor(mix(paletteColors[(palette/3u)*3u+1u],paletteColors[palette],detail),worldPos);
     return TerrainSurface(color*(1.0-seam*detail),n,mix(0.32,0.58,1.0-detail),0.0);
 }
 
@@ -824,7 +857,7 @@ fn sampleLegoSurface(worldPos : vec3<f32>, worldX : vec3<f32>,
     let contact = 1.0 - 0.14 * seam * max(normal.y, 0.0);
     let shadingNormal = legoBevelNormal(local, normal, topDistance, footprint);
     let roughness = mix(0.32, 0.55, smoothstep(0.15, 1.0, footprint));
-    return TerrainSurface(albedo * contact, shadingNormal, roughness, 0.0);
+    return TerrainSurface(frontierGroundColor(albedo,worldPos) * contact, shadingNormal, roughness, 0.0);
 }
 
 // Broad sky illumination must distinguish upward caps from vertical walls even

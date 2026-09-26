@@ -38,17 +38,33 @@ CoveHudLayout layoutAdventureNavigation(const AdventureHudNavigation& navigation
     NavigationPainter p{out,w,h};
     const float margin=w>=1200?32.f:22.f,portrait=88;
     const glm::vec4 photo{margin,28,portrait,portrait};
-    out.menuHits.push_back({{margin-4,24,portrait+292,110*preference},-1,-1});
+    const float portraitWidth=content.frontier?portrait+26+std::min(360.f,w*.44f-portrait-18):portrait+292;
+    out.menuHits.push_back({{margin-4,24,portraitWidth,110*preference},-1,-1});
     p.round({photo.x-3,photo.y-3,portrait+6,portrait+6},{.03f,.08f,.11f,.45f},portrait);
     p.round(photo,{.12f,.23f,.28f,.60f},portrait);
     p.stroke(photo,{.97f,.98f,.96f,.95f},portrait,2.5f);
     p.quad({photo.x+4,photo.y+4,portrait-8,portrait-8},{6.f,288.f/512,192.f/1024,192.f/512},ivory);
     const float tx=margin+portrait+18,title=25*preference,sub=17*preference;
-    p.text("Builder",{tx,26,270,title*1.3f},title);
-    p.text("Free build",{tx,30+title*1.3f,260,sub*1.3f},sub,{.84f,.92f,.93f,1});
-    const std::string count=std::to_string(navigation.placedPieces)+(navigation.placedPieces==1?" piece placed":" pieces placed");
-    p.round({tx,37+title*1.3f+sub*1.3f,5,5},gold,2.5f);
-    p.text(count,{tx+14,28+title*1.3f+sub*1.3f,250,sub*1.3f},sub,gold);
+    if(content.frontier) {
+        const float tw=std::min(360.f,w*.44f-portrait-18);
+        p.text(content.region,{tx,26,tw,title*1.3f},title);
+        p.text(content.chapter,{tx,30+title*1.3f,tw,sub*1.3f},sub,gold);
+        if(std::isfinite(content.maxHealth)&&content.maxHealth>0) {
+            const float health=std::isfinite(content.health)?std::clamp(content.health,0.f,content.maxHealth):0.f;
+            const float y=40+title*1.3f+sub*1.3f,bw=std::max(80.f,tw-82);
+            p.round({tx,y,bw,7},{.025f,.05f,.04f,.85f},3.5f);
+            if(health>0)p.round({tx,y,bw*health/content.maxHealth,7},
+                health<=content.maxHealth*.3f?glm::vec4(1,.42f,.3f,1):glm::vec4(.57f,.83f,.53f,1),3.5f);
+            p.text(std::to_string(static_cast<int>(health))+" / "+std::to_string(static_cast<int>(content.maxHealth)),
+                {tx+bw+10,y-7,72,19*preference},14*preference);
+        }
+    } else {
+        p.text("Builder",{tx,26,270,title*1.3f},title);
+        p.text("Free build",{tx,30+title*1.3f,260,sub*1.3f},sub,{.84f,.92f,.93f,1});
+        const std::string count=std::to_string(navigation.placedPieces)+(navigation.placedPieces==1?" piece placed":" pieces placed");
+        p.round({tx,37+title*1.3f+sub*1.3f,5,5},gold,2.5f);
+        p.text(count,{tx+14,28+title*1.3f+sub*1.3f,250,sub*1.3f},sub,gold);
+    }
 
     // North-up terrain comes from the world's real heightfield. Only the
     // heading marker moves each frame; the image changes at tile boundaries.
@@ -75,6 +91,12 @@ CoveHudLayout layoutAdventureNavigation(const AdventureHudNavigation& navigation
         p.arrow({px-11,py-12,22,24},radians,ivory);
         p.round({cx-16,my-15,32,32},{.08f,.17f,.22f,.90f},16);
         p.text("N",{cx-7,my-14,22,29},21);
+        if(content.frontier&&content.objectiveBearingVisible&&std::isfinite(content.objectiveBearingDegrees)) {
+            const float angle=content.objectiveBearingDegrees*std::numbers::pi_v<float>/180;
+            const float markerX=cx+std::sin(angle)*(diameter*.40f),markerY=cy-std::cos(angle)*(diameter*.40f);
+            p.round({markerX-6,markerY-6,12,12},{.08f,.10f,.06f,.95f},6);
+            p.round({markerX-4,markerY-4,8,8},gold,4);
+        }
     }
 
     if(w>=1180) {
@@ -97,6 +119,14 @@ CoveHudLayout layoutAdventureNavigation(const AdventureHudNavigation& navigation
             }
         }
         p.arrow({middle-7,13,14,14},0,gold);
+        if(content.frontier&&content.objectiveBearingVisible&&std::isfinite(content.objectiveBearingDegrees)) {
+            const float delta=std::remainder(content.objectiveBearingDegrees-bearing,360.f);
+            if(std::abs(delta)<=90) {
+                const float x=middle+delta*(span/180);
+                p.round({x-5,lineY+7,10,10},{.06f,.09f,.05f,.95f},5);
+                p.round({x-3,lineY+9,6,6},gold,3);
+            }
+        }
     }
     // Dynamic navigation has a separate fixed quad buffer. It never causes
     // the hotbar artwork to be rebuilt or uploaded while walking/orbiting.

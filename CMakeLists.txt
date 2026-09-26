@@ -290,6 +290,7 @@ if(VOXY_BUILD_NATIVE)
                 "${CMAKE_SOURCE_DIR}/lego_world.cfg"
                 "${CMAKE_SOURCE_DIR}/adventure.cfg"
                 "${CMAKE_SOURCE_DIR}/free_build.cfg"
+                "${CMAKE_SOURCE_DIR}/frontier.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_asset_fixture.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage_assembly_fixture.cfg"
@@ -530,6 +531,7 @@ if(VOXY_BUILD_WASM)
             salvage_metric_fixture.cfg
             adventure.cfg
             free_build.cfg
+            frontier.cfg
             data/adventure/building-kit-r01/cooked/building-kit-lod0.vmesh
             data/adventure/building-kit-r01/cooked/building-kit-lod1.vmesh
             data/adventure/building-kit-r01/cooked/manifest.json

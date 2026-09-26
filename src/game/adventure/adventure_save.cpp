@@ -94,6 +94,17 @@ template<bool Reading> struct Archive {
             for(auto& quest:s.trail.quests)fields(quest.phase,quest.rewardRevision);
             value(s.trail.relayActivationRevision);
         }
+        if(version>=kFrontierSaveSchema) {
+            // Bounded schema7 extension. Legacy schema6 bytes are unchanged.
+            value(s.frontier.quarryUnlockRevision);
+            vector(s.frontier.enemies,kMaximumFrontierEnemies,[&](auto& enemy){
+                fields(enemy.id,enemy.generation);pose(enemy.pose);
+                fields(enemy.health,enemy.deathRevision,enemy.lootClaimRevision);
+            });
+            vector(s.frontier.sites,kMaximumFrontierSites,[&](auto& site){
+                fields(site.id,site.discoveredRevision,site.restoredRevision,site.rewardClaimRevision);
+            });
+        }
     }
 };
 // Each old schema retains its own enum and stack bounds after new IDs exist.
@@ -141,7 +152,7 @@ bool AdventureSaveCodec::encode(const AdventureState& state,const AdventureConte
     if(!AdventureSession::validate(state,content,error))return false;
     Archive<false> archive;archive.output.reserve(65536);
     for(auto byte:magic){uint8_t v=std::to_integer<uint8_t>(byte);archive.value(v);}
-    uint32_t version=kAdventureSaveSchema;archive.value(version);
+    uint32_t version=content.frontier?kFrontierSaveSchema:kAdventureSaveSchema;archive.value(version);
     auto copy=state;archive.state(copy,version);
     if(!archive.valid){error="The adventure save exceeds its size limit.";return false;}
     const auto digest=core::sha256(archive.output);
@@ -155,7 +166,10 @@ bool AdventureSaveCodec::decode(std::span<const std::byte> bytes,construction::W
     if(!std::equal(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32)){error="The adventure save is damaged.";return false;}
     Archive<true> archive;archive.input=payload;archive.position=magic.size();
     uint32_t version=0;archive.value(version);
-    if(version!=1 && version!=2 && version!=3 && version!=4 && version!=5 && version!=kAdventureSaveSchema){error="This adventure save version is not supported.";return false;}
+    if(version!=1 && version!=2 && version!=3 && version!=4 && version!=5 && version!=kAdventureSaveSchema && version!=kFrontierSaveSchema){error="This adventure save version is not supported.";return false;}
+    if(content.frontier!=(version==kFrontierSaveSchema)) {
+        error="Frontier and legacy adventure saves use separate profiles.";return false;
+    }
     AdventureState candidate;archive.state(candidate,version);
     if(!archive.valid || archive.position!=payload.size()){error="The adventure save encoding is invalid.";return false;}
     if(candidate.world!=expectedWorld){error="This adventure save belongs to a different world.";return false;}

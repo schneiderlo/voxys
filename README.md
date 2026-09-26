@@ -1,15 +1,66 @@
-> **Current direction (2026-09-15): free LEGO-style building.** The owner cancelled
-> the adventure direction. The active work is immediate, satisfying creative
-> construction: unlimited pieces, precise snapping, easy editing and a warm toy
-> presentation. See [the active plan](GAME_IMPLEMENTATION_TODO.md). Adventure
-> descriptions below document existing/legacy work, not the current roadmap.
-
 # Voxys
 
-Voxys is a C++20/WebGPU engine. The active game is **free LEGO-style building**:
-make things on the main landscape with unlimited pieces, comfortable controls
-and warm toy visuals. The self-contained roadmap is
-[GAME_IMPLEMENTATION_TODO.md](GAME_IMPLEMENTATION_TODO.md).
+**Current direction (2026-09-25): a building-driven frontier adventure.** The owner
+has approved a return to exploration, gathering, combat and progression through
+construction. This supersedes the September 15 creative-only direction. The
+[new design and architecture investigation](docs/design/adventure-20260925/PLAN.md)
+is the current direction; the older implementation roadmap remains historical.
+
+Voxys is a C++20/WebGPU game and engine, built for desktop and the browser.
+**Dawnreach** is the first region: leave the keeper's canvas camp, climb a broken
+aqueduct, reclaim a pale observatory, fight through Stormwatch's blue-grey
+fortress and rekindle an amber woodland sanctuary. Meadow, ridge and emberwood
+palettes, worn paths and distinct resource assemblies give the route landmarks.
+Construction changes walking routes, shelter and combat cover, and costs
+supplies gathered in the world.
+
+The opening objective leads to the Broken Stair's high cache. Nearby **Build
+stairs** and **Build bench** actions select the appropriate paid building preview.
+Clear the observatory's two wardens and place a reachable field workbench to
+restore the first beacon. It unlocks the quarry hammer and materials for its
+first craft. Stormwatch has its own defenders; the Last Ember requires an actual
+quarry harvest as well as cut stone. Return to the keeper's fire to heal after
+losing nearby threats.
+
+Start with `--config frontier.cfg` on desktop. Frontier is now the browser's
+default experience; `?experience=frontier&telemetry=0` also selects it explicitly.
+[Play the local Dawnreach build](http://127.0.0.1:8768/index.html?telemetry=0).
+Frontier saves use their own `frontier-v1` profile; creative and legacy adventure
+saves remain separate. The second pass changes the installed world to
+`dawnreach-world-r02`, so earlier Frontier worlds fail compatibility checks.
+On that load failure, **Retry** keeps the original bookmark and **Start a new
+expedition** opens a separate world. Existing save bytes remain on the device.
+[Implementation and verification](docs/design/adventure-20260925/IMPLEMENTATION.md)
+records what this candidate actually contains and the remaining limits.
+
+- **Explore:** WASD, Space to jump, Shift to sprint, right-drag to look, V autorun.
+- **Interact:** E gathers, uses camp furniture, collects loot or repairs a beacon.
+- **Fight:** equipped staff/hammer attacks and dodge use the displayed configurable
+  controls. Scouts dart and retreat; brutes warn, commit to a straight charge,
+  then leave a recovery opening. Dodge sideways and counter. Built cover blocks
+  sight and strikes.
+- **Build:** B, slots 1–6, Tab for all pieces, R rotates, Page Up/Down changes height.
+  G moves an aimed piece, T repaints it, Ctrl+Z undoes, Ctrl+Y redoes.
+- **Progress:** J journal, I bag, H browser sound. Save explicitly or use automatic
+  checkpoints. Defeat keeps owned buildings, equipment and completed discoveries.
+
+The region uses 60 finite harvest sources, six persistent enemies, five named
+sites and nine building modules sized around the approved figure. A sheltered
+bed establishes a recovery point; chests store items; a player-built workbench
+is required beside each beacon. The region is authored, while the player's
+routes, camps, edits, fights and progression are live state.
+
+Accepted hits, gathering and beacon restoration have visual feedback. Browser
+audio adds varied impacts and footsteps, a sparse evolving exploration score,
+wind, birds, campfire and combat tension. It starts after a gesture, respects
+mute and quiets when the page is hidden. The implementation record documents
+the second-pass browser checks separately from earlier playtest evidence.
+
+## Creative mode and earlier work
+
+Creative mode remains an unrestricted workshop with warm toy visuals. The
+[previous creative roadmap](GAME_IMPLEMENTATION_TODO.md) and the notes below
+preserve its controls and evidence.
 
 The first creative entry uses `free_build.cfg` on desktop and
 `?experience=build` in the browser, with separate saves and unlimited bricks.

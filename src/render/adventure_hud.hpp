@@ -36,6 +36,15 @@ struct AdventureHudContent {
     AdventurePaletteCategory paletteCategory=AdventurePaletteCategory::Structure;
     bool pickerOpen=false;
     bool creative=false, colourPickerOpen=false;
+    // Frontier uses the same modern controls as creative, with session-owned
+    // adventure data. Empty labels and maxHealth <= 0 hide optional readouts;
+    // the renderer never creates progression, resources or gameplay actions.
+    bool frontier=false;
+    float health=0,maxHealth=0;
+    uint32_t wood=0,stone=0,scrap=0;
+    std::string region,chapter,objectiveTitle,objectiveDetail,objectiveDistance,objectiveProgress,milestone;
+    float objectiveBearingDegrees=0; // Absolute north-up bearing to the tracked site.
+    bool objectiveBearingVisible=false;
     uint32_t paint=0;
     float textScale=1;
     float pixelScale=1; // Framebuffer pixels per logical UI pixel (independent of text preference).

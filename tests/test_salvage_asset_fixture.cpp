@@ -1010,8 +1010,10 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     submit(ticket);
     EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
     EXPECT_EQ(fixture.stats().lastSubmittedRobotDraws,robot->prefab.counts.expandedDraws);
-    EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,24u);
-    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,24u);
+    // Scenery and gantry instances coalesce into eight actual GPU batches.
+    // The expanded-scene assertions below still count every authored draw.
+    EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,8u);
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,8u);
     // Admission still charges every authored instance. Submission telemetry now
     // reports instanced GPU batches; repeated compatible parts share a draw.
     const auto expandedSceneDraws=[&](uint32_t environmentLod) {
@@ -1026,7 +1028,7 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
         return count;
     };
     EXPECT_EQ(expandedSceneDraws(0),153u); // 129 authored draws + 24 scenery; no duplicate gantry boxes.
-    EXPECT_EQ(fixture.stats().lastSubmittedDraws,103u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,87u);
     RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
 
     releaseCommands();
@@ -1050,9 +1052,9 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     RecordProperty("with64BricksColorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
     RecordProperty("with64BricksPlacements",std::to_string(placements.size()));
     EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
-    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u);
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,8u);
     EXPECT_EQ(expandedSceneDraws(2),219u); // 196 authored draws + 23 coarsest environment.
-    EXPECT_EQ(fixture.stats().lastSubmittedDraws,105u); // Extra brick types batch; 64 copies retain separate instance records.
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,88u); // Extra brick types batch; 64 copies retain separate instance records.
     const auto generation=fixture.stats().active.generation;
     EXPECT_FALSE(fixture.beginCandidate(scene->renderBundles(),error,{},&marks,robot,forged));
     EXPECT_EQ(fixture.stats().active.generation,generation);EXPECT_EQ(fixture.stats().candidate.generation,0u);
@@ -1068,12 +1070,12 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
     EXPECT_EQ(fixture.stats().lastEncodedSceneryDraws,0u);
     EXPECT_FALSE(fixture.requestLeave(error));releaseCommands();ASSERT_TRUE(fixture.discarded(ticket,error))<<error;
-    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u); // Discard never publishes hidden state.
+    EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,8u); // Discard never publishes hidden state.
     startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
     submit(ticket);EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,0u);
     value.sceneryRoot=glm::dmat4(1);value.gantryRoot=glm::translate(glm::dmat4(1),glm::dvec3(0,0,-60));
     startFrame();ticket={};ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
-    submit(ticket);EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,23u);
+    submit(ticket);EXPECT_EQ(fixture.stats().lastSubmittedSceneryDraws,8u);
     // Publication starts a new observational owner. The successor has neither
     // optional renderer and must not inherit the previous owner's draw counts.
     releaseCommands();

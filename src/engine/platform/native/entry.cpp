@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
-    appConfig.freeBuildEnabled = gameMode.mode == voxy::config::GameMode::FreeBuild;
+    appConfig.frontierEnabled = gameMode.mode == voxy::config::GameMode::Frontier;
+    appConfig.freeBuildEnabled = appConfig.frontierEnabled || gameMode.mode == voxy::config::GameMode::FreeBuild;
     appConfig.adventureEnabled = appConfig.freeBuildEnabled || gameMode.mode == voxy::config::GameMode::Adventure;
     appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
     appConfig.salvageAssetFixtureCatalog = config.game.assetFixtureCatalog;

@@ -44,7 +44,7 @@ AdventureHudContent creativeContent() {
     for(const auto& definition:game::adventure::buildingCatalog()) {
         const auto kind=static_cast<uint8_t>(definition.kind);
         auto item=creativeAction(std::string(definition.name),10,0,1001u+uint32_t{kind}*7);
-        item.pieceKind=kind;c.rows.push_back(item);
+        item.pieceKind=static_cast<uint8_t>(game::adventure::buildingIconKind(definition.kind));c.rows.push_back(item);
     }
     constexpr std::array<uint8_t,6> kinds{9,10,2,1,4,15};
     constexpr std::array<uint32_t,6> paints{0xe53b33,0xf3f2eb,0,0x3ba85c,0xf3f2eb,0};
@@ -57,6 +57,24 @@ AdventureHudContent creativeContent() {
     constexpr std::array<uint32_t,7> colours{0,0xe53b33,0xffd83d,0x3ba85c,0x2d91cc,0xf3f2eb,0x354450};
     for(size_t i=0;i<c.colours.size();++i)c.colours[i]=creativeAction(std::string(names[i]),10,static_cast<int>(colours[i]),1801u+static_cast<uint32_t>(i)*11);
     c.categories={creativeAction("Structure",13,1,1901),creativeAction("Bricks",13,2,1903),creativeAction("Furniture",13,3,1907)};
+    return c;
+}
+AdventureHudContent frontierContent() {
+    auto c=creativeContent();c.frontier=true;c.mode=AdventureHudMode::Explore;
+    c.region="Dawnreach Highlands";c.chapter="THE FIRST LIGHT";
+    c.health=73;c.maxHealth=100;c.wood=24;c.stone=18;c.scrap=7;
+    c.objectiveTitle="Rekindle the ridge beacon";
+    c.objectiveDetail="Gather supplies and build a path to the old signal tower.";
+    c.objectiveDistance="84 m";c.objectiveProgress="1 / 3 beacons";
+    c.objectiveBearingVisible=true;c.objectiveBearingDegrees=38;
+    c.context="E  Gather weathered timber";c.status="";c.cost="4 wood";
+    c.topActions={creativeAction("Bag",24,0,501),creativeAction("Journal",16,0,503),
+        creativeAction("Save",8,0,507),creativeAction("Menu",31,0,509)};
+    c.quickActions={creativeAction("Use",7,0,601),creativeAction("Build",21,0,603),
+        creativeAction("Attack",27,0,605),creativeAction("Dodge",28,0,607)};
+    c.buildControls.push_back(creativeAction("Move",43,0,719));c.buildControls.back().detail="G";
+    c.buildControls.push_back(creativeAction("Repaint",44,0,721));c.buildControls.back().detail="T";
+    c.buildControls.push_back(creativeAction("Redo",42,0,723));c.buildControls.back().detail="CtrlY";
     return c;
 }
 std::vector<CoveHudQuad> creativeSprites(const AdventureHudLayout& layout) {
@@ -155,7 +173,7 @@ TEST(AdventureHud, EveryCatalogSelectionHasAUsableVisibleCardAtEveryTextSize) {
     AdventureHudContent c;c.mode=AdventureHudMode::Catalog;c.selected="Doorway";c.cost="6 wood";c.status="Ready to place";
     for(const auto& definition:game::adventure::buildingCatalog()) {
         auto item=row(std::string(definition.name),100+static_cast<uint32_t>(definition.kind));
-        item.pieceKind=static_cast<uint8_t>(definition.kind);c.rows.push_back(item);
+        item.pieceKind=static_cast<uint8_t>(game::adventure::buildingIconKind(definition.kind));c.rows.push_back(item);
     }
     c.rows.push_back(row("Starter home",199));
     for(const auto size:{glm::uvec2(640,480),glm::uvec2(960,600),glm::uvec2(1920,1080)})
@@ -250,6 +268,46 @@ TEST(AdventureHud, CreativeGuideUsesItsMeasuredFontForEveryBodyGlyph) {
         bounded(layout,640,480);completeGuideBody(layout,content.menuText,20*scale,true);
         EXPECT_TRUE(layout.selectedVisible);
     }
+}
+TEST(AdventureHud, FrontierKeepsSharedActionIdentityAndClearAimAcrossResponsiveLayouts) {
+    for(const auto size:{glm::uvec2(320,240),glm::uvec2(320,480),glm::uvec2(640,360),glm::uvec2(760,540),glm::uvec2(1280,720),glm::uvec2(1600,900)})
+    for(float scale:{1.f,1.25f,1.5f})
+    for(const auto mode:{AdventureHudMode::Explore,AdventureHudMode::Build,AdventureHudMode::Catalog,AdventureHudMode::Bag,AdventureHudMode::Journal}) {
+        auto c=frontierContent();c.textScale=scale;c.mode=mode;
+        if(mode==AdventureHudMode::Catalog||mode==AdventureHudMode::Bag||mode==AdventureHudMode::Journal)
+            c.buildControls={creativeAction("Previous",25,-1,2001),creativeAction("Next",25,1,2003),creativeAction("Close",20,0,2007)};
+        const auto layout=layoutAdventureHud(c,size.x,size.y);bounded(layout,size.x,size.y);identitiesComeFromContent(layout,c);
+        if(size.y>=360&&(mode==AdventureHudMode::Explore||mode==AdventureHudMode::Build)) {
+            const glm::vec2 aim{float(size.x)*.5f,float(size.y)*.5f};
+            for(const auto& hit:layout.hits)
+                EXPECT_FALSE(aim.x>hit.bounds.x&&aim.x<hit.bounds.x+hit.bounds.z&&aim.y>hit.bounds.y&&aim.y<hit.bounds.y+hit.bounds.w);
+        }
+        if(mode==AdventureHudMode::Explore) {
+            EXPECT_TRUE(std::any_of(layout.hits.begin(),layout.hits.end(),[](const auto& hit){return hit.action==27;}));
+            EXPECT_TRUE(std::any_of(layout.hits.begin(),layout.hits.end(),[](const auto& hit){return hit.action==28;}));
+        }
+    }
+}
+TEST(AdventureHud, FrontierDataChangesRenderedReadoutsAndNeverInventsGameplayControls) {
+    auto c=frontierContent();const auto initial=layoutAdventureHud(c,1280,720);
+    c.wood=100;c.objectiveTitle="The ridge is alight";c.milestone="BEACON REKINDLED";
+    const auto advanced=layoutAdventureHud(c,1280,720);bounded(advanced,1280,720);
+    EXPECT_NE(initial.canvas.count,advanced.canvas.count);
+    ASSERT_EQ(initial.hits.size(),advanced.hits.size());
+    for(size_t i=0;i<initial.hits.size();++i) {
+        EXPECT_EQ(initial.hits[i].action,advanced.hits[i].action);
+        EXPECT_EQ(initial.hits[i].intent,advanced.hits[i].intent);
+        EXPECT_EQ(initial.hits[i].bounds,advanced.hits[i].bounds);
+    }
+    c.topActions.clear();c.quickActions.clear();c.buildControls.clear();
+    EXPECT_TRUE(layoutAdventureHud(c,1280,720).hits.empty());
+    AdventureHudNavigation navigation;navigation.visible=true;navigation.map=std::make_shared<AdventureHudMap>();
+    const auto full=layoutAdventureNavigation(navigation,c,1280,720);
+    c.health=12;const auto damaged=layoutAdventureNavigation(navigation,c,1280,720);
+    bool changed=full.count!=damaged.count;
+    for(size_t i=0;i<std::min(full.count,damaged.count);++i)
+        changed|=full.quads[i].bounds!=damaged.quads[i].bounds||full.quads[i].color!=damaged.quads[i].color;
+    EXPECT_TRUE(changed);
 }
 TEST(AdventureHud, CreativeLayoutsRemainBoundedAndKeepRuntimeActionIdentityAtSmallSizes) {
     for(const auto size:{glm::uvec2(320,240),glm::uvec2(320,740),glm::uvec2(480,800),glm::uvec2(844,390),glm::uvec2(1600,900)})
@@ -771,8 +829,13 @@ TEST(AdventureHudGpu, CaptureSharedRendererOverCleanGameScreenshotWhenRequested)
     std::filesystem::create_directories(directory);
     std::ofstream report(std::filesystem::path(directory)/"renderer-capture.tsv");
     report<<"view\twidth\theight\tquads\ttriangles\tuploads\n";
-    for(const std::string_view name:{"explore","build","catalog","catalog-bricks","palette"}) {
+    for(const std::string_view name:{"explore","build","catalog","catalog-bricks","palette","frontier-explore","frontier-build","frontier-milestone"}) {
         auto content=creativeContent();
+        if(name.starts_with("frontier-")) {
+            content=frontierContent();
+            if(name=="frontier-build")content.mode=AdventureHudMode::Build;
+            if(name=="frontier-milestone")content.milestone="BEACON REKINDLED";
+        }
         if(name=="explore"){content.mode=AdventureHudMode::Explore;content.status="";content.context="";}
         if(name=="catalog"||name=="catalog-bricks"){
             content.mode=AdventureHudMode::Catalog;content.title="Building pieces";content.pickerOpen=true;
@@ -816,7 +879,7 @@ TEST(AdventureHudGpu, CaptureSharedRendererOverCleanGameScreenshotWhenRequested)
         ASSERT_TRUE(stbi_write_png(path.string().c_str(),imageWidth,imageHeight,4,pixels,static_cast<int>(stride)));
         // Ordinary play keeps the aiming region untouched. An open piece
         // picker may intentionally occupy more of the world while choosing.
-        if(name=="explore"||name=="build") {
+        if(name=="explore"||name=="build"||name.starts_with("frontier-")) {
             const auto pixel=size_t{height/2}*width+width/2;
             const auto captured=size_t{height/2}*stride+(width/2)*4;
             for(size_t channel=0;channel<4;++channel)EXPECT_EQ(pixels[captured+channel],background.get()[pixel*4+channel]);

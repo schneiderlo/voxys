@@ -3,7 +3,7 @@
 #include "game/adventure/adventure_save.hpp"
 
 namespace voxy::platform {
-// Separate adventure-v1 directory, same proven dual-copy transport/worker.
+// Separate profile directories, same proven dual-copy transport/worker.
 // Opening may wait before gameplay starts. Publishing only enqueues immutable
 // bytes; poll never writes save data on the application thread.
 class NativeAdventureSaves {

@@ -5,6 +5,7 @@
 #include "game/adventure/item_catalog.hpp"
 #include "game/adventure/quests.hpp"
 #include "game/adventure/adventure_progress.hpp"
+#include "game/adventure/frontier_state.hpp"
 #include "game/adventure/adventure_trail_content.hpp"
 #include "game/adventure/building_blueprints.hpp"
 #include "game/construction/construction_types.hpp"
@@ -64,7 +65,16 @@ struct AdventureState {
     ItemStack equippedUtility{};
     AdventureCombatProgress combat{};
     AdventureTrailProgress trail{};
+    FrontierProgress frontier{};
     bool operator==(const AdventureState&) const = default;
+};
+// Captured before removal by the local edit history. Restoring is a new paid
+// command, never a state rewind: contents and reward receipts cannot roll back.
+struct RemovedPartSnapshot {
+    WorldPart part{};
+    uint64_t structure=0;
+    GridPosition origin{};
+    std::optional<StructureComponent> component;
 };
 struct ResourceNode {
     uint32_t id=0;
@@ -75,6 +85,9 @@ struct ResourceNode {
 struct AdventureContent {
     // Installed creative profile rule; never read from save-supplied flags.
     bool freeBuilding=false;
+    bool frontier=false; // Installed profile, never inferred from save data.
+    std::vector<FrontierEnemyContent> frontierEnemies;
+    std::vector<FrontierSiteContent> frontierSites;
     core::Sha256Digest identity{};
     PlayerPose town{};
     std::vector<ResourceNode> resourceNodes;
@@ -139,6 +152,9 @@ public:
     // structure IDs join that structure. Explicit different structures refuse.
     [[nodiscard]] std::optional<PreparedChange> prepareBlueprint(CommandStamp,std::span<const PlacePart>,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareRemove(CommandStamp,uint64_t part,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareMovePart(CommandStamp,uint64_t part,GridPosition,uint8_t yaw,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareRepaint(CommandStamp,uint64_t part,uint32_t paint,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareRestorePart(CommandStamp,const RemovedPartSnapshot&,const CandidateValidator&,std::string&) const;
     // Whole-layout undo uses one compensating refund, never an inventory rewind.
     [[nodiscard]] std::optional<PreparedChange> prepareRemoveStructure(CommandStamp,uint64_t structure,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareTransfer(CommandStamp,TransferItems,const CandidateValidator&,std::string&) const;
@@ -166,6 +182,19 @@ public:
     [[nodiscard]] std::optional<PreparedChange> prepareClaimDiscovery(CommandStamp,uint8_t discoveryId,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareActivateRelay(CommandStamp,const CandidateValidator&,std::string&) const;
     [[nodiscard]] std::optional<PreparedChange> prepareBuildRecipe(CommandStamp,BlueprintKind,GridPosition origin,uint8_t yaw,const CandidateValidator&,std::string&) const;
+    // Frontier commands accept trusted runtime combat/geometry results. The
+    // validator must check actual reach/sight, and a reachable workbench
+    // near the chosen beacon for restoration. None accepts a missing validator.
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierCheckpointEnemies(CommandStamp,std::span<const FrontierEnemyPose>,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierEnemyHit(CommandStamp,uint32_t enemyId,uint16_t damage,PlayerPose enemyPose,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierPlayerHit(CommandStamp,uint16_t damage,const CandidateValidator&,std::string&) const;
+    // The validator requires the reachable keeper and no nearby living enemies.
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierRest(CommandStamp,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierLoot(CommandStamp,uint32_t enemyId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierDiscover(CommandStamp,uint32_t siteId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierClaimSite(CommandStamp,uint32_t siteId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareFrontierRestoreBeacon(CommandStamp,uint32_t siteId,uint64_t benchId,const CandidateValidator&,std::string&) const;
+    [[nodiscard]] std::optional<PreparedChange> prepareCraftQuarryHammer(CommandStamp,uint64_t benchId,const CandidateValidator&,std::string&) const;
     // Geometry/renderer must be ready before commit. Commit performs no work that
     // can fail after its validation; old state is untouched on stale/refused input.
     [[nodiscard]] bool commit(PreparedChange&&,std::string&);

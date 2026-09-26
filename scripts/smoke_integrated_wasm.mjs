@@ -27,8 +27,10 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','build','lego-world','lego','terrain','ridgebreak','salvage','salvage-asset','salvage-materials','salvage-material-detail','salvage-cove','salvage-assembly','salvage-hierarchy','salvage-rotations-a','salvage-rotations-b','salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo','presentation'].includes(selected),'unknown scene');
-const isCreative=selected==='default'||selected==='build';
+assert(['default','frontier','build','lego-world','lego','terrain','ridgebreak','salvage','salvage-asset','salvage-materials','salvage-material-detail','salvage-cove','salvage-assembly','salvage-hierarchy','salvage-rotations-a','salvage-rotations-b','salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo','presentation'].includes(selected),'unknown scene');
+const isFrontier=selected==='default'||selected==='frontier';
+const isCreative=selected==='build';
+const hasSharedHud=isCreative||isFrontier;
 const isWorld=selected==='lego-world';
 const isLego=isWorld||selected==='lego';
 const isSalvageRotations=selected==='salvage-rotations-a'||selected==='salvage-rotations-b';
@@ -338,7 +340,7 @@ try{
             if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
             const pointer=voxyModule._voxy_get_telemetry_json();const moto=voxyModule._voxy_get_moto_hud_json?.();
-            // The GPU draws the Free Build HUD; the page carries one
+            // The GPU draws the shared HUD; the page carries one
             // transparent accessible peer button per published control.
             const sharedHud=document.getElementById('shared-hud-accessibility');
             const isCreativeState=()=>{
@@ -366,7 +368,7 @@ try{
         if(sample?.errors?.length||sample?.lost)throw new Error('GPU device error: '+JSON.stringify(sample.lost||sample.errors));
         // Passing the eight-frame queue limit requires a completion callback.
         // A timestamp sample additionally proves that GPU work/readback retired.
-        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible&&(!isCreative||sample.buildHotbarVisible))break;
+        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible&&(!hasSharedHud||sample.buildHotbarVisible))break;
         await delay(500);
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
@@ -503,13 +505,22 @@ try{
     }
     if(isCreative){
         assert.equal(sample.title,'Voxys — Free Build');
-        assert.equal(sample.creative?.creative,true,'default route must use creative authority');
-        assert.equal(sample.creative?.mode,'build','default route must start building');
+        assert.equal(sample.creative?.creative,true,'build route must use creative authority');
+        assert.equal(sample.creative?.mode,'build','build route must start building');
         // The shared HUD starts on quick slot 1: the red 2x2 brick.
-        assert.equal(sample.creative?.quickSlot,1,'default quick slot changed');
-        assert.equal(sample.creative?.piece,9,'default brick selection changed');
-        assert.equal(sample.buildHotbarVisible,true,'creative HUD controls failed to mount');
-        assert.equal(sample.buildUIFailed,false,'creative UI failed to read runtime');
+        assert.equal(sample.creative?.quickSlot,1,'build quick slot changed');
+        assert.equal(sample.creative?.piece,9,'build brick selection changed');
+    }
+    if(isFrontier){
+        assert.equal(sample.title,'Voxys — Frontier');
+        assert.equal(sample.creative?.frontier,true,'frontier route must use frontier authority');
+        assert.equal(sample.creative?.mode,'explore','frontier route must start exploring');
+        assert.equal(sample.creative?.quickSlot,1,'frontier quick slot changed');
+        assert.equal(sample.creative?.piece,16,'frontier foundation selection changed');
+    }
+    if(hasSharedHud){
+        assert.equal(sample.buildHotbarVisible,true,'shared HUD controls failed to mount');
+        assert.equal(sample.buildUIFailed,false,'shared UI failed to read runtime');
         assert.equal(sample.telemetry.render.terrain_width,8192);
         assert.equal(sample.telemetry.render.terrain_height,8192);
         assert.equal(sample.legoControlsVisible,false);

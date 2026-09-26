@@ -1,4 +1,5 @@
 #include "game/adventure/construction_policy.hpp"
+#include "game/adventure/frontier_world.hpp"
 #include "game/adventure/building_doors.hpp"
 #include "game/adventure/adventure_player.hpp"
 #include "game/adventure/world_definition.hpp"
@@ -301,6 +302,7 @@ bool reachableComponent(const AdventureState& state,uint64_t id,const AdventureS
 bool usableBed(const AdventureState& state,uint64_t id,const AdventureSpatialQueries& queries,PlayerPose& recovery,std::string& error) {
     const auto* component=componentFor(state,id);const auto* part=component?partFor(state,component->part):nullptr;
     if(!component||component->kind!=FurnitureKind::Bed||!part) {error="Choose a bed";return false;}
+    const double scale=isFrontierPiece(part->kind)?AdventurePlayer::creativeScale:1.;
     std::vector<Solid> solids;if(!compileSolids(state,solids,error))return false;
     Solid bounds{};bounds.minimum=glm::dvec3(INFINITY);bounds.maximum=glm::dvec3(-INFINITY);
     bool found=false;
@@ -316,22 +318,22 @@ bool usableBed(const AdventureState& state,uint64_t id,const AdventureSpatialQue
         bool covered=false;
         for(const auto& solid:solids) {
             const auto* roof=partFor(state,solid.part.counter);
-            if(roof&&roof->kind==PieceKind::Roof&&p.x>=solid.minimum.x&&p.x<=solid.maximum.x
-                &&p.y>=solid.minimum.z&&p.y<=solid.maximum.z&&solid.minimum.y>=bed->minimum.y+2.2&&solid.minimum.y<=bed->minimum.y+6)covered=true;
+            if(roof&&(roof->kind==PieceKind::Roof||roof->kind==PieceKind::FrontierRoof)&&p.x>=solid.minimum.x&&p.x<=solid.maximum.x
+                &&p.y>=solid.minimum.z&&p.y<=solid.maximum.z&&solid.minimum.y>=bed->minimum.y+(scale>1?1.85*scale:2.2)&&solid.minimum.y<=bed->minimum.y+6*scale)covered=true;
         }
         if(!covered){error="Add a roof with room to stand above the bed";return false;}
     }
     unsigned walls=0;
     for(const auto direction:std::array<glm::dvec3,4>{{{1,0,0},{-1,0,0},{0,0,1},{0,0,-1}}}) {
-        const auto ray=queries.raycast({center.x,bed->minimum.y+1.2,center.z},direction,8);
+        const auto ray=queries.raycast({center.x,bed->minimum.y+1.2*scale,center.z},direction,8*scale);
         const auto* wall=ray.hit&&!ray.terrain?partFor(state,ray.part.counter):nullptr;
-        if(ray.complete&&wall&&(wall->kind==PieceKind::Wall||wall->kind==PieceKind::Doorway||wall->kind==PieceKind::HingedDoor))++walls;
+        if(ray.complete&&wall&&(wall->kind==PieceKind::Wall||wall->kind==PieceKind::Doorway||wall->kind==PieceKind::HingedDoor||wall->kind==PieceKind::FrontierWall||wall->kind==PieceKind::FrontierDoorway))++walls;
     }
     if(walls<3) {error="Shelter the bed with walls on three sides";return false;}
-    for(const auto p:std::array<glm::dvec2,4>{{{bed->minimum.x-.5,center.z},{bed->maximum.x+.5,center.z},
-        {center.x,bed->minimum.z-.5},{center.x,bed->maximum.z+.5}}}) {
-        const double y=queries.supportHeight(p,.3,bed->minimum.y+.4);
-        if(std::isfinite(y)&&std::abs(y-bed->minimum.y)<=.4&&queries.clearCapsule({p.x,y+.005,p.y})) {
+    for(const auto p:std::array<glm::dvec2,4>{{{bed->minimum.x-.5*scale,center.z},{bed->maximum.x+.5*scale,center.z},
+        {center.x,bed->minimum.z-.5*scale},{center.x,bed->maximum.z+.5*scale}}}) {
+        const double y=queries.supportHeight(p,.4*scale,bed->minimum.y+.4);
+        if(std::isfinite(y)&&std::abs(y-bed->minimum.y)<=.4&&queries.clearCapsule({p.x,y+.005,p.y},(scale>1?AdventurePlayer::creativeRadius:AdventurePlayer::radius)*scale,AdventurePlayer::height*scale)) {
             recovery={p.x,y+.005,p.y,state.player.yaw};error.clear();return true;
         }
     }
@@ -341,18 +343,18 @@ bool validateInteractions(const AdventureState& before,const AdventureState& aft
     const AdventureContent& content,const AdventureSpatialQueries& queries,std::string& error) {
     for(const auto& component:after.components) {
         const auto* old=componentFor(before,component.id);
-        if(old&&old->slots!=component.slots&&!reachableComponent(before,component.id,queries,error,content.freeBuilding))return false;
+        if(old&&old->slots!=component.slots&&!reachableComponent(before,component.id,queries,error,(content.freeBuilding||content.frontier)))return false;
     }
     for(const auto id:after.depletedNodes)if(!std::binary_search(before.depletedNodes.begin(),before.depletedNodes.end(),id)) {
         const auto node=std::find_if(content.resourceNodes.begin(),content.resourceNodes.end(),[&](const auto& n){return n.id==id;});
         if(node==content.resourceNodes.end()) {error="Unknown supply pile";return false;}
         const glm::dvec3 feet(before.player.x,before.player.y,before.player.z);
-        const glm::dvec3 point(node->position.x,node->position.y+.3,node->position.z);
-        if(glm::length(point-feet)>3.2) {error="Move closer to gather supplies";return false;}
-        const auto eye=feet+glm::dvec3(0,1.55,0),delta=point-eye;
+        const glm::dvec3 point(node->position.x,node->position.y+(content.frontier?1.2:.3),node->position.z);
+        if(glm::length(point-feet)>3.2*(content.frontier?AdventurePlayer::creativeScale:1)) {error="Move closer to gather supplies";return false;}
+        const auto eye=feet+glm::dvec3(0,1.55*(content.frontier?AdventurePlayer::creativeScale:1),0),delta=point-eye;
         if(glm::length(delta)>1e-5) {
             const auto ray=queries.raycast(eye,delta,glm::length(delta));
-            if(!ray.complete||(ray.hit&&ray.distance<glm::length(delta)-.05)) {error="The supplies are blocked";return false;}
+            if(!ray.complete||(ray.hit&&ray.distance<glm::length(delta)-.05&&(!content.frontier||ray.part.counter!=FrontierWorld::resourcePart(id)))) {error="The supplies are blocked";return false;}
         }
     }
     const auto ownedItems=[](const AdventureState& state,ItemKind kind) {
@@ -363,17 +365,18 @@ bool validateInteractions(const AdventureState& before,const AdventureState& aft
             if(stack.kind==kind)count+=stack.quantity;
         return count;
     };
-    if(ownedItems(after,ItemKind::FieldHammer)>ownedItems(before,ItemKind::FieldHammer)
+    if(ownedItems(after,ItemKind::QuarryHammer)>ownedItems(before,ItemKind::QuarryHammer)
+        ||ownedItems(after,ItemKind::FieldHammer)>ownedItems(before,ItemKind::FieldHammer)
         ||ownedItems(after,ItemKind::TrailCompass)>ownedItems(before,ItemKind::TrailCompass)
         ||ownedItems(after,ItemKind::TrailStaff)>ownedItems(before,ItemKind::TrailStaff)) {
         bool reachable=false;std::string reason;
         for(const auto& component:before.components)if(component.kind==FurnitureKind::Workbench
-            &&reachableComponent(before,component.id,queries,reason,content.freeBuilding)) {reachable=true;break;}
+            &&reachableComponent(before,component.id,queries,reason,(content.freeBuilding||content.frontier))) {reachable=true;break;}
         if(!reachable) {error="Use a nearby accessible workbench";return false;}
     }
     if(after.registeredBed&&(after.registeredBed!=before.registeredBed||after.recovery!=before.recovery||after.health>before.health)) {
         PlayerPose recovery;
-        if(!reachableComponent(before,after.registeredBed,queries,error,content.freeBuilding)
+        if(!reachableComponent(before,after.registeredBed,queries,error,(content.freeBuilding||content.frontier))
             ||!usableBed(before,after.registeredBed,queries,recovery,error))return false;
         if(glm::length(glm::dvec3(recovery.x-after.recovery.x,recovery.y-after.recovery.y,recovery.z-after.recovery.z))>.001) {
             error="Use the bed's safe recovery point";return false;

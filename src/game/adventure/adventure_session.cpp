@@ -35,11 +35,11 @@ bool validContent(const AdventureContent& content) {
     if(content.legacyIdentity && !digestPresent(*content.legacyIdentity))return false;
     for(const auto& identity:content.compatibilityIdentities)if(identity&&!digestPresent(*identity))return false;
     if(content.legacyIdentity&&content.compatibilityIdentities[0]&&content.legacyIdentity!=content.compatibilityIdentities[0])return false;
-    if(!validEncounterContent(content)||!validTrailContent(content))return false;
+    if(!validEncounterContent(content)||!validTrailContent(content)||!validFrontierContent(content))return false;
     uint32_t previous=0;
     for(const auto& node:content.resourceNodes) {
         if(!node.id || node.id<=previous || !AdventureSession::validPose(node.position) || !validStack(node.yield) ||
-            (node.yield.kind!=ItemKind::Wood && node.yield.kind!=ItemKind::Stone && node.yield.kind!=ItemKind::Scrap) || node.yield.quantity>499) return false;
+            (node.yield.kind!=ItemKind::Wood && node.yield.kind!=ItemKind::Stone && node.yield.kind!=ItemKind::Scrap && (!content.frontier||node.yield.kind!=ItemKind::CutStone)) || node.yield.quantity>499) return false;
         previous=node.id;
     }
     return true;
@@ -65,7 +65,7 @@ bool AdventureSession::validate(const AdventureState& state,const AdventureConte
         !state.starterGranted || !validPose(state.player) || !validPose(state.recovery) || state.health>100)
         return refuse(error,"Adventure identity or player state is invalid.");
     if(state.backpackRevision>state.revision || !std::all_of(state.backpack.begin(),state.backpack.end(),validStack) ||
-        !validStack(state.equippedTool) || (state.equippedTool.kind!=ItemKind::None && state.equippedTool.kind!=ItemKind::FieldHammer&&state.equippedTool.kind!=ItemKind::TrailStaff))
+        !validStack(state.equippedTool) || (state.equippedTool.kind!=ItemKind::None && state.equippedTool.kind!=ItemKind::FieldHammer&&state.equippedTool.kind!=ItemKind::TrailStaff&&(!content.frontier||state.equippedTool.kind!=ItemKind::QuarryHammer)))
         return refuse(error,"Backpack or equipment is invalid.");
     if((state.metNpcMask&0xf8u)!=0 || !validFirstHomeProgress(state.firstHome,state.revision))
         return refuse(error,"Adventure quest progress is invalid.");
@@ -87,7 +87,7 @@ bool AdventureSession::validate(const AdventureState& state,const AdventureConte
         parts+=structure.parts.size();
         if(parts>kMaximumParts)return refuse(error,"Too many building pieces.");
         for(const auto& part:structure.parts) {
-            if(part.id<=previousPart || part.id>state.lastIssuedId || !buildingDefinition(part.kind) || !gridInWorld(part.position) ||
+            if(part.id<=previousPart || part.id>state.lastIssuedId || !buildingDefinition(part.kind) || (!content.frontier&&static_cast<uint8_t>(part.kind)>15) || !gridInWorld(part.position) ||
                 part.yawQuarterTurns>3 || part.paint>0xffffff || !ids.insert(part.id).second)
                 return refuse(error,"Building piece identity or geometry is invalid.");
             previousPart=part.id;
@@ -126,15 +126,19 @@ bool AdventureSession::validate(const AdventureState& state,const AdventureConte
             return refuse(error,"Resource depletion does not match installed content.");
         previousNode=node;
     }
-    return validateAdventureProgress(state,content,error);
+    return validateAdventureProgress(state,content,error)&&validateFrontierProgress(state,content,error);
 }
 std::unique_ptr<AdventureSession> AdventureSession::create(construction::WorldNamespace world,const AdventureContent& content,std::string& error) {
     auto session=std::unique_ptr<AdventureSession>(new AdventureSession);
     session->content_=content;
     auto& state=session->state_;state.world=world;state.content=content.identity;state.player=state.recovery=content.town;
     state.starterGranted=true;
-    if(!content.freeBuilding) {state.backpack[0]={ItemKind::Wood,640};state.backpack[1]={ItemKind::Stone,320};state.backpack[2]={ItemKind::Scrap,80};}
+    if(content.frontier) {
+        state.backpack[0]={ItemKind::Wood,48};state.backpack[1]={ItemKind::Stone,32};state.backpack[2]={ItemKind::Scrap,12};
+        state.equippedTool={ItemKind::TrailStaff,1};
+    } else if(!content.freeBuilding) {state.backpack[0]={ItemKind::Wood,640};state.backpack[1]={ItemKind::Stone,320};state.backpack[2]={ItemKind::Scrap,80};}
     initializeAdventureProgress(state,content);
+    initializeFrontierProgress(state,content);
     if(!validate(state,content,error))return nullptr;
     return session;
 }
@@ -163,7 +167,7 @@ bool AdventureSession::finish(PreparedChange& change,const CandidateValidator& v
 }
 bool AdventureSession::addPart(PreparedChange& change,PlacePart request,std::string& error) const {
     const auto* definition=buildingDefinition(request.kind);
-    if(!definition || !gridInWorld(request.position) || request.yawQuarterTurns>3 || request.paint>0xffffff) {
+    if(!definition || (!content_.frontier&&static_cast<uint8_t>(request.kind)>15) || !gridInWorld(request.position) || request.yawQuarterTurns>3 || request.paint>0xffffff) {
         refuse(error,"Choose a valid building piece and position.");return false;
     }
     auto& state=change.candidate_;
@@ -239,6 +243,81 @@ std::optional<AdventureSession::PreparedChange> AdventureSession::prepareRemove(
         structure.revision=state.revision;change->changedStructure_=structure.id;
     }
     std::erase_if(state.structures,[](const auto& s){return s.parts.empty();});change->changedPart_=partId;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareMovePart(CommandStamp stamp,uint64_t partId,GridPosition position,uint8_t yaw,const CandidateValidator& validator,std::string& error) const {
+    const auto* before=findPart(state_,partId);
+    if(!before||!gridInWorld(position)||yaw>3||(before->position==position&&before->yawQuarterTurns==yaw)) {
+        refuse(error,"Choose a piece and a different valid placement.");return std::nullopt;
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    for(auto& value:state.components)if(value.part==partId) {
+        if(value.doorOpen){refuse(error,"Close the door before moving it.");return std::nullopt;}
+        if(state.registeredBed==value.id){state.registeredBed=0;state.recovery=content_.town;}
+        value.revision=state.revision;
+    }
+    for(auto& structure:state.structures)for(auto& part:structure.parts)if(part.id==partId) {
+        part.position=position;part.yawQuarterTurns=yaw;structure.revision=state.revision;
+        change->changedPart_=partId;change->changedStructure_=structure.id;
+    }
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareRepaint(CommandStamp stamp,uint64_t partId,uint32_t paint,const CandidateValidator& validator,std::string& error) const {
+    const auto* before=findPart(state_,partId);
+    if(!before||paint>0xffffff||paint==before->paint){refuse(error,"Choose a piece and a different colour.");return std::nullopt;}
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    for(auto& structure:state.structures)for(auto& part:structure.parts)if(part.id==partId) {
+        part.paint=paint;structure.revision=state.revision;
+        change->changedPart_=partId;change->changedStructure_=structure.id;
+    }
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareRestorePart(CommandStamp stamp,const RemovedPartSnapshot& snapshot,const CandidateValidator& validator,std::string& error) const {
+    const auto& part=snapshot.part;const auto* definition=buildingDefinition(part.kind);
+    if(!definition||(!content_.frontier&&static_cast<uint8_t>(part.kind)>15)||part.id<=2||part.id>state_.lastIssuedId
+        ||snapshot.structure<=2||snapshot.structure>state_.lastIssuedId||!gridInWorld(snapshot.origin)
+        ||!gridInWorld(part.position)||part.yawQuarterTurns>3||part.paint>0xffffff||findPart(state_,part.id)) {
+        refuse(error,"This removed piece cannot be restored with those identities.");return std::nullopt;
+    }
+    if((definition->furniture!=FurnitureKind::None)!=snapshot.component.has_value()) {
+        refuse(error,"The removed furniture snapshot is incomplete.");return std::nullopt;
+    }
+    if(snapshot.component) {
+        const auto& value=*snapshot.component;
+        if(value.id<=2||value.id>state_.lastIssuedId||value.structure!=snapshot.structure||value.part!=part.id||value.owner!=1
+            ||value.kind!=definition->furniture||value.doorOpen||findComponent(state_,value.id)
+            ||std::any_of(value.slots.begin(),value.slots.end(),[](const auto& slot){return slot!=ItemStack{};})) {
+            refuse(error,"Only an empty, closed removed furniture item can be restored.");return std::nullopt;
+        }
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    if(!content_.freeBuilding&&!consumeMaterials(state.backpack,definition->cost)) {
+        refuse(error,"The refunded supplies were spent. Gather more before undoing removal.");return std::nullopt;
+    }
+    auto structure=std::find_if(state.structures.begin(),state.structures.end(),[&](const auto& value){return value.id==snapshot.structure;});
+    if(structure==state.structures.end()) {
+        if(!definition->terrainAnchor&&!content_.freeBuilding){refuse(error,"Restore the foundation before its attached pieces.");return std::nullopt;}
+        WorldStructure restored;restored.id=snapshot.structure;restored.origin=snapshot.origin;restored.revision=state.revision;
+        structure=state.structures.insert(std::lower_bound(state.structures.begin(),state.structures.end(),snapshot.structure,
+            [](const auto& value,uint64_t id){return value.id<id;}),std::move(restored));
+    } else if(structure->owner!=1||structure->origin!=snapshot.origin) {
+        refuse(error,"The original structure changed identity.");return std::nullopt;
+    }
+    structure->parts.insert(std::lower_bound(structure->parts.begin(),structure->parts.end(),part.id,
+        [](const auto& value,uint64_t id){return value.id<id;}),part);
+    structure->revision=state.revision;
+    if(snapshot.component) {
+        auto value=*snapshot.component;value.revision=state.revision;
+        state.components.insert(std::lower_bound(state.components.begin(),state.components.end(),value.id,
+            [](const auto& existing,uint64_t id){return existing.id<id;}),std::move(value));
+    }
+    state.backpackRevision=state.revision;change->changedPart_=part.id;change->changedStructure_=snapshot.structure;
     if(!finish(*change,validator,error))return std::nullopt;
     return change;
 }
@@ -333,7 +412,11 @@ std::optional<AdventureSession::PreparedChange> AdventureSession::prepareGather(
     const auto node=std::find_if(content_.resourceNodes.begin(),content_.resourceNodes.end(),[&](const auto& n){return n.id==nodeId;});
     if(node==content_.resourceNodes.end()){refuse(error,"That resource is not part of this world.");return std::nullopt;}
     if(std::binary_search(state.depletedNodes.begin(),state.depletedNodes.end(),nodeId)){refuse(error,"This resource has already been gathered.");return std::nullopt;}
-    auto yield=node->yield;if(state.equippedTool.kind==ItemKind::FieldHammer)yield.quantity*=2;
+    if(node->yield.kind==ItemKind::CutStone&&state.equippedTool.kind!=ItemKind::QuarryHammer) {
+        refuse(error,"Equip the quarry hammer to work this dense stone.");return std::nullopt;
+    }
+    auto yield=node->yield;
+    if(state.equippedTool.kind==ItemKind::FieldHammer||state.equippedTool.kind==ItemKind::QuarryHammer)yield.quantity*=2;
     if(!addItems(state.backpack,yield)){refuse(error,"Make backpack space before gathering.");return std::nullopt;}
     state.depletedNodes.insert(std::lower_bound(state.depletedNodes.begin(),state.depletedNodes.end(),nodeId),nodeId);
     state.backpackRevision=state.revision;
@@ -343,7 +426,7 @@ std::optional<AdventureSession::PreparedChange> AdventureSession::prepareGather(
 std::optional<AdventureSession::PreparedChange> AdventureSession::prepareEquipTool(CommandStamp stamp,uint8_t slotIndex,std::string& error) const {
     auto change=begin(stamp,error);if(!change)return std::nullopt;
     auto& state=change->candidate_;
-    if(slotIndex>=state.backpack.size() || (state.backpack[slotIndex].kind!=ItemKind::FieldHammer&&state.backpack[slotIndex].kind!=ItemKind::TrailStaff)){refuse(error,"Choose a tool or weapon in your backpack.");return std::nullopt;}
+    if(slotIndex>=state.backpack.size() || (state.backpack[slotIndex].kind!=ItemKind::FieldHammer&&state.backpack[slotIndex].kind!=ItemKind::TrailStaff&&(!content_.frontier||state.backpack[slotIndex].kind!=ItemKind::QuarryHammer))){refuse(error,"Choose a tool or weapon in your backpack.");return std::nullopt;}
     auto& slot=state.backpack[slotIndex];std::swap(slot,state.equippedTool);state.backpackRevision=state.revision;
     if(!validate(state,content_,error))return std::nullopt;
     return change;
@@ -552,6 +635,140 @@ std::optional<AdventureSession::PreparedChange> AdventureSession::prepareBuildRe
     }
     const auto layout=buildingBlueprintLayout(kind,origin,yaw,error);if(layout.empty())return std::nullopt;
     return prepareBlueprint(stamp,layout,validator,error);
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierCheckpointEnemies(CommandStamp stamp,std::span<const FrontierEnemyPose> poses,const CandidateValidator& validator,std::string& error) const {
+    if(!content_.frontier||poses.empty()||poses.size()>kMaximumFrontierEnemies) {
+        refuse(error,"Choose a bounded set of active frontier enemies.");return std::nullopt;
+    }
+    uint32_t previous=0;
+    for(const auto& update:poses) {
+        const auto* enemy=frontierEnemy(state_,update.id);
+        if(update.id<=previous||!enemy||!enemy->health||!validPose(update.pose)) {
+            refuse(error,"Only unique living installed enemies can checkpoint movement.");return std::nullopt;
+        }
+        previous=update.id;
+    }
+    auto change=begin(stamp,error,true);if(!change)return std::nullopt;
+    for(const auto& update:poses)for(auto& record:change->candidate_.frontier.enemies)
+        if(record.id==update.id)record.pose=update.pose;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierEnemyHit(CommandStamp stamp,uint32_t id,uint16_t damage,PlayerPose pose,const CandidateValidator& validator,std::string& error) const {
+    const auto* enemy=frontierEnemy(state_,id);
+    if(!content_.frontier||!enemy||!enemy->health||!damage||damage>100||!validPose(pose)
+        ||(state_.equippedTool.kind!=ItemKind::TrailStaff&&state_.equippedTool.kind!=ItemKind::QuarryHammer)) {
+        refuse(error,"A living enemy, equipped weapon and valid strike are required.");return std::nullopt;
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    for(auto& record:state.frontier.enemies)if(record.id==id) {
+        record.pose=pose;record.health=static_cast<uint16_t>(record.health-std::min(record.health,damage));
+        if(!record.health)record.deathRevision=state.revision;
+    }
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierPlayerHit(CommandStamp stamp,uint16_t damage,const CandidateValidator& validator,std::string& error) const {
+    if(!content_.frontier||!damage||damage>100){refuse(error,"The frontier impact is invalid.");return std::nullopt;}
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;state.health=static_cast<uint16_t>(state.health-std::min(state.health,damage));
+    if(!state.health)state.combat.player={};
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierLoot(CommandStamp stamp,uint32_t id,const CandidateValidator& validator,std::string& error) const {
+    const auto* enemy=frontierEnemy(state_,id);
+    if(!content_.frontier||!enemy||!enemy->deathRevision||enemy->lootClaimRevision) {
+        refuse(error,"This enemy has no unclaimed loot.");return std::nullopt;
+    }
+    const auto definition=std::find_if(content_.frontierEnemies.begin(),content_.frontierEnemies.end(),[&](const auto& e){return e.id==id;});
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    if(!addItems(state.backpack,definition->loot)){refuse(error,"Make backpack space before gathering loot.");return std::nullopt;}
+    for(auto& record:state.frontier.enemies)if(record.id==id)record.lootClaimRevision=state.revision;
+    state.backpackRevision=state.revision;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierRest(CommandStamp stamp,const CandidateValidator& validator,std::string& error) const {
+    if(!content_.frontier||!state_.health||state_.health>=100) {
+        refuse(error,"Only a wounded living adventurer needs the keeper's care.");return std::nullopt;
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    change->candidate_.health=100;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierDiscover(CommandStamp stamp,uint32_t id,const CandidateValidator& validator,std::string& error) const {
+    const auto* site=frontierSite(state_,id);
+    if(!content_.frontier||!site||site->discoveredRevision){refuse(error,"This frontier site is already discovered or unavailable.");return std::nullopt;}
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    for(auto& record:change->candidate_.frontier.sites)if(record.id==id)record.discoveredRevision=change->candidate_.revision;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierClaimSite(CommandStamp stamp,uint32_t id,const CandidateValidator& validator,std::string& error) const {
+    const auto* site=frontierSite(state_,id);
+    const auto definition=std::find_if(content_.frontierSites.begin(),content_.frontierSites.end(),[&](const auto& s){return s.id==id;});
+    if(!content_.frontier||!site||definition==content_.frontierSites.end()||definition->kind!=FrontierSiteKind::Cache||site->rewardClaimRevision) {
+        refuse(error,"This cache has no unclaimed supplies.");return std::nullopt;
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    if(!addItems(state.backpack,definition->reward)){refuse(error,"Make backpack space before opening this cache.");return std::nullopt;}
+    for(auto& record:state.frontier.sites)if(record.id==id) {
+        if(!record.discoveredRevision)record.discoveredRevision=state.revision;
+        record.rewardClaimRevision=state.revision;
+    }
+    state.backpackRevision=state.revision;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareFrontierRestoreBeacon(CommandStamp stamp,uint32_t id,uint64_t benchId,const CandidateValidator& validator,std::string& error) const {
+    const auto* site=frontierSite(state_,id);
+    const auto definition=std::find_if(content_.frontierSites.begin(),content_.frontierSites.end(),[&](const auto& s){return s.id==id;});
+    const auto* bench=findComponent(state_,benchId);
+    if(!content_.frontier||!site||definition==content_.frontierSites.end()||definition->kind!=FrontierSiteKind::Beacon||site->restoredRevision) {
+        refuse(error,"This beacon is already restored or unavailable.");return std::nullopt;
+    }
+    if(!frontierBeaconRequirements(state_,content_,*definition,error))return std::nullopt;
+    if(!bench||bench->owner!=1||bench->kind!=FurnitureKind::Workbench) {
+        refuse(error,"Build a reachable field workbench near the beacon.");return std::nullopt;
+    }
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    if(state.frontier.quarryUnlockRevision&&!takeItems(state.backpack,{ItemKind::CutStone,4})) {
+        refuse(error,"The outer beacons need 4 cut stone from the quarry.");return std::nullopt;
+    }
+    if(!consumeMaterials(state.backpack,{12,12,8})){refuse(error,"Beacon restoration needs 12 wood, 12 stone and 8 scrap.");return std::nullopt;}
+    for(auto& record:state.frontier.sites)if(record.id==id) {
+        if(!record.discoveredRevision)record.discoveredRevision=state.revision;
+        record.restoredRevision=state.revision;
+    }
+    if(!state.frontier.quarryUnlockRevision) {
+        state.frontier.quarryUnlockRevision=state.revision;
+        if(!refundMaterials(state.backpack,{4,4,4})) {
+            refuse(error,"Make backpack space for the quarry hammer materials.");return std::nullopt;
+        }
+    }
+    state.backpackRevision=state.revision;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
+}
+std::optional<AdventureSession::PreparedChange> AdventureSession::prepareCraftQuarryHammer(CommandStamp stamp,uint64_t benchId,const CandidateValidator& validator,std::string& error) const {
+    if(!content_.frontier||!state_.frontier.quarryUnlockRevision) {
+        refuse(error,"Restore the first beacon to learn the quarry hammer recipe.");return std::nullopt;
+    }
+    const auto* bench=findComponent(state_,benchId);
+    if(!bench||bench->owner!=1||bench->kind!=FurnitureKind::Workbench){refuse(error,"Use a placed workbench to craft.");return std::nullopt;}
+    auto change=begin(stamp,error);if(!change)return std::nullopt;
+    auto& state=change->candidate_;
+    if(!consumeMaterials(state.backpack,{4,4,4})){refuse(error,"Quarry hammer needs 4 wood, 4 stone and 4 scrap.");return std::nullopt;}
+    if(!addItems(state.backpack,{ItemKind::QuarryHammer,1})){refuse(error,"Make backpack space for the quarry hammer.");return std::nullopt;}
+    state.backpackRevision=state.revision;
+    if(!finish(*change,validator,error))return std::nullopt;
+    return change;
 }
 bool AdventureSession::commit(PreparedChange&& change,std::string& error) {
     if(change.owner_!=this || change.baseRevision_!=state_.revision || change.candidate_.world!=state_.world ||
