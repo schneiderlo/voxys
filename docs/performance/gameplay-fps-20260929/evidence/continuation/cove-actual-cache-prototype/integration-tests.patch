@@ -1,0 +1,279 @@
+--- a/tests/test_blit_path.cpp
++++ b/tests/test_blit_path.cpp
+@@ -66,7 +66,7 @@
+         }
+     }
+     
+-    void movingCasterScene(bool coveVisuals);
++    void movingCasterScene(bool coveVisuals, bool actualCacheChecks = false);
+ 
+     std::chrono::seconds readbackTimeout() const {
+         // Software adapters may JIT a cold shader at the first draw. This is
+@@ -794,7 +794,11 @@
+     movingCasterScene(true);
+ }
+ 
+-void BlitPathTest::movingCasterScene(bool coveVisuals) {
++TEST_F(BlitPathTest, CoveCacheTracksRebakesDiscardAndLegacyTransitions) {
++    movingCasterScene(true, true);
++}
++
++void BlitPathTest::movingCasterScene(bool coveVisuals, bool actualCacheChecks) {
+     ASSERT_TRUE(gpuContextInitialized_);
+     gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) { ADD_FAILURE() << message; });
+     auto device=gpuContext_.getDevice();auto queue=gpuContext_.getQueue();
+@@ -895,14 +899,17 @@
+     ASSERT_TRUE(mesh.setSceneTextures(nullptr,staticDepthView));
+     render::PrimitiveLighting lighting;lighting.direction=direction;lighting.fogDensity=0;
+     struct Draw {render::MeshPath* mesh;WGPUTextureView depth;glm::mat4 view,projection;glm::vec3 eye;
+-        render::PrimitiveLighting light;glm::vec3 worldOrigin{0};render::FootContacts footContacts{};};
++        render::PrimitiveLighting light;glm::vec3 worldOrigin{0};render::FootContacts footContacts{};
++        bool activeFixture = true;};
+     Draw draw{&mesh,objectDepthView,view,projection,eye,lighting};
+     render::OpaqueSceneDraw objects{&draw,[](void* value,WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,render::SceneShadowConsumer background){
+         auto& d=*static_cast<Draw*>(value);
++        if (!d.activeFixture) return true;
+         if(!d.mesh->encodeEnvironmentLighting(encoder)||!background.environment(d.mesh->filteredEnvironmentViews()))return false;
+         return d.mesh->render(encoder,color,d.depth,d.view,d.projection,d.eye,d.light,320,240,false,depth,background,d.worldOrigin,d.footContacts);}};
+     float expectedDepth=0, finalDepth=0;
+     glm::vec3 opaqueRadiance{0};
++    std::array<uint16_t, 4> opaqueBits{};
+     const auto sample=[&](bool caster,bool discard=false,float overrideX=0){
+         mesh.clearInstances();
+         // The control caster must miss both the water point and the refracted
+@@ -974,6 +981,7 @@
+             EXPECT_GE(endpoints[1], endpoints[0]);
+         }
+         std::array<uint16_t,4> hdr{};std::memcpy(hdr.data(),bytes+768,sizeof(hdr));
++        opaqueBits = hdr;
+         for(int c=0;c<3;++c)opaqueRadiance[c]=glm::unpackHalf1x16(hdr[static_cast<size_t>(c)]);
+         const int red=bytes[2]; // BGRA8 output.
+         std::memcpy(&finalDepth,bytes+512,sizeof(float));
+@@ -1090,6 +1098,227 @@
+             render::BlitPath transferred(std::move(blitPath_));blitPath_=std::move(transferred);
+             EXPECT_NEAR(sample(false),ambient,2);
+             EXPECT_EQ(mesh.environmentBakeCount(),3u);
++            if (actualCacheChecks) {
++                ASSERT_TRUE(captureFrames) << "Full-target controls require VOXY_CACHE_CAPTURE_DIR";
++                const auto restoredBits = opaqueBits;
++                const auto restoredViews = mesh.filteredEnvironmentViews();
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++                EXPECT_EQ(mesh.filteredEnvironmentViews().specular, restoredViews.specular);
++
++                // Same-content rebakes must publish new view identities while
++                // producing exactly the same shipping HDR terrain texel.
++                for (int bake = 0; bake < 2; ++bake) {
++                    const auto previous = mesh.filteredEnvironmentViews();
++                    ASSERT_TRUE(mesh.invalidateEnvironmentLighting());
++                    ASSERT_GE(sample(false), 0);
++                    const auto next = mesh.filteredEnvironmentViews();
++                    EXPECT_NE(next.specular, previous.specular);
++                    EXPECT_NE(next.diffuse, previous.diffuse);
++                    EXPECT_NE(next.brdf, previous.brdf);
++                    EXPECT_EQ(opaqueBits, restoredBits);
++                }
++
++                // Modify one source texture in place: source pointer identity
++                // remains equal, so only the filtered-content revision may
++                // invalidate the actual Cove terrain cache.
++                const std::array<glm::u8vec4, 1> greyPixel{glm::u8vec4(64, 64, 64, 255)};
++                const std::array<glm::u8vec4, 1> whitePixel{glm::u8vec4(224, 224, 224, 255)};
++                ASSERT_TRUE(upload(black, greyPixel, 1, 1));
++                ASSERT_TRUE(mesh.setSceneTextures(blackView, staticDepthView));
++                ASSERT_GE(sample(false), 0);
++                const auto greyBits = opaqueBits;
++                const auto greyRadiance = opaqueRadiance;
++                const auto greyViews = mesh.filteredEnvironmentViews();
++                ASSERT_TRUE(upload(black, whitePixel, 1, 1));
++                ASSERT_TRUE(mesh.invalidateEnvironmentLighting());
++                ASSERT_GE(sample(false), 0);
++                EXPECT_NE(mesh.filteredEnvironmentViews().specular, greyViews.specular);
++                EXPECT_NE(opaqueBits, greyBits);
++                for (int c = 0; c < 3; ++c) EXPECT_GT(opaqueRadiance[c], greyRadiance[c]);
++                const auto whiteBits = opaqueBits;
++
++                // Environment and background encoding may both be abandoned.
++                // A later successful frame must retry, not claim stale cache.
++                const auto submittedViews = mesh.filteredEnvironmentViews();
++                ASSERT_TRUE(mesh.invalidateEnvironmentLighting());
++                EXPECT_EQ(sample(true, true), 0);
++                EXPECT_FALSE(mesh.environmentLightingReady());
++                const auto abandonedViews = mesh.filteredEnvironmentViews();
++                EXPECT_NE(abandonedViews.specular, submittedViews.specular);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_TRUE(mesh.environmentLightingReady());
++                EXPECT_NE(mesh.filteredEnvironmentViews().specular, abandonedViews.specular);
++                EXPECT_EQ(opaqueBits, whiteBits);
++
++                ASSERT_TRUE(mesh.setSceneTextures(nullptr, staticDepthView));
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                // No active fixture is the admission/Leave path. Its seed must
++                // match a freshly rebuilt legacy cache after actual Cove use.
++                draw.activeFixture = false;
++                ASSERT_GE(sample(false), 0);
++                const auto legacyBits = opaqueBits;
++                EXPECT_NE(legacyBits, restoredBits);
++                blitPath_.discardEncoding();
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, legacyBits);
++                draw.activeFixture = true;
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++                draw.activeFixture = false;
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, legacyBits);
++                draw.activeFixture = true;
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                // Exposure changes presentation only; ambient RGB is a cache
++                // key and must still change the pre-presentation HDR result.
++                const float exposure = uniforms.ambientExposure.w;
++                uniforms.ambientExposure.w = exposure * 1.5f;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++                uniforms.ambientExposure.w = exposure;
++                const auto ambientColor = glm::vec3(uniforms.ambientExposure);
++                uniforms.ambientExposure.x *= 0.5f;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_NE(opaqueBits, restoredBits);
++                uniforms.ambientExposure = glm::vec4(ambientColor, exposure);
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                // Replace a consumed normal/material view without the public
++                // static-cache notification. Compare all three full targets
++                // with a forced-refresh control, then restore the old view.
++                auto alternateMaterial = texture(320, 240, WGPUTextureFormat_RGBA16Float);
++                auto alternateMaterialView = viewOf(alternateMaterial);
++                std::vector<glm::u16vec4> alternateNormals(320u * 240u,
++                    glm::u16vec4(glm::packHalf1x16(1.f), 0, 0, glm::packHalf1x16(1.f)));
++                ASSERT_TRUE(upload(alternateMaterial, alternateNormals, 320, 240));
++                blitPath_.setMaterialTexture(alternateMaterialView);
++                ASSERT_GE(sample(false), 0);
++                const auto replacedMaterialBits = opaqueBits;
++                const auto replacedMaterialFrame = frameBits;
++                EXPECT_NE(replacedMaterialBits, restoredBits);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, replacedMaterialBits);
++                EXPECT_EQ(frameBits, replacedMaterialFrame);
++                blitPath_.setMaterialTexture(materialView_);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                // An in-place update can be notified through a dynamic setter
++                // when that view is also the static cache input.
++                const auto noSunUniforms = uniforms;
++                uniforms.lightingColor.w = 1;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                const auto sunlitBits = opaqueBits;
++                std::fill(visibility.begin(), visibility.end(), 0.f);
++                ASSERT_TRUE(upload(shadowTexture_, visibility, 320, 240));
++                blitPath_.setShadowTexture(shadowView_);
++                ASSERT_GE(sample(false), 0);
++                const auto blockedBits = opaqueBits;
++                const auto blockedFrame = frameBits;
++                EXPECT_NE(blockedBits, sunlitBits);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, blockedBits);
++                EXPECT_EQ(frameBits, blockedFrame);
++                std::fill(visibility.begin(), visibility.end(), 1.f);
++                ASSERT_TRUE(upload(shadowTexture_, visibility, 320, 240));
++                blitPath_.setShadowTexture(shadowView_);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, sunlitBits);
++                uniforms = noSunUniforms;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                // In-place material changes use the same public setter and
++                // must equal a forced refresh of all shipping targets.
++                ASSERT_TRUE(upload(materialTexture_, alternateNormals, 320, 240));
++                blitPath_.setMaterialTexture(materialView_);
++                ASSERT_GE(sample(false), 0);
++                const auto updatedMaterialFrame = frameBits;
++                EXPECT_EQ(opaqueBits, replacedMaterialBits);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, updatedMaterialFrame);
++                ASSERT_TRUE(upload(materialTexture_, normals, 320, 240));
++                blitPath_.setMaterialTexture(materialView_);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++
++                const auto originalFrame = frameBits;
++                ASSERT_TRUE(blitPath_.resize(160, 120));
++                EXPECT_EQ(blitPath_.opaqueSceneBytes(), 160u * 120u * 12u);
++                ASSERT_TRUE(blitPath_.resize(320, 240));
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, originalFrame);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, originalFrame);
++                auto movedUniforms = uniforms;
++                const auto movedEye = eye + glm::vec3(.5f, 0, 0);
++                const auto movedView = glm::lookAtLH(movedEye, glm::vec3(0), glm::vec3(0, 1, 0));
++                ASSERT_TRUE(movedUniforms.setCamera(movedView, projection, movedEye));
++                blitPath_.setCameraUniforms(movedUniforms);
++                ASSERT_GE(sample(false), 0);
++                const auto movedCameraFrame = frameBits;
++                EXPECT_NE(movedCameraFrame, originalFrame);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, movedCameraFrame);
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, originalFrame);
++
++                const auto dryUniforms = uniforms;
++                uniforms.waterParams.x = .5f;
++                uniforms.waterParams.y = 1.f;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                const auto shorelineFrame = frameBits;
++                EXPECT_NE(shorelineFrame, originalFrame);
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, shorelineFrame);
++                uniforms = dryUniforms;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(frameBits, originalFrame);
++
++                // Force a below-water camera, then advance caustic time with
++                // unchanged depth/environment. Cached above-water material
++                // must not freeze the original underwater animation.
++                const auto aboveWater = uniforms;
++                uniforms.waterParams = {4, 1, 0, 0.2f};
++                uniforms.waterMotion.z = 1;
++                uniforms.waterMotion.x = 1.25f;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                const auto firstUnderwater = opaqueBits;
++                uniforms.waterMotion.x = 37.f;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_NE(opaqueBits, firstUnderwater);
++                const auto laterUnderwater = opaqueBits;
++                blitPath_.setStaticCacheState(true, true);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, laterUnderwater);
++                uniforms = aboveWater;
++                blitPath_.setCameraUniforms(uniforms);
++                ASSERT_GE(sample(false), 0);
++                EXPECT_EQ(opaqueBits, restoredBits);
++                RecordProperty("coveActualCacheLifecycleChecks", "same-source rebake, in-place content, discard retry, admission Leave, exposure ambient, material-view replacement, aliased shadow mutation and underwater caustics");
++            }
+             RecordProperty("coveSharedEnvironmentAmbient",ambient);
+             RecordProperty("coveSharedEnvironmentBlack",darkEnvironment);
+             RecordProperty("coveFilteredEnvironmentBytes",std::to_string(mesh.environmentLightingBytes()));

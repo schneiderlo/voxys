@@ -1,0 +1,97 @@
+{
+  "schema": "voxys.frontier-powershell-launcher-review.v1",
+  "createdAtUtc": "2026-09-29T22:30:19.981510+00:00",
+  "script": "/home/lschneid/workspace/schneiderlo/voxys/docs/performance/gameplay-fps-20260929/run-frontier-shader-screen.ps1",
+  "scriptSha256": "2951b7af9e307443953820b17d2a23edb7ba3b1c83c763edb82d4679bc8905f7",
+  "distroFromCurrentEnvironment": "Ubuntu",
+  "readonlyInputPinsVerified": [
+    {
+      "relativePath": "final-wasm-interface-proof.json",
+      "sha256": "17a9d0765eb4ce71d15d0214a71593a6b1d28a74113cd3286ecf0b4b2814bd21"
+    },
+    {
+      "relativePath": "final-native-cpu\\proof.json",
+      "sha256": "37e576b2b1058286f266450b47a1ea6a4a0e1c4f844e880c8227d542140b58c5"
+    },
+    {
+      "relativePath": "intel-combined-daytime-oracle\\hardware-result.json",
+      "sha256": "e935f1b7686b7d15b32f03e5c5a0dc65092b4bacedd3172d3f44dbdeb233295a"
+    },
+    {
+      "relativePath": "final-cpu-site\\index.html",
+      "sha256": "a5b8993b1475afe67bd6f466a8f00a1a2d82825fc76a90e20d4cdbcc6905ea14"
+    },
+    {
+      "relativePath": "final-cpu-site\\voxy_wasm_cc.wasm",
+      "sha256": "a04daf5d95497f97737838cc64cec9e2122280ea1bbd6f0f3e0162b3722f574b"
+    },
+    {
+      "relativePath": "final-cpu-site\\voxy_wasm_cc.js",
+      "sha256": "396db0497c0e802d1baf26ff4d7f96124d2e6d22adb1e77cf9b608934be6fbb7"
+    },
+    {
+      "relativePath": "final-cpu-site\\voxy_wasm_cc.data",
+      "sha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+    },
+    {
+      "relativePath": "fps-harness-v6\\benchmark_gameplay_fps.mjs",
+      "sha256": "e2bec22a9206e192b672cec84dd04e6d4f2a5bd60d25615ee263caf51ae18ca6"
+    },
+    {
+      "relativePath": "fps-harness-v6\\canvas_fps_probe.mjs",
+      "sha256": "cd49892432d89d4eb6b13631b981fc460834578001b2770bc5631081d156dc70"
+    },
+    {
+      "relativePath": "fps-harness-v6\\gameplay_fps_inputs.mjs",
+      "sha256": "235d75dbc5007e527ea994365289448d3e3f1e2bc74e3bab7cbd88087ccbb590"
+    },
+    {
+      "relativePath": "fps-harness-v6\\gameplay_fps_metrics.mjs",
+      "sha256": "d482b2a09f771e18620391abf84b9d2384cb4483cacf3087c8a188f9cd97710e"
+    },
+    {
+      "relativePath": "fps-harness-v6\\gameplay_fps_work.mjs",
+      "sha256": "c956c3be4d6560d052e2056f8219d68dcf5ed261fa16d42f131f9a4910eaea26"
+    },
+    {
+      "relativePath": "fps-harness-v6\\gameplay_counters.mjs",
+      "sha256": "e7d919a3486721032dc6601baf3a29235040949d028eaecbe2b6ed2f811f06a9"
+    },
+    {
+      "relativePath": "shader-candidates\\combined-daytime\\manifest.json",
+      "sha256": "f21c353e215d9fc7e6d25311805c1df350318708e06822d6ef797e64e4689113"
+    },
+    {
+      "relativePath": "shader-candidates\\mesh-shadow-gating\\mesh_path.wgsl",
+      "sha256": "6faf8b0152425a8d01f68e35892d1404040cf17e49e7ba86b445518fb49d0836"
+    },
+    {
+      "relativePath": "shader-candidates\\water-deferred-shadow\\water_clipmap.wgsl",
+      "sha256": "d92c968dec06454e2729434a2d732e0d9217498446f443da25db4cade1ba8e43"
+    },
+    {
+      "relativePath": "shader-candidates\\cove-lazy-background-load\\ray_blit.wgsl",
+      "sha256": "75366ef320c798db98c298c539b89b37f3993c6f8d6955ec32dc53d0b1eae84a"
+    },
+    {
+      "relativePath": "shader-candidates\\baseline\\mesh_path.wgsl",
+      "sha256": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b"
+    },
+    {
+      "relativePath": "shader-candidates\\baseline\\water_clipmap.wgsl",
+      "sha256": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb"
+    },
+    {
+      "relativePath": "shader-candidates\\baseline\\ray_blit.wgsl",
+      "sha256": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d"
+    }
+  ],
+  "sameWasmBothSides": true,
+  "frozenHarnessVersion": 6,
+  "diagnosticsAbsent": true,
+  "uniqueOwnWindowsTempOutputAndProfile": true,
+  "defaultReadOnlyPreflightThenExplicitRunSwitch": true,
+  "powershellSyntaxExecution": "NOT performed: Windows interop is blocked; lexical script/argument review and all input hashes verified locally. Windows PowerShell parser and Chrome UNC input acceptance remain untested.",
+  "launchExecuted": false,
+  "command": "& '\\\\wsl.localhost\\Ubuntu\\home\\lschneid\\workspace\\schneiderlo\\voxys\\docs\\performance\\gameplay-fps-20260929\\run-frontier-shader-screen.ps1' -Run"
+}

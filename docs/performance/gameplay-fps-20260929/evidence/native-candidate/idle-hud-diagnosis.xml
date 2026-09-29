@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" disabled="0" errors="0" time="35.4" timestamp="2026-09-29T15:13:31.448" name="AllTests">
+  <testsuite name="FrontierRuntimePerformance" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="35.4" timestamp="2026-09-29T15:13:31.448">
+    <testcase name="IdleHudReusesUploadsAndVisibleChangesRemainAuthoritative" file="tests/test_frontier_runtime_performance.cpp" line="117" status="run" result="completed" time="35.4" timestamp="2026-09-29T15:13:31.448" classname="FrontierRuntimePerformance">
+      <properties>
+        <property name="adapter" value="Mesa 26.0.0 (LLVM 21.1.8)"/>
+        <property name="scope" value="actual Frontier runtime; HUD CPU preparation and uploads; no world rendering or displayed FPS"/>
+        <property name="hudCpuBenchmark" value="{&quot;cpu&quot;:{&quot;count&quot;:1200,&quot;p50_us&quot;:603.545,&quot;p95_us&quot;:940.422,&quot;p99_us&quot;:1878.959},&quot;hudUploads&quot;:0,&quot;scope&quot;:&quot;Frontier HUD update and command encoding, frozen simulation, discarded command encoders&quot;,&quot;triangleUploads&quot;:0}"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

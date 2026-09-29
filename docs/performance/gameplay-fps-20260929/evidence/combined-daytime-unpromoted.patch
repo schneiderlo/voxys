@@ -1,0 +1,152 @@
+--- a/shaders/mesh_path.wgsl
++++ b/shaders/mesh_path.wgsl
+@@ -746,8 +746,12 @@
+     let diffuseWeight = (vec3<f32>(1.0) - fresnel) * (1.0 - metallic);
+     let sunRadiance = uniforms.sunColorIntensity.rgb
+         * max(uniforms.sunColorIntensity.w, 0.0);
++    var sunlightVisibility = 1.0;
++    if (normalDotLight > 0.0 && max(uniforms.sunColorIntensity.w, 0.0) > 0.0) {
++        sunlightVisibility = sunVisibility(input.worldPosition, geometricNormal, lightDirection);
++    }
+     var direct = (diffuseWeight * albedo * 0.3183098861837907 + specular)
+-        * sunRadiance * normalDotLight * sunVisibility(input.worldPosition, geometricNormal, lightDirection);
++        * sunRadiance * normalDotLight * sunlightVisibility;
+ 
+     let reflectionDirection = reflect(-viewDirection, normal);
+     var ambientScale = uniforms.ambientColorIntensity.rgb
+@@ -805,9 +809,9 @@
+             *geometrySmith(normal,viewDirection,lightDirection,filmRoughness)*filmHalf
+             /max(4.0*normalDotView*normalDotLight,1.0e-5);
+         let substrateDirect=(substrateDiffuse+substrateSpecular)
+-            *sunRadiance*normalDotLight*sunVisibility(input.worldPosition,geometricNormal,lightDirection);
++            *sunRadiance*normalDotLight*sunlightVisibility;
+         let wetDirect=substrateDirect*(vec3<f32>(1.0)-filmView)*(vec3<f32>(1.0)-filmLight)
+-            +filmSpecular*sunRadiance*normalDotLight*sunVisibility(input.worldPosition,geometricNormal,lightDirection);
++            +filmSpecular*sunRadiance*normalDotLight*sunlightVisibility;
+         var substrateAmbient=vec3<f32>(0.0);
+         var wetAmbient=vec3<f32>(0.0);
+         // Cosine-weighted Schlick average for incoming environment transmission.
+--- a/shaders/water_clipmap.wgsl
++++ b/shaders/water_clipmap.wgsl
+@@ -695,18 +695,29 @@
+     @location(1) linearDepth : f32,
+ };
+ 
+-fn shadeWaterFragment(input : VertexOutput, objectSunVisibility : f32) -> FragmentOutput {
++// Reject invisible fragments before sampling the scene's shadow atlas. Keep
++// preparation independent of group 1, so legacy water keeps its binding layout.
++struct WaterFragmentData {
++    dimensions : vec2<u32>,
++    pixel : vec2<i32>,
++    distanceToCamera : f32,
++    view : vec3<f32>,
++    opaqueDepth : f32,
++    insideTerrain : bool,
++    waterDepth : f32,
++    shadow : f32,
++};
++
++fn prepareWaterFragment(input : VertexOutput) -> WaterFragmentData {
+     if (camera.waterParams.y <= 0.5) {
+         discard;
+     }
+ 
+     let dimensions = textureDimensions(sceneDepthTexture, 0);
+-    let dimensionsF = vec2<f32>(dimensions);
+     let maxPixel = vec2<i32>(i32(dimensions.x) - 1,
+                              i32(dimensions.y) - 1);
+     let pixel = clamp(vec2<i32>(floor(input.position.xy)),
+                       vec2<i32>(0), maxPixel);
+-    let screenUv = (vec2<f32>(pixel) + vec2<f32>(0.5)) / dimensionsF;
+     let toCamera = camera.cameraPos.xyz - input.worldPosition;
+     let squaredDistance = max(dot(toCamera, toCamera), 1.0e-12);
+     let inverseDistance = inverseSqrt(squaredDistance);
+@@ -736,6 +747,24 @@
+                            0.05, 500.0);
+         shadow = bakedShadow(input.worldPosition);
+     }
++
++    return WaterFragmentData(dimensions, pixel, distanceToCamera, view,
++        opaqueDepth, insideTerrain, waterDepth, shadow);
++}
++
++fn shadeWaterFragment(input : VertexOutput, data : WaterFragmentData,
++                      objectSunVisibility : f32) -> FragmentOutput {
++    let dimensions = data.dimensions;
++    let dimensionsF = vec2<f32>(dimensions);
++    let maxPixel = vec2<i32>(dimensions) - vec2<i32>(1);
++    let pixel = data.pixel;
++    let screenUv = (vec2<f32>(pixel) + vec2<f32>(0.5)) / dimensionsF;
++    let distanceToCamera = data.distanceToCamera;
++    let view = data.view;
++    let opaqueDepth = data.opaqueDepth;
++    let insideTerrain = data.insideTerrain;
++    let waterDepth = data.waterDepth;
++    let shadow = data.shadow;
+ 
+     let detailWeight = 1.0 - smoothstep(
+         900.0, 3500.0, distanceToCamera);
+@@ -960,7 +989,7 @@
+ 
+ @fragment
+ fn fs(input : VertexOutput) -> FragmentOutput {
+-    return shadeWaterFragment(input, 1.0);
++    return shadeWaterFragment(input, prepareWaterFragment(input), 1.0);
+ }
+ 
+ // When no later primitive or underwater-particle pass consumes linear depth,
+@@ -968,22 +997,26 @@
+ // surface at full-window resolution.
+ @fragment
+ fn fsColor(input : VertexOutput) -> @location(0) vec4<f32> {
+-    return shadeWaterFragment(input, 1.0).color;
+-}
+-
+-fn sceneWaterSunVisibility(input : VertexOutput) -> f32 {
++    return shadeWaterFragment(input, prepareWaterFragment(input), 1.0).color;
++}
++
++fn sceneWaterSunVisibility(input : VertexOutput, data : WaterFragmentData) -> f32 {
+     // Low-frequency geometry drives bias; fine animated normal detail must not
+     // slide the shadow across the water. Refraction/sky remain independently lit.
++    var terrainVisibility = data.shadow;
++    if (!data.insideTerrain) { terrainVisibility = bakedShadow(input.worldPosition); }
+     return sceneSunVisibility(input.worldPosition, normalize(input.lowFrequencyNormal),
+-        normalize(camera.lightDirWS.xyz)) * bakedShadow(input.worldPosition);
++        normalize(camera.lightDirWS.xyz)) * terrainVisibility;
+ }
+ 
+ @fragment
+ fn fsScene(input : VertexOutput) -> FragmentOutput {
+-    return shadeWaterFragment(input, sceneWaterSunVisibility(input));
++    let data = prepareWaterFragment(input);
++    return shadeWaterFragment(input, data, sceneWaterSunVisibility(input, data));
+ }
+ 
+ @fragment
+ fn fsSceneColor(input : VertexOutput) -> @location(0) vec4<f32> {
+-    return shadeWaterFragment(input, sceneWaterSunVisibility(input)).color;
+-}
++    let data = prepareWaterFragment(input);
++    return shadeWaterFragment(input, data, sceneWaterSunVisibility(input, data)).color;
++}
+--- a/shaders/ray_blit.wgsl
++++ b/shaders/ray_blit.wgsl
+@@ -3018,7 +3018,7 @@
+     let dims = textureDimensions(depthTex, 0);
+     let pixel = clamp(vec2<i32>(floor(i.uv * vec2<f32>(dims))), vec2<i32>(0), vec2<i32>(dims) - 1);
+     let depth = textureLoad(depthTex, pixel, 0).x;
+-    var output = SceneTerrainOutput(textureLoad(backgroundTex, pixel, 0), depth);
++    var output = SceneTerrainOutput(vec4<f32>(0.0), depth);
+     if (depth > 0.0) {
+         let posView = viewPosFromDepth(camera.invProjParams.xy, ndcFromPixel(pixel, vec2<f32>(dims)), depth);
+         let position = viewToWorld(camera.invView, posView);
+@@ -3029,6 +3029,8 @@
+         if (dot(supplied, supplied) > 0.5) { normal = normalize(supplied); }
+         let visibility = sceneSunVisibility(position, normal, normalize(camera.lightDirWS.xyz));
+         output.color = vec4<f32>(backgroundCoveTerrain(pixel, dims, depth, visibility), 1.0);
++    } else {
++        output.color = textureLoad(backgroundTex, pixel, 0);
+     }
+     return output;
+ }

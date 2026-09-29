@@ -1,0 +1,9 @@
+{
+  "timeUtc": "2026-09-29T21:52:42.506374+00:00",
+  "decision": "Keep original production collision queries; reject bitset and whole-streaming prototypes pending dense-scene evidence",
+  "reason": "Whole streaming capacity sweep slower in each balanced block (+25.7%,+9.8%,+9.7%). Earlier bitset capacity sweep also repeatedly slower. The camp microsecond savings did not establish FPS benefit; focus remaining work on dominant GPU lighting. Exact tests and all raw prototypes remain preserved.",
+  "originalSha256": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94",
+  "rejectedProductionSha256": "b0109bb7bfcfd349b9c9b89fb17a1d32796815339ebcecff4eb0264b24809318",
+  "cleanComponentSummary": "clean-streaming-queries/summary.json",
+  "noUserChangesOverwritten": true
+}

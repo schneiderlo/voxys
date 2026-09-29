@@ -10871,6 +10871,7 @@ namespace voxy {
 void Application::adventureAction(int action,int value){if(adventure_)adventure_->action(action,value);}
 std::string Application::adventurePreferencesAction(int action,std::string_view text){return adventure_?adventure_->preferencesAction(action,text):"Settings are not ready.";}
 std::string Application::adventureJson() const{return adventure_?adventure_->json():"{}";}
+uint64_t Application::adventurePlayerTick() const noexcept{return adventure_?adventure_->playerTick():0;}
 bool Application::adventureSnapshot(std::vector<std::byte>& bytes,std::string& error)const{return adventure_&&adventure_->snapshot(bytes,error);}
 bool Application::adventureValidateSave(std::span<const std::byte> bytes)const {
     if(!adventure_)return false;

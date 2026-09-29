@@ -1,0 +1,4419 @@
+{
+  "purpose": "Independent Windows Intel linked combined daytime shader oracle; not a gameplay timing",
+  "startedAt": "2026-09-29T21:16:04.083Z",
+  "inputs": {
+    "export": {
+      "fixtureSha256": "5fbe040fcd9e29a83e7808c5f49c37eff383fe1ad2db4254b5cbe81b6fa0fb8a",
+      "fixtureBytes": 1996575,
+      "renders": 48,
+      "comparisons": 24,
+      "blobFiles": 55,
+      "blobBytes": 1310816,
+      "exporterSha256": "72d8c075ccb8149cea923a2265f42d35de9943a41f2131bab9c82ff9c2fcc992"
+    },
+    "provenance": {
+      "recordingExporter": {
+        "path": "/tmp/voxys-fps-20260929/intel-image-oracles/export-fixtures.py",
+        "sha256": "53cbefba12148d70df5d324407b2a37713c40ac389792f4deec04424d4063115"
+      },
+      "pythonOracles": {
+        "water_night_oracle.py": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/water_night_oracle.py",
+          "sha256": "2ff43e352e46a96a0276bdb998cd1251e1a2de255b58fb43156f1bff898608dc"
+        },
+        "mesh_image_oracle.py": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/mesh_image_oracle.py",
+          "sha256": "2a336f1e57edcf260c6860659c6b577608c1a62826c730c9fd7e08eb12c1f3d7"
+        },
+        "terrain_image_oracle.py": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/terrain_image_oracle.py",
+          "sha256": "9c897baaa31c02b892a06a24e7fe78f6a738e7a030c4b2ee7e127b85dc0137ef"
+        }
+      },
+      "shaderSources": {
+        "mesh-baseline": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/baseline/mesh_path.wgsl",
+          "sha256": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b"
+        },
+        "mesh-shadow-gating": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/mesh-shadow-gating/mesh_path.wgsl",
+          "sha256": "6faf8b0152425a8d01f68e35892d1404040cf17e49e7ba86b445518fb49d0836"
+        },
+        "water-baseline": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/baseline/water_clipmap.wgsl",
+          "sha256": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb"
+        },
+        "water-deferred-shadow": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/water-deferred-shadow/water_clipmap.wgsl",
+          "sha256": "d92c968dec06454e2729434a2d732e0d9217498446f443da25db4cade1ba8e43"
+        },
+        "ray-baseline": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/baseline/ray_blit.wgsl",
+          "sha256": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d"
+        },
+        "cove-lazy-background-load": {
+          "path": "/tmp/voxys-fps-20260929/shader-candidates/cove-lazy-background-load/ray_blit.wgsl",
+          "sha256": "75366ef320c798db98c298c539b89b37f3993c6f8d6955ec32dc53d0b1eae84a"
+        }
+      },
+      "probeNotes": [
+        "All production shader functions execute unchanged except the three separately identified candidate edits.",
+        "The actual cached-background and live terrain pass feed opaque mesh rejection and scene-water refraction/occlusion inputs.",
+        "The opaque mesh draws a raised probe receiver over the left half. Color/depth attachments are initialized from terrain and loaded.",
+        "The water pass samples that mesh-composited color/depth, initializes its targets from those values, and loads them so shader discards preserve the earlier scene.",
+        "All color targets use shipping RGBA16Float and depth targets R32Float. This is controlled fragment composition, not a claim that probe cameras/geometries are a full engine scene."
+      ]
+    }
+  },
+  "harness": {
+    "browserSha256": "9b3c83c4e08fca7338b365518731a7ff1269083f457583cdaa52841e2aac0dcc",
+    "runnerSha256": "34f79cbb1934d56057291ad99f76b532d4e22bd71a0de1269e8acc1474ba80cc"
+  },
+  "chromeArguments": [
+    "--headless=new",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/154.0.8037.58",
+    "revision": "@a654841425914cbb703a2931e07b70a83aedbafd",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "jsVersion": "15.4.80.11"
+  },
+  "system": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 32902,
+          "deviceId": 39497,
+          "subSysId": 171380776,
+          "revision": 1,
+          "vendorString": "",
+          "deviceString": "Intel(R) Iris(R) Xe Graphics",
+          "driverVendor": "Intel",
+          "driverVersion": "32.0.101.5768"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39497,
+          "subSysId": 171380776,
+          "revision": 1,
+          "vendorString": "",
+          "deviceString": "Intel(R) Iris(R) Xe Graphics",
+          "driverVendor": "",
+          "driverVersion": "32.0.101.5768"
+        },
+        {
+          "vendorId": 5140,
+          "deviceId": 140,
+          "subSysId": 0,
+          "revision": 0,
+          "vendorString": "",
+          "deviceString": "Microsoft Basic Render Driver",
+          "driverVendor": "",
+          "driverVersion": "10.0.22621.7376"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "bgra8OverlaySupport": "SCALING",
+        "canSupportThreadedTextureMailbox": false,
+        "directComposition": true,
+        "directMLFeatureLevel": "Not supported",
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_D3D11",
+        "dx12FeatureLevel": "Not supported",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_multiview_multisample GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_external_wrap_modes GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_NV_EGL_stream_consumer_external GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_depth24 GL_OES_depth32 GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OVR_multiview GL_OVR_multiview2 ",
+        "glImplementationParts": "(gl=egl-angle,angle=d3d11)",
+        "glRenderer": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11-32.0.101.5768)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (Intel)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28731 git hash: 1ff8799c596d)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_d3d_share_handle_client_buffer EGL_ANGLE_d3d_texture_client_buffer EGL_ANGLE_surface_d3d_texture_2d_share_handle EGL_ANGLE_query_surface_pointer EGL_ANGLE_window_fixed_size EGL_ANGLE_keyed_mutex EGL_ANGLE_surface_orientation EGL_ANGLE_direct_composition EGL_NV_post_sub_buffer EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_stream EGL_KHR_stream_consumer_gltexture EGL_NV_stream_consumer_gltexture_yuv EGL_ANGLE_stream_producer_d3d_texture EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_CHROMIUM_sync_control EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_image_d3d11_texture EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (Intel)",
+        "glWsVersion": "1.5 (ANGLE 2.1.28731 git hash: 1ff8799c596d)",
+        "inProcessGpu": false,
+        "initializationTime": 0.322767,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "16",
+        "nv12OverlaySupport": "SCALING",
+        "optimus": false,
+        "p010OverlaySupport": "SOFTWARE",
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "5.0",
+        "processCrashCount": 0,
+        "rgb10a2OverlaySupport": "SCALING",
+        "sandboxed": true,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "supportsD3dSharedImages": true,
+        "supportsDirectML": false,
+        "supportsDx12": false,
+        "supportsOverlays": true,
+        "supportsVulkan": false,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "5.0",
+        "visibilityCallbackCallCount": 0,
+        "vulkanVersion": "Not supported",
+        "yuy2OverlaySupport": "SCALING"
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_d3d12_av1_multi_ref_encoding",
+        "disable_d3d12_h264_encoder_non_reference_frames",
+        "disable_d3d12_hevc_encoding",
+        "disable_d3d12_video_encoder",
+        "disable_dcomp_texture",
+        "disable_direct_composition_sw_video_overlays",
+        "disable_vp9_hmft_temporal_encoding",
+        "disable_vp_auto_hdr",
+        "enable_bgra8_overlays_with_yuv_overlay_support",
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "force_dcomp_triple_buffer_video_swap_chain",
+        "force_rgb10a2_overlay_support",
+        "limit_d3d12_av1_profile_to_main",
+        "max_msaa_sample_count_4",
+        "msaa_is_slow",
+        "no_downscaled_overlay_promotion",
+        "supports_two_yuv_hardware_overlays",
+        "use_first_valid_ref_for_av1_invalid_ref",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "modelName": "",
+    "modelVersion": "",
+    "commandLine": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --headless=new --remote-debugging-port=0 --user-data-dir=\"C:\\Users\\m3ndag\\AppData\\Local\\Temp\\voxys-combined-daytime-oracle-tZNNw6\" --no-first-run --no-default-browser-check --disable-background-networking --noerrdialogs --flag-switches-begin --flag-switches-end about:blank"
+  },
+  "result": {
+    "adapter": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "features": [
+      "core-features-and-limits"
+    ],
+    "fixtureSha256": "5fbe040fcd9e29a83e7808c5f49c37eff383fe1ad2db4254b5cbe81b6fa0fb8a",
+    "renderCount": 48,
+    "comparisons": [
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "dry-cove",
+        "baselineRender": 0,
+        "candidateRender": 1,
+        "bytes": 45056,
+        "baselineSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "candidateSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "wet-cove",
+        "baselineRender": 2,
+        "candidateRender": 3,
+        "bytes": 45056,
+        "baselineSha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+        "candidateSha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "backlit-cove",
+        "baselineRender": 4,
+        "candidateRender": 5,
+        "bytes": 45056,
+        "baselineSha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+        "candidateSha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "night-cove",
+        "baselineRender": 6,
+        "candidateRender": 7,
+        "bytes": 45056,
+        "baselineSha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+        "candidateSha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "land-cove",
+        "baselineRender": 8,
+        "candidateRender": 9,
+        "bytes": 45056,
+        "baselineSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "candidateSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "opaque-cove",
+        "baselineRender": 10,
+        "candidateRender": 11,
+        "bytes": 45056,
+        "baselineSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "candidateSha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-cove",
+        "baselineRender": 12,
+        "candidateRender": 13,
+        "bytes": 40960,
+        "baselineSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "candidateSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-cove",
+        "baselineRender": 14,
+        "candidateRender": 15,
+        "bytes": 40960,
+        "baselineSha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+        "candidateSha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-cove",
+        "baselineRender": 16,
+        "candidateRender": 17,
+        "bytes": 40960,
+        "baselineSha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+        "candidateSha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "night-cove",
+        "baselineRender": 18,
+        "candidateRender": 19,
+        "bytes": 40960,
+        "baselineSha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+        "candidateSha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "land-cove",
+        "baselineRender": 20,
+        "candidateRender": 21,
+        "bytes": 40960,
+        "baselineSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "candidateSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-cove",
+        "baselineRender": 22,
+        "candidateRender": 23,
+        "bytes": 40960,
+        "baselineSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "candidateSha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "dry-frontier",
+        "baselineRender": 24,
+        "candidateRender": 25,
+        "bytes": 45056,
+        "baselineSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "candidateSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "wet-frontier",
+        "baselineRender": 26,
+        "candidateRender": 27,
+        "bytes": 45056,
+        "baselineSha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+        "candidateSha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "backlit-frontier",
+        "baselineRender": 28,
+        "candidateRender": 29,
+        "bytes": 45056,
+        "baselineSha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+        "candidateSha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "night-frontier",
+        "baselineRender": 30,
+        "candidateRender": 31,
+        "bytes": 45056,
+        "baselineSha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+        "candidateSha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "land-frontier",
+        "baselineRender": 32,
+        "candidateRender": 33,
+        "bytes": 45056,
+        "baselineSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "candidateSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "opaque-frontier",
+        "baselineRender": 34,
+        "candidateRender": 35,
+        "bytes": 45056,
+        "baselineSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "candidateSha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-frontier",
+        "baselineRender": 36,
+        "candidateRender": 37,
+        "bytes": 40960,
+        "baselineSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "candidateSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-frontier",
+        "baselineRender": 38,
+        "candidateRender": 39,
+        "bytes": 40960,
+        "baselineSha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+        "candidateSha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-frontier",
+        "baselineRender": 40,
+        "candidateRender": 41,
+        "bytes": 40960,
+        "baselineSha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+        "candidateSha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "night-frontier",
+        "baselineRender": 42,
+        "candidateRender": 43,
+        "bytes": 40960,
+        "baselineSha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+        "candidateSha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "land-frontier",
+        "baselineRender": 44,
+        "candidateRender": 45,
+        "bytes": 40960,
+        "baselineSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "candidateSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "differentBytes": 0,
+        "firstDifferences": []
+      },
+      {
+        "kind": "combined",
+        "candidate": "combined-daytime",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-frontier",
+        "baselineRender": 46,
+        "candidateRender": 47,
+        "bytes": 40960,
+        "baselineSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "candidateSha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "differentBytes": 0,
+        "firstDifferences": []
+      }
+    ],
+    "stageControls": [
+      {
+        "render": 0,
+        "case": "dry-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": true,
+        "accepted": true
+      },
+      {
+        "render": 2,
+        "case": "wet-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3067,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 4,
+        "case": "backlit-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 6,
+        "case": "night-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3067,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 8,
+        "case": "land-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 10,
+        "case": "opaque-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 12,
+        "case": "dry-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": true,
+        "accepted": true
+      },
+      {
+        "render": 14,
+        "case": "wet-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3067,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 16,
+        "case": "backlit-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 18,
+        "case": "night-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3067,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 20,
+        "case": "land-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 22,
+        "case": "opaque-cove",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3066,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 24,
+        "case": "dry-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": true,
+        "accepted": true
+      },
+      {
+        "render": 26,
+        "case": "wet-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3068,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 28,
+        "case": "backlit-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 30,
+        "case": "night-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3071,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 32,
+        "case": "land-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 34,
+        "case": "opaque-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 36,
+        "case": "dry-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": true,
+        "accepted": true
+      },
+      {
+        "render": 38,
+        "case": "wet-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3068,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 40,
+        "case": "backlit-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3064,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 42,
+        "case": "night-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3072,
+        "waterDifferentBytes": 3071,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 44,
+        "case": "land-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      },
+      {
+        "render": 46,
+        "case": "opaque-frontier",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "meshDifferentBytes": 3056,
+        "waterDifferentBytes": 3065,
+        "required": false,
+        "accepted": true
+      }
+    ],
+    "renders": [
+      {
+        "id": 0,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "dry-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 1,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "dry-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 2,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "wet-cove",
+        "bytes": 45056,
+        "sha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 3,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "wet-cove",
+        "bytes": 45056,
+        "sha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 4,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "backlit-cove",
+        "bytes": 45056,
+        "sha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 5,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "backlit-cove",
+        "bytes": 45056,
+        "sha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 6,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "night-cove",
+        "bytes": 45056,
+        "sha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 7,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "night-cove",
+        "bytes": 45056,
+        "sha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 8,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "land-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 9,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "land-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 10,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "opaque-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 11,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+        "case": "opaque-cove",
+        "bytes": 45056,
+        "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 12,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 13,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 14,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-cove",
+        "bytes": 40960,
+        "sha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 15,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-cove",
+        "bytes": 40960,
+        "sha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 16,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-cove",
+        "bytes": 40960,
+        "sha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 17,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-cove",
+        "bytes": 40960,
+        "sha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 18,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "night-cove",
+        "bytes": 40960,
+        "sha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 19,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "night-cove",
+        "bytes": 40960,
+        "sha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 20,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "land-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 21,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "land-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 22,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 23,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-cove",
+        "bytes": 40960,
+        "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 24,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "dry-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 25,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "dry-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 26,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "wet-frontier",
+        "bytes": 45056,
+        "sha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 27,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "wet-frontier",
+        "bytes": 45056,
+        "sha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 28,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "backlit-frontier",
+        "bytes": 45056,
+        "sha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 29,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "backlit-frontier",
+        "bytes": 45056,
+        "sha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 30,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "night-frontier",
+        "bytes": 45056,
+        "sha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 31,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "night-frontier",
+        "bytes": 45056,
+        "sha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 32,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "land-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 33,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "land-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 34,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "opaque-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 35,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+        "case": "opaque-frontier",
+        "bytes": 45056,
+        "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 3072,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 36,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 37,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "dry-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 38,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-frontier",
+        "bytes": 40960,
+        "sha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 39,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "wet-frontier",
+        "bytes": 40960,
+        "sha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 40,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-frontier",
+        "bytes": 40960,
+        "sha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 41,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "backlit-frontier",
+        "bytes": 40960,
+        "sha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16383,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "47b27d347f424071a6a917a5700a4c8aee8db7e5c6d14fc26620303818b4ebd6"
+      },
+      {
+        "id": 42,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "night-frontier",
+        "bytes": 40960,
+        "sha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 43,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "night-frontier",
+        "bytes": 40960,
+        "sha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16384,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "218a2f8bfbcbec8eeb51cd04e32a57d02de02d91dbc628d64b577708a3c75c4e"
+      },
+      {
+        "id": 44,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "land-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 45,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "land-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "4857a374efee972f61ce0df0d6692c61056a5910061f3d3ed2e1c8b63d8c8fd8"
+      },
+      {
+        "id": 46,
+        "kind": "combined",
+        "shader": "combined-baseline",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      },
+      {
+        "id": 47,
+        "kind": "combined",
+        "shader": "combined-candidate",
+        "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+        "case": "opaque-frontier",
+        "bytes": 40960,
+        "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+        "targets": [
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          },
+          {
+            "format": "r32float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 4
+          },
+          {
+            "format": "rgba16float",
+            "size": [
+              32,
+              32,
+              1
+            ],
+            "bytesPerPixel": 8
+          }
+        ],
+        "writtenColorComponents": 16382,
+        "writtenDepthComponents": 2048,
+        "nonFiniteComponents": 0,
+        "uploadSequenceSha256": "a7b50ce424a0a819d07d9a2033580a870165274edff1e48fe43e5c97a50ed79e"
+      }
+    ],
+    "errors": [],
+    "lost": [],
+    "compiledModules": 10,
+    "compiledPipelines": 22,
+    "ok": true
+  },
+  "systemAfter": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 32902,
+          "deviceId": 39497,
+          "subSysId": 171380776,
+          "revision": 1,
+          "vendorString": "",
+          "deviceString": "Intel(R) Iris(R) Xe Graphics",
+          "driverVendor": "Intel",
+          "driverVersion": "32.0.101.5768"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39497,
+          "subSysId": 171380776,
+          "revision": 1,
+          "vendorString": "",
+          "deviceString": "Intel(R) Iris(R) Xe Graphics",
+          "driverVendor": "",
+          "driverVersion": "32.0.101.5768"
+        },
+        {
+          "vendorId": 5140,
+          "deviceId": 140,
+          "subSysId": 0,
+          "revision": 0,
+          "vendorString": "",
+          "deviceString": "Microsoft Basic Render Driver",
+          "driverVendor": "",
+          "driverVersion": "10.0.22621.7376"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "bgra8OverlaySupport": "SCALING",
+        "canSupportThreadedTextureMailbox": false,
+        "directComposition": true,
+        "directMLFeatureLevel": "5.0",
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_D3D11",
+        "dx12FeatureLevel": "D3D 12.1",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_multiview_multisample GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_external_wrap_modes GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_NV_EGL_stream_consumer_external GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_depth24 GL_OES_depth32 GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OVR_multiview GL_OVR_multiview2 ",
+        "glImplementationParts": "(gl=egl-angle,angle=d3d11)",
+        "glRenderer": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11-32.0.101.5768)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (Intel)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28731 git hash: 1ff8799c596d)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_d3d_share_handle_client_buffer EGL_ANGLE_d3d_texture_client_buffer EGL_ANGLE_surface_d3d_texture_2d_share_handle EGL_ANGLE_query_surface_pointer EGL_ANGLE_window_fixed_size EGL_ANGLE_keyed_mutex EGL_ANGLE_surface_orientation EGL_ANGLE_direct_composition EGL_NV_post_sub_buffer EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_stream EGL_KHR_stream_consumer_gltexture EGL_NV_stream_consumer_gltexture_yuv EGL_ANGLE_stream_producer_d3d_texture EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_CHROMIUM_sync_control EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_image_d3d11_texture EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (Intel)",
+        "glWsVersion": "1.5 (ANGLE 2.1.28731 git hash: 1ff8799c596d)",
+        "inProcessGpu": false,
+        "initializationTime": 0.322767,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "16",
+        "nv12OverlaySupport": "SCALING",
+        "optimus": false,
+        "p010OverlaySupport": "SOFTWARE",
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "5.0",
+        "processCrashCount": 0,
+        "rgb10a2OverlaySupport": "SCALING",
+        "sandboxed": true,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "supportsD3dSharedImages": true,
+        "supportsDirectML": true,
+        "supportsDx12": true,
+        "supportsOverlays": true,
+        "supportsVulkan": false,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "5.0",
+        "visibilityCallbackCallCount": 0,
+        "vulkanVersion": "Not supported",
+        "yuy2OverlaySupport": "SCALING"
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_d3d12_av1_multi_ref_encoding",
+        "disable_d3d12_h264_encoder_non_reference_frames",
+        "disable_d3d12_hevc_encoding",
+        "disable_d3d12_video_encoder",
+        "disable_dcomp_texture",
+        "disable_direct_composition_sw_video_overlays",
+        "disable_vp9_hmft_temporal_encoding",
+        "disable_vp_auto_hdr",
+        "enable_bgra8_overlays_with_yuv_overlay_support",
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "force_dcomp_triple_buffer_video_swap_chain",
+        "force_rgb10a2_overlay_support",
+        "limit_d3d12_av1_profile_to_main",
+        "max_msaa_sample_count_4",
+        "msaa_is_slow",
+        "no_downscaled_overlay_promotion",
+        "supports_two_yuv_hardware_overlays",
+        "use_first_valid_ref_for_av1_invalid_ref",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "modelName": "",
+    "modelVersion": "",
+    "commandLine": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --headless=new --remote-debugging-port=0 --user-data-dir=\"C:\\Users\\m3ndag\\AppData\\Local\\Temp\\voxys-combined-daytime-oracle-tZNNw6\" --no-first-run --no-default-browser-check --disable-background-networking --noerrdialogs --flag-switches-begin --flag-switches-end about:blank"
+  },
+  "finishedAt": "2026-09-29T21:20:43.442Z"
+}

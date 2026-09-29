@@ -1,0 +1,103 @@
+{
+  "scope": "Actual MeshPath translation unit, captured original wasm32 O2 flags, Clang 23 assembly before final linking. No SIMD, fast-math or performance result.",
+  "labels": {
+    "baseline": {
+      "assemblySha256": "79b46a37470100fac37d8e2460c87181df6b17eb040cbdaeccd41ddf49f40746",
+      "compileParamsSha256": "45db4d8d4383bdd35c4c5cec00bc1e2d3a3e52f75da6651e6913a39edfac0ed7",
+      "renderSymbol": "_ZN4voxy6render8MeshPath6renderEP22WGPUCommandEncoderImplP19WGPUTextureViewImplS5_RKN3glm3matILi4ELi4EfLNS6_9qualifierE0EEESB_RKNS6_3vecILi3EfLS8_0EEERKNS0_17PrimitiveLightingEjjbS5_NS0_19SceneShadowConsumerESD_NSt3__25arrayINSC_ILi4EfLS8_0EEELm2EEE",
+      "renderGpuVectorCalls": [
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRKNS2_16MeshDrawInstanceERKjEEERS4_DpOT_",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_"
+      ],
+      "gpuReserveCalls": 2,
+      "gpuEmplaceCalls": 1,
+      "gpuCopyAppendCalls": 1,
+      "warmAppendHelpers": [
+        {
+          "symbol": "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRKNS2_16MeshDrawInstanceERKjEEERS4_DpOT_",
+          "kind": "construct",
+          "memoryCopyInstructions": 0,
+          "copiesConstant128Bytes": false,
+          "destinationRecordFieldStoreOffsets": [
+            56,
+            48,
+            40,
+            32,
+            24,
+            16,
+            8,
+            0,
+            72,
+            64,
+            84,
+            80,
+            88,
+            92,
+            96,
+            104,
+            112,
+            120
+          ]
+        },
+        {
+          "symbol": "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_",
+          "kind": "copy",
+          "memoryCopyInstructions": 1,
+          "copiesConstant128Bytes": true,
+          "destinationRecordFieldStoreOffsets": []
+        }
+      ],
+      "renderStackFrameBytes": 960
+    },
+    "candidate": {
+      "assemblySha256": "37998e712f8c513197f7859fc467fe2c8e516cff7b03cb72749271475326ab6b",
+      "compileParamsSha256": "fb37163b73dce6fee8ccda9ffeedf18209dc6d8aae722ff5bab0a6fb2a02b272",
+      "renderSymbol": "_ZN4voxy6render8MeshPath6renderEP22WGPUCommandEncoderImplP19WGPUTextureViewImplS5_RKN3glm3matILi4ELi4EfLNS6_9qualifierE0EEESB_RKNS6_3vecILi3EfLS8_0EEERKNS0_17PrimitiveLightingEjjbS5_NS0_19SceneShadowConsumerESD_NSt3__25arrayINSC_ILi4EfLS8_0EEELm2EEE",
+      "renderGpuVectorCalls": [
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRNS2_16MeshDrawInstanceERjEEERS4_DpOT_"
+      ],
+      "gpuReserveCalls": 1,
+      "gpuEmplaceCalls": 1,
+      "gpuCopyAppendCalls": 0,
+      "warmAppendHelpers": [
+        {
+          "symbol": "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRNS2_16MeshDrawInstanceERjEEERS4_DpOT_",
+          "kind": "construct",
+          "memoryCopyInstructions": 0,
+          "copiesConstant128Bytes": false,
+          "destinationRecordFieldStoreOffsets": [
+            56,
+            48,
+            40,
+            32,
+            24,
+            16,
+            8,
+            0,
+            72,
+            64,
+            84,
+            80,
+            88,
+            92,
+            96,
+            104,
+            112,
+            120
+          ]
+        }
+      ],
+      "renderStackFrameBytes": 960
+    }
+  },
+  "findings": [
+    "Baseline constructs each visible expanded 128-byte GPU record before sorting and copies it into a second GPU-record vector after sorting.",
+    "The baseline existing-capacity sorted append lowers to memory.copy with constant size 128.",
+    "Candidate appends a 4-byte wasm32 source index before sorting, then constructs each final GPU record directly in the final vector after sorting. Its existing-capacity GPU append has field stores and no memory.copy.",
+    "Candidate render contains one GPU reserve, one GPU emplace and no GPU push_back call; baseline contains two reserves, one emplace and one push_back.",
+    "Vector growth relocation and static mesh record construction remain. Native/image correctness is reported separately. Final GPU upload bytes remain unchanged."
+  ]
+}

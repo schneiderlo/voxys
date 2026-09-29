@@ -1,0 +1,84 @@
+{
+  "schema": "voxys.push-offline-validation.v1",
+  "recordedAtUtc": "2026-09-29T23:46:57.636722+00:00",
+  "scope": "Commit readiness of current gameplay FPS harness, cache work reporter and documentation; offline only, no actual FPS claim",
+  "checks": [
+    {
+      "argv": [
+        "node",
+        "scripts/performance/test_gameplay_fps.mjs"
+      ],
+      "exitCode": 0,
+      "tests": 26,
+      "passed": 26,
+      "failed": 0,
+      "note": "Initial25 passed; added meaningful in-process diagnostic/JSON rejection regression after review and26 passed."
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/performance/test_terrain_cache_work.mjs"
+      ],
+      "exitCode": 0,
+      "tests": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "<each current benchmark module>"
+      ],
+      "exitCode": 0,
+      "files": [
+        "benchmark_gameplay_fps.mjs",
+        "canvas_fps_probe.mjs",
+        "gameplay_fps_inputs.mjs",
+        "gameplay_fps_metrics.mjs",
+        "gameplay_fps_work.mjs",
+        "compare_gameplay_fps.mjs",
+        "test_gameplay_fps.mjs",
+        "terrain_cache_work.mjs",
+        "test_terrain_cache_work.mjs"
+      ]
+    },
+    {
+      "file": "tools/benchmarks/compare_frontier_runtime.py",
+      "method": "Python ast.parse; no replay/build execution",
+      "valid": true
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "sourceSha256": {
+    "benchmark_gameplay_fps.mjs": "026a39d4433821a72625c3685ca36ef23b853e12f828044e783b6aeea5c085a9",
+    "canvas_fps_probe.mjs": "cd49892432d89d4eb6b13631b981fc460834578001b2770bc5631081d156dc70",
+    "gameplay_fps_inputs.mjs": "235d75dbc5007e527ea994365289448d3e3f1e2bc74e3bab7cbd88087ccbb590",
+    "gameplay_fps_metrics.mjs": "4954a6faf6eb19fa5881035e20b38aa5fbddb271e9cea2dfcc4e847b5ecb0f42",
+    "gameplay_fps_work.mjs": "c956c3be4d6560d052e2056f8219d68dcf5ed261fa16d42f131f9a4910eaea26",
+    "compare_gameplay_fps.mjs": "c16896fd9fb303b166fe02e12ff053ec875d13393f02b12bb3349bd92a714963",
+    "test_gameplay_fps.mjs": "c5f1d55d3fbfc881cbb35fcd9e7fd14bc72a8c43cd30c508d065f5d2cdec31e3",
+    "terrain_cache_work.mjs": "4ba894d2ec9d4760b7c37cf837847e725d1a9e3ff3337a4667e3364c7b70fdfb",
+    "test_terrain_cache_work.mjs": "894cf7b90ed44f7825c316fbac4c2169a95799be299806042d9503e145d03876"
+  },
+  "launcherSha256": "2951b7af9e307443953820b17d2a23edb7ba3b1c83c763edb82d4679bc8905f7",
+  "launcherAndHistoricalEvidenceUnchanged": true,
+  "docFixes": [
+    "Scoped SIMD paragraph explicitly names temporary/unpromoted build; final flags original and scoped experiment excluded.",
+    "No commit/push statement anchored to initial closing review; no present publication claim.",
+    "Revised cache7 tests recorded as passed, and current gameplay26 count recorded."
+  ],
+  "gpuRun": false,
+  "browserRun": false,
+  "buildRun": false,
+  "windowsInteropProbeRun": false,
+  "fpsGainEstablished": false,
+  "publicationStatus": "Root must verify actual remote ref before claiming push complete."
+}

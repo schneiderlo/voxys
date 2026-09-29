@@ -1,0 +1,387 @@
+{
+  "scope": "Clean native O3 CPU component comparison, installed full terrain/2252 collider geometry; no rendered FPS or GPU claim",
+  "startedUtc": "2026-09-29T19:09:00.736141+00:00",
+  "finishedUtc": "2026-09-29T19:09:25.119763+00:00",
+  "batches": 200,
+  "queriesPerBatch": 64,
+  "records": [
+    {
+      "kind": "query",
+      "index": 1,
+      "variant": "baseline",
+      "file": "query-01-baseline.json",
+      "elapsedSeconds": 1.399189911000576,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 2,
+      "variant": "partial-bool",
+      "file": "query-02-partial-bool.json",
+      "elapsedSeconds": 1.4492315400002553,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 3,
+      "variant": "single-sector",
+      "file": "query-03-single-sector.json",
+      "elapsedSeconds": 1.3604538250001497,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 4,
+      "variant": "single-sector",
+      "file": "query-04-single-sector.json",
+      "elapsedSeconds": 1.2384288490011386,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 5,
+      "variant": "partial-bool",
+      "file": "query-05-partial-bool.json",
+      "elapsedSeconds": 1.2149230730028648,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 6,
+      "variant": "baseline",
+      "file": "query-06-baseline.json",
+      "elapsedSeconds": 1.3824294240002928,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 7,
+      "variant": "baseline",
+      "file": "query-07-baseline.json",
+      "elapsedSeconds": 1.3538104030012619,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 8,
+      "variant": "partial-bool",
+      "file": "query-08-partial-bool.json",
+      "elapsedSeconds": 1.2429372609985876,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 9,
+      "variant": "single-sector",
+      "file": "query-09-single-sector.json",
+      "elapsedSeconds": 1.2605531770022935,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 10,
+      "variant": "single-sector",
+      "file": "query-10-single-sector.json",
+      "elapsedSeconds": 1.238700076002715,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 11,
+      "variant": "partial-bool",
+      "file": "query-11-partial-bool.json",
+      "elapsedSeconds": 1.3522212429998035,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 12,
+      "variant": "baseline",
+      "file": "query-12-baseline.json",
+      "elapsedSeconds": 1.2899594299997261,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 13,
+      "variant": "baseline",
+      "file": "query-13-baseline.json",
+      "elapsedSeconds": 1.298149498001294,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 14,
+      "variant": "partial-bool",
+      "file": "query-14-partial-bool.json",
+      "elapsedSeconds": 1.2038881039989064,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 15,
+      "variant": "single-sector",
+      "file": "query-15-single-sector.json",
+      "elapsedSeconds": 1.3515578259975882,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 16,
+      "variant": "single-sector",
+      "file": "query-16-single-sector.json",
+      "elapsedSeconds": 1.2705024650022096,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 17,
+      "variant": "partial-bool",
+      "file": "query-17-partial-bool.json",
+      "elapsedSeconds": 1.2688239710005291,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "query",
+      "index": 18,
+      "variant": "baseline",
+      "file": "query-18-baseline.json",
+      "elapsedSeconds": 1.298598587000015,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 1,
+      "variant": "baseline",
+      "file": "paint-01-baseline.json",
+      "elapsedSeconds": 0.10460187799981213,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 2,
+      "variant": "candidate",
+      "file": "paint-02-candidate.json",
+      "elapsedSeconds": 0.01844213100048364,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 3,
+      "variant": "candidate",
+      "file": "paint-03-candidate.json",
+      "elapsedSeconds": 0.018040881001070375,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 4,
+      "variant": "baseline",
+      "file": "paint-04-baseline.json",
+      "elapsedSeconds": 0.11296414599928539,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 5,
+      "variant": "baseline",
+      "file": "paint-05-baseline.json",
+      "elapsedSeconds": 0.10882882200166932,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 6,
+      "variant": "candidate",
+      "file": "paint-06-candidate.json",
+      "elapsedSeconds": 0.01750388900109101,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 7,
+      "variant": "candidate",
+      "file": "paint-07-candidate.json",
+      "elapsedSeconds": 0.017332261999399634,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 8,
+      "variant": "baseline",
+      "file": "paint-08-baseline.json",
+      "elapsedSeconds": 0.11664954700245289,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 9,
+      "variant": "baseline",
+      "file": "paint-09-baseline.json",
+      "elapsedSeconds": 0.10914366100041661,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 10,
+      "variant": "candidate",
+      "file": "paint-10-candidate.json",
+      "elapsedSeconds": 0.017320562001259532,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 11,
+      "variant": "candidate",
+      "file": "paint-11-candidate.json",
+      "elapsedSeconds": 0.017118184001446934,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    },
+    {
+      "kind": "paint",
+      "index": 12,
+      "variant": "baseline",
+      "file": "paint-12-baseline.json",
+      "elapsedSeconds": 0.11039655000058701,
+      "otherKnownProcessesBefore": [],
+      "otherKnownProcessesAfter": []
+    }
+  ],
+  "initialKnownProcesses": [],
+  "finalKnownProcesses": [],
+  "hostActivityLimit": "Ordinary unrelated host activity is not controlled; balanced order and per-run distributions retained",
+  "inputs": {
+    "/tmp/voxys-fps-20260929/terrain.r16": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+    "/tmp/voxys-fps-20260929/native-baseline/frontier-colliders.txt": "cf19f780dbaedeae1d482e905f90dbb6fcd55e5518a2dedb7513e693384777c0"
+  },
+  "queries": {
+    "support": {
+      "baseline": {
+        "p50_us": 0.5761562499999999,
+        "p95_us": 0.86671875,
+        "p99_us": 1.01259375
+      },
+      "partial-bool": {
+        "p50_us": 0.1750078125,
+        "p95_us": 0.17638281249999999,
+        "p99_us": 0.247953125
+      },
+      "single-sector": {
+        "p50_us": 0.1875234375,
+        "p95_us": 0.1953125,
+        "p99_us": 0.2358046875
+      }
+    },
+    "clear": {
+      "baseline": {
+        "p50_us": 0.5686640625,
+        "p95_us": 0.790484375,
+        "p99_us": 1.0700625
+      },
+      "partial-bool": {
+        "p50_us": 0.1760625,
+        "p95_us": 0.18025,
+        "p99_us": 0.257984375
+      },
+      "single-sector": {
+        "p50_us": 0.18910937500000002,
+        "p95_us": 0.228390625,
+        "p99_us": 0.2984453125
+      }
+    },
+    "sweep": {
+      "baseline": {
+        "p50_us": 2.4394921875,
+        "p95_us": 3.1640234375,
+        "p99_us": 3.5609921875
+      },
+      "partial-bool": {
+        "p50_us": 1.8762734375,
+        "p95_us": 2.4247578125,
+        "p99_us": 2.7877265625
+      },
+      "single-sector": {
+        "p50_us": 2.0831875,
+        "p95_us": 2.4008515624999998,
+        "p99_us": 2.7999687499999997
+      }
+    },
+    "ray": {
+      "baseline": {
+        "p50_us": 55.295515625,
+        "p95_us": 64.9932890625,
+        "p99_us": 70.5413125
+      },
+      "partial-bool": {
+        "p50_us": 55.0080546875,
+        "p95_us": 68.4627578125,
+        "p99_us": 86.9030625
+      },
+      "single-sector": {
+        "p50_us": 54.831109375,
+        "p95_us": 64.0468125,
+        "p99_us": 69.331765625
+      }
+    },
+    "column": {
+      "baseline": {
+        "p50_us": 2.2902734375,
+        "p95_us": 2.8744609375000003,
+        "p99_us": 3.516640625
+      },
+      "partial-bool": {
+        "p50_us": 0.6490625,
+        "p95_us": 0.8785703125,
+        "p99_us": 1.176890625
+      },
+      "single-sector": {
+        "p50_us": 0.6075703125,
+        "p95_us": 0.8492109375,
+        "p99_us": 1.0342734375
+      }
+    }
+  },
+  "paint": {
+    "baseline": {
+      "p50_us": 0.03766137695315,
+      "p95_us": 0.05335156250005,
+      "p99_us": 0.06942114257814999
+    },
+    "candidate": {
+      "p50_us": 0.0050849609375,
+      "p95_us": 0.008333984374999999,
+      "p99_us": 0.009914794921875001
+    }
+  },
+  "checksumsExact": true,
+  "noOtherKnownProbes": true
+}

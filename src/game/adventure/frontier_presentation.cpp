@@ -216,7 +216,6 @@ void AdventureRuntime::fillFrontierHud() {
             }
         }
     }
-    hud_.setContent(hud);
 }
 
 void AdventureRuntime::renderFrontier(glm::dvec3 origin) {

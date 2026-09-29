@@ -1,0 +1,2357 @@
+{
+  "schema": "voxys.final-wasm-interface-proof.v1",
+  "consolidatedAtUtc": "2026-09-29T22:13:45.033697+00:00",
+  "acceptedBuildFinishedUtc": "2026-09-29T22:09:42.599569+00:00",
+  "accepted": true,
+  "scope": "Final CPU build using original compiler flags. Original queries and all original shaders; HUD, attack-sight admission, paint cache and initial in-place record construction retained.",
+  "actualWasmValidAndCompiled": true,
+  "moduleValidationRuntime": "Actual binaries validated and compiled by Linux Node v22.18.0",
+  "moduleValidatedAtUtc": "2026-09-29T22:09:23.608Z",
+  "wasm": {
+    "sha256": "a04daf5d95497f97737838cc64cec9e2122280ea1bbd6f0f3e0162b3722f574b",
+    "bytes": 10143529
+  },
+  "candidateWasm": {
+    "sha256": "3ace85b75353a40f92b0b6cc589f87b0f48c5d1381c929bb8e8da485337d6e5b",
+    "bytes": 10143761
+  },
+  "importCount": 247,
+  "exportCount": 260,
+  "importExportNamesKindsAndOrderExact": true,
+  "imports": [
+    {
+      "module": "env",
+      "name": "emscripten_asm_const_int",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_webgpu_get_device",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_ii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_find_matching_catch_2",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_main_loop",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_main_loop_timing",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__resumeException",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_i",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_asm_const_double",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_v",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_get_now",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_d",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateCommandEncoder",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuCommandEncoderFinish",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuQueueSubmit",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_find_matching_catch_3",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "llvm_eh_typeid_for",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_begin_catch",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_end_catch",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_pause_main_loop",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iid",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_cancel_main_loop",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_throw",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viifiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viidiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viijjiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_resume_main_loop",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureDestroy",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceHasFeature",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateQuerySet",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiffii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_get_element_css_size",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiifii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iifii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viifiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiff",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuCommandEncoderResolveQuerySet",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiijjjiiij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuCommandEncoderBeginComputePass",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuComputePassEncoderEnd",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuBufferGetSize",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_ji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuCommandEncoderBeginRenderPass",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderEnd",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateTexture",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureCreateView",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetWidth",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetHeight",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_fiff",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiifii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iijjii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiidji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viijiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiid",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iijiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiijiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiijijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiijiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vidi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vijij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiddi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiifiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiidiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viijji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viijiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_jij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_jii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_find_matching_catch_4",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_promise_create",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_promise_await",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_promise_destroy",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateRenderPipeline",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetPipeline",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetBindGroup",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderDraw",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_promise_resolve",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDevicePushErrorScope",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_rethrow",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiidd",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuComputePassEncoderSetPipeline",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuComputePassEncoderSetBindGroup",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuComputePassEncoderDispatchWorkgroups",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_jiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateComputePipeline",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetStencilReference",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetVertexBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetIndexBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderDrawIndexed",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viifii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuQueueWriteBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiff",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiffi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_fif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetMipLevelCount",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetViewport",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderSetScissorRect",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuBufferGetUsage",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateRenderBundleEncoder",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderSetPipeline",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderSetVertexBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderSetIndexBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderSetBindGroup",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderDrawIndexedIndirect",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderBundleEncoderFinish",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderExecuteBundles",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuRenderPassEncoderDrawIndexedIndirect",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_fi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuCommandEncoderCopyBufferToBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiijiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_diiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_dii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiidid",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_di",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiidiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceGetLimits",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuComputePassEncoderDispatchWorkgroupsIndirect",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iijij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iijji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iijii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiji",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vj",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiifffiif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viij",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiif",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiffiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiifiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_vifiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iifiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_viiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiff",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_fiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiifi",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetDepthOrArrayLayers",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetFormat",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuQueueWriteTexture",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuSurfaceUnconfigure",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuInstanceCreateSurface",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuSurfaceConfigure",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuSurfaceGetCurrentTexture",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetDimension",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuTextureGetSampleCount",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateSampler",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateBindGroupLayout",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreateBindGroup",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "wgpuDeviceCreatePipelineLayout",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_sample_gamepad_data",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_get_num_gamepads",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_get_gamepad_status",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_exit_pointerlock",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_request_pointerlock",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_keydown_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_keyup_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_mousemove_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_mousedown_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_mouseup_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_wheel_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_blur_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_set_pointerlockchange_callback_on_thread",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "exit",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_console_log",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_console_warn",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_console_error",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDelete",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuBufferDestroy",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuBufferGetConstMappedRange",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuBufferMapAsync",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuBufferUnmap",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDeviceDestroy",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_diii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_has_asyncify",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDeviceCreateBuffer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDeviceCreateComputePipelineAsync",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDeviceCreateRenderPipelineAsync",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDeviceCreateShaderModule",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuDevicePopErrorScope",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emwgpuQueueOnSubmittedWorkDone",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "_abort_js",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "clock_time_get",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_close",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_openat",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_fcntl64",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_ioctl",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_write",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_read",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_fstat64",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_stat64",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_newfstatat",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_lstat64",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_seek",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_resize_heap",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__cxa_uncaught_exceptions",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiid",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_jiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_fiii",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "environ_sizes_get",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "environ_get",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "_tzset_js",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "invoke_iiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_getcwd",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "__syscall_mkdirat",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "random_get",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "emscripten_get_heap_max",
+      "kind": "function"
+    }
+  ],
+  "exports": [
+    {
+      "name": "memory",
+      "kind": "memory"
+    },
+    {
+      "name": "__wasm_call_ctors",
+      "kind": "function"
+    },
+    {
+      "name": "__main_argc_argv",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_lego_action",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_lego_hud_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_salvage_blueprint_action",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_cove_preferences_action",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_cove_save_completed",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_action",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_preferences_action",
+      "kind": "function"
+    },
+    {
+      "name": "get_adventure_state_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_adventure_player_tick",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_stage",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_snapshot_hex",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_validate_hex",
+      "kind": "function"
+    },
+    {
+      "name": "adventure_save_completed",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_stage_cove_resume",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_salvage_expedition_action",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_salvage_preview_action",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_salvage_preview_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_heap_used_bytes",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_resize",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_renderer_set_number",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_renderer_get_number",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_renderer_get_revision",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_renderer_get_applied_revision",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_mouse_move",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_set_camera_pose",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_key_event",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_fps",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_last_frame_cpu_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_last_frame_wall_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_gpu_frames_in_flight",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_gpu_frame_limit",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_gpu_pacing_skips",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_start_render_throughput_benchmark",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_render_throughput_status",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_render_throughput_fps",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_render_throughput_elapsed_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_render_throughput_completed_frames",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_uncapped_fps",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_set_uncapped_fps",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_start_cube_pyramid_experiment",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_start_browser_journey_benchmark",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_browser_journey_benchmark_status",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_browser_journey_benchmark_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_substeps",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_resident_bodies",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_set_throwable_body_limit",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_stage_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_stage_tick",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_frame_count",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_encoded_tick",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_poll_physics_stage_timing",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_polled_physics_stage_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_poll_render_stage_timing",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_polled_render_stage_ms",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_telemetry_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_moto_hud_json",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_is_initialized",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_backend",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_start_physics_self_test",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_self_test_status",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_physics_self_test_tick",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_get_render_path",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_set_render_path",
+      "kind": "function"
+    },
+    {
+      "name": "voxy_toggle_render_path",
+      "kind": "function"
+    },
+    {
+      "name": "__indirect_function_table",
+      "kind": "table"
+    },
+    {
+      "name": "wgpuDeviceAddRef",
+      "kind": "function"
+    },
+    {
+      "name": "free",
+      "kind": "function"
+    },
+    {
+      "name": "malloc",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateBindGroup",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateBindGroupLayout",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateCommandBuffer",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateCommandEncoder",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateComputePassEncoder",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateComputePipeline",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreatePipelineLayout",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateQuerySet",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateRenderBundle",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateRenderBundleEncoder",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateRenderPassEncoder",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateRenderPipeline",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateSampler",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateSurface",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateTexture",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateTextureView",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateAdapter",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateBuffer",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateDevice",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateQueue",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuCreateShaderModule",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnCompilationInfoCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnCreateComputePipelineCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnCreateRenderPipelineCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnDeviceLostCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnMapAsyncCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnPopErrorScopeCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnRequestAdapterCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnRequestDeviceCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnWorkDoneCompleted",
+      "kind": "function"
+    },
+    {
+      "name": "emwgpuOnUncapturedError",
+      "kind": "function"
+    },
+    {
+      "name": "memalign",
+      "kind": "function"
+    },
+    {
+      "name": "setThrew",
+      "kind": "function"
+    },
+    {
+      "name": "_emscripten_tempret_set",
+      "kind": "function"
+    },
+    {
+      "name": "_emscripten_stack_restore",
+      "kind": "function"
+    },
+    {
+      "name": "_emscripten_stack_alloc",
+      "kind": "function"
+    },
+    {
+      "name": "emscripten_stack_get_current",
+      "kind": "function"
+    },
+    {
+      "name": "__cxa_decrement_exception_refcount",
+      "kind": "function"
+    },
+    {
+      "name": "__cxa_increment_exception_refcount",
+      "kind": "function"
+    },
+    {
+      "name": "__cxa_can_catch",
+      "kind": "function"
+    },
+    {
+      "name": "__cxa_get_exception_ptr",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_ii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_v",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_i",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_d",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iid",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viifiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viidiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viijjiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiffii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_ji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiifii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiidj",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iifii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiidji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viifiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiijjjiiij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiifii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijjii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viijiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_diii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_diiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiid",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiijiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiijijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiijiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vidi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vijij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiddi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiifiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiidiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viijji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viijiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_jij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_jii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiidd",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiffff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_jiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viifii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiffi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiijiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_dii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiidid",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_di",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiidiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiffff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijij",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vj",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iifffi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_ffjfj",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiiifjiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiifffiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiffiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiifiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vifiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iifiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiifiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiffiiffiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiifififf",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vifiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiifi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viffii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viff",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vifffi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_fiif",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_vifiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_jiji",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iijjiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_viiidi",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_jiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiiiiiiii",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiid",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiijj",
+      "kind": "function"
+    },
+    {
+      "name": "dynCall_iiiiiijj",
+      "kind": "function"
+    },
+    {
+      "name": "asyncify_start_unwind",
+      "kind": "function"
+    },
+    {
+      "name": "asyncify_stop_unwind",
+      "kind": "function"
+    },
+    {
+      "name": "asyncify_start_rewind",
+      "kind": "function"
+    },
+    {
+      "name": "asyncify_stop_rewind",
+      "kind": "function"
+    },
+    {
+      "name": "asyncify_get_state",
+      "kind": "function"
+    }
+  ],
+  "frozenClosureExactBeforeSingleOriginalQueriesReplacement": true,
+  "changedArchiveMembers": [
+    {
+      "member": "spatial_queries.o",
+      "beforeSha256": "abcb8c072767003e6e52562f8caad115c3b8eaa1b86d792840a0a552d98cd635",
+      "afterSha256": "915d78a2226c91c78c45daa983bcd6cc026641a51371236224ebad8d0e5580c2",
+      "changed": true
+    }
+  ],
+  "originalQueriesSourceSha256": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94",
+  "noNewSimdRelaxedSimdOrFastMathLinkFlags": true,
+  "wholeModuleSimdAbsenceClaim": false,
+  "discardedOverrestrictiveValidation": {
+    "policy": "Binaryen defaults with SIMD and relaxed SIMD disabled",
+    "exitCode": 1,
+    "acceptanceCondition": false,
+    "reason": "This gate excludes legitimate production SIMD and bulk-memory instructions. Actual module validity and exact ABI were verified with the supported Linux Node runtime; frozen closure and original flags provide feature provenance.",
+    "observedInstructionExamples": [
+      "v128.const",
+      "v128.store",
+      "memory.fill"
+    ]
+  },
+  "dataExact": true,
+  "data": {
+    "sha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6",
+    "bytes": 151666734
+  },
+  "generatedLoader": {
+    "rawBytesExact": false,
+    "artifact": {
+      "sha256": "396db0497c0e802d1baf26ff4d7f96124d2e6d22adb1e77cf9b608934be6fbb7",
+      "bytes": 244938
+    },
+    "review": {
+      "normalizedBytesExact": true,
+      "originalNodeShebangAbsentInFinal": true,
+      "originalMetadataDataPath": "bazel-out/wasm-opt-ST-87cf4af9f873/bin/voxy_wasm_cc.data",
+      "finalMetadataDataPath": "/tmp/voxys-fps-20260929/final-cpu-build/artifacts/voxy_wasm_cc.data",
+      "metadataOccurrences": 3,
+      "unchangedRemotePackageBase": "voxy_wasm_cc.data",
+      "generatedGlueLeftUnmodified": true
+    }
+  },
+  "proofSources": {
+    "build": {
+      "path": "/tmp/voxys-fps-20260929/final-cpu-build/proof.json",
+      "sha256": "aafb0433bb551d9b692e607c7942a3caf9ebc4a8fb511c82e7f3a4ab8314d220"
+    },
+    "moduleValidation": {
+      "path": "/tmp/voxys-fps-20260929/final-cpu-build/wasm-validation.json",
+      "sha256": "fdc7f91f9c5476fafd2095ad11d3799a8fe19b1555c89c76a4b2b362e17de40e"
+    }
+  },
+  "engineOrBrowserExecution": false,
+  "fpsClaim": false,
+  "windowsLaunches": 0
+}

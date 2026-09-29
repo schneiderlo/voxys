@@ -1,0 +1,20 @@
+{
+  "scope": "CPU-only candidate: final HUD publication, deferred AI sight, compact query scratch, exact paint cache, in-place GPU record construction; shaders and input/terrain/UI assets identical to scalar baseline",
+  "binaries": {
+    "voxy_wasm_cc.wasm": "3ace85b75353a40f92b0b6cc589f87b0f48c5d1381c929bb8e8da485337d6e5b",
+    "voxy_wasm_cc.js": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f",
+    "voxy_wasm_cc.data": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+  },
+  "baselineBinaries": {
+    "voxy_wasm_cc.wasm": "8c8ede84cd35202e241abe9bdf06a9a28d454a18241401e7d8cf569871817e06",
+    "voxy_wasm_cc.js": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f",
+    "voxy_wasm_cc.data": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+  },
+  "sources": {
+    "src/render/mesh_path.cpp": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+    "src/game/adventure/adventure_runtime.cpp": "9df53de229c824bb413e2b365bbca2afde49eba9dcd28610c0056e605869de22",
+    "src/game/adventure/frontier_presentation.cpp": "a544bcb975558f8c4e2bbb4efee7a7f43ddc50cac0ac5877b52bad0ba5300ede",
+    "src/game/adventure/frontier_runtime.cpp": "2ad240edc635e298969bbde5328145ea06fd263e0ff8b7330488cf9a03af1025",
+    "src/game/adventure/spatial_queries.cpp": "b0109bb7bfcfd349b9c9b89fb17a1d32796815339ebcecff4eb0264b24809318"
+  }
+}

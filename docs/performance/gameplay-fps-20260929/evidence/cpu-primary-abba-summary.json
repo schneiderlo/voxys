@@ -1,0 +1,349 @@
+{
+  "purpose": "Original version3 full clean CPU-change ABBA, reviewed with statistical midpoint aggregate medians and actual game-state guard. Raw captured harness/report hashes unchanged. No FPS improvement established. Orbit tail and walking parity are rejected.",
+  "report": "/mnt/c/Users/Public/voxys-fps-20260929/cpu-primary-abba/report.json",
+  "reportSha256": "91dee69d99d5e74c5f132353f5be4ed15a6aaaa03a9fa1f2236c569601793cac",
+  "start": "2026-09-29T19:17:44.098Z",
+  "end": "2026-09-29T19:55:38.941Z",
+  "configuration": {
+    "width": 1280,
+    "height": 720,
+    "repeats": 3,
+    "ticks": 600,
+    "warmupTicks": 600,
+    "driverPollMs": 8,
+    "playerStallTimeoutMs": 5000,
+    "travelClock": "authoritative AdventurePlayer fixed-step tick",
+    "experiences": [
+      "frontier"
+    ],
+    "scenarios": [
+      "idle",
+      "orbit",
+      "walk"
+    ],
+    "uncapped": true,
+    "instrumented": false,
+    "counts": false,
+    "cpuProfile": false,
+    "diagnosticOnly": false,
+    "profiling": false,
+    "clockHour": 16,
+    "dayNight": true,
+    "checkHudWork": false
+  },
+  "identities": {
+    "baseline": {
+      "stem": "voxy_wasm_cc",
+      "dynamicPacks": false,
+      "files": {
+        "index.html": {
+          "bytes": 107061,
+          "sha256": "ba28ef57fbc154f636c2a13b2b91d1f98ee27865fece41b803f1e2185221e01b"
+        },
+        "voxy_wasm_cc.js": {
+          "bytes": 244925,
+          "sha256": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f"
+        },
+        "voxy_wasm_cc.wasm": {
+          "bytes": 10154038,
+          "sha256": "8c8ede84cd35202e241abe9bdf06a9a28d454a18241401e7d8cf569871817e06"
+        },
+        "package.json": {
+          "bytes": 5242,
+          "sha256": "0f6c8583b213d6a8c5ae1706e3fceb1f8fc666ee396d22720d373bd20799848f"
+        },
+        "voxy_wasm_cc.data": {
+          "bytes": 151666734,
+          "sha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+        }
+      }
+    },
+    "candidate": {
+      "stem": "voxy_wasm_cc",
+      "dynamicPacks": false,
+      "files": {
+        "index.html": {
+          "bytes": 107061,
+          "sha256": "2466bdb8338c93846532b26b7555fabb6599644f44c01341836fee1d2682611b"
+        },
+        "voxy_wasm_cc.js": {
+          "bytes": 244925,
+          "sha256": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f"
+        },
+        "voxy_wasm_cc.wasm": {
+          "bytes": 10143761,
+          "sha256": "3ace85b75353a40f92b0b6cc589f87b0f48c5d1381c929bb8e8da485337d6e5b"
+        },
+        "package.json": {
+          "bytes": 5242,
+          "sha256": "0f0568a21da00ff3aa0b327a44b5032b4881ce6355072ec043d76dc275712271"
+        },
+        "voxy_wasm_cc.data": {
+          "bytes": 151666734,
+          "sha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+        }
+      }
+    }
+  },
+  "harnessIdentity": {
+    "benchmark_gameplay_fps.mjs": {
+      "bytes": 27090,
+      "sha256": "acb5a8ab5907192baceba114ca6bf44cc012b584db5a40f626be124c680e0060"
+    },
+    "canvas_fps_probe.mjs": {
+      "bytes": 3497,
+      "sha256": "cd49892432d89d4eb6b13631b981fc460834578001b2770bc5631081d156dc70"
+    },
+    "gameplay_fps_inputs.mjs": {
+      "bytes": 3717,
+      "sha256": "235d75dbc5007e527ea994365289448d3e3f1e2bc74e3bab7cbd88087ccbb590"
+    },
+    "gameplay_fps_metrics.mjs": {
+      "bytes": 14358,
+      "sha256": "e374a821d592efe743a9a37f6c9d9cf891e859048955cf2fbba697200f1cf4aa"
+    },
+    "gameplay_fps_work.mjs": {
+      "bytes": 4496,
+      "sha256": "c956c3be4d6560d052e2056f8219d68dcf5ed261fa16d42f131f9a4910eaea26"
+    },
+    "gameplay_counters.mjs": {
+      "bytes": 2001,
+      "sha256": "e7d919a3486721032dc6601baf3a29235040949d028eaecbe2b6ed2f811f06a9"
+    }
+  },
+  "comparison": [
+    {
+      "workload": "frontier/idle",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [],
+      "acquiredFps": {
+        "baseline": 29.221710202276316,
+        "candidate": 28.991436108548818,
+        "changePercent": -0.7880240141097561
+      },
+      "intervalP95Ms": {
+        "baseline": 89.04999999888241,
+        "candidate": 82.55000000074506,
+        "changePercent": -7.299270070992625
+      },
+      "intervalP99Ms": {
+        "baseline": 121.10000000149012,
+        "candidate": 123.24999999813735,
+        "changePercent": 1.7753922350295381
+      }
+    },
+    {
+      "workload": "frontier/orbit",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [
+        "intervalP95Ms regressed beyond 7.5%"
+      ],
+      "acquiredFps": {
+        "baseline": 26.883960344759245,
+        "candidate": 26.893379903868492,
+        "changePercent": 0.03503784036447133
+      },
+      "intervalP95Ms": {
+        "baseline": 104.65000000037253,
+        "candidate": 114.54999999888241,
+        "changePercent": 9.460105110821448
+      },
+      "intervalP99Ms": {
+        "baseline": 138.34999999962747,
+        "candidate": 143.25,
+        "changePercent": 3.541741959078948
+      }
+    },
+    {
+      "workload": "frontier/walk",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [
+        "Mismatched final player x",
+        "Mismatched final player z",
+        "Mismatched final camera yaw",
+        "Mismatched final player yaw",
+        "Mismatched final camera eye",
+        "Mismatched final camera distance"
+      ],
+      "acquiredFps": {
+        "baseline": 22.197238107099878,
+        "candidate": 21.809470453723442,
+        "changePercent": -1.7469184747466726
+      },
+      "intervalP95Ms": {
+        "baseline": 143.59999999962747,
+        "candidate": 146.7999999988824,
+        "changePercent": 2.2284122557543418
+      },
+      "intervalP99Ms": {
+        "baseline": 169.35000000149012,
+        "candidate": 181.99999999813735,
+        "changePercent": 7.469737228542028
+      }
+    }
+  ],
+  "healthRows": 36,
+  "rows": 36,
+  "cpuTelemetry": {
+    "idle": {
+      "baseline": {
+        "perRunEngineCpuMsP50": [
+          9.799999997,
+          9.400000002,
+          25.8,
+          21.6,
+          23.8,
+          25.4
+        ],
+        "midpointMedianEngineCpuMsP50": 22.700000000000003
+      },
+      "candidate": {
+        "perRunEngineCpuMsP50": [
+          9.800000001,
+          9.300000001,
+          25,
+          23.2,
+          23.8,
+          24.7
+        ],
+        "midpointMedianEngineCpuMsP50": 23.5
+      }
+    },
+    "orbit": {
+      "baseline": {
+        "perRunEngineCpuMsP50": [
+          10,
+          7.800000001,
+          24.5,
+          22.5,
+          25.4,
+          26
+        ],
+        "midpointMedianEngineCpuMsP50": 23.5
+      },
+      "candidate": {
+        "perRunEngineCpuMsP50": [
+          6.400000002,
+          7.300000001,
+          22.9,
+          18.9,
+          22.3,
+          18.1
+        ],
+        "midpointMedianEngineCpuMsP50": 18.5
+      }
+    },
+    "walk": {
+      "baseline": {
+        "perRunEngineCpuMsP50": [
+          8.199999999,
+          6.799999997,
+          22.7,
+          23,
+          23.3,
+          23.8
+        ],
+        "midpointMedianEngineCpuMsP50": 22.85
+      },
+      "candidate": {
+        "perRunEngineCpuMsP50": [
+          6,
+          15.2,
+          21.4,
+          23,
+          24,
+          21
+        ],
+        "midpointMedianEngineCpuMsP50": 21.2
+      }
+    }
+  },
+  "frozenOriginalLowerMiddleComparison": [
+    {
+      "workload": "frontier/idle",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [],
+      "acquiredFps": {
+        "baseline": 28.937617925674836,
+        "candidate": 28.987801379148728,
+        "changePercent": 0.17341943487811928
+      },
+      "intervalP95Ms": {
+        "baseline": 87.09999999776483,
+        "candidate": 82.10000000149012,
+        "changePercent": -5.740528124458121
+      },
+      "intervalP99Ms": {
+        "baseline": 115.80000000074506,
+        "candidate": 116.69999999925494,
+        "changePercent": 0.7772020712470518
+      }
+    },
+    {
+      "workload": "frontier/orbit",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [
+        "intervalP95Ms regressed beyond 7.5%"
+      ],
+      "acquiredFps": {
+        "baseline": 26.711905074328435,
+        "candidate": 26.732862325760834,
+        "changePercent": 0.07845659594134524
+      },
+      "intervalP95Ms": {
+        "baseline": 104.5,
+        "candidate": 113.79999999701977,
+        "changePercent": 8.899521528248577
+      },
+      "intervalP99Ms": {
+        "baseline": 137.69999999925494,
+        "candidate": 142.89999999850988,
+        "changePercent": 3.776325344432152
+      }
+    },
+    {
+      "workload": "frontier/walk",
+      "baselineRuns": 6,
+      "candidateRuns": 6,
+      "failures": [
+        "Mismatched final player x",
+        "Mismatched final player z",
+        "Mismatched final camera yaw",
+        "Mismatched final player yaw",
+        "Mismatched final camera eye",
+        "Mismatched final camera distance"
+      ],
+      "acquiredFps": {
+        "baseline": 21.76099320294358,
+        "candidate": 21.649934526407684,
+        "changePercent": -0.5103566528428249
+      },
+      "intervalP95Ms": {
+        "baseline": 142.59999999776483,
+        "candidate": 144.19999999925494,
+        "changePercent": 1.1220196364061685
+      },
+      "intervalP99Ms": {
+        "baseline": 166.5,
+        "candidate": 178.69999999925494,
+        "changePercent": 7.32732732687984
+      }
+    }
+  ],
+  "drift": "First four trials are faster; trials5–12 settle at lower throughput for both variants. Cause unproven. Balanced ABBA retained; no thermal claim.",
+  "analysisHarnessIdentity": {
+    "benchmark_gameplay_fps.mjs": "b3cf628bafcd25f21bd3f401e64a853714ddd42023abd6cfac7cdd5a57f66fbd",
+    "canvas_fps_probe.mjs": "cd49892432d89d4eb6b13631b981fc460834578001b2770bc5631081d156dc70",
+    "compare_gameplay_fps.mjs": "728adeb11ebe61467bebff5cce71f01c0491334c6bcbe4636f56253a6b7a2aef",
+    "gameplay_counters.mjs": "e7d919a3486721032dc6601baf3a29235040949d028eaecbe2b6ed2f811f06a9",
+    "gameplay_fps_inputs.mjs": "235d75dbc5007e527ea994365289448d3e3f1e2bc74e3bab7cbd88087ccbb590",
+    "gameplay_fps_metrics.mjs": "8c92e8a7071b28d34a1cf379cb3d206b79f4a7372d936c2536a60bfd658027dc",
+    "gameplay_fps_work.mjs": "c956c3be4d6560d052e2056f8219d68dcf5ed261fa16d42f131f9a4910eaea26",
+    "test_gameplay_fps.mjs": "1bfc7856477050911f9316faabb4bf6f6a676e9b2628618c2db33fdf6e7ab808"
+  }
+}

@@ -2589,8 +2589,9 @@ void AdventureRuntime::refreshHud() {
             hud.hoverLabel=hudHover_->label;hud.hoverBounds=hudHover_->bounds;
         }
     }
-    hudContent_=hud;hud_.setContent(std::move(hud));
+    hudContent_=std::move(hud);
     if(frontier_)fillFrontierHud();
+    hud_.setContent(hudContent_);
 }
 bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,WGPUTextureView depth,
     WGPUTextureView linearDepth,WGPUTextureView environment,WGPUTextureView rayDepth,
@@ -2602,8 +2603,7 @@ bool AdventureRuntime::render(WGPUCommandEncoder encoder,WGPUTextureView color,W
         const bool door=part.kind==PieceKind::HingedDoor;
         glm::vec4 paint(0);
         if(part.paint) {
-            const auto linear=[](uint32_t byte){const float c=float(byte)/255.f;return c<=.04045f?c/12.92f:std::pow((c+.055f)/1.055f,2.4f);};
-            paint={linear((part.paint>>16)&255),linear((part.paint>>8)&255),linear(part.paint&255),1};
+            paint=render::opaqueSrgbPaintOverride({uint8_t(part.paint>>16),uint8_t(part.paint>>8),uint8_t(part.paint),255});
         }
         const auto transform=model(part,origin);
         render::MeshDrawInstance instance{.assetIndex=0,

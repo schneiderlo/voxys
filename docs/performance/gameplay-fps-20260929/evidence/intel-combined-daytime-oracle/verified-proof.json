@@ -1,0 +1,439 @@
+{
+  "accepted": true,
+  "scope": "Actual Intel linked shipping-fragment combined daytime equivalence; no gameplay FPS or timing claim",
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "fixtureSha256": "5fbe040fcd9e29a83e7808c5f49c37eff383fe1ad2db4254b5cbe81b6fa0fb8a",
+  "hardwareReportSha256": "e935f1b7686b7d15b32f03e5c5a0dc65092b4bacedd3172d3f44dbdeb233295a",
+  "sourceSha256": {
+    "mesh-baseline": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b",
+    "mesh-shadow-gating": "6faf8b0152425a8d01f68e35892d1404040cf17e49e7ba86b445518fb49d0836",
+    "water-baseline": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb",
+    "water-deferred-shadow": "d92c968dec06454e2729434a2d732e0d9217498446f443da25db4cade1ba8e43",
+    "ray-baseline": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+    "cove-lazy-background-load": "75366ef320c798db98c298c539b89b37f3993c6f8d6955ec32dc53d0b1eae84a"
+  },
+  "comparisons": 24,
+  "renders": 48,
+  "outputs": {
+    "outputs/render-0.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-1.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-2.bin": {
+      "sha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+      "bytes": 45056
+    },
+    "outputs/render-3.bin": {
+      "sha256": "22c0397d94fe71e3e2be34c77a37a64a923dd5a247c697851a45e8b503dc5da5",
+      "bytes": 45056
+    },
+    "outputs/render-4.bin": {
+      "sha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+      "bytes": 45056
+    },
+    "outputs/render-5.bin": {
+      "sha256": "67f7205c9e161b8062fd9599a3e050b12c7bc567fddf67ef4c961df4eb9ffae2",
+      "bytes": 45056
+    },
+    "outputs/render-6.bin": {
+      "sha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+      "bytes": 45056
+    },
+    "outputs/render-7.bin": {
+      "sha256": "0e576a91080ff8a877d53755d06932b0e5bf45159bf5f227b5957ced2d09f43e",
+      "bytes": 45056
+    },
+    "outputs/render-8.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-9.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-10.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-11.bin": {
+      "sha256": "d1372e6a1909d8053f2fd7f3d69b480f26409a3197bac4f1278a5ed551c138df",
+      "bytes": 45056
+    },
+    "outputs/render-12.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-13.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-14.bin": {
+      "sha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+      "bytes": 40960
+    },
+    "outputs/render-15.bin": {
+      "sha256": "906f3e4b2e54ccc1329e49dedd3ae9d393217e627e2061f0ff2b8ffa02925945",
+      "bytes": 40960
+    },
+    "outputs/render-16.bin": {
+      "sha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+      "bytes": 40960
+    },
+    "outputs/render-17.bin": {
+      "sha256": "9a269591b9a50357d75ff1314a906048282fa1baf8fb005d07beddd15a685dae",
+      "bytes": 40960
+    },
+    "outputs/render-18.bin": {
+      "sha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+      "bytes": 40960
+    },
+    "outputs/render-19.bin": {
+      "sha256": "f90e96c00aee4d03db6c6058a7ac5caad0a02847b6df6fca5605a43d1a6e0dc9",
+      "bytes": 40960
+    },
+    "outputs/render-20.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-21.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-22.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-23.bin": {
+      "sha256": "1b98053fcd344ca25317170e48455667e1093342e28a7f449560ae526660cfb3",
+      "bytes": 40960
+    },
+    "outputs/render-24.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-25.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-26.bin": {
+      "sha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+      "bytes": 45056
+    },
+    "outputs/render-27.bin": {
+      "sha256": "0423171acd833f723781c481dc4801f1a92471e4543f5096ebacdbfaa89f9bbf",
+      "bytes": 45056
+    },
+    "outputs/render-28.bin": {
+      "sha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+      "bytes": 45056
+    },
+    "outputs/render-29.bin": {
+      "sha256": "976847cef0a0d54cf88b54141ddf4d7e8d0b1f821f81c961219f89238071486e",
+      "bytes": 45056
+    },
+    "outputs/render-30.bin": {
+      "sha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+      "bytes": 45056
+    },
+    "outputs/render-31.bin": {
+      "sha256": "4ce4cb75077fe805df9f88c89070969aa83df147146970237c9b4daf975eaa6e",
+      "bytes": 45056
+    },
+    "outputs/render-32.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-33.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-34.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-35.bin": {
+      "sha256": "dca0edfe53f9fc03f5c11c70d9a52a0742f2234a08e0983f8d0af3c9ce7233fb",
+      "bytes": 45056
+    },
+    "outputs/render-36.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    },
+    "outputs/render-37.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    },
+    "outputs/render-38.bin": {
+      "sha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+      "bytes": 40960
+    },
+    "outputs/render-39.bin": {
+      "sha256": "e27856403ac4d1d6aa902c97ad9f9eae18e75db03e12f84018e9d3a79a4417b4",
+      "bytes": 40960
+    },
+    "outputs/render-40.bin": {
+      "sha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+      "bytes": 40960
+    },
+    "outputs/render-41.bin": {
+      "sha256": "1d376e98d5d9a2485a151ee7b7e3f7c14e7d528cfc68540b11eae7d27b92b8bc",
+      "bytes": 40960
+    },
+    "outputs/render-42.bin": {
+      "sha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+      "bytes": 40960
+    },
+    "outputs/render-43.bin": {
+      "sha256": "907e0d41c0297ab9cfa3b320a082850b5c5076758846418e9515845339da542e",
+      "bytes": 40960
+    },
+    "outputs/render-44.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    },
+    "outputs/render-45.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    },
+    "outputs/render-46.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    },
+    "outputs/render-47.bin": {
+      "sha256": "1f63849693294c4294a3e10afe3839c98fb772d18924800438677e3423bd46f2",
+      "bytes": 40960
+    }
+  },
+  "stageControls": [
+    {
+      "render": 0,
+      "case": "dry-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": true,
+      "accepted": true
+    },
+    {
+      "render": 2,
+      "case": "wet-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3067,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 4,
+      "case": "backlit-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 6,
+      "case": "night-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3067,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 8,
+      "case": "land-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 10,
+      "case": "opaque-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 12,
+      "case": "dry-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": true,
+      "accepted": true
+    },
+    {
+      "render": 14,
+      "case": "wet-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3067,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 16,
+      "case": "backlit-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 18,
+      "case": "night-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3067,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 20,
+      "case": "land-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 22,
+      "case": "opaque-cove",
+      "entry": "fsSceneTerrainCove/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3066,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 24,
+      "case": "dry-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": true,
+      "accepted": true
+    },
+    {
+      "render": 26,
+      "case": "wet-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3068,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 28,
+      "case": "backlit-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 30,
+      "case": "night-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3071,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 32,
+      "case": "land-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 34,
+      "case": "opaque-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsScene",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 36,
+      "case": "dry-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": true,
+      "accepted": true
+    },
+    {
+      "render": 38,
+      "case": "wet-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3068,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 40,
+      "case": "backlit-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3064,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 42,
+      "case": "night-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3072,
+      "waterDifferentBytes": 3071,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 44,
+      "case": "land-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    },
+    {
+      "render": 46,
+      "case": "opaque-frontier",
+      "entry": "fsSceneTerrain/fsOpaqueHdr/fsSceneColor",
+      "meshDifferentBytes": 3056,
+      "waterDifferentBytes": 3065,
+      "required": false,
+      "accepted": true
+    }
+  ],
+  "differentBytes": 0,
+  "nonFiniteComponents": 0,
+  "errors": [],
+  "lost": []
+}

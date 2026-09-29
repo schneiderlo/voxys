@@ -1,0 +1,50 @@
+{
+  "promoted": false,
+  "intelAccepted": false,
+  "engineLifecycleTestExecuted": false,
+  "gameplayTimingExecuted": false,
+  "hardwareBlock": "Windows executable launch rejected by WSL interop: UtilBindVsockAnyPort socket failed 1; no bypass attempted",
+  "preparedFixtureSha256": "eaeac3a964194829a2172f2674138ae8ab5c8d57b011116a7e8f55734a279d88",
+  "softwareOnly": {
+    "complete": true,
+    "exactPairedComparisons": 33,
+    "streams": 66,
+    "differentBytes": 0,
+    "reportSha256": "26c6bd7d56291903d91363d51bf925a1760525fb1cb9f6270168281807cfd29d",
+    "adapter": {
+      "vendor": "llvmpipe",
+      "architecture": "",
+      "device": "llvmpipe (LLVM 21.1.8, 256 bits)",
+      "description": "Mesa 26.0.0 (LLVM 21.1.8)",
+      "stackgroup_min_size": 4,
+      "stackgroup_max_size": 128,
+      "vendor_id": 65541,
+      "device_id": 0,
+      "adapter_type": "CPU",
+      "backend_type": "Vulkan"
+    },
+    "scope": "Supplemental software Vulkan full-entry output equivalence only; not Intel or engine invalidation acceptance, and not FPS evidence"
+  },
+  "prototype": {
+    "patchSha256": "7b8f95005a03fe45f2d13cc070c8c0cc27ffec0480a408ef914542df7a73066f",
+    "integrationTestPatchSha256": "4fe42d62007ab89cc74c17bd3010472c34f0293e2019388401a70e04def3614d",
+    "sourceIdentities": {
+      "src/render/blit_path.cpp": {
+        "baselineSha256": "078765c3b0a4306e083fc13edb4e0f0e0c7118c49009872db075b1fb08db9a76",
+        "candidateSha256": "99ce4f1746aaa053f2535df95d2016cef6315fc0eea2c2b70b5c747ee714a29d"
+      },
+      "src/render/blit_path.hpp": {
+        "baselineSha256": "cb72e32d0939b7fec9b94f92fda678f45d723b418890b8f727f77552958c27db",
+        "candidateSha256": "fb8488225a35806ed513a34caa7becd286b8386903ff150ed35435563e5415e3"
+      },
+      "src/render/environment_lighting.cpp": {
+        "baselineSha256": "58f7c387da759618ac7e6e7df286a0a450c372e0ced887a1f1716819c9b43367",
+        "candidateSha256": "b76864c69748def5ac873d5612ccb4ddab4b45815ce505f992750bc19002ecfc"
+      },
+      "shaders/ray_blit.wgsl": {
+        "baselineSha256": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+        "candidateSha256": "54ca0d68b9e241bfd6064599ac50f6710e2b8575ec87d928cad1cd89b9c8a793"
+      }
+    }
+  }
+}

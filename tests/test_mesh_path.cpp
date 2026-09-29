@@ -61,6 +61,25 @@ TEST(MeshPathTest, OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha) {
     EXPECT_EQ(opaqueSrgbPaintOverride({255, 255, 255, 255}), glm::vec4(1.0f));
 }
 
+TEST(MeshPathTest, EveryPaintBytePreservesTheExactTransferAndOpaqueFlag) {
+    const auto transfer=[](uint8_t byte) {
+        const float value=float(byte)/255.0f;
+        return value<=0.04045f?value/12.92f:std::pow((value+0.055f)/1.055f,2.4f);
+    };
+    for(uint32_t byte=0;byte<256;++byte) {
+        SCOPED_TRACE(byte);
+        const auto r=static_cast<uint8_t>(byte);
+        const auto g=static_cast<uint8_t>(255u-byte);
+        const auto b=static_cast<uint8_t>((byte*73u+19u)&255u);
+        const auto actual=opaqueSrgbPaintOverride({r,g,b,r});
+        EXPECT_EQ(std::bit_cast<uint32_t>(actual.r),std::bit_cast<uint32_t>(transfer(r)));
+        EXPECT_EQ(std::bit_cast<uint32_t>(actual.g),std::bit_cast<uint32_t>(transfer(g)));
+        EXPECT_EQ(std::bit_cast<uint32_t>(actual.b),std::bit_cast<uint32_t>(transfer(b)));
+        EXPECT_EQ(std::bit_cast<uint32_t>(actual.w),std::bit_cast<uint32_t>(1.0f));
+        EXPECT_EQ(actual,opaqueSrgbPaintOverride({r,g,b,static_cast<uint8_t>(255u-byte)}));
+    }
+}
+
 namespace {
 
 // The browser supplies a real requested device. It must not call the native

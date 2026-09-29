@@ -732,6 +732,7 @@ public:
     void adventureAction(int action,int value=0);
     std::string adventurePreferencesAction(int action,std::string_view text);
     std::string adventureJson() const;
+    uint64_t adventurePlayerTick() const noexcept;
     bool adventureSnapshot(std::vector<std::byte>&,std::string&) const;
     bool adventureValidateSave(std::span<const std::byte>) const;
     void adventureSaveCompleted(std::string status);

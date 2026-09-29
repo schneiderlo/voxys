@@ -1,0 +1,344 @@
+--- a/src/render/blit_path.cpp
++++ b/src/render/blit_path.cpp
+@@ -15,6 +15,7 @@
+ #include <algorithm>
+ #include <array>
+ #include <cmath>
++#include <cstddef>
+ #include <cstring>
+ #include <fstream>
+ #include <limits>
+@@ -56,6 +57,8 @@
+     , pipelineLayout_(other.pipelineLayout_)
+     , pipeline_(other.pipeline_)
+     , backgroundPipeline_(other.backgroundPipeline_)
++    , coveBackgroundLayout_(other.coveBackgroundLayout_)
++    , coveBackgroundPipeline_(other.coveBackgroundPipeline_)
+     , sceneShadowLayout_(other.sceneShadowLayout_)
+     , sceneTerrainInputsLayout_(other.sceneTerrainInputsLayout_)
+     , sceneWaterInputsLayout_(other.sceneWaterInputsLayout_)
+@@ -149,6 +152,7 @@
+     , staticCacheActive_(other.staticCacheActive_)
+     , backgroundValid_(other.backgroundValid_)
+     , backgroundDirty_(other.backgroundDirty_)
++    , backgroundIsCove_(other.backgroundIsCove_)
+     , linearDepthRequired_(other.linearDepthRequired_)
+     , usedGeometryWaterPathLastRender_(
+           other.usedGeometryWaterPathLastRender_)
+@@ -164,6 +168,8 @@
+     other.pipelineLayout_ = nullptr;
+     other.pipeline_ = nullptr;
+     other.backgroundPipeline_ = nullptr;
++    other.coveBackgroundLayout_ = nullptr;
++    other.coveBackgroundPipeline_ = nullptr;
+     other.sceneShadowLayout_ = nullptr;
+     other.sceneTerrainInputsLayout_ = nullptr;
+     other.sceneWaterInputsLayout_ = nullptr;
+@@ -255,6 +261,8 @@
+         pipelineLayout_ = other.pipelineLayout_;
+         pipeline_ = other.pipeline_;
+         backgroundPipeline_ = other.backgroundPipeline_;
++        coveBackgroundLayout_ = other.coveBackgroundLayout_;
++        coveBackgroundPipeline_ = other.coveBackgroundPipeline_;
+         sceneShadowLayout_ = other.sceneShadowLayout_;
+         sceneTerrainInputsLayout_ = other.sceneTerrainInputsLayout_;
+         sceneWaterInputsLayout_ = other.sceneWaterInputsLayout_;
+@@ -348,6 +356,7 @@
+         staticCacheActive_ = other.staticCacheActive_;
+         backgroundValid_ = other.backgroundValid_;
+         backgroundDirty_ = other.backgroundDirty_;
++        backgroundIsCove_ = other.backgroundIsCove_;
+         linearDepthRequired_ = other.linearDepthRequired_;
+         usedGeometryWaterPathLastRender_ =
+             other.usedGeometryWaterPathLastRender_;
+@@ -362,6 +371,8 @@
+         other.pipelineLayout_ = nullptr;
+         other.pipeline_ = nullptr;
+         other.backgroundPipeline_ = nullptr;
++        other.coveBackgroundLayout_ = nullptr;
++        other.coveBackgroundPipeline_ = nullptr;
+         other.sceneShadowLayout_ = nullptr;
+         other.sceneTerrainInputsLayout_ = nullptr;
+         other.sceneWaterInputsLayout_ = nullptr;
+@@ -536,6 +547,8 @@
+     if (sceneWaterLayout_) { wgpuPipelineLayoutRelease(sceneWaterLayout_); sceneWaterLayout_ = nullptr; }
+     if (sceneTerrainLayout_) { wgpuPipelineLayoutRelease(sceneTerrainLayout_); sceneTerrainLayout_ = nullptr; }
+     if (sceneShadowLayout_) { wgpuBindGroupLayoutRelease(sceneShadowLayout_); sceneShadowLayout_ = nullptr; }
++    if (coveBackgroundPipeline_) { wgpuRenderPipelineRelease(coveBackgroundPipeline_); coveBackgroundPipeline_ = nullptr; }
++    if (coveBackgroundLayout_) { wgpuPipelineLayoutRelease(coveBackgroundLayout_); coveBackgroundLayout_ = nullptr; }
+     if (backgroundPipeline_) {
+         wgpuRenderPipelineRelease(backgroundPipeline_);
+         backgroundPipeline_ = nullptr;
+@@ -2135,6 +2148,15 @@
+             if (!sceneEnvironmentLayout_) return false;
+             const std::array coveLayouts{sceneTerrainInputsLayout_, sceneShadowLayout_, sceneEnvironmentLayout_};
+             sceneTerrainLayout_ = gpu::createPipelineLayout(device_, coveLayouts, "cove_terrain_layout");
++            // The complete static input layout has no background sampling binding.
++            // 12 input textures + one shadow + three environment textures = 16.
++            const std::array backgroundLayouts{bindGroupLayout_, sceneShadowLayout_, sceneEnvironmentLayout_};
++            coveBackgroundLayout_ = gpu::createPipelineLayout(device_, backgroundLayouts, "cove_background_layout");
++            if (!coveBackgroundLayout_) return false;
++            WGPU_SET_ENTRY_POINT(fragmentState, "fsBackgroundCove");
++            pipelineDesc.layout = coveBackgroundLayout_;
++            WGPU_SET_LABEL(pipelineDesc, "cove_background_pipeline");
++            pipelines.add(device_, pipelineDesc, coveBackgroundPipeline_);
+         } else sceneTerrainLayout_ = gpu::createPipelineLayout(device_, sceneLayouts, "scene_terrain_layout");
+         sceneWaterLayout_ = gpu::createPipelineLayout(device_, waterLayouts, "scene_water_layout");
+         if (!sceneTerrainLayout_ || !sceneWaterLayout_) return false;
+@@ -2198,6 +2220,7 @@
+         return false;
+     }
+     if (config.enableOpaqueScene && !sceneTerrainPipeline_) return false;
++    if (config.enableOpaqueScene && config.coveVisuals && !coveBackgroundPipeline_) return false;
+     if (!cachedPipeline_) {
+         LOG_ERROR("Failed to create cached blit render pipeline");
+         return false;
+@@ -2213,6 +2236,7 @@
+ 
+ // ─────────────────────────────────────────────────────────────────────────────
+ void BlitPath::clearSceneEnvironment() noexcept {
++    if (sceneEnvironmentBindings_) backgroundDirty_ = true;
+     if (sceneEnvironmentBindings_) wgpuBindGroupRelease(sceneEnvironmentBindings_);
+     sceneEnvironmentBindings_ = nullptr; sceneEnvironmentViews_ = {};
+ }
+@@ -2228,6 +2252,53 @@
+     auto candidate = gpu::createBindGroup(device_, sceneEnvironmentLayout_, entries, "cove_shared_environment");
+     if (!candidate) return false;
+     clearSceneEnvironment(); sceneEnvironmentBindings_ = candidate; sceneEnvironmentViews_ = views;
++    backgroundDirty_ = true;
++    return true;
++}
++
++bool BlitPath::refreshBackground(WGPUCommandEncoder encoder, bool cove,
++                                 WGPUBindGroup shadows, WGPUQuerySet query,
++                                 uint32_t beginQuery, bool& timestampStarted) {
++    if (!encoder || !backgroundView_ || !staticBindGroup_ || !staticUniforms_) return false;
++    if (cove && (!coveBackgroundPipeline_ || !shadows || !sceneEnvironmentBindings_)) return false;
++    if (backgroundValid_ && !backgroundDirty_ && backgroundIsCove_ == cove) return true;
++    if (staticUniformsDirty_) {
++        if (!gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_)) return false;
++        staticUniformsDirty_ = false;
++    }
++    WGPURenderPassColorAttachment target{};
++    target.view = backgroundView_;
++    target.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
++    target.loadOp = WGPULoadOp_Clear;
++    target.storeOp = WGPUStoreOp_Store;
++    target.clearValue = {0.0, 0.0, 0.0, 1.0};
++    WGPURenderPassDescriptor descriptor{};
++    WGPU_SET_LABEL(descriptor, "blit_static_background_pass");
++    descriptor.colorAttachmentCount = 1;
++    descriptor.colorAttachments = &target;
++    gpu::CompatRenderPassTimestampWrites timestamps{};
++    if (query && beginQuery != WGPU_QUERY_SET_INDEX_UNDEFINED) {
++        timestamps.querySet = query;
++        timestamps.beginningOfPassWriteIndex = beginQuery;
++        timestamps.endOfPassWriteIndex = WGPU_QUERY_SET_INDEX_UNDEFINED;
++        descriptor.timestampWrites = &timestamps;
++    }
++    auto pass = wgpuCommandEncoderBeginRenderPass(encoder, &descriptor);
++    if (!pass) return false;
++    wgpuRenderPassEncoderSetPipeline(pass, cove ? coveBackgroundPipeline_ : backgroundPipeline_);
++    wgpuRenderPassEncoderSetBindGroup(pass, 0, staticBindGroup_, 0, nullptr);
++    if (cove) {
++        wgpuRenderPassEncoderSetBindGroup(pass, 1, shadows, 0, nullptr);
++        wgpuRenderPassEncoderSetBindGroup(pass, 2, sceneEnvironmentBindings_, 0, nullptr);
++    }
++    wgpuRenderPassEncoderDraw(pass, 3, 1, 0, 0);
++    wgpuRenderPassEncoderEnd(pass);
++    wgpuRenderPassEncoderRelease(pass);
++    backgroundValid_ = true;
++    backgroundDirty_ = false;
++    backgroundIsCove_ = cove;
++    timestampStarted = query && beginQuery != WGPU_QUERY_SET_INDEX_UNDEFINED;
++    // RenderFrameGuard calls discardEncoding if this encoder is not submitted.
+     return true;
+ }
+ 
+@@ -2235,6 +2306,16 @@
+                                 WGPUQuerySet query, uint32_t beginQuery) {
+     if (!opaqueScene_ || !sceneTerrainPipeline_ || !sceneTerrainBindings_ || !shadows
+         || (config_.coveVisuals && !sceneEnvironmentBindings_)) return false;
++    if (config_.coveVisuals) {
++        const bool coveCache = uniforms_->waterMotion.z <= 0.5f;
++        bool timestampStarted = false;
++        if (!refreshBackground(encoder, coveCache, shadows, query, beginQuery, timestampStarted)) return false;
++        if (timestampStarted) query = nullptr;
++        // Patch only the private GPU lane, leaving the public camera untouched.
++        const float valid = coveCache && backgroundValid_ && !backgroundDirty_ && backgroundIsCove_ ? 1.0f : 0.0f;
++        constexpr uint64_t flagOffset = offsetof(CameraUniforms, waterMotion) + 3 * sizeof(float);
++        if (!gpu::writeBuffer(queue_, uniformBuffer_, flagOffset, valid)) return false;
++    }
+     std::array<WGPURenderPassColorAttachment, 2> targets{};
+     targets[0].view = opaqueScene_->colorView(); targets[1].view = opaqueScene_->depthView();
+     for (auto& target : targets) {
+@@ -2615,18 +2696,22 @@
+ void BlitPath::setDepthTexture(WGPUTextureView depthView) {
+     depthView_ = depthView;
+     bindGroupDirty_ = true;
++    // This setter can also notify an in-place update of an aliased static input.
++    if (depthView == staticDepthView_) backgroundDirty_ = true;
+     LOG_DEBUG("Set depth texture view");
+ }
+ 
+ void BlitPath::setShadowTexture(WGPUTextureView shadowView) {
+     shadowView_ = shadowView;
+     bindGroupDirty_ = true;
++    if (shadowView == staticShadowView_) backgroundDirty_ = true;
+     LOG_DEBUG("Set shadow texture view");
+ }
+ 
+ void BlitPath::setMaterialTexture(WGPUTextureView materialView) {
+     materialView_ = materialView;
+     bindGroupDirty_ = true;
++    backgroundDirty_ = true;
+     LOG_DEBUG("Set material texture view");
+ }
+ 
+@@ -2972,22 +3057,11 @@
+     // Cover every recurring blit pass with one interval. The beginning and
+     // end query indices must each be written once, even on a cache hit.
+     bool lightingTimestampStarted = false;
+-    if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
+-        if (staticUniformsDirty_) {
+-            if (!gpu::writeBuffer(
+-                    queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
+-                return false;
+-            }
+-            staticUniformsDirty_ = false;
+-        }
+-        if (!drawFullscreen(backgroundView_, backgroundPipeline_,
+-                            staticBindGroup_,
+-                            "blit_static_background_pass", true, false, true)) {
+-            return false;
+-        }
+-        lightingTimestampStarted = timestampQuerySet != nullptr;
+-        backgroundValid_ = true;
+-        backgroundDirty_ = false;
++    // Cove needs the fixture's current filtered environment first. Refresh it
++    // inside the callback; retain the original eager ordering for other scenes.
++    if (useCachedPath && !(config_.coveVisuals && opaqueScene_)) {
++        if (!refreshBackground(encoder, false, nullptr, timestampQuerySet,
++                               timestampBegin, lightingTimestampStarted)) return false;
+     }
+ 
+     struct SceneBackground {
+@@ -3009,9 +3083,13 @@
+                 // unshadowed pixels and sky. Seeding before it only writes the
+                 // same full-resolution targets twice. Keep the seed fallback
+                 // for admission/Leave frames with no shadow-producing scene.
+-                return shadows
+-                    ? path.renderSceneTerrain(commands, shadows, state.query, state.begin)
+-                    : path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin);
++                if (shadows) return path.renderSceneTerrain(commands, shadows, state.query, state.begin);
++                bool timestampStarted = false;
++                // Admission/Leave must receive the original legacy background,
++                // even when the preceding active frame held a Cove cache.
++                if (!path.refreshBackground(commands, false, nullptr, state.query, state.begin, timestampStarted)) return false;
++                if (timestampStarted) state.query = nullptr;
++                return path.opaqueScene_->seed(commands, path.backgroundView_, path.staticDepthView_, state.query, state.begin);
+             }, [](void* context, const FilteredEnvironmentViews& views) {
+                 return static_cast<SceneBackground*>(context)->path->bindSceneEnvironment(views);
+             }};
+--- a/src/render/blit_path.hpp
++++ b/src/render/blit_path.hpp
+@@ -272,6 +272,8 @@
+     bool createWaterClipmapResources(const BlitPathConfig& config);
+     bool renderSceneTerrain(WGPUCommandEncoder encoder, WGPUBindGroup shadows,
+                             WGPUQuerySet query, uint32_t beginQuery);
++    bool refreshBackground(WGPUCommandEncoder encoder, bool cove, WGPUBindGroup shadows,
++                           WGPUQuerySet query, uint32_t beginQuery, bool& timestampStarted);
+     bool createBindGroup();
+     bool createBackgroundTexture(uint32_t width, uint32_t height);
+     bool createSkyLut(const BlitPathConfig& config);
+@@ -298,6 +300,8 @@
+     WGPUPipelineLayout pipelineLayout_ = nullptr;
+     WGPURenderPipeline pipeline_ = nullptr;
+     WGPURenderPipeline backgroundPipeline_ = nullptr;
++    WGPUPipelineLayout coveBackgroundLayout_ = nullptr;
++    WGPURenderPipeline coveBackgroundPipeline_ = nullptr;
+     WGPUBindGroupLayout sceneShadowLayout_ = nullptr;
+     WGPUBindGroupLayout sceneTerrainInputsLayout_ = nullptr, sceneWaterInputsLayout_ = nullptr;
+     WGPUPipelineLayout sceneTerrainLayout_ = nullptr, sceneWaterLayout_ = nullptr;
+@@ -410,6 +414,7 @@
+     bool staticCacheActive_ = false;
+     bool backgroundValid_ = false;
+     bool backgroundDirty_ = true;
++    bool backgroundIsCove_ = false;
+     bool linearDepthRequired_ = true;
+     bool usedGeometryWaterPathLastRender_ = false;
+     bool usedSceneSunShadows_ = false;
+--- a/src/render/environment_lighting.cpp
++++ b/src/render/environment_lighting.cpp
+@@ -148,6 +148,24 @@
+         ~Groups() { for (auto handle : handles) if (handle) wgpuBindGroupRelease(handle); }
+     } groups;
+     auto& state = *impl_;
++    struct SampledViews {
++        std::array<WGPUTextureView, 3> handles{};
++        ~SampledViews() {
++            for (auto handle : handles) {
++                if (handle) wgpuTextureViewRelease(handle);
++            }
++        }
++    } sampled;
++    // New identities notify the existing cache callback of content changes.
++    // Allocate the whole set first; publish atomically only after encoding.
++    for (uint32_t kind = 0; kind < sampled.handles.size(); ++kind) {
++        sampled.handles[kind] = gpu::createTextureView(state.textures[kind], {
++            .label = "filtered_environment_sampled",
++            .dimension = kind == 2 ? WGPUTextureViewDimension_2D : WGPUTextureViewDimension_Cube,
++            .mipLevelCount = wgpuTextureGetMipLevelCount(state.textures[kind]),
++            .arrayLayerCount = kind == 2 ? 1u : 6u});
++        if (!sampled.handles[kind]) return false;
++    }
+     // Finish all fallible CPU setup before opening a compute pass.
+     for (size_t i = 0; i < state.passCount; ++i) {
+         const std::array entries{
+@@ -170,6 +188,7 @@
+     }
+     wgpuComputePassEncoderEnd(pass);
+     wgpuComputePassEncoderRelease(pass);
++    std::swap(state.sampled, sampled.handles);
+     return true;
+ }
+ 
+--- a/shaders/ray_blit.wgsl
++++ b/shaders/ray_blit.wgsl
+@@ -2983,6 +2983,22 @@
+     return vec4<f32>(backgroundTerrain(pixel, dims, depth, 1.0, 1.0), 1.0);
+ }
+ 
++// Opt-in actual Cove linear-HDR background, encoded after the current
++// filtered environment is bound. Depth-zero and sky preserve legacy seeding.
++@fragment
++fn fsBackgroundCove(i : VSOut) -> @location(0) vec4<f32> {
++    let dims = textureDimensions(depthTex, 0);
++    let pixel = clamp(vec2<i32>(floor(i.uv * vec2<f32>(dims))), vec2<i32>(0), vec2<i32>(dims) - 1);
++    let depth = textureLoad(depthTex, pixel, 0).x;
++    if (depth < 0.0) {
++        return vec4<f32>(backgroundSky(pixel, dims), 1.0);
++    }
++    if (depth > 0.0) {
++        return vec4<f32>(backgroundCoveTerrain(pixel, dims, depth, 1.0), 1.0);
++    }
++    return vec4<f32>(backgroundTerrain(pixel, dims, depth, 1.0, 1.0), 1.0);
++}
++
+ struct SceneTerrainOutput {
+     @location(0) color : vec4<f32>,
+     @location(1) depth : f32,
+@@ -3028,7 +3044,12 @@
+         var normal = vec3<f32>(0, 1, 0);
+         if (dot(supplied, supplied) > 0.5) { normal = normalize(supplied); }
+         let visibility = sceneSunVisibility(position, normal, normalize(camera.lightDirWS.xyz));
+-        output.color = vec4<f32>(backgroundCoveTerrain(pixel, dims, depth, visibility), 1.0);
++        // waterMotion.w is a private cache-valid flag in this opt-in path.
++        // The CPU must establish matching camera/material/baked-shadow and
++        // environment-content keys before writing it. Caustics stay live.
++        if (!(camera.waterMotion.w > 0.5 && camera.waterMotion.z <= 0.5 && visibility == 1.0)) {
++            output.color = vec4<f32>(backgroundCoveTerrain(pixel, dims, depth, visibility), 1.0);
++        }
+     }
+     return output;
+ }

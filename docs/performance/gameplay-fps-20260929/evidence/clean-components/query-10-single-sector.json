@@ -1,0 +1,12 @@
+{
+  "scope":"CPU spatial queries; no GPU, rendering or FPS",
+  "batches":200,
+  "queriesPerBatch":64,
+  "cases":[
+    {"fixture":"installed-frontier","solids":2252,"query":"support","p50_us":0.1843125,"p95_us":0.2624375,"p99_us":0.349859375,"checksum":"db1cecb89d2fa219"},
+    {"fixture":"installed-frontier","solids":2252,"query":"clear","p50_us":0.185625,"p95_us":0.25521875,"p99_us":0.3575625,"checksum":"c48168ef6c860c19"},
+    {"fixture":"installed-frontier","solids":2252,"query":"sweep","p50_us":2.06590625,"p95_us":2.416828125,"p99_us":3.03078125,"checksum":"ac6e80c9e1f2c922"},
+    {"fixture":"installed-frontier","solids":2252,"query":"ray","p50_us":53.617921875,"p95_us":61.307359375,"p99_us":66.4953125,"checksum":"fb2c97b98f8b3015"},
+    {"fixture":"installed-frontier","solids":2252,"query":"column","p50_us":0.585234375,"p95_us":0.82103125,"p99_us":0.9733125,"checksum":"b11f27a74cd94c1f"}
+  ]
+}

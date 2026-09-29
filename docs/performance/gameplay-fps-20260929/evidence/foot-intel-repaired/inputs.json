@@ -1,0 +1,91 @@
+{
+  "render": {
+    "source": "/tmp/voxys-fps-20260929/shader-candidates/foot_visibility_oracle.py",
+    "sourceSha256": "6b887fc034d2f2ae8de8d1df5e8b58e801098b1d313d5c0a88310998e9768ebd",
+    "samples": 64836,
+    "inputBytes": 4149504,
+    "inputSha256": "c64ce314b6395457a5f5153c41e1875d3c60e1790841097f33da4b4f06d94f90",
+    "codeSha256": "d0c9b126093f7acebd703f2c7dd387d02ecb30ebb4f33f8f7a78a7a79e1810be",
+    "exactHelpers": {
+      "baseline": {
+        "fullSource": "/tmp/voxys-fps-20260929/shader-candidates/baseline/scene_sun_shadow.wgsl.in",
+        "fullSourceSha256": "f499139b3d3ea4579490f6944209df78be5ac9c953cf2df09910c13e092e36ff",
+        "helperSha256": "b69f1fcd31a42bea1a9c916b680eabe60839e4239dbfdb5dc594b5e50de3e2e4"
+      },
+      "candidate": {
+        "fullSource": "/tmp/voxys-fps-20260929/shader-candidates/foot-bounds/scene_sun_shadow.wgsl.in",
+        "fullSourceSha256": "3c3d77e990d431ba959d6fe86a746e7bf2f4b25825bb9f2c2936b52163fcbb8a",
+        "helperSha256": "42195add01d19781742223492a65cdcee2a0b23794b3d948b4b397eec725beb6"
+      }
+    },
+    "priorSoftwareDriverReference": {
+      "adapter": {
+        "vendor": "llvmpipe",
+        "architecture": "",
+        "device": "llvmpipe (LLVM 21.1.8, 256 bits)",
+        "description": "Mesa 26.0.0 (LLVM 21.1.8)",
+        "stackgroup_min_size": 4,
+        "stackgroup_max_size": 128,
+        "vendor_id": 65541,
+        "device_id": 0,
+        "adapter_type": "CPU",
+        "backend_type": "Vulkan"
+      },
+      "samples": 64836,
+      "exactMismatches": 0,
+      "nontrivialOcclusionSamples": 1072,
+      "baselineLengthCalls": 125064,
+      "candidateLengthCalls": 4238,
+      "lengthWorkReductionPercent": 96.6113349964818,
+      "inputSha256": "c64ce314b6395457a5f5153c41e1875d3c60e1790841097f33da4b4f06d94f90",
+      "outputSha256": "f03d3260a23c70bad3b37f323fea3cc9f78418acb55698f989a7f923979ea6b1",
+      "sourceSha256": {
+        "baseline/scene_sun_shadow.wgsl.in": "f499139b3d3ea4579490f6944209df78be5ac9c953cf2df09910c13e092e36ff",
+        "foot-bounds/scene_sun_shadow.wgsl.in": "c67ce22240bb4a1b2589c1759c1617a68063ee140d771422bcc71b88bc109a9a"
+      }
+    }
+  },
+  "fuzz": {
+    "source": "/tmp/voxys-fps-20260929/shader-candidates/foot_fuzz_oracle.py",
+    "sourceSha256": "03f579c37ed7c57e7b8475d2701cdcc95579d6351969635b513199f28a51fcd8",
+    "samples": 2949120,
+    "inputBytes": 188743680,
+    "inputSha256": "7433b4311a89a69cd375b728cd6ddd4407c953b74dbfbcc30402e115c05cf04f",
+    "codeSha256": "0c535cd989224aeb4d80dacb50b52a1c21dc6a91975a46d8c644d2dfa28b1bc2",
+    "exactHelpers": {
+      "baseline": {
+        "fullSource": "/tmp/voxys-fps-20260929/shader-candidates/baseline/scene_sun_shadow.wgsl.in",
+        "fullSourceSha256": "f499139b3d3ea4579490f6944209df78be5ac9c953cf2df09910c13e092e36ff",
+        "helperSha256": "b69f1fcd31a42bea1a9c916b680eabe60839e4239dbfdb5dc594b5e50de3e2e4"
+      },
+      "candidate": {
+        "fullSource": "/tmp/voxys-fps-20260929/shader-candidates/foot-bounds/scene_sun_shadow.wgsl.in",
+        "fullSourceSha256": "3c3d77e990d431ba959d6fe86a746e7bf2f4b25825bb9f2c2936b52163fcbb8a",
+        "helperSha256": "42195add01d19781742223492a65cdcee2a0b23794b3d948b4b397eec725beb6"
+      }
+    },
+    "priorSoftwareDriverReference": {
+      "adapter": {
+        "vendor": "llvmpipe",
+        "architecture": "",
+        "device": "llvmpipe (LLVM 21.1.8, 256 bits)",
+        "description": "Mesa 26.0.0 (LLVM 21.1.8)",
+        "stackgroup_min_size": 4,
+        "stackgroup_max_size": 128,
+        "vendor_id": 65541,
+        "device_id": 0,
+        "adapter_type": "CPU",
+        "backend_type": "Vulkan"
+      },
+      "samples": 2949120,
+      "exactMismatches": 0,
+      "nontrivialOcclusionSamples": 194712,
+      "inputSha256": "7433b4311a89a69cd375b728cd6ddd4407c953b74dbfbcc30402e115c05cf04f",
+      "outputSha256": "cfe38620f5d92def00cfa41941c624606a84c52b7ac5080e8a34a8a3ac576bd8",
+      "sourceSha256": {
+        "baseline/scene_sun_shadow.wgsl.in": "f499139b3d3ea4579490f6944209df78be5ac9c953cf2df09910c13e092e36ff",
+        "foot-bounds/scene_sun_shadow.wgsl.in": "c67ce22240bb4a1b2589c1759c1617a68063ee140d771422bcc71b88bc109a9a"
+      }
+    }
+  }
+}

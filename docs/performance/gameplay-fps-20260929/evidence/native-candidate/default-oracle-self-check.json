@@ -1,0 +1,41 @@
+{
+  "scope": "Exact native Frontier JSON, archive bytes and actual GPU HUD pixel hashes; no FPS claim",
+  "configurationExact": true,
+  "observationFrames": 1200,
+  "jsonBytesExact": true,
+  "firstDifferingFrame": null,
+  "firstDifferingPath": null,
+  "saveBytesExact": true,
+  "saveHashesVerified": true,
+  "pixelFramesComplete": true,
+  "hudPixelsExact": true,
+  "beforeHudUploads": 125,
+  "afterHudUploads": 125,
+  "beforeTriangleUploads": 0,
+  "afterTriangleUploads": 0,
+  "beforeSimulationCpu": {
+    "count": 181,
+    "p50_us": 1520.137,
+    "p95_us": 10245.994,
+    "p99_us": 18527.935
+  },
+  "afterSimulationCpu": {
+    "count": 181,
+    "p50_us": 1520.137,
+    "p95_us": 10245.994,
+    "p99_us": 18527.935
+  },
+  "beforePausedCpu": {
+    "count": 959,
+    "p50_us": 593.699,
+    "p95_us": 2267.295,
+    "p99_us": 9700.993
+  },
+  "afterPausedCpu": {
+    "count": 959,
+    "p50_us": 593.699,
+    "p95_us": 2267.295,
+    "p99_us": 9700.993
+  },
+  "exact": true
+}

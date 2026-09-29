@@ -1,0 +1,993 @@
+{
+  "scope": "Node WASM actual CPU helper component microbenchmark; strict results checked per run. No GPU or FPS measurement. Six fresh-process runs per variant, balanced ABBA.",
+  "startedUtc": "2026-09-29T20:02:12.233381+00:00",
+  "completedUtc": "2026-09-29T20:02:28.441876+00:00",
+  "hostPowerBefore": {
+    "BAT1": {
+      "type": "Battery",
+      "status": "Charging",
+      "capacity": "21",
+      "power_now": "5863000"
+    },
+    "AC1": {
+      "type": "Mains",
+      "online": "1"
+    }
+  },
+  "hostPowerAfter": {
+    "BAT1": {
+      "type": "Battery",
+      "status": "Charging",
+      "capacity": "22",
+      "power_now": "5681000"
+    },
+    "AC1": {
+      "type": "Mains",
+      "online": "1"
+    }
+  },
+  "runs": [
+    {
+      "cycle": 0,
+      "slot": 0,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0974541015625,
+            "p95_us": 0.212374023438,
+            "p99_us": 4.40645800781
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.150775390625,
+            "p95_us": 0.376501953125,
+            "p99_us": 9.03475390625
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.07223828125,
+            "p95_us": 0.131899414062,
+            "p99_us": 0.754483398438
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0750537109375,
+            "p95_us": 0.15733203125,
+            "p99_us": 1.77565429687
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0123974609375,
+            "p95_us": 0.020017578125,
+            "p99_us": 0.08879296875
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0590849609375,
+            "p95_us": 0.130004882812,
+            "p99_us": 1.36553710937
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 0,
+      "slot": 1,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.121528320312,
+            "p95_us": 0.237200195313,
+            "p99_us": 2.24932128906
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.092798828125,
+            "p95_us": 0.222455078125,
+            "p99_us": 1.1938359375
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.04739453125,
+            "p95_us": 0.32313671875,
+            "p99_us": 1.21477148437
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0692529296875,
+            "p95_us": 0.124958984375,
+            "p99_us": 1.30367578125
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0120341796875,
+            "p95_us": 0.0152080078125,
+            "p99_us": 0.043830078125
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0587109375,
+            "p95_us": 0.0980029296875,
+            "p99_us": 0.23742578125
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 0,
+      "slot": 2,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.115850585938,
+            "p95_us": 0.236969726563,
+            "p99_us": 8.51175195312
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.09333203125,
+            "p95_us": 0.222814453125,
+            "p99_us": 2.4283671875
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.04909375,
+            "p95_us": 0.121,
+            "p99_us": 0.959711914063
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0697548828125,
+            "p95_us": 0.125180664063,
+            "p99_us": 10.6152871094
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.012841796875,
+            "p95_us": 0.0140849609375,
+            "p99_us": 0.083609375
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.058828125,
+            "p95_us": 0.111045898437,
+            "p99_us": 0.257481445313
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 0,
+      "slot": 3,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.114817382812,
+            "p95_us": 0.208927734375,
+            "p99_us": 4.81327148437
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.133049804687,
+            "p95_us": 1.71352929687,
+            "p99_us": 3.665890625
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.062345703125,
+            "p95_us": 0.138381835938,
+            "p99_us": 0.471012695313
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0619306640625,
+            "p95_us": 0.136298828125,
+            "p99_us": 0.767278320312
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0105791015625,
+            "p95_us": 0.019345703125,
+            "p99_us": 0.175985351563
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0505615234375,
+            "p95_us": 0.14720703125,
+            "p99_us": 1.07692480469
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 1,
+      "slot": 0,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.116595703125,
+            "p95_us": 0.417953125,
+            "p99_us": 2.12899121094
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.12791015625,
+            "p95_us": 0.245494140625,
+            "p99_us": 7.84361621094
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0643916015625,
+            "p95_us": 0.1116328125,
+            "p99_us": 0.81484765625
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0641298828125,
+            "p95_us": 0.187528320312,
+            "p99_us": 1.33035253906
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0104384765625,
+            "p95_us": 0.01112109375,
+            "p99_us": 0.01265234375
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.050525390625,
+            "p95_us": 0.157415039063,
+            "p99_us": 0.396884765625
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 1,
+      "slot": 1,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.10328515625,
+            "p95_us": 0.33141796875,
+            "p99_us": 4.931046875
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.079025390625,
+            "p95_us": 0.148303710937,
+            "p99_us": 2.25729492187
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.040931640625,
+            "p95_us": 0.0768212890625,
+            "p99_us": 0.160897460937
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0754921875,
+            "p95_us": 0.211033203125,
+            "p99_us": 9.20491308594
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.01338671875,
+            "p95_us": 0.0184033203125,
+            "p99_us": 0.0555546875
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0604921875,
+            "p95_us": 0.104641601563,
+            "p99_us": 9.74728027344
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 1,
+      "slot": 2,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.112080078125,
+            "p95_us": 0.2570859375,
+            "p99_us": 2.93328125
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0923935546875,
+            "p95_us": 0.151283203125,
+            "p99_us": 0.73477734375
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0487265625,
+            "p95_us": 0.0646328125,
+            "p99_us": 0.204756835937
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0644365234375,
+            "p95_us": 0.0843154296875,
+            "p99_us": 0.201948242187
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0111513671875,
+            "p95_us": 0.018171875,
+            "p99_us": 0.0470751953125
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0540927734375,
+            "p95_us": 0.099662109375,
+            "p99_us": 5.03984375
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 1,
+      "slot": 3,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.11368359375,
+            "p95_us": 0.189267578125,
+            "p99_us": 3.61033886719
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.130477539063,
+            "p95_us": 0.237247070313,
+            "p99_us": 8.75400488281
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.067205078125,
+            "p95_us": 0.126026367187,
+            "p99_us": 0.6305078125
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.064916015625,
+            "p95_us": 0.1136015625,
+            "p99_us": 3.72125390625
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0103671875,
+            "p95_us": 0.012626953125,
+            "p99_us": 0.01859375
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.04959765625,
+            "p95_us": 0.058916015625,
+            "p99_us": 0.171689453125
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 2,
+      "slot": 0,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.09792578125,
+            "p95_us": 0.224690429687,
+            "p99_us": 5.03547070313
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.11727734375,
+            "p95_us": 0.222098632813,
+            "p99_us": 8.21169042969
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.061779296875,
+            "p95_us": 0.1270625,
+            "p99_us": 0.520716796875
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0775791015625,
+            "p95_us": 0.1476015625,
+            "p99_us": 0.300267578125
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.01288671875,
+            "p95_us": 0.01791796875,
+            "p99_us": 0.0513427734375
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.063248046875,
+            "p95_us": 0.129267578125,
+            "p99_us": 1.76852148437
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 2,
+      "slot": 1,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0950595703125,
+            "p95_us": 0.151677734375,
+            "p99_us": 8.6491640625
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.103377929687,
+            "p95_us": 0.1866484375,
+            "p99_us": 9.59495605469
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.053037109375,
+            "p95_us": 0.0886357421875,
+            "p99_us": 0.228625976562
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0688916015625,
+            "p95_us": 0.12462890625,
+            "p99_us": 1.32821777344
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0130302734375,
+            "p95_us": 0.022662109375,
+            "p99_us": 0.0600947265625
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0578056640625,
+            "p95_us": 0.072900390625,
+            "p99_us": 0.1973984375
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 2,
+      "slot": 2,
+      "label": "simd",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.112823242188,
+            "p95_us": 0.1954140625,
+            "p99_us": 8.90023632813
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0962587890625,
+            "p95_us": 0.170756835937,
+            "p99_us": 9.43347460938
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0482998046875,
+            "p95_us": 0.0968291015625,
+            "p99_us": 0.33599609375
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0635947265625,
+            "p95_us": 0.117840820312,
+            "p99_us": 10.1377705078
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0113984375,
+            "p95_us": 0.01673828125,
+            "p99_us": 0.03595703125
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0537998046875,
+            "p95_us": 0.0813212890625,
+            "p99_us": 0.22617578125
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    },
+    {
+      "cycle": 2,
+      "slot": 3,
+      "label": "baseline",
+      "result": {
+        "scope": "Actual WASM renderer CPU helpers and GLM; no GPU or FPS measurement",
+        "cases": 4096,
+        "clipBoundaryCases": 768,
+        "validityEdgeCases": 256,
+        "paintByteChecks": 256,
+        "visibleCount": 696,
+        "validCount": 3936,
+        "checksum": "48ea58878c7c90d3",
+        "timingEnabled": true,
+        "workloads": [
+          {
+            "label": "float-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.1180859375,
+            "p95_us": 0.234783203125,
+            "p99_us": 10.1481816406
+          },
+          {
+            "label": "double-matrix",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.12912890625,
+            "p95_us": 0.277262695312,
+            "p99_us": 8.02423925781
+          },
+          {
+            "label": "bounds-visible",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0648134765625,
+            "p95_us": 0.122388671875,
+            "p99_us": 1.09369921875
+          },
+          {
+            "label": "instance-record",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0649140625,
+            "p95_us": 0.113395507813,
+            "p99_us": 0.98165625
+          },
+          {
+            "label": "paint-byte",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0099892578125,
+            "p95_us": 0.0138466796875,
+            "p99_us": 0.0626748046875
+          },
+          {
+            "label": "valid-model",
+            "queriesPerBatch": 1024,
+            "warmupBatches": 100,
+            "samples": 400,
+            "p50_us": 0.0532373046875,
+            "p95_us": 0.152578125,
+            "p99_us": 1.82232617187
+          }
+        ],
+        "timedOutputChecksum": "48ea58878c7c90d3"
+      }
+    }
+  ],
+  "summary": [
+    {
+      "label": "float-matrix",
+      "baseline": {
+        "p50_us": 0.11425048828100001,
+        "p95_us": 0.2185322265625,
+        "p99_us": 4.60986474609
+      },
+      "simd": {
+        "p50_us": 0.11245166015649999,
+        "p95_us": 0.237084960938,
+        "p99_us": 6.7213994140599995
+      },
+      "medianChangePercent": -1.5744599008415516
+    },
+    {
+      "label": "double-matrix",
+      "baseline": {
+        "p50_us": 0.12980322265650002,
+        "p95_us": 0.2613784179685,
+        "p99_us": 8.11796484375
+      },
+      "simd": {
+        "p50_us": 0.0930654296875,
+        "p95_us": 0.1787026367185,
+        "p99_us": 2.342831054685
+      },
+      "medianChangePercent": -28.30268171863477
+    },
+    {
+      "label": "bounds-visible",
+      "baseline": {
+        "p50_us": 0.06460253906249999,
+        "p95_us": 0.12654443359349998,
+        "p99_us": 0.692495605469
+      },
+      "simd": {
+        "p50_us": 0.04851318359375,
+        "p95_us": 0.092732421875,
+        "p99_us": 0.282311035156
+      },
+      "medianChangePercent": -24.905144135564516
+    },
+    {
+      "label": "instance-record",
+      "baseline": {
+        "p50_us": 0.0649150390625,
+        "p95_us": 0.1419501953125,
+        "p99_us": 1.15600439453
+      },
+      "simd": {
+        "p50_us": 0.069072265625,
+        "p95_us": 0.1247939453125,
+        "p99_us": 5.26656542969
+      },
+      "medianChangePercent": 6.404103921893101
+    },
+    {
+      "label": "paint-byte",
+      "baseline": {
+        "p50_us": 0.0105087890625,
+        "p95_us": 0.01588232421875,
+        "p99_us": 0.0570087890625
+      },
+      "simd": {
+        "p50_us": 0.01243798828125,
+        "p95_us": 0.017455078125000002,
+        "p99_us": 0.051314941406249995
+      },
+      "medianChangePercent": 18.35795929746307
+    },
+    {
+      "label": "valid-model",
+      "baseline": {
+        "p50_us": 0.051899414062499996,
+        "p95_us": 0.138605957031,
+        "p99_us": 1.22123095703
+      },
+      "simd": {
+        "p50_us": 0.058258300781249994,
+        "p95_us": 0.09883251953125,
+        "p99_us": 0.2474536132815
+      },
+      "medianChangePercent": 12.25232853513971
+    }
+  ]
+}

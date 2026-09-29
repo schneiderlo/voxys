@@ -1,0 +1,129 @@
+{
+  "scope": "Correctness/build only; concurrent mesh and Intel proof work excludes timings",
+  "commands": [
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "-std=c++20",
+      "-O3",
+      "-g",
+      "-fPIC",
+      "-DGLM_FORCE_DEPTH_ZERO_TO_ONE",
+      "-DGLM_FORCE_LEFT_HANDED",
+      "-DGLM_ENABLE_EXPERIMENTAL",
+      "-Isrc",
+      "-isystem",
+      "third_party/glm",
+      "-Wall",
+      "-Wextra",
+      "-Wconversion",
+      "-Wsign-conversion",
+      "-Werror",
+      "-c",
+      "/tmp/voxys-fps-20260929/query-streaming/spatial_queries.cpp",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-spatial.o"
+    ],
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "-std=c++20",
+      "-O3",
+      "-g",
+      "-fPIC",
+      "-DGLM_FORCE_DEPTH_ZERO_TO_ONE",
+      "-DGLM_FORCE_LEFT_HANDED",
+      "-DGLM_ENABLE_EXPERIMENTAL",
+      "-Isrc",
+      "-isystem",
+      "third_party/glm",
+      "-Wall",
+      "-Wextra",
+      "-Wconversion",
+      "-Wsign-conversion",
+      "-Werror",
+      "-isystem",
+      "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/external/googletest+/googletest/include",
+      "-c",
+      "tests/test_adventure_query_candidates.cpp",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/new-candidates-tests.o"
+    ],
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "/tmp/voxys-fps-20260929/query-streaming/new-candidates-tests.o",
+      "/tmp/voxys-fps-20260929/query-oracles/baseline-spatial.o",
+      "/tmp/voxys-fps-20260929/query-oracles/cove-camera.o",
+      "/tmp/voxys-fps-20260929/query-oracles/construction-types.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest-main.o",
+      "-pthread",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/baseline-new-tests"
+    ],
+    [
+      "/tmp/voxys-fps-20260929/query-streaming/baseline-new-tests",
+      "--gtest_output=xml:/tmp/voxys-fps-20260929/query-streaming/baseline-new-tests.xml"
+    ],
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "/tmp/voxys-fps-20260929/query-streaming/new-candidates-tests.o",
+      "/tmp/voxys-fps-20260929/query-oracles/partial-bool-spatial.o",
+      "/tmp/voxys-fps-20260929/query-oracles/cove-camera.o",
+      "/tmp/voxys-fps-20260929/query-oracles/construction-types.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest-main.o",
+      "-pthread",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/partial-bool-new-tests"
+    ],
+    [
+      "/tmp/voxys-fps-20260929/query-streaming/partial-bool-new-tests",
+      "--gtest_output=xml:/tmp/voxys-fps-20260929/query-streaming/partial-bool-new-tests.xml"
+    ],
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "/tmp/voxys-fps-20260929/query-streaming/new-candidates-tests.o",
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-spatial.o",
+      "/tmp/voxys-fps-20260929/query-oracles/cove-camera.o",
+      "/tmp/voxys-fps-20260929/query-oracles/construction-types.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest.o",
+      "/tmp/voxys-fps-20260929/query-oracles/gtest-main.o",
+      "-pthread",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-new-tests"
+    ],
+    [
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-new-tests",
+      "--gtest_output=xml:/tmp/voxys-fps-20260929/query-streaming/streaming-new-tests.xml"
+    ],
+    [
+      "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+      "/tmp/voxys-fps-20260929/query-oracles/benchmark.o",
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-spatial.o",
+      "/tmp/voxys-fps-20260929/query-oracles/cove-camera.o",
+      "/tmp/voxys-fps-20260929/query-oracles/construction-types.o",
+      "-o",
+      "/tmp/voxys-fps-20260929/query-streaming/streaming-benchmark"
+    ]
+  ],
+  "inputs": {
+    "/home/lschneid/workspace/schneiderlo/voxys/tests/test_adventure_query_candidates.cpp": "4c780cf61484aa6b72a173ce927d88896b27f9c895f3337a14359a6f74c3f0dd",
+    "/tmp/voxys-fps-20260929/query-streaming/spatial_queries.cpp": "8209f1ac7a8cf944e84dcb7903b437fd8890b74181a2aa46a6b54be913e085c5",
+    "/tmp/voxys-fps-20260929/query-oracles/cove-camera.o": "463124eacbacee707660b94612cf02452dd410c032f89c7c6ececd7f0859021d",
+    "/tmp/voxys-fps-20260929/query-oracles/construction-types.o": "9a3c8943c39c29ae21110f9b8a5a82e114d23a5e2ba6ed73efac8df7a9749da6",
+    "/tmp/voxys-fps-20260929/query-oracles/baseline-spatial.o": "d9e60bfa5769e9ae02d8fdad3cc6bce7964673745691aa25bdaee67808269107",
+    "/tmp/voxys-fps-20260929/query-oracles/partial-bool-spatial.o": "2945ed59997f0280bbfb28a3d68b0bb5ab441a879d3d259dcc8cb5a09ac8071f",
+    "/tmp/voxys-fps-20260929/query-oracles/benchmark.o": "2e2c52c8eff3d03b9466b044181459269d1c8d64833e3d51d3a970b90c228481",
+    "/tmp/voxys-fps-20260929/query-oracles/gtest.o": "a317249c3434385854864d46a105dfe37f995949d05c381cfd3b8d997ce79365",
+    "/tmp/voxys-fps-20260929/query-oracles/gtest-main.o": "4a5da10b8f416ba826f2cd817e0da610d0fd652abfe3ab887e6d0771e96d1dbe"
+  },
+  "outputs": {
+    "baseline-new-tests.xml": "045e790d5cb2bb727ee88d81bf18046dff7659be0e55bc1615cb95a1ffbd4c42",
+    "streaming-new-tests.xml": "5b91d40e68e7718195caad8c489071135b20f51e955fee9c66658edb9bc15d64",
+    "streaming-new-tests": "4734e20f7d4149011a0c0725c0f82aba331e2319f8db8c2c2fb8c820b7a90a9b",
+    "partial-bool-new-tests": "1805564eca6d57bc9b7c7b923198e3981fa85ece2300d32efb3daf72b5e33740",
+    "baseline-new-tests": "cfb00a328f550a45c131552792ddf11fa0059e4ebef4112445a6ee7708d3760a",
+    "partial-bool-new-tests.xml": "debf9e593042c4b86c5001cab60757a3e7da074845edd483d44bede4d0319c81"
+  },
+  "streamingBenchmarkSha256": "4e660dcb1223b86743f8e597edba7fb47cd737392371a2a7d51880336613390f",
+  "testsPerVariant": 7
+}

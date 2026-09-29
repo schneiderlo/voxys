@@ -1,0 +1,61 @@
+{
+  "scope": "Native llvmpipe exact correctness and work only. Contended compilation; no valid performance timing.",
+  "runs": [
+    {
+      "label": "baseline",
+      "returnCode": 0,
+      "command": [
+        "/tmp/voxys-fps-20260929/mesh-inplace/baseline-mesh-tests",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/mesh-inplace/baseline-tests.xml"
+      ],
+      "binarySha256": "5bd2f7f0e5112321e4596c1ba8196ba88e1144b5c81ff0766d338e3981a75597",
+      "tests": 31,
+      "failures": 0,
+      "disabled": 1,
+      "skipped": 0
+    },
+    {
+      "label": "candidate",
+      "returnCode": 0,
+      "command": [
+        "/tmp/voxys-fps-20260929/mesh-inplace/candidate-mesh-tests",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/mesh-inplace/candidate-tests.xml"
+      ],
+      "binarySha256": "e187af46ab4ed854e1196ae3237dfaf726fff8e44f0a3d9790847248d784627c",
+      "tests": 31,
+      "failures": 0,
+      "disabled": 1,
+      "skipped": 0
+    }
+  ],
+  "sources": {
+    "original-mesh_path.cpp": "b4bba6d80923e595bcc1932b69a7b7d63b0ace63e1d44ed5c8c1d163dfbf3308",
+    "candidate-mesh_path.cpp": "16940ae24148c3e5be3abfd594318fac6d146cfd2f3ab3158d9fa8a02fc67107",
+    "baseline-recording-mesh_path.cpp": "efea311b1675e02f52fc62cd27327c68e5fa952259b1c0f4144206dc9c13ab41",
+    "candidate-recording-mesh_path.cpp": "4e757b8b0e0f91e10674736a5f56eda28941c0a6958abfb44847ceacdac99b6b",
+    "change.patch": "4c03fabc2139fc19f7c10e7eac82f5c5a28bdfa8d899e4f48d21065947e2337d"
+  },
+  "captures": {
+    "files": 358,
+    "bytes": 2951813,
+    "missing": [],
+    "different": [],
+    "exactMatch": true
+  },
+  "records": {
+    "files": 384,
+    "bytes": 92174,
+    "missing": [],
+    "different": [],
+    "exactMatch": true
+  },
+  "constructionWork": {
+    "successfulFramesRecorded": 181,
+    "expandedGpuRecords": 542,
+    "originalTemporaryRecordCopyBytesAtSourceLevel": 69376,
+    "candidateTemporaryRecordCopyBytesAtSourceLevel": 0,
+    "sortedPackCopyBytesAtSourceLevel": 69376,
+    "note": "Source-level construction counts. Compiler lowering and displayed FPS require separate measurement."
+  },
+  "accepted": true
+}

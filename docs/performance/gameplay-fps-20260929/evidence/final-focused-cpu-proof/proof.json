@@ -1,0 +1,73 @@
+{
+  "scope": "Final focused CPU source integration/correctness. Native llvmpipe GPU guards, no timing claim; frozen CPU-current libraries, restored original collision source tested separately.",
+  "startedUtc": "2026-09-29T21:59:18.427154+00:00",
+  "sourceChecks": {
+    "src/game/adventure/adventure_runtime.cpp": {
+      "sha256": "9df53de229c824bb413e2b365bbca2afde49eba9dcd28610c0056e605869de22",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/game/adventure/adventure_runtime.hpp": {
+      "sha256": "c48527266b6ce432954134a908e97c7de8b0b3b87bd2b38830489fafaabfa352",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/game/adventure/frontier_presentation.cpp": {
+      "sha256": "a544bcb975558f8c4e2bbb4efee7a7f43ddc50cac0ac5877b52bad0ba5300ede",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/game/adventure/frontier_runtime.cpp": {
+      "sha256": "2ad240edc635e298969bbde5328145ea06fd263e0ff8b7330488cf9a03af1025",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/render/adventure_hud.cpp": {
+      "sha256": "56eb8bd59703c9baffa4cf8d1ff26278d43af277c671c745a06f1abc8e5b4f4f",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/render/mesh_path.cpp": {
+      "sha256": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/render/mesh_path.hpp": {
+      "sha256": "725849c4c3abfb548d03e6db9242090ffa6e20e3b32737fb0419371860063429",
+      "matchesFrozenCpuCurrent": true
+    },
+    "tests/test_mesh_path.cpp": {
+      "sha256": "d6b1bb61755c21f8d2c8e06a82d32608be735dd7513877618865e083bcdd7574",
+      "matchesFrozenCpuCurrent": true
+    },
+    "src/game/adventure/spatial_queries.cpp": {
+      "sha256": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94",
+      "matchesHeadAndOriginalBaseline": true
+    },
+    "/home/lschneid/workspace/schneiderlo/voxys/tests/test_adventure_query_candidates.cpp": {
+      "sha256": "4c780cf61484aa6b72a173ce927d88896b27f9c895f3337a14359a6f74c3f0dd",
+      "matchesSevenBoundaryTestsProof": true
+    }
+  },
+  "runs": [
+    {
+      "label": "original-query-seven-boundaries",
+      "binarySha256": "cfb00a328f550a45c131552792ddf11fa0059e4ebef4112445a6ee7708d3760a",
+      "returnCode": 0,
+      "declaredTests": 7,
+      "disabledTests": 0,
+      "failures": 0,
+      "skipped": 0,
+      "log": "/tmp/voxys-fps-20260929/final-focused-cpu-proof/original-query-seven-boundaries.log",
+      "xml": "/tmp/voxys-fps-20260929/final-focused-cpu-proof/original-query-seven-boundaries.xml"
+    },
+    {
+      "label": "accepted-cpu-current-mesh",
+      "binarySha256": "1939e9c70da0ad0ace90de24280425ce0c1f9ccce7c37b90953aecb8ae46cdc3",
+      "returnCode": 0,
+      "declaredTests": 31,
+      "disabledTests": 1,
+      "failures": 0,
+      "skipped": 0,
+      "log": "/tmp/voxys-fps-20260929/final-focused-cpu-proof/accepted-cpu-current-mesh.log",
+      "xml": "/tmp/voxys-fps-20260929/final-focused-cpu-proof/accepted-cpu-current-mesh.xml"
+    }
+  ],
+  "frozenSharedLibraryCount": 51,
+  "finishedUtc": "2026-09-29T22:05:27.114426+00:00",
+  "accepted": true
+}

@@ -1,0 +1,9 @@
+# Linked combined daytime shader oracle
+
+Actual Intel gen12lp browser WebGPU executes the three candidate replacements together: mesh shadow gating, deferred water shadow, and lazy Cove cached-background loading. Each original/candidate pair shares all exact uploaded buffers, textures, and descriptors. Raw outputs from the background, live terrain, opaque mesh, and scene-water stages are byte-identical.
+
+The actual terrain fragment's color/depth output feeds mesh rejection. Opaque mesh draws a raised receiver over the left half of the scene, loading targets seeded from terrain. Water samples that composited color/depth; its targets are seeded and loaded so discarded pixels preserve the earlier scene. Mandatory dry controls prove that both mesh and water change predecessor color pixels in each visual mode and water entry. Thus the oracle exercises a linked composition instead of only comparing independent constant-input modules.
+
+Both actual Cove and Frontier specializations run, with dry, wet, backlit, night, land, and opaque resource cases. Mesh uses fsOpaqueHdr and both scene-water entries run. All color targets use shipping RGBA16Float and depth targets use R32Float. Original functions and all shader bodies remain intact except the explicit candidate edits; added probe geometry, linked resources, copy/load attachment preparation, and partial viewport are documented in the exporter.
+
+Every full source, descriptor/input blob, harness, and raw output is hash-guarded and independently reverified. Earlier isolated Intel oracles additionally cover mesh fs with stricter RGBA32Float and every legacy water entry. These linked fixture scenes are controlled fragment-composition probes, not an exhaustive engine-scene oracle or a performance result. Production shaders and the FPS harness remain unchanged.

@@ -1450,6 +1450,8 @@ const char* adventure_preferences_action(int action,const char* text){
 EMSCRIPTEN_KEEPALIVE
 const char* get_adventure_state_json(){static std::string value;value=g_app?g_app->adventureJson():"{}";return value.c_str();}
 EMSCRIPTEN_KEEPALIVE
+double voxy_get_adventure_player_tick(){return g_app?static_cast<double>(g_app->adventurePlayerTick()):0.0;}
+EMSCRIPTEN_KEEPALIVE
 int adventure_stage(const char* world,const char* hex){return !g_app&&world&&hex&&voxy::game::adventure::AdventureRuntime::stageWorld(world,hex);}
 EMSCRIPTEN_KEEPALIVE
 const char* adventure_snapshot_hex(){

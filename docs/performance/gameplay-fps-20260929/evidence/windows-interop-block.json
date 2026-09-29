@@ -1,0 +1,46 @@
+{
+  "schema": "voxys.windows-interop-block.v1",
+  "recordedAtUtc": "2026-09-29T21:59:57.181750+00:00",
+  "failureObservedBeforeUtc": "2026-09-29T21:58:14Z",
+  "probeAbsoluteEventTimestamp": "Not included by the exec tool; recordedAtUtc is the evidence-freeze time, not an invented event timestamp.",
+  "permissions": {
+    "filesystemWrites": [
+      "/home/lschneid/workspace/schneiderlo/voxys",
+      "/tmp"
+    ],
+    "network": "restricted",
+    "approval": "never"
+  },
+  "purpose": "Read-only Windows Node version and UNC path checks before any allowed-root Chrome/profile launch. No Windows files changed.",
+  "probes": [
+    {
+      "argv": [
+        "/mnt/c/Program Files/nodejs/node.exe",
+        "--version"
+      ],
+      "exitCode": 1,
+      "wallTimeSeconds": 0.164446284,
+      "output": "<3>WSL (2 - ) ERROR: UtilBindVsockAnyPort:309: socket failed 1\n"
+    },
+    {
+      "argv": [
+        "/mnt/c/Program Files/nodejs/node.exe",
+        "-e",
+        "const fs=require(\"node:fs\"),p=require(\"node:path\");const dir=String.raw`\\\\wsl.localhost\\Ubuntu\\tmp\\voxys-fps-20260929`;console.log(JSON.stringify({platform:process.platform,uncResolved:p.resolve(dir),uncReadable:fs.statSync(dir).isDirectory(),current:p.resolve(\".\"),siteReadable:fs.statSync(String.raw`C:\\Users\\Public\\voxys-fps-20260929\\candidate-cpu\\index.html`).isFile()},null,2));"
+      ],
+      "exitCode": 1,
+      "wallTimeSeconds": 0.159918713,
+      "output": "<3>WSL (2 - ) ERROR: UtilBindVsockAnyPort:309: socket failed 1\n"
+    }
+  ],
+  "blockedAction": "Launching Windows Node/Chrome for the v5 or v6 combined-daytime Intel FPS ABBA",
+  "reason": "WSL interop cannot bind its vsock port under the current restricted environment; failure occurs even for a read-only version command before application or output-path handling.",
+  "responses": "No alternate Windows execution route attempted. Existing Windows staging and profiles remain untouched; no new Windows launch or writes.",
+  "intendedAllowedPaths": {
+    "harness": "\\\\wsl.localhost\\Ubuntu\\tmp\\voxys-fps-20260929\\fps-harness-v6\\benchmark_gameplay_fps.mjs",
+    "output": "\\\\wsl.localhost\\Ubuntu\\tmp\\voxys-fps-20260929\\combined-daytime-primary-screen-v6",
+    "profileRoot": "\\\\wsl.localhost\\Ubuntu\\tmp\\voxys-fps-20260929\\combined-daytime-primary-screen-v6\\profile-root"
+  },
+  "uncChromeSupport": "Unverified; the process-launch restriction prevents the planned path/profile smoke.",
+  "v5CombinedDaytimeScreen": "NOT EXECUTED because Windows interop and outside-root writes are blocked."
+}

@@ -1,0 +1,84 @@
+{
+  "scope": "Native llvmpipe exact correctness and work only. Contended compilation; no valid performance timing.",
+  "runs": [
+    {
+      "label": "baseline",
+      "returnCode": 0,
+      "command": [
+        "/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-mesh-tests",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-tests.xml"
+      ],
+      "binarySha256": "2a14dcf0bfe8ccf7bdd4fc26c489e227fac670f66e1013d6ef46511d0cb60651",
+      "tests": 31,
+      "failures": 0,
+      "disabled": 1,
+      "skipped": 0
+    },
+    {
+      "label": "candidate",
+      "returnCode": 0,
+      "command": [
+        "/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-mesh-tests",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-tests.xml"
+      ],
+      "binarySha256": "445760654679d81687b37516fdbe0758f8d6d799516cd573a078f4ccbdb8844e",
+      "tests": 31,
+      "failures": 0,
+      "disabled": 1,
+      "skipped": 0
+    }
+  ],
+  "sources": {
+    "scope": "Prepared exact final record/work instrumentation; no test or timing results",
+    "recordingSha256": "9b757e1c979af6309df5273a11b268cd7284d9e376d6653fe4776ef4e2353472",
+    "sources": {
+      "baseline": {
+        "source": "/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-mesh_path.cpp",
+        "sourceSha256": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+        "recordingSource": "/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-recording-mesh_path.cpp",
+        "recordingSourceSha256": "dedcf06eb17fe27e5dfca2e571d045003815221c0311deaade4c8e49ad29ff55"
+      },
+      "candidate": {
+        "source": "/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-mesh_path.cpp",
+        "sourceSha256": "ae8b92c0f552ed9c408ce9562ec33aa469ec76ae2a00c6000714c62742e6fa0e",
+        "recordingSource": "/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-recording-mesh_path.cpp",
+        "recordingSourceSha256": "b1111f469541f1f952a873ed30570d3914eebe617855521ae80b58a164f6ea50"
+      }
+    }
+  },
+  "captures": {
+    "files": 358,
+    "bytes": 2951813,
+    "missing": [],
+    "different": [],
+    "exactMatch": true
+  },
+  "records": {
+    "files": 384,
+    "bytes": 92174,
+    "missing": [],
+    "different": [],
+    "exactMatch": true
+  },
+  "constructionWork": {
+    "successfulFramesRecorded": 181,
+    "expandedGpuRecords": 542,
+    "baselineFirstGpuRecordWriteBytesAtSourceLevel": 69376,
+    "baselineSortedGpuRecordCopyBytesAtSourceLevel": 69376,
+    "candidateSourceMapWriteBytesAtSourceLevel": 4336,
+    "candidateFinalGpuRecordWriteBytesAtSourceLevel": 69376,
+    "nativeSourceMapIndexBytes": 8,
+    "gpuUploadBytesChanged": false,
+    "note": "Native64-bit source-level writes only, excluding vector growth, reads and unchanged source loads. The removed128-byte sorted copy includes an additional128-byte source read. No compiler-lowering, CPU-time or FPS result is inferred."
+  },
+  "accepted": true,
+  "requiredFixtureCoverage": {
+    "declaredTestsPerVariant": 31,
+    "existingDisabledTestsPerVariant": 1,
+    "recordAndWorkFiles": 384,
+    "imageCaptureFiles": 358,
+    "recordedFrames": 181,
+    "expandedGpuRecords": 542
+  },
+  "fixtureCoverageComplete": true
+}

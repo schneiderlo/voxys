@@ -1,0 +1,199 @@
+{
+  "scope": "Final accepted CPU/native integration correctness only. Vulkan llvmpipe; no timing/FPS claim.",
+  "startedUtc": "2026-09-29T22:00:34.100087+00:00",
+  "sources": {
+    "src/render/mesh_path.cpp": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+    "src/game/adventure/adventure_runtime.cpp": "9df53de229c824bb413e2b365bbca2afde49eba9dcd28610c0056e605869de22",
+    "src/game/adventure/frontier_presentation.cpp": "a544bcb975558f8c4e2bbb4efee7a7f43ddc50cac0ac5877b52bad0ba5300ede",
+    "src/game/adventure/frontier_runtime.cpp": "2ad240edc635e298969bbde5328145ea06fd263e0ff8b7330488cf9a03af1025",
+    "src/game/adventure/spatial_queries.cpp": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94"
+  },
+  "executable": {
+    "path": "/tmp/voxys-fps-20260929/final-native-cpu/executables/frontier_runtime_performance",
+    "sha256": "fcb4c9ea7dc7da7e85c171b69a0ddaf11878792a95222ce901145a47fb21f8dc"
+  },
+  "sharedLibraries": {
+    "libexternal_Sgoogletest+_Slibgtest.so": "905a001127b3b6cc1dc860cbef9e856135b59809afa07bd8e2d303c5d780207d",
+    "libexternal_Sgoogletest+_Slibgtest_Umain.so": "5e6b0e324c4e7ccce90d7255ac0e6df4d0d6bd3c62b9788d64738ad3ffbb3814",
+    "libsrc_Scamera_Slibcamera.so": "dd46aaec6ecc941ac3e8fc151fc29f077156a8975408d163a4099379216760a5",
+    "libsrc_Score_Slibcore.so": "5f7d982fe8c16170ba352e52e318ceba8b91645669f737ed9161d983bbbdfb13",
+    "libsrc_Sengine_Splatform_Slibinput.so": "f8be4ef681a7c49955ac4272cf5d000b43660a3a6b76c79c69a7f02075e64860",
+    "libsrc_Sengine_Splatform_Slibnative_Uadventure_Upreferences.so": "603b68930b45092343818bd51ff622acaf1c8451b411ef36e037a650868dac6c",
+    "libsrc_Sengine_Splatform_Slibnative_Uadventure_Usaves.so": "4ad465df3cd17beed91a028075638df00bcd86577651ebd777e076be774fc8f1",
+    "libsrc_Sengine_Splatform_Slibnative_Usave_Ustore.so": "c68b0ad4a982dad465c0d7caff871b0fd7e8e215c270013fc91f2cb7af95d068",
+    "libsrc_Sengine_Splatform_Slibnative_Usave_Uworker.so": "d06713f448b8b492cab2b56b1eb601430a9369b796d6fa70f2089f3ba727da9e",
+    "libsrc_Sengine_Splatform_Slibwindow.so": "6358cf0665ecfdb11c67855999b37d4159c398b9bded9b5c1ae0f2c024d5a7ea",
+    "libsrc_Sgame_Slibadventure_Ucore.so": "ec3f0399abda6af8aac6b1353f33352f7e1970569230cb95c3e073e075316141",
+    "libsrc_Sgame_Slibadventure_Unavigation.so": "ca5c53bc905a6a7b27d3f8fb875e41f67da77e6d2a271473cda848ec58dc11d2",
+    "libsrc_Sgame_Slibadventure_Uruntime.so": "101789829630d1f6a092cc1e1bb7cb2fcdc9c0c3401da53a81fb26f1883a269f",
+    "libsrc_Sgame_Slibbuild_Umodel.so": "c0eb5cf7ebdfff85625009eaf310076ec8aad59a1b5ad042708b2218f303d386",
+    "libsrc_Sgame_Slibcannon_Uphysics_Uscene.so": "1af61b7f7f856a17187a4db7a52c0c54f2fc557f0ad1e07bc7dd0cb42c69748d",
+    "libsrc_Sgame_Slibconstruction_Utypes.so": "457dc0d22cdd8835bf84e42401c4ee12dc408a8036c0fbd3e1b43c5014832234",
+    "libsrc_Sgame_Slibcooked_Upart_Ubundle.so": "1483ab5b7fc27f20a9fe7b324e26d85ed08335a0499fe9e102e328ace5fa4fbf",
+    "libsrc_Sgame_Slibcooked_Upart_Udirectory.so": "4b047501fcf4481a0dfd07920e1dab6b19a9877e5edff495c08c848947d79839",
+    "libsrc_Sgame_Slibcove_Ucamera.so": "4e25d9810b34643dacfd8a9df83282b16a265730b1beaa18bea6504be19205c2",
+    "libsrc_Sgame_Slibcove_Uinput_Upreferences.so": "365165eec0951afef5a749adf9848787815b07d143382cfd3d793f3777e57998",
+    "libsrc_Sgame_Slibcove_Uplayer.so": "98c958027ee3572d729a5a6bded58b2c90983dd20c64a53b54850bd3dbbe3b84",
+    "libsrc_Sgame_Slibfixture_Uregistry.so": "fe35fd9d087db8eb0dd4967949065fbfad582a81b7c3feead6e097c26b8717cb",
+    "libsrc_Sgame_Slibgameplay_Usidecar.so": "23abd19e88e841b7dee75708cc8e824ff771ddce25f1075fe49d4279e6af8385",
+    "libsrc_Sgame_Slibimported_Uassembly.so": "057747ca88728c67b076eae2b1f78363dbf63586311bc41b79b4cb2720c33b2c",
+    "libsrc_Sgame_Slibimported_Uwall_Uphysics.so": "fd2151f045a2878413537d76379c638f3ee656fe1d5d2b7a1baa78c5f7b03318",
+    "libsrc_Sgame_Slibpart_Ucatalog.so": "f8b33bcdb71f0e6529e72ebe01df624e5000586c41e4bf4e44a93791cbb08918",
+    "libsrc_Sgame_Slibrigid_Uanimation.so": "5f1bfc5e3eccf164805c46e9112aae7aeeec92cde62c23a1d5d063bc5f06fc86",
+    "libsrc_Sgame_Slibrigid_Uprefab.so": "04d6ee195fecf00f2c1aa0db1a85b47ccc24baf3084c0050e9f06cca9cc4b369",
+    "libsrc_Sgame_Slibrobot_Uasset.so": "8ab13b6ec477859ca43d201d8ad01271fcf14754e9b7ef1ebbadbb3728d4377d",
+    "libsrc_Sgame_Slibsave_Ugeneration.so": "470a05d64953cb3be34e38066558e9c7c7cc2ceb0230f68dc5a81c2c6ca72e81",
+    "libsrc_Sgameplay_Slibgameplay.so": "f8bb9022437c8e1dc3247752e543b3891818d49a8389b89b231f9b2f835e8edf",
+    "libsrc_Sgeometry_Slibbox_Uunion.so": "622fad752890ca891450cf4d3dc174c1f138388ccb888585e80dbec9f59414c0",
+    "libsrc_Sgpu_Slibgpu.so": "08fbe9d40bd35623255f5acb8c403d83569c8d87e0ec696bede091da7914aa30",
+    "libsrc_Smoto_Slibmoto.so": "1e2e9558640c42b2a4104d365434a6fbf2cedbba58c3b833560d012033bd11fb",
+    "libsrc_Sphysics_Slibauthored_Ushape.so": "850a67bdb678cf99b4c24552a177887bdb6ff71b25ad0f16f47317e39ccbf6e0",
+    "libsrc_Sphysics_Slibgpu_Uauthored_Ushapes.so": "09018bb6158fd35a0acb3bb83661a5f0fa179a2d20290b51b343a4c916effc28",
+    "libsrc_Sphysics_Slibphysics.so": "4cfd4396553596669c8faacd8d7726166a28b2a08126b3579f78b086f3ea9f48",
+    "libsrc_Sphysics_Slibrigid_Umass_Uframe.so": "f7ba30eefe6ed6cf4baac5c420fd337ece9e55add7592d032d6bf494653d8533",
+    "libsrc_Srender_Slibmip_Upipeline.so": "a8bb766d8e2d4db303a1fb7873ed58375124d75ccdddfba38fcd379db30f9b4b",
+    "libsrc_Srender_Slibprimitive_Uculling.so": "ca288f5a9b49978b9a4521cb3f023899e92bbfaef04a1addaee9ee77409320c1",
+    "libsrc_Srender_Slibprimitive_Uinstance_Upacking.so": "4357d89b422a1cd11bf0e054bc6d12e27c3d69d0a16128eabcb86249d99865b8",
+    "libsrc_Srender_Slibrender.so": "b7177a37a85617188397f72352d4688829f387a7777e485d8a273aca0394e4ef",
+    "libsrc_Srender_Slibwater_Uclipmap_Umesh.so": "edeb4bb373d0cf1301c06545412610232679a6638431c818900a02d11d5ee6c1",
+    "libsrc_Srender_Slibwater_Usimulation.so": "18a5bde326598f96e3a10360aea1c83aa7d3da5fbba37531ef7453dd7576b3ea",
+    "libsrc_Sterrain_Slibshadow_Ubake.so": "331bc326e26e48649214c4d2246d342b3e6185396904b3533d4e19085e7a1120",
+    "libsrc_Sterrain_Slibterrain.so": "bed65a88b44276d7ae626c64da6852a5036c278cd22675bd80f8c201f804527d",
+    "libthird_Uparty_Slibbox3d.so": "f1971562f2c1965044c4609175628978588fdafad4bb4b53988fbb297251f7da",
+    "libthird_Uparty_Slibjolt.so": "046e922b3b429f28d0d854980b69cde4e6f18eff83776278f556813494621dcf",
+    "libthird_Uparty_Slibtinygltf.so": "9678cef0bfeaa75ab50fd503b37ec2dcab9e12add0f77493448d2d2a69c0b2d1",
+    "libthird_Uparty_Slibzstd.so": "82ab00d285388eb9e91270f57e9e2202d311aba99781d697ccf5ef77e8839702",
+    "libwgpu_native.so": "f58492b43c7da7e8223600ca6e85b38fdfbe157eec3d009f332b030d6cca4f92"
+  },
+  "restoredCoreMatchesOriginal": true,
+  "allOtherLibrariesMatchCpuCandidate": true,
+  "runs": [
+    {
+      "label": "idle-hud",
+      "command": [
+        "/tmp/voxys-fps-20260929/final-native-cpu/executables/frontier_runtime_performance",
+        "--gtest_filter=FrontierRuntimePerformance.IdleHudReusesUploadsAndVisibleChangesRemainAuthoritative",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/final-native-cpu/idle-hud.xml"
+      ],
+      "testsPassed": 1,
+      "originalCoreLoaderResolutionVerified": true
+    },
+    {
+      "label": "default-oracle",
+      "command": [
+        "/tmp/voxys-fps-20260929/final-native-cpu/executables/frontier_runtime_performance",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/final-native-cpu/default-oracle.xml"
+      ],
+      "testsPassed": 1,
+      "comparison": {
+        "scope": "Exact native Frontier JSON, archive bytes and actual GPU HUD pixel hashes; no FPS claim",
+        "configurationExact": true,
+        "observationFrames": 1200,
+        "jsonBytesExact": true,
+        "firstDifferingFrame": null,
+        "firstDifferingPath": null,
+        "saveBytesExact": true,
+        "saveHashesVerified": true,
+        "pixelFramesComplete": true,
+        "hudPixelsExact": true,
+        "beforeHudUploads": 1442,
+        "afterHudUploads": 125,
+        "beforeTriangleUploads": 0,
+        "afterTriangleUploads": 0,
+        "beforeSimulationCpu": {
+          "count": 181,
+          "p50_us": 1185.101,
+          "p95_us": 2396.414,
+          "p99_us": 3192.126
+        },
+        "afterSimulationCpu": {
+          "count": 181,
+          "p50_us": 2541.675,
+          "p95_us": 13097.617,
+          "p99_us": 14461.889
+        },
+        "beforePausedCpu": {
+          "count": 959,
+          "p50_us": 608.134,
+          "p95_us": 1272.432,
+          "p99_us": 2308.159
+        },
+        "afterPausedCpu": {
+          "count": 959,
+          "p50_us": 1190.86,
+          "p95_us": 10132.841,
+          "p99_us": 11923.516
+        },
+        "exact": true
+      }
+    },
+    {
+      "label": "nearby-oracle",
+      "command": [
+        "/tmp/voxys-fps-20260929/final-native-cpu/executables/frontier_runtime_performance",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/final-native-cpu/nearby-oracle.xml"
+      ],
+      "testsPassed": 1,
+      "comparison": {
+        "scope": "Exact native Frontier JSON, archive bytes and actual GPU HUD pixel hashes; no FPS claim",
+        "configurationExact": true,
+        "observationFrames": 1200,
+        "jsonBytesExact": true,
+        "firstDifferingFrame": null,
+        "firstDifferingPath": null,
+        "saveBytesExact": true,
+        "saveHashesVerified": true,
+        "pixelFramesComplete": true,
+        "hudPixelsExact": true,
+        "beforeHudUploads": 1442,
+        "afterHudUploads": 78,
+        "beforeTriangleUploads": 0,
+        "afterTriangleUploads": 0,
+        "beforeSimulationCpu": {
+          "count": 181,
+          "p50_us": 1134.065,
+          "p95_us": 1551.161,
+          "p99_us": 2391.3
+        },
+        "afterSimulationCpu": {
+          "count": 181,
+          "p50_us": 2059.709,
+          "p95_us": 6757.473,
+          "p99_us": 13777.778
+        },
+        "beforePausedCpu": {
+          "count": 959,
+          "p50_us": 563.968,
+          "p95_us": 1282.293,
+          "p99_us": 3491.463
+        },
+        "afterPausedCpu": {
+          "count": 959,
+          "p50_us": 1079.572,
+          "p95_us": 8696.871,
+          "p99_us": 11898.741
+        },
+        "exact": true
+      }
+    }
+  ],
+  "finishedUtc": "2026-09-29T22:10:04.841030+00:00",
+  "outputs": {
+    "nearby-oracle.pixels.json": "963ed322fa8548e02d0a9cd9d6ded0273a517d7e603a9d58539f7ab94bc36972",
+    "default-oracle.save": "d4ac33bf2ecd97b41ec7401893e08a78a27ed11f4cd00ed5347c5732f35afa1b",
+    "idle-hud.xml": "6c766672a3096cc74dd415918c6e7b4365f34264f93f76f6e9956f002d474d07",
+    "nearby-oracle-comparison.json": "3d626da21e980e358f9c9ec881a6dc83346b1789877b707da8736520d167124d",
+    "default-oracle-comparison.json": "9941482318129126daf58f89fc10b863c4b1e0ed215cf8a2db8bd54c3e31163c",
+    "nearby-oracle.save": "4d4f929a6e41f8439eab7a699aa1ece0c1d8170f9f2c14af75043bc4fd1776bb",
+    "default-oracle.pixels.json": "021937d7ab92db9d5cf850b9d5b19f4eacd011859d7b5ae57710b30b07cdac08",
+    "nearby-oracle.log": "ac629146280c519c06d6aae7633dfede06a43532e95c41d55341dcdf7b3c55d7",
+    "default-oracle.log": "ad6b94c136f42d722194adba2ffe7420dece19a0304c0e423436c12deee2dc83",
+    "nearby-oracle.jsonl": "fb0ce302faf1890eabbcec50d14c80d23e06ff7dec2fc1b69bf9449c0d615cfe",
+    "idle-hud.log": "cb553d9bc75370b81e6fc86dc01c1bb967b436905bc418613e17b7d30c96a90b",
+    "nearby-oracle.xml": "7391475c0bc6cb29cc9bcdb16d6927710fda2e3d01dabecca1c6232bf3e595bf",
+    "default-oracle.xml": "319e5fcd6189b349460798f96e32944e544a13ac81748ffc2662ba319971b54b",
+    "default-oracle.jsonl": "e30c66b10cdd2a94eeb0ee47793f12aaae2b6b90a657eca99f1097753eb29c7f"
+  }
+}

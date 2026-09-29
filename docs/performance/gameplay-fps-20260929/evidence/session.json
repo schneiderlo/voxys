@@ -1,0 +1,23 @@
+{
+  "startedUtc": "2026-09-29T18:27:30Z",
+  "minimumWorkUntilUtc": "2026-09-29T21:27:30Z",
+  "methodology": "https://claude.dev/blog/how-we-made-claude-ai-faster/",
+  "head": "4f1ab5710aca7d5bb191dce176a70378aefd0e4c",
+  "initialDirtyPaths": [
+    "docs/performance/article-followup-20260924/README.md",
+    "docs/performance/article-followup-20260924/hardware-environment.json",
+    "ui/benchmark-polling.mjs"
+  ],
+  "baselineSources": {
+    "src/game/adventure/adventure_runtime.cpp": "7c44d2704f44b897109ae98466e73f99959c3405b0a2efab07f7fecbe1aefc4d",
+    "src/game/adventure/adventure_runtime.hpp": "e5643bd9c6d3a4ab46d38de920c3f355f9d171eb53b87fff174895905856cea2",
+    "src/game/adventure/spatial_queries.cpp": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94",
+    "src/game/adventure/frontier_runtime.cpp": "196f6f104d3b3b151bd442434a9b88242232b4441954d3b54bcc85524b85c012",
+    "src/game/adventure/frontier_presentation.cpp": "7874e8e7dd69feb23c148a077ae3f73a8bee15365662c0b21af3b60695c6e6ab",
+    "src/render/adventure_hud.cpp": "56eb8bd59703c9baffa4cf8d1ff26278d43af277c671c745a06f1abc8e5b4f4f",
+    "shaders/mesh_path.wgsl": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b",
+    "shaders/water_clipmap.wgsl": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb",
+    "shaders/ray_blit.wgsl": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+    "shaders/terrain_raycast.wgsl": "d19ff0b396eff662956c02675991a4ddc2d505717718d310ac9ad443132c3007"
+  }
+}

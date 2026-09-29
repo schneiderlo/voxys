@@ -16,6 +16,12 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics_benchmark/CMakeLists.txt")
 endif()
 
 if(TARGET voxy_core)
+    if(VOXY_BUILD_BENCHMARKS)
+        add_executable(adventure_queries_benchmark benchmarks/adventure_queries_benchmark.cpp)
+        target_link_libraries(adventure_queries_benchmark PRIVATE voxy_core)
+        set_project_warnings(adventure_queries_benchmark)
+    endif()
+
     add_executable(platform_parity_probe
         ${CMAKE_SOURCE_DIR}/src/gameplay/parity_probe_main.cpp
     )

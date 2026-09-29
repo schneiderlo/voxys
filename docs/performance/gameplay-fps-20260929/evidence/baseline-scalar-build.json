@@ -1,0 +1,24 @@
+{
+  "scope": "Original production behavior plus readonly scalar player-tick export for equal low-overhead A/B measurement",
+  "binaries": {
+    "voxy_wasm_cc.wasm": "8c8ede84cd35202e241abe9bdf06a9a28d454a18241401e7d8cf569871817e06",
+    "voxy_wasm_cc.js": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f",
+    "voxy_wasm_cc.data": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+  },
+  "sourceHead": "4f1ab5710aca7d5bb191dce176a70378aefd0e4c",
+  "previousBaseline": {
+    "voxy_wasm_cc.data": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6",
+    "voxy_wasm_cc.js": "1f6f8e2572b86fc5608acba15fc376f43dbfe80af0bf4a5834d65bdeaaee3a80",
+    "voxy_wasm_cc.wasm": "0fd90f99dbf3e37266102c561cad037412030ab83181fef3aca07f9a44a432e8"
+  },
+  "sourceHashes": {
+    "src/app/application.cpp": "100bffceb2726d6c62ae0acba71f654479bbf4c22517a8d6fe963ec646f5fc9e",
+    "src/app/application.hpp": "18300d3df3f598b22f85cac2c43fd6483863ba96eec3fdb541537188b03f2763",
+    "src/engine/platform/wasm/entry.cpp": "7c9162c9785cb9334ad8957b236fcb53265190f514a7bb891238272e51e04336",
+    "src/game/adventure/adventure_runtime.hpp": "c48527266b6ce432954134a908e97c7de8b0b3b87bd2b38830489fafaabfa352",
+    "src/render/mesh_path.cpp": "b4bba6d80923e595bcc1932b69a7b7d63b0ace63e1d44ed5c8c1d163dfbf3308",
+    "src/game/adventure/adventure_runtime.cpp": "7c44d2704f44b897109ae98466e73f99959c3405b0a2efab07f7fecbe1aefc4d",
+    "src/game/adventure/spatial_queries.cpp": "abcc45c566541f2cd6d359a0bd3aca8fa3b85b7036874136a487ba127fd33b94",
+    "src/game/adventure/frontier_runtime.cpp": "196f6f104d3b3b151bd442434a9b88242232b4441954d3b54bcc85524b85c012"
+  }
+}

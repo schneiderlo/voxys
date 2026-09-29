@@ -1,0 +1,27 @@
+{
+  "scope":"CPU spatial queries; no GPU, rendering or FPS",
+  "batches":200,
+  "queriesPerBatch":64,
+  "cases":[
+    {"fixture":"empty","solids":0,"query":"support","p50_us":2.53453125,"p95_us":4.61696875,"p99_us":169.137890625,"checksum":"facd0614fd2fa219"},
+    {"fixture":"empty","solids":0,"query":"clear","p50_us":2.3235625,"p95_us":3.294765625,"p99_us":162.01121875,"checksum":"c48168ef6c860c19"},
+    {"fixture":"empty","solids":0,"query":"sweep","p50_us":8.553390625,"p95_us":165.8765625,"p99_us":172.67925,"checksum":"66ff956ca307e149"},
+    {"fixture":"empty","solids":0,"query":"ray","p50_us":289.08496875,"p95_us":500.02765625,"p99_us":550.440140625,"checksum":"82a76f811b8b0655"},
+    {"fixture":"empty","solids":0,"query":"column","p50_us":7.3909375,"p95_us":26.39375,"p99_us":60.75615625,"checksum":"d43d42527b675219"},
+    {"fixture":"local-256","solids":256,"query":"support","p50_us":2.674796875,"p95_us":5.812140625,"p99_us":24.9336875,"checksum":"facd0614fd2fa219"},
+    {"fixture":"local-256","solids":256,"query":"clear","p50_us":2.7319375,"p95_us":8.43878125,"p99_us":34.665671875,"checksum":"2650c4acfd2fa219"},
+    {"fixture":"local-256","solids":256,"query":"sweep","p50_us":8.04675,"p95_us":23.144859375,"p99_us":75.952890625,"checksum":"35d19d15bc82aa19"},
+    {"fixture":"local-256","solids":256,"query":"ray","p50_us":311.093359375,"p95_us":496.63253125,"p99_us":539.532625,"checksum":"cf5f48d26e85b765"},
+    {"fixture":"local-256","solids":256,"query":"column","p50_us":13.863296875,"p95_us":21.257171875,"p99_us":26.711796875,"checksum":"a5c0cea6fc115e19"},
+    {"fixture":"dense-4096","solids":4096,"query":"support","p50_us":6.18825,"p95_us":9.85521875,"p99_us":15.74634375,"checksum":"facd0614fd2fa219"},
+    {"fixture":"dense-4096","solids":4096,"query":"clear","p50_us":7.885171875,"p95_us":18.324046875,"p99_us":24.01015625,"checksum":"2650c4acfd2fa219"},
+    {"fixture":"dense-4096","solids":4096,"query":"sweep","p50_us":14.54375,"p95_us":48.09996875,"p99_us":130.821109375,"checksum":"35d19d15bc82aa19"},
+    {"fixture":"dense-4096","solids":4096,"query":"ray","p50_us":215.792484375,"p95_us":396.9960625,"p99_us":546.210171875,"checksum":"9447582258389765"},
+    {"fixture":"dense-4096","solids":4096,"query":"column","p50_us":58.12378125,"p95_us":209.12878125,"p99_us":225.59528125,"checksum":"56eea7e89b7aa219"},
+    {"fixture":"capacity-16384","solids":16384,"query":"support","p50_us":24.38334375,"p95_us":68.37315625,"p99_us":134.96128125,"checksum":"facd0614fd2fa219"},
+    {"fixture":"capacity-16384","solids":16384,"query":"clear","p50_us":19.653046875,"p95_us":31.052625,"p99_us":51.79803125,"checksum":"2650c4acfd2fa219"},
+    {"fixture":"capacity-16384","solids":16384,"query":"sweep","p50_us":29.377203125,"p95_us":52.6529375,"p99_us":93.53384375,"checksum":"35d19d15bc82aa19"},
+    {"fixture":"capacity-16384","solids":16384,"query":"ray","p50_us":353.881203125,"p95_us":739.99915625,"p99_us":904.240421875,"checksum":"4781974cf9e91765"},
+    {"fixture":"capacity-16384","solids":16384,"query":"column","p50_us":480.494296875,"p95_us":672.130046875,"p99_us":733.69821875,"checksum":"56eea7e89b7aa219"}
+  ]
+}

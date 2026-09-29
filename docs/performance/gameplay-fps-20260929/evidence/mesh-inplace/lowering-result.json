@@ -1,0 +1,35 @@
+{
+  "scope": "Clang 23 wasm32 O2 assembly using the captured compilation parameters. Before final Binaryen linking; not an FPS measurement.",
+  "labels": {
+    "baseline": {
+      "assemblySha256": "02e197274dc22a95bd6eacd13129572b5368cdbc20b92ecdab3f297f917cd3e6",
+      "renderGpuVectorCalls": [
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_"
+      ],
+      "warmAppendSymbol": "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_",
+      "warmAppendMemoryCopyInstructions": 1,
+      "renderStackFrameBytes": 960
+    },
+    "candidate": {
+      "assemblySha256": "657d68aa672ffa98c4fa46eb8b8e07efd5fd44196d40c35d79bb50a5c2ebfded",
+      "renderGpuVectorCalls": [
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRKNS2_16MeshDrawInstanceERKjEEERS4_DpOT_",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE7reserveEm",
+        "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE9push_backB8ne210108ERKS4_"
+      ],
+      "warmAppendSymbol": "_ZNSt3__26vectorIN4voxy6render12_GLOBAL__N_115GpuDrawInstanceENS_9allocatorIS4_EEE12emplace_backIJRKNS2_16MeshDrawInstanceERKjEEERS4_DpOT_",
+      "warmAppendMemoryCopyInstructions": 0,
+      "renderStackFrameBytes": 960
+    }
+  },
+  "findings": [
+    "Baseline writes a complete 128-byte stack temporary, then calls push_back; existing-capacity push_back performs memory.copy of 128 bytes.",
+    "Candidate calls emplace_back with the source instance and material index; its existing-capacity path writes each destination field directly and contains no memory.copy.",
+    "Default field initialization was already eliminated in baseline optimized code, so no removed-default-store claim is made.",
+    "The final sorted-pack push_back, vector growth relocation, sorting, transparency order, and GPU upload bytes remain unchanged."
+  ]
+}

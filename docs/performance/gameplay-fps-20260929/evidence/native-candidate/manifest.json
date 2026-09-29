@@ -1,0 +1,470 @@
+{
+  "scope": "Native llvmpipe correctness only; contended builds invalidate all component timing values",
+  "recordedUtc": "2026-09-29T19:13:30.473796+00:00",
+  "compilationMode": "fastbuild",
+  "timingsValid": false,
+  "head": "4f1ab5710aca7d5bb191dce176a70378aefd0e4c",
+  "executables": {
+    "frontier_runtime_performance": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/tests/frontier_runtime_performance",
+      "sha256": "fcb4c9ea7dc7da7e85c171b69a0ddaf11878792a95222ce901145a47fb21f8dc",
+      "bytes": 1739240
+    },
+    "adventure_query_candidates": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/tests/adventure_query_candidates",
+      "sha256": "304883479e59facd9cf733bd0745212f38561255d19b81a4b17e83cde57df12a",
+      "bytes": 342248
+    },
+    "adventure_walkable": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/tests/adventure_walkable",
+      "sha256": "9b4e4e605be716fa67163ebf6721aafb21393f4140184de51dc5cb0791eaf1d0",
+      "bytes": 233368
+    },
+    "frontier_combat": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/tests/frontier_combat",
+      "sha256": "4aca619372c2bf1b783747b8eac37d7ab662f8582b64f168dfaed32e4ba52304",
+      "bytes": 211096
+    },
+    "mesh_path_test": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/tests/mesh_path_test",
+      "sha256": "1939e9c70da0ad0ace90de24280425ce0c1f9ccce7c37b90953aecb8ae46cdc3",
+      "bytes": 1100552
+    }
+  },
+  "sources": {
+    "src/game/adventure/adventure_runtime.cpp": "9df53de229c824bb413e2b365bbca2afde49eba9dcd28610c0056e605869de22",
+    "src/game/adventure/adventure_runtime.hpp": "c48527266b6ce432954134a908e97c7de8b0b3b87bd2b38830489fafaabfa352",
+    "src/game/adventure/spatial_queries.cpp": "b0109bb7bfcfd349b9c9b89fb17a1d32796815339ebcecff4eb0264b24809318",
+    "src/game/adventure/spatial_queries.hpp": "31c7cf0a4cfe38cc0d0d484b9fe4b51c00fe1e8f626b9ed6844b8b005c99f2b0",
+    "src/game/adventure/frontier_runtime.cpp": "2ad240edc635e298969bbde5328145ea06fd263e0ff8b7330488cf9a03af1025",
+    "src/game/adventure/frontier_presentation.cpp": "a544bcb975558f8c4e2bbb4efee7a7f43ddc50cac0ac5877b52bad0ba5300ede",
+    "src/render/adventure_hud.cpp": "56eb8bd59703c9baffa4cf8d1ff26278d43af277c671c745a06f1abc8e5b4f4f",
+    "src/render/mesh_path.cpp": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+    "src/render/mesh_path.hpp": "725849c4c3abfb548d03e6db9242090ffa6e20e3b32737fb0419371860063429",
+    "tests/test_frontier_runtime_performance.cpp": "f24f36d97f26a7ff4ebd09b8cd4d2b53b8bd4c639ae6ca3bbef4d299840cd93c",
+    "tests/test_adventure_query_candidates.cpp": "59a80daf1f1bace8d8e098afacdb3b9be792fa25d57d762b74f8e7dd722f0d1f",
+    "tests/test_adventure_walkable.cpp": "ef271d8470c487642f8aa30734b13c628b3b6829ff9540f096aa118556c17279",
+    "tests/test_frontier_combat.cpp": "f95f11dda9f7a2e0d0ac7ec59c255d96cfddbd084afa38b1093aa7833fa4d1fa",
+    "tests/test_mesh_path.cpp": "d6b1bb61755c21f8d2c8e06a82d32608be735dd7513877618865e083bcdd7574",
+    "tests/BUILD": "6b2ada2632e21f37556c3f0de104f4d749813e6e0eb63f18242bec38f08cda86",
+    "tools/BUILD": "09f7742d0de1fd53c9fde09d060167cdeaefb05950b96926042bf90fab23001f"
+  },
+  "shaders": {
+    "shaders/physics_ccd.wgsl": "b58e789d2b66e05f20e830d64ddf92372de42ae1af5fdd8bbe22e423fb88fe48",
+    "shaders/physics_islands.wgsl": "4695d15cfbea31cfb6b65ed86362c7feef5b02aa0009fe80f9156aad89fcb2e0",
+    "shaders/terrain_raycast.wgsl": "d19ff0b396eff662956c02675991a4ddc2d505717718d310ac9ad443132c3007",
+    "shaders/physics_authored_terrain.wgsl": "661310cb8ab46d2b5f56c53e7dec00e82284c7f5ff29b304623035082a4f2baf",
+    "shaders/physics_authored_queries.wgsl": "68d6c54a43a40513adf365d57fef8bb63668c57bc7d94c62006cfe291b584130",
+    "shaders/cove_effects.wgsl": "bf6d2998d02113c6620890fbf5eb29b3c3c0dfd1e9bd8ac396102c1dbcdbd7bf",
+    "shaders/physics_attachments.wgsl": "54cef878d6410babc082d78519f6e2814faeabcb9e331956d474004d6ddfe9f7",
+    "shaders/lego_surface.wgsl": "06c8c497311f5b4098c2ff5759817f4f3153ea3d130c8fb44e581d22f023343e",
+    "shaders/water_foam.wgsl": "077723ac09db0c388a19514367df01eef6fdfff0e7802dccea003119340a0727",
+    "shaders/water_fft.wgsl": "0c65992e13c89b368eff585a3566146beec3029b895359b4194d11a90f8cf1a1",
+    "shaders/physics_ballistic.wgsl": "098bbf91d366fb871b8197a275a763e5013e9f660b8b9fac43aaf007e2639ec2",
+    "shaders/water_clipmap.wgsl": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb",
+    "shaders/cove_hud.wgsl": "49e81b63de4da18d2f7b499bd1c4fb293ba0ddd700872c5894bd4b48e29563bc",
+    "shaders/physics_primitives.wgsl": "626ba42f265a1de62df8f25c69003c2ffe40a83f558261384d487166d6bb2d68",
+    "shaders/water_composite.wgsl": "a3826f089b45f246f7bf5be15795398cb8bfb2b3ff6e2bfcc0bfcfa715841b29",
+    "shaders/physics_authored_shapes.wgsl": "21c643c235b616466de2ab0ed0b40dfe6b4fe5a64a87244dc648ba9056468530",
+    "shaders/physics_primitive_cull.wgsl": "5563d6f38537eae11cedbfa53eec7c7be2d7af4f256bce5ab5a680c603d574e2",
+    "shaders/sky_lut.wgsl": "1464eb3f444e918061e01a0f9e139507d95a6f892b3fa508440edbe36421090f",
+    "shaders/physics_primitives_compact.wgsl": "1099f04a445f174dfe36cd14f6a9c4a92cd7d9432653a76dadf9d2b728fffee2",
+    "shaders/physics_event_readback.wgsl": "473859e15df4837be8efa33abb92f4f167f8fda71f11c6a02fdf1ae62f3cd9d5",
+    "shaders/adventure_hud_triangles.wgsl": "8db8e718f106de487c8d32e4a497c37166659289750fc9650ee2824374e39ab2",
+    "shaders/physics_deterministic_primitives.wgsl": "504abd3594c912b7ef479ff5901f5ccdcb41e70c1667f5094543b1669216ccba",
+    "shaders/mip_generate.wgsl": "39fabd80f1af42f86178648ca3f0eb145ae21147a24a72c54ebeba9d49d84205",
+    "shaders/physics_lockstep.wgsl": "c5f460af43fcebfa433fed4974c287e4a99b333d802d468ee9b5e71167b3b5e2",
+    "shaders/opaque_scene.wgsl": "cdbb66257ffd80c33ceed514f5edd7d95c6cc0039d0dd9f59f69153172c2a5df",
+    "shaders/cull_terrain.wgsl": "496c174ca2e94e45b01178a662f579272326781f1701b02cf2cc8fe2b99c4692",
+    "shaders/environment_lighting.wgsl": "9319b49a286afdb7dfdce951626b6b94aa97f403e58de16f8677eca619a2625a",
+    "shaders/water_finalize.wgsl": "e8ae2287b3b65365ea4f54cca2ae286d5432bef78f7a77f5911fa6b41284e01f",
+    "shaders/terrain.wgsl": "8bfc0d5279bda9091498140a14542ae434c7d95ae46f36650cca1cae73ba9869",
+    "shaders/mesh_path.wgsl": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b",
+    "shaders/sky_lut_mip.wgsl": "0f1fd3c5424038555b58e5353574312c13e4428855b7ef63d59963cef69ba601",
+    "shaders/debug_depth.wgsl": "f417cc17b93d8326b5234e876d42bf45be084f4cbdec2f8579d6edf609d7e76c",
+    "shaders/underwater_particles.wgsl": "2f20e1e0ce8c449a87f9bbc0517c015d3cabb0e85ef6060608af4e3637da8ffc",
+    "shaders/ray_blit.wgsl": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+    "shaders/physics_narrow_phase_compat.wgsl": "b070d0d1d73c5610c5ef3d809d67c7a9c29e477542ca744e1f49d176f5dbee95",
+    "shaders/physics_broad_phase.wgsl": "7ff1f365c7ac1c4529fa7c9f93151c26ab83218112545ce73733f0c39cdc2654",
+    "shaders/physics_narrow_phase.wgsl": "bf5eaadc1d7db441acfcfe0262cef38769c78a2e62e1faa7df2387f6434086bf",
+    "shaders/physics_dynamic_solver.wgsl": "1fad5ab938b6423a969814782f923338919e38d83de5dc1c4e94e32982977c44",
+    "shaders/physics_queries.wgsl": "ed8e7246f79e1f54b8149ac9fa578f65b0ad54822e36330310e76e7ba26100ad"
+  },
+  "runs": [
+    {
+      "label": "idle-hud-diagnosis",
+      "target": "frontier_runtime_performance",
+      "returncode": 0,
+      "elapsedSeconds": 35.58752777200061,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/idle-hud-diagnosis.xml",
+        "--gtest_filter=FrontierRuntimePerformance.IdleHudReusesUploadsAndVisibleChangesRemainAuthoritative"
+      ],
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "default-oracle",
+      "target": "frontier_runtime_performance",
+      "returncode": 0,
+      "elapsedSeconds": 56.26008892699974,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/default-oracle.xml",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle"
+      ],
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "nearby-oracle",
+      "target": "frontier_runtime_performance",
+      "returncode": 0,
+      "elapsedSeconds": 42.769310357001814,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/nearby-oracle.xml",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle"
+      ],
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "adventure_query_candidates",
+      "target": "adventure_query_candidates",
+      "returncode": 0,
+      "elapsedSeconds": 0.06561864700051956,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/adventure_query_candidates",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/adventure_query_candidates.xml"
+      ],
+      "tests": 4,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "adventure_walkable",
+      "target": "adventure_walkable",
+      "returncode": 0,
+      "elapsedSeconds": 0.032838477000041166,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/adventure_walkable",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/adventure_walkable.xml"
+      ],
+      "tests": 9,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "frontier_combat",
+      "target": "frontier_combat",
+      "returncode": 0,
+      "elapsedSeconds": 0.032873735999601195,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_combat",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/frontier_combat.xml"
+      ],
+      "tests": 5,
+      "failures": 0,
+      "disabled": 0,
+      "failuresDetail": [],
+      "skipped": 0
+    },
+    {
+      "label": "mesh_path_test",
+      "target": "mesh_path_test",
+      "returncode": 0,
+      "elapsedSeconds": 10.43729544999951,
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/mesh_path_test",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/native-candidate/mesh_path_test.xml"
+      ],
+      "tests": 31,
+      "failures": 0,
+      "disabled": 1,
+      "failuresDetail": [],
+      "skipped": 0
+    }
+  ],
+  "sharedLibraries": {
+    "libsrc_Srender_Slibrender.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/librender.so",
+      "sha256": "b7177a37a85617188397f72352d4688829f387a7777e485d8a273aca0394e4ef",
+      "bytes": 2763384
+    },
+    "libsrc_Srender_Slibprimitive_Uculling.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/libprimitive_culling.so",
+      "sha256": "ca288f5a9b49978b9a4521cb3f023899e92bbfaef04a1addaee9ee77409320c1",
+      "bytes": 40920
+    },
+    "libsrc_Srender_Slibprimitive_Uinstance_Upacking.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/libprimitive_instance_packing.so",
+      "sha256": "4357d89b422a1cd11bf0e054bc6d12e27c3d69d0a16128eabcb86249d99865b8",
+      "bytes": 92728
+    },
+    "libsrc_Srender_Slibwater_Uclipmap_Umesh.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/libwater_clipmap_mesh.so",
+      "sha256": "edeb4bb373d0cf1301c06545412610232679a6638431c818900a02d11d5ee6c1",
+      "bytes": 81192
+    },
+    "libsrc_Srender_Slibwater_Usimulation.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/libwater_simulation.so",
+      "sha256": "18a5bde326598f96e3a10360aea1c83aa7d3da5fbba37531ef7453dd7576b3ea",
+      "bytes": 639200
+    },
+    "libsrc_Scamera_Slibcamera.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/camera/libcamera.so",
+      "sha256": "dd46aaec6ecc941ac3e8fc151fc29f077156a8975408d163a4099379216760a5",
+      "bytes": 445992
+    },
+    "libsrc_Sgame_Slibadventure_Ucore.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libadventure_core.so",
+      "sha256": "aaa292336cbe9758679a0bc25a7f173b5d691ca642c91602ce65b5c18359a048",
+      "bytes": 4143016
+    },
+    "libsrc_Sgame_Slibcove_Ucamera.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcove_camera.so",
+      "sha256": "4e25d9810b34643dacfd8a9df83282b16a265730b1beaa18bea6504be19205c2",
+      "bytes": 73928
+    },
+    "libsrc_Sgame_Slibcove_Uplayer.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcove_player.so",
+      "sha256": "98c958027ee3572d729a5a6bded58b2c90983dd20c64a53b54850bd3dbbe3b84",
+      "bytes": 305648
+    },
+    "libsrc_Sgame_Slibfixture_Uregistry.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libfixture_registry.so",
+      "sha256": "fe35fd9d087db8eb0dd4967949065fbfad582a81b7c3feead6e097c26b8717cb",
+      "bytes": 2064792
+    },
+    "libsrc_Sgame_Slibcooked_Upart_Udirectory.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcooked_part_directory.so",
+      "sha256": "4b047501fcf4481a0dfd07920e1dab6b19a9877e5edff495c08c848947d79839",
+      "bytes": 124744
+    },
+    "libsrc_Sgame_Slibcooked_Upart_Ubundle.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcooked_part_bundle.so",
+      "sha256": "1483ab5b7fc27f20a9fe7b324e26d85ed08335a0499fe9e102e328ace5fa4fbf",
+      "bytes": 1282376
+    },
+    "libsrc_Sgame_Slibgameplay_Usidecar.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libgameplay_sidecar.so",
+      "sha256": "23abd19e88e841b7dee75708cc8e824ff771ddce25f1075fe49d4279e6af8385",
+      "bytes": 1764800
+    },
+    "libsrc_Sgame_Slibrigid_Uprefab.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/librigid_prefab.so",
+      "sha256": "04d6ee195fecf00f2c1aa0db1a85b47ccc24baf3084c0050e9f06cca9cc4b369",
+      "bytes": 281152
+    },
+    "libsrc_Sgame_Slibbuild_Umodel.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libbuild_model.so",
+      "sha256": "c0eb5cf7ebdfff85625009eaf310076ec8aad59a1b5ad042708b2218f303d386",
+      "bytes": 652664
+    },
+    "libsrc_Sgame_Slibpart_Ucatalog.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libpart_catalog.so",
+      "sha256": "f8b33bcdb71f0e6529e72ebe01df624e5000586c41e4bf4e44a93791cbb08918",
+      "bytes": 907312
+    },
+    "libsrc_Sgame_Slibconstruction_Utypes.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libconstruction_types.so",
+      "sha256": "457dc0d22cdd8835bf84e42401c4ee12dc408a8036c0fbd3e1b43c5014832234",
+      "bytes": 221296
+    },
+    "libsrc_Sgame_Slibcove_Uinput_Upreferences.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcove_input_preferences.so",
+      "sha256": "365165eec0951afef5a749adf9848787815b07d143382cfd3d793f3777e57998",
+      "bytes": 1502672
+    },
+    "libsrc_Sengine_Splatform_Slibinput.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libinput.so",
+      "sha256": "f8be4ef681a7c49955ac4272cf5d000b43660a3a6b76c79c69a7f02075e64860",
+      "bytes": 462776
+    },
+    "libthird_Uparty_Slibtinygltf.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/third_party/libtinygltf.so",
+      "sha256": "9678cef0bfeaa75ab50fd503b37ec2dcab9e12add0f77493448d2d2a69c0b2d1",
+      "bytes": 2252016
+    },
+    "libsrc_Smoto_Slibmoto.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/moto/libmoto.so",
+      "sha256": "1e2e9558640c42b2a4104d365434a6fbf2cedbba58c3b833560d012033bd11fb",
+      "bytes": 852112
+    },
+    "libsrc_Sphysics_Slibphysics.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/physics/libphysics.so",
+      "sha256": "4cfd4396553596669c8faacd8d7726166a28b2a08126b3579f78b086f3ea9f48",
+      "bytes": 4188376
+    },
+    "libsrc_Sphysics_Slibgpu_Uauthored_Ushapes.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/physics/libgpu_authored_shapes.so",
+      "sha256": "09018bb6158fd35a0acb3bb83661a5f0fa179a2d20290b51b343a4c916effc28",
+      "bytes": 175672
+    },
+    "libsrc_Sphysics_Slibauthored_Ushape.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/physics/libauthored_shape.so",
+      "sha256": "850a67bdb678cf99b4c24552a177887bdb6ff71b25ad0f16f47317e39ccbf6e0",
+      "bytes": 175232
+    },
+    "libsrc_Sphysics_Slibrigid_Umass_Uframe.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/physics/librigid_mass_frame.so",
+      "sha256": "f7ba30eefe6ed6cf4baac5c420fd337ece9e55add7592d032d6bf494653d8533",
+      "bytes": 38240
+    },
+    "libsrc_Sgeometry_Slibbox_Uunion.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/geometry/libbox_union.so",
+      "sha256": "622fad752890ca891450cf4d3dc174c1f138388ccb888585e80dbec9f59414c0",
+      "bytes": 256080
+    },
+    "libthird_Uparty_Slibbox3d.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/third_party/libbox3d.so",
+      "sha256": "f1971562f2c1965044c4609175628978588fdafad4bb4b53988fbb297251f7da",
+      "bytes": 1675608
+    },
+    "libthird_Uparty_Slibjolt.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/third_party/libjolt.so",
+      "sha256": "046e922b3b429f28d0d854980b69cde4e6f18eff83776278f556813494621dcf",
+      "bytes": 5817776
+    },
+    "libsrc_Sterrain_Slibterrain.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/terrain/libterrain.so",
+      "sha256": "bed65a88b44276d7ae626c64da6852a5036c278cd22675bd80f8c201f804527d",
+      "bytes": 1194560
+    },
+    "libsrc_Sterrain_Slibshadow_Ubake.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/terrain/libshadow_bake.so",
+      "sha256": "331bc326e26e48649214c4d2246d342b3e6185396904b3533d4e19085e7a1120",
+      "bytes": 17008
+    },
+    "libsrc_Srender_Slibmip_Upipeline.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/render/libmip_pipeline.so",
+      "sha256": "a8bb766d8e2d4db303a1fb7873ed58375124d75ccdddfba38fcd379db30f9b4b",
+      "bytes": 432480
+    },
+    "libsrc_Sgpu_Slibgpu.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/gpu/libgpu.so",
+      "sha256": "08fbe9d40bd35623255f5acb8c403d83569c8d87e0ec696bede091da7914aa30",
+      "bytes": 645568
+    },
+    "libsrc_Sengine_Splatform_Slibwindow.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libwindow.so",
+      "sha256": "6358cf0665ecfdb11c67855999b37d4159c398b9bded9b5c1ae0f2c024d5a7ea",
+      "bytes": 404544
+    },
+    "libsrc_Score_Slibcore.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/core/libcore.so",
+      "sha256": "5f7d982fe8c16170ba352e52e318ceba8b91645669f737ed9161d983bbbdfb13",
+      "bytes": 762376
+    },
+    "libwgpu_native.so": {
+      "original": "/home/lschneid/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so",
+      "sha256": "f58492b43c7da7e8223600ca6e85b38fdfbe157eec3d009f332b030d6cca4f92",
+      "bytes": 8941680
+    },
+    "libthird_Uparty_Slibzstd.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/third_party/libzstd.so",
+      "sha256": "82ab00d285388eb9e91270f57e9e2202d311aba99781d697ccf5ef77e8839702",
+      "bytes": 1775624
+    },
+    "libexternal_Sgoogletest+_Slibgtest_Umain.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/external/googletest+/libgtest_main.so",
+      "sha256": "5e6b0e324c4e7ccce90d7255ac0e6df4d0d6bd3c62b9788d64738ad3ffbb3814",
+      "bytes": 8424
+    },
+    "libexternal_Sgoogletest+_Slibgtest.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/external/googletest+/libgtest.so",
+      "sha256": "905a001127b3b6cc1dc860cbef9e856135b59809afa07bd8e2d303c5d780207d",
+      "bytes": 2010720
+    },
+    "libsrc_Sgame_Slibadventure_Uruntime.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libadventure_runtime.so",
+      "sha256": "101789829630d1f6a092cc1e1bb7cb2fcdc9c0c3401da53a81fb26f1883a269f",
+      "bytes": 3411176
+    },
+    "libsrc_Sgame_Slibadventure_Unavigation.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libadventure_navigation.so",
+      "sha256": "ca5c53bc905a6a7b27d3f8fb875e41f67da77e6d2a271473cda848ec58dc11d2",
+      "bytes": 59328
+    },
+    "libsrc_Sgame_Slibimported_Uwall_Uphysics.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libimported_wall_physics.so",
+      "sha256": "fd2151f045a2878413537d76379c638f3ee656fe1d5d2b7a1baa78c5f7b03318",
+      "bytes": 655440
+    },
+    "libsrc_Sgame_Slibimported_Uassembly.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libimported_assembly.so",
+      "sha256": "057747ca88728c67b076eae2b1f78363dbf63586311bc41b79b4cb2720c33b2c",
+      "bytes": 1558384
+    },
+    "libsrc_Sgameplay_Slibgameplay.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/gameplay/libgameplay.so",
+      "sha256": "f8bb9022437c8e1dc3247752e543b3891818d49a8389b89b231f9b2f835e8edf",
+      "bytes": 597408
+    },
+    "libsrc_Sgame_Slibcannon_Uphysics_Uscene.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libcannon_physics_scene.so",
+      "sha256": "1af61b7f7f856a17187a4db7a52c0c54f2fc557f0ad1e07bc7dd0cb42c69748d",
+      "bytes": 294840
+    },
+    "libsrc_Sgame_Slibrobot_Uasset.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/librobot_asset.so",
+      "sha256": "8ab13b6ec477859ca43d201d8ad01271fcf14754e9b7ef1ebbadbb3728d4377d",
+      "bytes": 1034824
+    },
+    "libsrc_Sgame_Slibrigid_Uanimation.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/librigid_animation.so",
+      "sha256": "5f1bfc5e3eccf164805c46e9112aae7aeeec92cde62c23a1d5d063bc5f06fc86",
+      "bytes": 290840
+    },
+    "libsrc_Sengine_Splatform_Slibnative_Uadventure_Usaves.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libnative_adventure_saves.so",
+      "sha256": "4ad465df3cd17beed91a028075638df00bcd86577651ebd777e076be774fc8f1",
+      "bytes": 412080
+    },
+    "libsrc_Sengine_Splatform_Slibnative_Usave_Uworker.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libnative_save_worker.so",
+      "sha256": "d06713f448b8b492cab2b56b1eb601430a9369b796d6fa70f2089f3ba727da9e",
+      "bytes": 129472
+    },
+    "libsrc_Sengine_Splatform_Slibnative_Usave_Ustore.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libnative_save_store.so",
+      "sha256": "c68b0ad4a982dad465c0d7caff871b0fd7e8e215c270013fc91f2cb7af95d068",
+      "bytes": 126160
+    },
+    "libsrc_Sgame_Slibsave_Ugeneration.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/game/libsave_generation.so",
+      "sha256": "470a05d64953cb3be34e38066558e9c7c7cc2ceb0230f68dc5a81c2c6ca72e81",
+      "bytes": 80904
+    },
+    "libsrc_Sengine_Splatform_Slibnative_Uadventure_Upreferences.so": {
+      "original": "/home/lschneid/.cache/bazel/_bazel_lschneid/32316bdb2f5c1949f03106d5cf38a916/execroot/_main/bazel-out/k8-fastbuild/bin/src/engine/platform/libnative_adventure_preferences.so",
+      "sha256": "603b68930b45092343818bd51ff622acaf1c8451b411ef36e037a650868dac6c",
+      "bytes": 83952
+    }
+  },
+  "icd": {
+    "path": "/nix/store/ikgcxdw09g63rxb40w73m36474rds29c-mesa-26.0.0/share/vulkan/icd.d/lvp_icd.x86_64.json",
+    "sha256": "4230d766fc7ae95bb0239a9dcc2db7e731068da7baf365f50e4bf8568ab58a2c"
+  },
+  "wgpuLibrary": {
+    "path": "/home/lschneid/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so",
+    "sha256": "f58492b43c7da7e8223600ca6e85b38fdfbe157eec3d009f332b030d6cca4f92"
+  },
+  "completedUtc": "2026-09-29T19:15:56.990184+00:00",
+  "candidateCaptured": true
+}

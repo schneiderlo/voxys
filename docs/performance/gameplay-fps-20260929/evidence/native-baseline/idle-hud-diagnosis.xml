@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="1" disabled="0" errors="0" time="34.659" timestamp="2026-09-29T15:03:03.395" name="AllTests">
+  <testsuite name="FrontierRuntimePerformance" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="34.658" timestamp="2026-09-29T15:03:03.396">
+    <testcase name="IdleHudReusesUploadsAndVisibleChangesRemainAuthoritative" file="tests/test_frontier_runtime_performance.cpp" line="117" status="run" result="completed" time="34.658" timestamp="2026-09-29T15:03:03.396" classname="FrontierRuntimePerformance">
+      <failure message="tests/test_frontier_runtime_performance.cpp:180&#x0A;Expected equality of these values:&#x0A;  runtime.hudUploadCount()&#x0A;    Which is: 245&#x0A;  uploads&#x0A;    Which is: 5&#x0A;" type=""><![CDATA[tests/test_frontier_runtime_performance.cpp:180
+Expected equality of these values:
+  runtime.hudUploadCount()
+    Which is: 245
+  uploads
+    Which is: 5
+]]></failure>
+      <failure message="tests/test_frontier_runtime_performance.cpp:192&#x0A;Expected equality of these values:&#x0A;  runtime.hudUploadCount()&#x0A;    Which is: 258&#x0A;  paused&#x0A;    Which is: 246&#x0A;" type=""><![CDATA[tests/test_frontier_runtime_performance.cpp:192
+Expected equality of these values:
+  runtime.hudUploadCount()
+    Which is: 258
+  paused
+    Which is: 246
+]]></failure>
+      <failure message="tests/test_frontier_runtime_performance.cpp:198&#x0A;Expected: (runtime.hudTriangleUploadCount()) &gt; (buildTriangles), actual: 0 vs 0&#x0A;" type=""><![CDATA[tests/test_frontier_runtime_performance.cpp:198
+Expected: (runtime.hudTriangleUploadCount()) > (buildTriangles), actual: 0 vs 0
+]]></failure>
+      <properties>
+        <property name="adapter" value="Mesa 26.0.0 (LLVM 21.1.8)"/>
+        <property name="scope" value="actual Frontier runtime; HUD CPU preparation and uploads; no world rendering or displayed FPS"/>
+        <property name="hudCpuBenchmark" value="{&quot;cpu&quot;:{&quot;count&quot;:1200,&quot;p50_us&quot;:622.173,&quot;p95_us&quot;:1066.097,&quot;p99_us&quot;:1727.621},&quot;hudUploads&quot;:2400,&quot;scope&quot;:&quot;Frontier HUD update and command encoding, frozen simulation, discarded command encoders&quot;,&quot;triangleUploads&quot;:0}"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

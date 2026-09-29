@@ -171,7 +171,6 @@ void AdventureRuntime::advanceFrontier(double seconds,AdventureCombat::Input inp
             if(definition==content_.frontierEnemies.end())continue;
             const auto p=actor.controller.feet(),player=player_.feet();
             const double distance=glm::length(glm::dvec2(player.x-p.x,player.z-p.z));
-            const bool sight=frontierCombatSight(walkQueries_,p,player);
             const auto profile=frontierCombatProfile(definition->archetype);
             frontierAdvanceAttack(actor.attack,profile,dt);
             actor.windup=actor.attack.phase==FrontierAttackPhase::Windup?actor.attack.seconds:0;
@@ -241,7 +240,9 @@ void AdventureRuntime::advanceFrontier(double seconds,AdventureCombat::Input inp
             }
             if(actor.stagger>0)continue;
             const bool hunting=state().health&&distance<45&&glm::length(p-feet(definition->spawn))<65;
-            if(hunting&&sight&&distance<profile.triggerRange&&std::abs(p.y-player.y)<3&&actor.cooldown<=0) {
+            // Sight is only needed when an idle actor can begin a new attack.
+            if(hunting&&distance<profile.triggerRange&&std::abs(p.y-player.y)<3&&actor.cooldown<=0
+                &&frontierCombatSight(walkQueries_,p,player)) {
                 // Nearby attackers take turns announcing a strike, rather than
                 // overlapping two warnings into unavoidable damage.
                 bool otherCommitted=false;

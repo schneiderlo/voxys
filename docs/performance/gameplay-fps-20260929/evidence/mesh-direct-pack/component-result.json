@@ -1,0 +1,1294 @@
+{
+  "scope": "Clean native CPU render-command encoding component; Vulkan llvmpipe, raster commands discarded. GPU execution/displayed FPS are not measured.",
+  "startedUtc": "2026-09-29T21:52:07.020673+00:00",
+  "hostPowerStatus": "Root-coordinated clean CPU window, host battery/AC state not sampled here;21:35 UTC; idle Bazel server shut down before query and mesh windows",
+  "order": [
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline",
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline",
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline"
+  ],
+  "warmupFramesPerScenario": 20,
+  "measuredFramesPerScenario": 120,
+  "buildRecipe": {
+    "scope": "Uninstrumented actual MeshPath and frozen actual test object. Build only; no timing result.",
+    "compiler": "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+    "compilerSha256": "bdc9b6a05a71d7c8316d234b974b556d1491096cd7929ba6fd8f3000ed1d80d0",
+    "compileFlags": [
+      "-std=c++20",
+      "-O3",
+      "-fPIC",
+      "-ffunction-sections",
+      "-fdata-sections",
+      "-DGLM_FORCE_DEPTH_ZERO_TO_ONE",
+      "-DGLM_FORCE_LEFT_HANDED",
+      "-DGLM_ENABLE_EXPERIMENTAL",
+      "-Isrc",
+      "-isystem",
+      "third_party/glm",
+      "-isystem",
+      "third_party/wgpu-native/dist/include/webgpu"
+    ],
+    "testObjectSha256": "ba53f9dc42b51852b7ca6313fb622669b891a536d12b98c0084e8f46c8b429af",
+    "testSourceSha256": "d6b1bb61755c21f8d2c8e06a82d32608be735dd7513877618865e083bcdd7574",
+    "frozenLibrariesManifestSha256": "64779348a957597713a87c77b3188ab2ed3d872351ef58987acd477410d57a5d",
+    "sources": {
+      "baseline": {
+        "sourceSha256": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+        "compileCommand": [
+          "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+          "-std=c++20",
+          "-O3",
+          "-fPIC",
+          "-ffunction-sections",
+          "-fdata-sections",
+          "-DGLM_FORCE_DEPTH_ZERO_TO_ONE",
+          "-DGLM_FORCE_LEFT_HANDED",
+          "-DGLM_ENABLE_EXPERIMENTAL",
+          "-Isrc",
+          "-isystem",
+          "third_party/glm",
+          "-isystem",
+          "third_party/wgpu-native/dist/include/webgpu",
+          "-c",
+          "/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-mesh_path.cpp",
+          "-o",
+          "/tmp/voxys-fps-20260929/mesh-direct-pack/baseline-benchmark-mesh.o"
+        ],
+        "objectSha256": "541e9017112d5ad6f051cf1f267d3220f05fa866817fc99dd5ea1f420738bc31",
+        "binarySha256": "f97f2a703a83c432571d8cfcc9723a394ea659200bcf101ceb74cf0cc389dc24",
+        "linkParamsSha256": "74f37f45052c8d0e45459383b01c26bac4d417a77bdc484d7c8cccedfa199fd4"
+      },
+      "candidate": {
+        "sourceSha256": "ae8b92c0f552ed9c408ce9562ec33aa469ec76ae2a00c6000714c62742e6fa0e",
+        "compileCommand": [
+          "/nix/store/a245z3cvf9x9sn0xlk6k8j9xhxbhda1z-gcc-wrapper-15.2.0/bin/g++",
+          "-std=c++20",
+          "-O3",
+          "-fPIC",
+          "-ffunction-sections",
+          "-fdata-sections",
+          "-DGLM_FORCE_DEPTH_ZERO_TO_ONE",
+          "-DGLM_FORCE_LEFT_HANDED",
+          "-DGLM_ENABLE_EXPERIMENTAL",
+          "-Isrc",
+          "-isystem",
+          "third_party/glm",
+          "-isystem",
+          "third_party/wgpu-native/dist/include/webgpu",
+          "-c",
+          "/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-mesh_path.cpp",
+          "-o",
+          "/tmp/voxys-fps-20260929/mesh-direct-pack/candidate-benchmark-mesh.o"
+        ],
+        "objectSha256": "e1da83462ee1a9b91ce00cfaf4210e139588cb3b66113ace63dffc41b6bc80d4",
+        "binarySha256": "943c830928e74228eff6daed38e5ffc054beb3ac673de5b4754ca347350a53a5",
+        "linkParamsSha256": "577d97932ea23902fb6d0ee3b212af7f5c8a0111fd9f02a9a840dc49e05233e1"
+      }
+    },
+    "assets": {
+      "forest-r02/forest-lod1.vmesh": "fa793839518dfd7abbfefc02223b3d79087a8caf751b77e3203dcf082cead04b",
+      "forest-r02/forest-lod3.vmesh": "f9435df0496fde14b5d70f9f2e7b68b487a7ef56839415a1d8eeda88710d5083",
+      "creative-village-r01/creative-village.vmesh": "7c3703c12d6b5bcf1a384c21a98de5376e36ff24033dfeceb7d621bdc8f3242f",
+      "human-r01/human.vmesh": "2d86136c1ce5842a6e0da3dd3e890ef151f48a943ef7aca7b414186f1a43b1e2"
+    },
+    "meshHeaderSha256": "725849c4c3abfb548d03e6db9242090ffa6e20e3b32737fb0419371860063429"
+  },
+  "runs": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-00-baseline.log",
+      "logSha256": "01661565a732d8d32c744fa3e51880c49f34026d36b9a67adfb72416c8f0872c",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.447962,
+          "p95Ms": 13.19238,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 69.862881,
+          "p95Ms": 123.877217,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.383379,
+          "p95Ms": 6.813218,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-01-candidate.log",
+      "logSha256": "3ae2e076e93f884cc5659a531ae18a830618367ba8e0d4ad12cc2d2b0b81e027",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.590275,
+          "p95Ms": 13.920185,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 65.581531,
+          "p95Ms": 117.374487,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.03111,
+          "p95Ms": 8.264036,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-02-candidate.log",
+      "logSha256": "9feb9e8a89a34273827467d4735e2b0f535a43bc85f8b51aafc8f15cf8f98969",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 6.005956,
+          "p95Ms": 14.806227,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 52.748703,
+          "p95Ms": 111.709216,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 2.921541,
+          "p95Ms": 6.315731,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 3,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-03-baseline.log",
+      "logSha256": "463808273f7bc307293ebb36b411a1bd1e132da9151120111b9960d52023e84e",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 4.632033,
+          "p95Ms": 14.848436,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 55.930272,
+          "p95Ms": 107.85806,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.93947,
+          "p95Ms": 13.170073,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    },
+    {
+      "trial": 4,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-04-baseline.log",
+      "logSha256": "7a61bd9c7f49ff33cc3ceb4c0fc72acbc0d6b3ad2c50532f037565f7ebb337dc",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.25772,
+          "p95Ms": 10.951758,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 111.500596,
+          "p95Ms": 146.261779,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.966942,
+          "p95Ms": 13.395428,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    },
+    {
+      "trial": 5,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-05-candidate.log",
+      "logSha256": "8635d71849c60366ef051a9c2d7285ab265063cf18ce59971a92320014434fe1",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.951739,
+          "p95Ms": 14.197341,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 82.943415,
+          "p95Ms": 131.402877,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.018549,
+          "p95Ms": 12.613073,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 6,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-06-candidate.log",
+      "logSha256": "8e57b93d5943991c46828e9cb720de3b736a91c8e7a11f5d52ca37a96b2f088b",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.581726,
+          "p95Ms": 14.748653,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 45.361894,
+          "p95Ms": 86.297518,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 2.434233,
+          "p95Ms": 4.991834,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 7,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-07-baseline.log",
+      "logSha256": "5d3c38a88153f46cb91a9ea76b12b9c83043d00613af37e4400a442ff69109a4",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 13.366245,
+          "p95Ms": 17.003119,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 120.860942,
+          "p95Ms": 149.312115,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.197135,
+          "p95Ms": 13.876672,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    },
+    {
+      "trial": 8,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-08-baseline.log",
+      "logSha256": "c6139157a659bb4ee64c6b34c713b85dc35a522c74e8bdfe3fea728087f673e8",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 6.60679,
+          "p95Ms": 15.258398,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 105.863083,
+          "p95Ms": 150.032304,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.126392,
+          "p95Ms": 12.002749,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    },
+    {
+      "trial": 9,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-09-candidate.log",
+      "logSha256": "497d58dc3a191a524411793aea2c9222139dc674f37e6c160600d14dc71c7585",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 14.461866,
+          "p95Ms": 16.661336,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 84.857747,
+          "p95Ms": 123.984642,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.316554,
+          "p95Ms": 14.209056,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 10,
+      "variant": "candidate",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-10-candidate.log",
+      "logSha256": "e1123cd50c2ca56a8a8ed44298860c1e0727ef3c9eabb5d4a973e5e34f28f88c",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 11.176435,
+          "p95Ms": 16.386989,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 71.93429,
+          "p95Ms": 127.910131,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.168295,
+          "p95Ms": 13.492526,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    },
+    {
+      "trial": 11,
+      "variant": "baseline",
+      "log": "/tmp/voxys-fps-20260929/mesh-direct-pack/component-11-baseline.log",
+      "logSha256": "a6f07d856b20eb10cf30964f3148b9e2e3f52c17f4145f6e60d8861a8edbc5ac",
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.563944,
+          "p95Ms": 13.587549,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 71.097961,
+          "p95Ms": 125.721585,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.684516,
+          "p95Ms": 11.393299,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "case": "live_forest_stress",
+      "liveInstances": 600,
+      "retainedInstances": 0,
+      "medianOfTrialMediansMs": {
+        "baseline": 5.505953,
+        "candidate": 5.9788475000000005
+      },
+      "medianOfTrialP95Ms": {
+        "baseline": 14.2179925,
+        "candidate": 14.777439999999999
+      },
+      "medianChangePercent": 8.588785628936545,
+      "workloadParity": true,
+      "baselineTrials": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.447962,
+          "p95Ms": 13.19238,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 4.632033,
+          "p95Ms": 14.848436,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.25772,
+          "p95Ms": 10.951758,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 13.366245,
+          "p95Ms": 17.003119,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 6.60679,
+          "p95Ms": 15.258398,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.563944,
+          "p95Ms": 13.587549,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 754400
+        }
+      ],
+      "candidateTrials": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.590275,
+          "p95Ms": 13.920185,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 6.005956,
+          "p95Ms": 14.806227,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.951739,
+          "p95Ms": 14.197341,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 5.581726,
+          "p95Ms": 14.748653,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 14.461866,
+          "p95Ms": 16.661336,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 11.176435,
+          "p95Ms": 16.386989,
+          "draws": 22,
+          "triangles": 574000,
+          "submeshVisits": 2200,
+          "scratchBytes": 466400
+        }
+      ]
+    },
+    {
+      "case": "live_forest_stress",
+      "liveInstances": 6000,
+      "retainedInstances": 0,
+      "medianOfTrialMediansMs": {
+        "baseline": 88.48052200000001,
+        "candidate": 68.75791050000001
+      },
+      "medianOfTrialP95Ms": {
+        "baseline": 135.991682,
+        "candidate": 120.6795645
+      },
+      "medianChangePercent": -22.290342613485027,
+      "workloadParity": true,
+      "baselineTrials": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 69.862881,
+          "p95Ms": 123.877217,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 55.930272,
+          "p95Ms": 107.85806,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 111.500596,
+          "p95Ms": 146.261779,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 120.860942,
+          "p95Ms": 149.312115,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 105.863083,
+          "p95Ms": 150.032304,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 71.097961,
+          "p95Ms": 125.721585,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 7544000
+        }
+      ],
+      "candidateTrials": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 65.581531,
+          "p95Ms": 117.374487,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 52.748703,
+          "p95Ms": 111.709216,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 82.943415,
+          "p95Ms": 131.402877,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 45.361894,
+          "p95Ms": 86.297518,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 84.857747,
+          "p95Ms": 123.984642,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "retainedInstances": 0,
+          "samples": 120,
+          "medianMs": 71.93429,
+          "p95Ms": 127.910131,
+          "draws": 22,
+          "triangles": 5740000,
+          "submeshVisits": 22000,
+          "scratchBytes": 4664000
+        }
+      ]
+    },
+    {
+      "case": "retained_forest_village_character",
+      "liveInstances": 330,
+      "retainedInstances": 3000,
+      "medianOfTrialMediansMs": {
+        "baseline": 3.9532059999999998,
+        "candidate": 3.5248295
+      },
+      "medianOfTrialP95Ms": {
+        "baseline": 12.586411,
+        "candidate": 10.4385545
+      },
+      "medianChangePercent": -10.83617954642383,
+      "workloadParity": true,
+      "baselineTrials": [
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.383379,
+          "p95Ms": 6.813218,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.93947,
+          "p95Ms": 13.170073,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.966942,
+          "p95Ms": 13.395428,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.197135,
+          "p95Ms": 13.876672,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.126392,
+          "p95Ms": 12.002749,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.684516,
+          "p95Ms": 11.393299,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 7548840
+        }
+      ],
+      "candidateTrials": [
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 3.03111,
+          "p95Ms": 8.264036,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 2.921541,
+          "p95Ms": 6.315731,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.018549,
+          "p95Ms": 12.613073,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 2.434233,
+          "p95Ms": 4.991834,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.316554,
+          "p95Ms": 14.209056,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "retainedInstances": 3000,
+          "samples": 120,
+          "medianMs": 4.168295,
+          "p95Ms": 13.492526,
+          "draws": 146,
+          "triangles": 754966,
+          "submeshVisits": 1210,
+          "scratchBytes": 4668840
+        }
+      ]
+    }
+  ],
+  "finishedUtc": "2026-09-29T21:55:28.353091+00:00",
+  "blocks": [
+    {
+      "block": 0,
+      "trialOrder": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 5.0399975,
+            "candidate": 5.7981155
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 14.020408,
+            "candidate": 14.363206
+          },
+          "medianChangePercent": 15.042031270848844,
+          "p95ChangePercent": 2.4449930415719745
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 62.8965765,
+            "candidate": 59.165116999999995
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 115.8676385,
+            "candidate": 114.5418515
+          },
+          "medianChangePercent": -5.932690947018404,
+          "p95ChangePercent": -1.1442254430688137
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 3.6614245,
+            "candidate": 2.9763254999999997
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 9.9916455,
+            "candidate": 7.2898835
+          },
+          "medianChangePercent": -18.711269343393543,
+          "p95ChangePercent": -27.04021074406613
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "trialOrder": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 9.3119825,
+            "candidate": 5.7667325
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 13.977438500000002,
+            "candidate": 14.472997
+          },
+          "medianChangePercent": -38.07191433188367,
+          "p95ChangePercent": 3.545417137768103
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 116.180769,
+            "candidate": 64.1526545
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 147.786947,
+            "candidate": 108.8501975
+          },
+          "medianChangePercent": -44.78203660366545,
+          "p95ChangePercent": -26.34654161980896
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 4.0820385,
+            "candidate": 3.226391
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 13.636050000000001,
+            "candidate": 8.8024535
+          },
+          "medianChangePercent": -20.961279517574372,
+          "p95ChangePercent": -35.447189618694566
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "trialOrder": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "scenarios": [
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 600,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 6.085367,
+            "candidate": 12.8191505
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 14.4229735,
+            "candidate": 16.5241625
+          },
+          "medianChangePercent": 110.65533927534692,
+          "p95ChangePercent": 14.568348198102154
+        },
+        {
+          "case": "live_forest_stress",
+          "liveInstances": 6000,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 88.48052200000001,
+            "candidate": 78.3960185
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 137.8769445,
+            "candidate": 125.9473865
+          },
+          "medianChangePercent": -11.397427673403659,
+          "p95ChangePercent": -8.65232257884857
+        },
+        {
+          "case": "retained_forest_village_character",
+          "liveInstances": 330,
+          "medianOfTwoTrialMediansMs": {
+            "baseline": 3.9054539999999998,
+            "candidate": 4.2424245
+          },
+          "medianOfTwoTrialP95Ms": {
+            "baseline": 11.698024,
+            "candidate": 13.850791000000001
+          },
+          "medianChangePercent": 8.628203020698756,
+          "p95ChangePercent": 18.402825981550386
+        }
+      ]
+    }
+  ],
+  "review": {
+    "promotionRecommendedFromThisComponent": false,
+    "reason": "600 live and retained mixed scenario change signs across balanced blocks; trial variance is large. The6000-live stress median improves in all blocks, but it is not the normal retained gameplay route. FPS was not measured.",
+    "stressMedianImprovesAllBlocks": true
+  },
+  "decision": "Rejected for production promotion by root. The600-live overall regression and direction changes across balanced normal-size blocks do not establish a consistent gain."
+}

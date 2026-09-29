@@ -1,0 +1,19 @@
+{
+  "status": "Held for possible user-run clean Windows hardware capture",
+  "productionMutated": false,
+  "gpuTestsStarted": false,
+  "nativeChecksPassed": false,
+  "executableLinked": false,
+  "acceptedRenderingCompile": "Both baseline/candidate BlitPath and EnvironmentLighting compiled successfully with identical reconstructed GCC15.2 fastbuild project flags. Existing shared-header useless-cast diagnostic retained as nonfatal on both sides.",
+  "interruptedSession": 82421,
+  "interruptedExitCode": 130,
+  "retryState": "Newer baseline capture/test TU finished; newer candidate test compile and paired link incomplete. Cached old test objects must not be treated as the latest lifecycle build.",
+  "nextWhenCleared": [
+    "Rebuild candidate/baseline tests from pinned prototype snapshots and link current mesh_path_test dependency closure plus frozen inspection_guides.o",
+    "Validate actual shipping explicit layouts at the default sixteen sampled textures limit",
+    "Run enabled timestamp endpoint and full-target lifecycle controls",
+    "Run the existing paired BlitPath suite and compare all BGRA8/R32/RGBA16 captured bytes",
+    "Prove frozen MeshPath DSO resolves EnvironmentLighting/BlitPath symbols to the rebuilt executable"
+  ],
+  "limitations": "Earlier shader-only llvmpipe proof does not prove these CPU lifecycle changes or actual Intel driver acceptance. No FPS claim. All owned compilation/probe processes have been interrupted or finished."
+}

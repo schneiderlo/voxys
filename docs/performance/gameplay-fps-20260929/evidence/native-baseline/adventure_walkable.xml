@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="0" disabled="0" errors="0" time="0.002" timestamp="2026-09-29T15:05:09.696" name="AllTests">
+  <testsuite name="AdventureWalkable" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.002" timestamp="2026-09-29T15:05:09.696">
+    <testcase name="GroundAndRaisedBridgeAreDistinctDescendingPhysicalSpans" file="tests/test_adventure_walkable.cpp" line="25" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="LowBridgeCeilingBlocksGroundButItsDeckRemainsUsable" file="tests/test_adventure_walkable.cpp" line="38" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="PhysicalStairTreadsUseTheirActualSupportHeights" file="tests/test_adventure_walkable.cpp" line="45" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="InclusiveFeetLimitsExcludeOutOfRangeSupportAndPreserveEmptyResults" file="tests/test_adventure_walkable.cpp" line="57" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="ExactDistinctLevelsAreNotLostToTheSupportQueryTolerance" file="tests/test_adventure_walkable.cpp" line="69" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="OutputOverflowIsIncompleteAndCannotPublishPartialLayers" file="tests/test_adventure_walkable.cpp" line="77" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="SixtyFourDistinctSupportsFitButTheNextOneMakesTheColumnIncomplete" file="tests/test_adventure_walkable.cpp" line="86" status="run" result="completed" time="0.001" timestamp="2026-09-29T15:05:09.696" classname="AdventureWalkable" />
+    <testcase name="DuplicatePrimitivesDoNotSpendTheDistinctSurfaceBudget" file="tests/test_adventure_walkable.cpp" line="96" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.698" classname="AdventureWalkable" />
+    <testcase name="InvalidArgumentsAndUnsupportedTerrainExtentsNeverPublishFeet" file="tests/test_adventure_walkable.cpp" line="103" status="run" result="completed" time="0." timestamp="2026-09-29T15:05:09.698" classname="AdventureWalkable" />
+  </testsuite>
+</testsuites>

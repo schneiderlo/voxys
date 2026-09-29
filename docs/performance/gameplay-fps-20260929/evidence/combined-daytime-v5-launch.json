@@ -1,0 +1,134 @@
+{
+  "preparedAtUtc": "2026-09-29T21:30:05.719077+00:00",
+  "launchStatus": "NOT EXECUTED: Windows interop blocked after environment changed to workspace-write /tmp only",
+  "windowsNode": "C:\\Program Files\\nodejs\\node.exe",
+  "argv": [
+    "C:\\Users\\Public\\voxys-fps-20260929\\fps-harness-v5\\benchmark_gameplay_fps.mjs",
+    "--chrome=C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "--site=C:\\Users\\Public\\voxys-fps-20260929\\candidate-cpu",
+    "--candidate-shaders=C:\\Users\\Public\\voxys-fps-20260929\\shader-candidates\\combined-daytime\\manifest.json",
+    "--output=C:\\Users\\Public\\voxys-fps-20260929\\combined-daytime-primary-screen-v5",
+    "--repeats=1",
+    "--experiences=frontier",
+    "--scenarios=idle,orbit,walk",
+    "--ticks=600",
+    "--warmup-ticks=600",
+    "--day-night=0",
+    "--hour=16",
+    "--require-zero-sun=0",
+    "--driver-poll-ms=8",
+    "--counts=0",
+    "--profiling=0",
+    "--cpu-profile=0",
+    "--diagnostic-only=0",
+    "--capture-purpose=Combined-daytime-primary-clean-screen-v5-actual-16h-paused",
+    "--timeout-ms=900000"
+  ],
+  "harness": {
+    "purpose": "Immutable reviewed gameplay FPS harness v5; explicit cycle enable and actual boundary lighting guards. Prior bundles stay unchanged.",
+    "travelVersion": 5,
+    "createdAtUtc": "2026-09-29T21:19:09.741133+00:00",
+    "sources": {
+      "benchmark_gameplay_fps.mjs": {
+        "sha256": "c1d13c0fb20c9ec4d04a127786b2ffbb2d83c051eedfbed2df54be62205f3c35",
+        "bytes": 29467
+      },
+      "canvas_fps_probe.mjs": {
+        "sha256": "cd49892432d89d4eb6b13631b981fc460834578001b2770bc5631081d156dc70",
+        "bytes": 3497
+      },
+      "gameplay_fps_inputs.mjs": {
+        "sha256": "235d75dbc5007e527ea994365289448d3e3f1e2bc74e3bab7cbd88087ccbb590",
+        "bytes": 3717
+      },
+      "gameplay_fps_metrics.mjs": {
+        "sha256": "d482b2a09f771e18620391abf84b9d2384cb4483cacf3087c8a188f9cd97710e",
+        "bytes": 18712
+      },
+      "gameplay_fps_work.mjs": {
+        "sha256": "c956c3be4d6560d052e2056f8219d68dcf5ed261fa16d42f131f9a4910eaea26",
+        "bytes": 4496
+      },
+      "gameplay_counters.mjs": {
+        "sha256": "e7d919a3486721032dc6601baf3a29235040949d028eaecbe2b6ed2f811f06a9",
+        "bytes": 2001
+      },
+      "compare_gameplay_fps.mjs": {
+        "sha256": "c16896fd9fb303b166fe02e12ff053ec875d13393f02b12bb3349bd92a714963",
+        "bytes": 3255
+      },
+      "test_gameplay_fps.mjs": {
+        "sha256": "3cd00d5b75798825a7871bf34a7729675c16a0fe718acb1ea3ff645636288d65",
+        "bytes": 25424
+      },
+      "README_gameplay_fps.md": {
+        "sha256": "736d092c491a42b549f8e5724750ff01958de956d85bb79931324f99405bd81e",
+        "bytes": 8797
+      }
+    }
+  },
+  "manifestSha256": "f21c353e215d9fc7e6d25311805c1df350318708e06822d6ef797e64e4689113",
+  "shaderSources": {
+    "mesh_path.wgsl": {
+      "source": {
+        "sha256": "6faf8b0152425a8d01f68e35892d1404040cf17e49e7ba86b445518fb49d0836",
+        "bytes": 44468
+      },
+      "expectedSource": {
+        "sha256": "75c974f8062e38a836d5e83852f5892a90cdc81af312e7fb62fb376a67e6f67b",
+        "bytes": 44393
+      }
+    },
+    "water_clipmap.wgsl": {
+      "source": {
+        "sha256": "d92c968dec06454e2729434a2d732e0d9217498446f443da25db4cade1ba8e43",
+        "bytes": 46177
+      },
+      "expectedSource": {
+        "sha256": "f38d46349279b39076de523732623f1a4cb16d949c7fbbd8d9b63c4fbabe9abb",
+        "bytes": 44888
+      }
+    },
+    "ray_blit.wgsl": {
+      "source": {
+        "sha256": "75366ef320c798db98c298c539b89b37f3993c6f8d6955ec32dc53d0b1eae84a",
+        "bytes": 180506
+      },
+      "expectedSource": {
+        "sha256": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+        "bytes": 180454
+      }
+    }
+  },
+  "actualLightingRequirements": "Explicit enable1, paused1, actualhour16 at both endpoints, stable lighting across endpoints and variants. Endpoint getter reads are unconditional and outside timed span.",
+  "expectedWasmSha256": "3ace85b75353a40f92b0b6cc589f87b0f48c5d1381c929bb8e8da485337d6e5b",
+  "siteIdentityFromPreviousFrozenCapture": {
+    "stem": "voxy_wasm_cc",
+    "dynamicPacks": false,
+    "files": {
+      "index.html": {
+        "bytes": 107061,
+        "sha256": "2466bdb8338c93846532b26b7555fabb6599644f44c01341836fee1d2682611b"
+      },
+      "voxy_wasm_cc.js": {
+        "bytes": 244925,
+        "sha256": "ccaddcf1bcaeebd66827448a16c547dd3c022f99e6a93f16eb2ac888a96da63f"
+      },
+      "voxy_wasm_cc.wasm": {
+        "bytes": 10143761,
+        "sha256": "3ace85b75353a40f92b0b6cc589f87b0f48c5d1381c929bb8e8da485337d6e5b"
+      },
+      "package.json": {
+        "bytes": 5242,
+        "sha256": "0f0568a21da00ff3aa0b327a44b5032b4881ce6355072ec043d76dc275712271"
+      },
+      "voxy_wasm_cc.data": {
+        "bytes": 151666734,
+        "sha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6"
+      }
+    }
+  },
+  "note": "Artifact hashes are rechecked by the actual runner before browser launch; no large data hashing or GPU work was run during root CPU timings.",
+  "blockEvidence": "/tmp/voxys-fps-20260929/windows-interop-block.json",
+  "notExecutedRecordedAtUtc": "2026-09-29T21:59:57.181750+00:00"
+}

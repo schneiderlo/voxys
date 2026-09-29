@@ -79,6 +79,13 @@ struct alignas(16) GpuDrawInstance {
     uint32_t padding[2] = {};
     glm::vec4 baseColorOverride{0.0f};
     glm::vec4 surface{0.0f};
+
+    GpuDrawInstance() = default;
+    GpuDrawInstance(const MeshDrawInstance& instance, uint32_t material) noexcept
+        : modelMatrix(instance.modelMatrix), tintColor(instance.tintColor),
+          emissiveBoost(instance.emissiveBoost), materialIndex(material),
+          padding{instance.physicsBody.index, instance.physicsBody.generation},
+          baseColorOverride(instance.baseColorOverride), surface(instance.surface) {}
 };
 
 static_assert(sizeof(MeshUniforms) == 160u);
@@ -395,9 +402,15 @@ uint64_t MeshPath::frameScratchCapacityBytes() const noexcept {
 }
 
 glm::vec4 opaqueSrgbPaintOverride(const std::array<uint8_t, 4>& rgba) noexcept {
-    return {srgbToLinear(float(rgba[0]) / 255.0f),
-        srgbToLinear(float(rgba[1]) / 255.0f),
-        srgbToLinear(float(rgba[2]) / 255.0f), 1.0f};
+    // Byte channels have only 256 possible values. Retain the exact transfer
+    // results instead of repeating three powers for every painted instance.
+    static const auto linear = [] {
+        std::array<float, 256> values;
+        for (size_t byte = 0; byte < values.size(); ++byte)
+            values[byte] = srgbToLinear(float(byte) / 255.0f);
+        return values;
+    }();
+    return {linear[rgba[0]], linear[rgba[1]], linear[rgba[2]], 1.0f};
 }
 
 MeshPath::~MeshPath() { shutdown(); }
@@ -1567,18 +1580,9 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 instancesValid_ = false;
                 return false;
             }
-            GpuDrawInstance gpuInstance;
-            gpuInstance.modelMatrix = instance.modelMatrix;
-            gpuInstance.tintColor = instance.tintColor;
-            gpuInstance.baseColorOverride = instance.baseColorOverride;
-            gpuInstance.surface = instance.surface;
-            gpuInstance.emissiveBoost = instance.emissiveBoost;
-            gpuInstance.materialIndex = submesh.materialIndex;
-            gpuInstance.padding[0] = instance.physicsBody.index;
-            gpuInstance.padding[1] = instance.physicsBody.generation;
             const uint32_t firstInstance =
                 static_cast<uint32_t>(gpuInstances.size());
-            gpuInstances.push_back(gpuInstance);
+            gpuInstances.emplace_back(instance, submesh.materialIndex);
             draws.push_back({
                 instance.assetIndex, submeshIndex, firstInstance,
                 submesh.materialIndex,

@@ -1,0 +1,49 @@
+{
+  "scope": "Closing local performance investigation. No verified full-game FPS increase; hardware follow-up blocked after permissions changed.",
+  "startedUtc": "2026-09-29T18:27:30+00:00",
+  "reviewedAtUtc": "2026-09-29T22:13:02.933618+00:00",
+  "elapsedSeconds": 13532.933618,
+  "minimumSeconds": 10800,
+  "minimumWorkDurationSatisfied": true,
+  "actualFpsGainEstablished": false,
+  "retainedChanges": [
+    "one final HUD packet per refresh",
+    "sight rays after idle attack admission checks",
+    "exact256-entry byte paint cache",
+    "initial GPU draw record constructed in-place",
+    "readonly benchmark player clock"
+  ],
+  "originalQueriesAndShadersAndCompilerFlagsRetained": true,
+  "rejectedOrUnpromoted": [
+    "bitset and full streaming collision prototypes",
+    "sorted direct mesh packing",
+    "scoped SIMD experiment",
+    "conservative foot-shadow bounds",
+    "combined daytime shader gates/lazy load",
+    "actual-Cove lighting cache"
+  ],
+  "finalNativeExact": true,
+  "focusedOriginalQueriesPassed": 7,
+  "focusedMeshActivePassed": 30,
+  "focusedMeshPreexistingDisabled": 1,
+  "hudUploadCounts": {
+    "originalEachReplay": 1442,
+    "finalNormal": 125,
+    "finalNearbyCombat": 78
+  },
+  "paintComponentReductionPercent": 86.5,
+  "paintComponentIsNotFpsGain": true,
+  "gameplayHarnessLinuxTestsPassed": 25,
+  "finalCpuWasmSha256": "a04daf5d95497f97737838cc64cec9e2122280ea1bbd6f0f3e0162b3722f574b",
+  "finalCpuDataSha256": "3c75b59c7fbe829facbbf7e70d164d6c53a7afb882acfe9e01cafdd0314edaa6",
+  "finalPackagedBuildId": "frontier-8e255cd28b6b43e5",
+  "finalHardwareFpsRunPerformed": false,
+  "hardwareBlockEvidence": "windows-interop-block.json",
+  "allPreexistingUserChangesByteExact": true,
+  "commitPushOrPublicationPerformed": false,
+  "noUserChromeClosed": true,
+  "closedAtUtc": "2026-09-29T22:16:01.950543+00:00",
+  "elapsedSecondsAtClose": 13711.950543,
+  "archivedReplaySelfCheckExact": true,
+  "allOwnedTestBuildProbeProcessesClosed": true
+}

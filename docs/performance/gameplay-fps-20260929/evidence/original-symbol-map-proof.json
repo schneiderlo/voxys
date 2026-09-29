@@ -1,0 +1,27 @@
+{
+  "expectedWasmSha256": "0fd90f99dbf3e37266102c561cad037412030ab83181fef3aca07f9a44a432e8",
+  "baselineWasmSha256": "0fd90f99dbf3e37266102c561cad037412030ab83181fef3aca07f9a44a432e8",
+  "relinkedWasmSha256": "0fd90f99dbf3e37266102c561cad037412030ab83181fef3aca07f9a44a432e8",
+  "baselineBytes": 10153951,
+  "relinkedBytes": 10153951,
+  "exactBytesEqual": true,
+  "symbolMaps": [
+    {
+      "path": "/tmp/voxys-fps-20260929/symbol-baseline/output/voxy_wasm_cc.js.symbols",
+      "sha256": "bc8a105139008e80ff444303ec660afc0702fff99449679b0d9fb3572fdc3c13",
+      "bytes": 1550699,
+      "functionEntries": 6755,
+      "first": [
+        "0:emscripten_asm_const_int",
+        "1:emscripten_webgpu_get_device",
+        "2:invoke_iii"
+      ],
+      "last": [
+        "6752:dynCall_iiiiid",
+        "6753:dynCall_iiiiijj",
+        "6754:dynCall_iiiiiijj"
+      ]
+    }
+  ],
+  "accepted": true
+}

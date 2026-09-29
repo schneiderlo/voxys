@@ -1,0 +1,789 @@
+{
+  "scope": "Supplemental software Vulkan exact full-entry output only; Intel hardware and engine integration acceptance pending; no FPS or timing claim",
+  "adapter": {
+    "vendor": "llvmpipe",
+    "architecture": "",
+    "device": "llvmpipe (LLVM 21.1.8, 256 bits)",
+    "description": "Mesa 26.0.0 (LLVM 21.1.8)",
+    "stackgroup_min_size": 4,
+    "stackgroup_max_size": 128,
+    "vendor_id": 65541,
+    "device_id": 0,
+    "adapter_type": "CPU",
+    "backend_type": "Vulkan"
+  },
+  "fixtureSha256": "eaeac3a964194829a2172f2674138ae8ab5c8d57b011116a7e8f55734a279d88",
+  "sourceSha256": {
+    "ray-baseline": "c2a2b432bd99b29af1f8baca92c690e92f147857004e9477aa5531069df3c97d",
+    "cove-actual-background-cache": "54ca0d68b9e241bfd6064599ac50f6710e2b8575ec87d928cad1cd89b9c8a793"
+  },
+  "replaySha256": "966ce58e3813e061666ec22a0bbfe1a023f62ac04f076e6890f3018f724b8c22",
+  "comparisons": [
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-lego",
+      "baselineRender": 0,
+      "candidateRender": 1,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-smooth",
+      "baselineRender": 2,
+      "candidateRender": 3,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-study",
+      "baselineRender": 4,
+      "candidateRender": 5,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-invalid-normal",
+      "baselineRender": 6,
+      "candidateRender": 7,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-wet-shore",
+      "baselineRender": 8,
+      "candidateRender": 9,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "unshadowed-sky",
+      "baselineRender": 10,
+      "candidateRender": 11,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-lego",
+      "baselineRender": 12,
+      "candidateRender": 13,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-smooth",
+      "baselineRender": 14,
+      "candidateRender": 15,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-study",
+      "baselineRender": 16,
+      "candidateRender": 17,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-invalid-normal",
+      "baselineRender": 18,
+      "candidateRender": 19,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-wet-shore",
+      "baselineRender": 20,
+      "candidateRender": 21,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "shadowed-sky",
+      "baselineRender": 22,
+      "candidateRender": 23,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-lego",
+      "baselineRender": 24,
+      "candidateRender": 25,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-smooth",
+      "baselineRender": 26,
+      "candidateRender": 27,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-study",
+      "baselineRender": 28,
+      "candidateRender": 29,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-invalid-normal",
+      "baselineRender": 30,
+      "candidateRender": 31,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-wet-shore",
+      "baselineRender": 32,
+      "candidateRender": 33,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "mixed-shadow-sky",
+      "baselineRender": 34,
+      "candidateRender": 35,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "depth-zero",
+      "baselineRender": 36,
+      "candidateRender": 37,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "depth-sky",
+      "baselineRender": 38,
+      "candidateRender": 39,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "depth-failure",
+      "baselineRender": 40,
+      "candidateRender": 41,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "depth-tiny",
+      "baselineRender": 42,
+      "candidateRender": 43,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "depth-mixed",
+      "baselineRender": 44,
+      "candidateRender": 45,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "night-moon",
+      "baselineRender": 46,
+      "candidateRender": 47,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "direct-zero",
+      "baselineRender": 48,
+      "candidateRender": 49,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "tiny-sun",
+      "baselineRender": 50,
+      "candidateRender": 51,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "environment-red",
+      "baselineRender": 52,
+      "candidateRender": 53,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "environment-blue",
+      "baselineRender": 54,
+      "candidateRender": 55,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "live-surface-time",
+      "baselineRender": 56,
+      "candidateRender": 57,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "cache-invalid",
+      "baselineRender": 58,
+      "candidateRender": 59,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "underwater",
+      "baselineRender": 60,
+      "candidateRender": 61,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "underwater-caustics-later",
+      "baselineRender": 62,
+      "candidateRender": 63,
+      "differentBytes": 0
+    },
+    {
+      "kind": "terrain",
+      "candidate": "cove-actual-background-cache",
+      "entry": "fsSceneTerrainCove",
+      "case": "underwater-shadow",
+      "baselineRender": 64,
+      "candidateRender": 65,
+      "differentBytes": 0
+    }
+  ],
+  "controls": [
+    {
+      "case": "unshadowed-lego",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "unshadowed-smooth",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1531,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "unshadowed-study",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1535,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "unshadowed-invalid-normal",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "unshadowed-wet-shore",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "unshadowed-sky",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1140,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "shadowed-lego",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 1530
+    },
+    {
+      "case": "shadowed-smooth",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1531,
+      "cacheToLiveDifferentBytes": 1530
+    },
+    {
+      "case": "shadowed-study",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1535,
+      "cacheToLiveDifferentBytes": 1535
+    },
+    {
+      "case": "shadowed-invalid-normal",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 1530
+    },
+    {
+      "case": "shadowed-wet-shore",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 1391
+    },
+    {
+      "case": "shadowed-sky",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1140,
+      "cacheToLiveDifferentBytes": 1148
+    },
+    {
+      "case": "mixed-shadow-lego",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 861
+    },
+    {
+      "case": "mixed-shadow-smooth",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1531,
+      "cacheToLiveDifferentBytes": 862
+    },
+    {
+      "case": "mixed-shadow-study",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1535,
+      "cacheToLiveDifferentBytes": 863
+    },
+    {
+      "case": "mixed-shadow-invalid-normal",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 861
+    },
+    {
+      "case": "mixed-shadow-wet-shore",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 799
+    },
+    {
+      "case": "mixed-shadow-sky",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1140,
+      "cacheToLiveDifferentBytes": 479
+    },
+    {
+      "case": "depth-zero",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "depth-sky",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "depth-failure",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "depth-tiny",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1518,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "depth-mixed",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 379,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "night-moon",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1536,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "direct-zero",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1536,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "tiny-sun",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1536,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "environment-red",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1492,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "environment-blue",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1477,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "live-surface-time",
+      "actualCache": true,
+      "newToLegacyCacheDifferentBytes": 1521,
+      "cacheToLiveDifferentBytes": 0
+    },
+    {
+      "case": "cache-invalid",
+      "actualCache": false,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 1521
+    },
+    {
+      "case": "underwater",
+      "actualCache": false,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 1495
+    },
+    {
+      "case": "underwater-caustics-later",
+      "actualCache": false,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 1443
+    },
+    {
+      "case": "underwater-shadow",
+      "actualCache": false,
+      "newToLegacyCacheDifferentBytes": 0,
+      "cacheToLiveDifferentBytes": 1472
+    }
+  ],
+  "outputs": {
+    "software-outputs/render-0.bin": {
+      "bytes": 5120,
+      "sha256": "2f9defc4269240991c067c71b835e427cda61774a57d449bd85729a5678a891b"
+    },
+    "software-outputs/render-1.bin": {
+      "bytes": 5120,
+      "sha256": "ce8fc6a3ac9d1e5997d72235e04076fed918e48c0ba066f918983749398616d9"
+    },
+    "software-outputs/render-2.bin": {
+      "bytes": 5120,
+      "sha256": "82d21c1c8136e98322f3c20237167874806085dcfa68d9d246fad06ed981e1a9"
+    },
+    "software-outputs/render-3.bin": {
+      "bytes": 5120,
+      "sha256": "3db455a31d91d5f42f934edd1b3392761417e79d8d38cf88907aba441dcc726f"
+    },
+    "software-outputs/render-4.bin": {
+      "bytes": 5120,
+      "sha256": "0076e70ef55eaa75adb7c236c4eeac88e6116717b7ae9599f5c7e4241b3a4e88"
+    },
+    "software-outputs/render-5.bin": {
+      "bytes": 5120,
+      "sha256": "1d13f1289eb8f66af303f32f64878aedde3a4cd997dbd6cdc9720b687776a5aa"
+    },
+    "software-outputs/render-6.bin": {
+      "bytes": 5120,
+      "sha256": "52f99ee2e6aa039cf9fb288a3dc9cbad850a282de72da42b7c21a3689403b375"
+    },
+    "software-outputs/render-7.bin": {
+      "bytes": 5120,
+      "sha256": "b8abfd6b8a4c2e8339c66f452f8864240287d0e08469517df9080c83989ee390"
+    },
+    "software-outputs/render-8.bin": {
+      "bytes": 5120,
+      "sha256": "557af9671e595435af5c241eb1c99271456a31789b33d3c84bb080071e5d8cac"
+    },
+    "software-outputs/render-9.bin": {
+      "bytes": 5120,
+      "sha256": "dc43e43c581048bab4f303805c72f2fd89bbf6d4c2f68a2619205defd48699bc"
+    },
+    "software-outputs/render-10.bin": {
+      "bytes": 5120,
+      "sha256": "2fadde3c244b2af95f0efb04f835bd8036681350d4478d741928e188fe556eb2"
+    },
+    "software-outputs/render-11.bin": {
+      "bytes": 5120,
+      "sha256": "027607e5b9c3cad2c83d088c7d49c6fa5be8c79b7e5cca93a5e507300228ed90"
+    },
+    "software-outputs/render-12.bin": {
+      "bytes": 5120,
+      "sha256": "6d90f74f267e16d10a0a0e843f3637d9bc2bd406f8567022e1b4d6c703dfec1d"
+    },
+    "software-outputs/render-13.bin": {
+      "bytes": 5120,
+      "sha256": "6d3da783e0c7054ff59621342225fde046e32b1091e2dbf9f8f288e783926ac9"
+    },
+    "software-outputs/render-14.bin": {
+      "bytes": 5120,
+      "sha256": "da9fe7d4bed168204b020225108842f31d01d92f4533aec8c611dd214edb8719"
+    },
+    "software-outputs/render-15.bin": {
+      "bytes": 5120,
+      "sha256": "785376072897b3874702c9ba046bf2472ecb269110c5b4b080bf0947823289f6"
+    },
+    "software-outputs/render-16.bin": {
+      "bytes": 5120,
+      "sha256": "1dd87f3aa3fe18a2fbb7fadaec08fd93a50e1df2ce26b2b311cf93a09fdaead0"
+    },
+    "software-outputs/render-17.bin": {
+      "bytes": 5120,
+      "sha256": "cf3405b40a70e75d093680fc84606e03a32cfb35d5daa9d80c39590efe611ce0"
+    },
+    "software-outputs/render-18.bin": {
+      "bytes": 5120,
+      "sha256": "6d90f74f267e16d10a0a0e843f3637d9bc2bd406f8567022e1b4d6c703dfec1d"
+    },
+    "software-outputs/render-19.bin": {
+      "bytes": 5120,
+      "sha256": "1f0c4446361d4c07be04ccd08bf6486dbcd3bf52b2cd2a75878d75ef045548d9"
+    },
+    "software-outputs/render-20.bin": {
+      "bytes": 5120,
+      "sha256": "78a1df5f8207b81e6ec5f3702a4e30a884cb82a2a18bd3f4c6c66c4570481aa7"
+    },
+    "software-outputs/render-21.bin": {
+      "bytes": 5120,
+      "sha256": "a2321e657de11f5d6b0d6e0563c5474d31b8f881ddaf8acdd97581be47d3adef"
+    },
+    "software-outputs/render-22.bin": {
+      "bytes": 5120,
+      "sha256": "127e1e820457ec57c7b7c06b4884ec45d3b28bc54c75832b43ffc09737a3d81a"
+    },
+    "software-outputs/render-23.bin": {
+      "bytes": 5120,
+      "sha256": "f1b25e1cf992bfc03cce63e3234e17131b68d4647d98d51de6473f124bf7d6fe"
+    },
+    "software-outputs/render-24.bin": {
+      "bytes": 5120,
+      "sha256": "9b144d81a9cbb16337fe113f9b42db0c8f08efd9bb9e4e87de253ab4b8338365"
+    },
+    "software-outputs/render-25.bin": {
+      "bytes": 5120,
+      "sha256": "30cd88a858817037b065ca9be43605fc00eb1f1d7f0f17d41a5172d4e682f462"
+    },
+    "software-outputs/render-26.bin": {
+      "bytes": 5120,
+      "sha256": "e382da403f36c9a4e87929928890578152380e4fbd135ee7df812a9172ce3011"
+    },
+    "software-outputs/render-27.bin": {
+      "bytes": 5120,
+      "sha256": "172bcb50d9477a7dabdc8b5d89c154c389edcc6acfab1adb95596ecc6fa72d76"
+    },
+    "software-outputs/render-28.bin": {
+      "bytes": 5120,
+      "sha256": "0bdc95879807f22fbd8ae27cdaff9107233c243db95bfc47df48f40b25e9f529"
+    },
+    "software-outputs/render-29.bin": {
+      "bytes": 5120,
+      "sha256": "6f71d64cdfb53df2c9b3cbb143064694d89a89e55197ab9164823dad354e7712"
+    },
+    "software-outputs/render-30.bin": {
+      "bytes": 5120,
+      "sha256": "9b144d81a9cbb16337fe113f9b42db0c8f08efd9bb9e4e87de253ab4b8338365"
+    },
+    "software-outputs/render-31.bin": {
+      "bytes": 5120,
+      "sha256": "c53d8eeca5d3b7fef243411f8cedd917f2bb790ff1e512f85b9ab24b4431d1ef"
+    },
+    "software-outputs/render-32.bin": {
+      "bytes": 5120,
+      "sha256": "21d433b4c0af5864b68f7da5ca366a527ab5b168cdf799eafbbe1cf81d2ad0d6"
+    },
+    "software-outputs/render-33.bin": {
+      "bytes": 5120,
+      "sha256": "1d834ac5ed1100149b30064461fec5af8dfc2cf213e7fac5abafa2c10b67b56a"
+    },
+    "software-outputs/render-34.bin": {
+      "bytes": 5120,
+      "sha256": "9b87e0a5227d33222711703895dc272505b7f48fb3082540600c1c44bb263c57"
+    },
+    "software-outputs/render-35.bin": {
+      "bytes": 5120,
+      "sha256": "e7d3bf9df5b2a3e9a8ee03d7eb7d52fcccb93bbcc1ccd24eaaa93ff0f8be6591"
+    },
+    "software-outputs/render-36.bin": {
+      "bytes": 5120,
+      "sha256": "b6877aa1c74d8f3ca86ef5dbd5b3b8a6328d46319cd841833758c9450548a4bb"
+    },
+    "software-outputs/render-37.bin": {
+      "bytes": 5120,
+      "sha256": "b6877aa1c74d8f3ca86ef5dbd5b3b8a6328d46319cd841833758c9450548a4bb"
+    },
+    "software-outputs/render-38.bin": {
+      "bytes": 5120,
+      "sha256": "e56aa780ffa48e942aebebf814282e6fbe269ce2cacfb19553d5bdb72ffe9d9c"
+    },
+    "software-outputs/render-39.bin": {
+      "bytes": 5120,
+      "sha256": "e56aa780ffa48e942aebebf814282e6fbe269ce2cacfb19553d5bdb72ffe9d9c"
+    },
+    "software-outputs/render-40.bin": {
+      "bytes": 5120,
+      "sha256": "7f480734a1762ff8a525eca8848f3263f40f2028dd53d946dc402748a3cf76c9"
+    },
+    "software-outputs/render-41.bin": {
+      "bytes": 5120,
+      "sha256": "7f480734a1762ff8a525eca8848f3263f40f2028dd53d946dc402748a3cf76c9"
+    },
+    "software-outputs/render-42.bin": {
+      "bytes": 5120,
+      "sha256": "8dfdab93447cbe929d8c6b3378cfeb444269cb7dbb3d8cfdc8126af9a9174b6a"
+    },
+    "software-outputs/render-43.bin": {
+      "bytes": 5120,
+      "sha256": "b4ca2c5b31d4c8249e0c1435ef1d71b87eb6edaf4d6c2bc7897e172d4bba9948"
+    },
+    "software-outputs/render-44.bin": {
+      "bytes": 5120,
+      "sha256": "8881480e4200be73fd0262afae7f93fb3cda7565bdd95aec1f257273c3ec7d35"
+    },
+    "software-outputs/render-45.bin": {
+      "bytes": 5120,
+      "sha256": "1aad30ddcc2ae7f94b7cd636081b20fdfe402383a98a7ff6774f345fda3e13c7"
+    },
+    "software-outputs/render-46.bin": {
+      "bytes": 5120,
+      "sha256": "d30df939d5b89275072a9e05725857b2e8a265df746b701c57618790ee209bf3"
+    },
+    "software-outputs/render-47.bin": {
+      "bytes": 5120,
+      "sha256": "fd697094889662b6b5a2ef859c451fc19a661c624a00224520be613207d88bb5"
+    },
+    "software-outputs/render-48.bin": {
+      "bytes": 5120,
+      "sha256": "74874c9d80c74a034df46a078d0ad18f8963daec705488024faf4d16193645ef"
+    },
+    "software-outputs/render-49.bin": {
+      "bytes": 5120,
+      "sha256": "dba0195d6e8a30589224f266ca178c7a2f6ddd75412d033908ba5913bc1219d4"
+    },
+    "software-outputs/render-50.bin": {
+      "bytes": 5120,
+      "sha256": "74874c9d80c74a034df46a078d0ad18f8963daec705488024faf4d16193645ef"
+    },
+    "software-outputs/render-51.bin": {
+      "bytes": 5120,
+      "sha256": "dba0195d6e8a30589224f266ca178c7a2f6ddd75412d033908ba5913bc1219d4"
+    },
+    "software-outputs/render-52.bin": {
+      "bytes": 5120,
+      "sha256": "f7a1af0176077120296edbe4add32c543ce740a77f0d13c94b22f30059f2c8b2"
+    },
+    "software-outputs/render-53.bin": {
+      "bytes": 5120,
+      "sha256": "d1c40216cd59ac8f587ce9b79c2eb082fe5598cf3932e0caaeede7d493270998"
+    },
+    "software-outputs/render-54.bin": {
+      "bytes": 5120,
+      "sha256": "502950663de8a50ee1fa4d922282ac888814c0b779fd24a71f3eb9dff4c3b747"
+    },
+    "software-outputs/render-55.bin": {
+      "bytes": 5120,
+      "sha256": "3046bc6d3b2c05bd35d0747821df4fa353b20bdefbc642946fc1c7b11d8c8e6f"
+    },
+    "software-outputs/render-56.bin": {
+      "bytes": 5120,
+      "sha256": "2f9defc4269240991c067c71b835e427cda61774a57d449bd85729a5678a891b"
+    },
+    "software-outputs/render-57.bin": {
+      "bytes": 5120,
+      "sha256": "ce8fc6a3ac9d1e5997d72235e04076fed918e48c0ba066f918983749398616d9"
+    },
+    "software-outputs/render-58.bin": {
+      "bytes": 5120,
+      "sha256": "2f9defc4269240991c067c71b835e427cda61774a57d449bd85729a5678a891b"
+    },
+    "software-outputs/render-59.bin": {
+      "bytes": 5120,
+      "sha256": "2f9defc4269240991c067c71b835e427cda61774a57d449bd85729a5678a891b"
+    },
+    "software-outputs/render-60.bin": {
+      "bytes": 5120,
+      "sha256": "d7919f2f9bfd69aeb385e25c066ad1eb9c8c3fa2cd142336d8cd56ecc58d0e0a"
+    },
+    "software-outputs/render-61.bin": {
+      "bytes": 5120,
+      "sha256": "d7919f2f9bfd69aeb385e25c066ad1eb9c8c3fa2cd142336d8cd56ecc58d0e0a"
+    },
+    "software-outputs/render-62.bin": {
+      "bytes": 5120,
+      "sha256": "3c1c2d9d1888c303d51763740611301262e10f147169985c9403fc69088e5305"
+    },
+    "software-outputs/render-63.bin": {
+      "bytes": 5120,
+      "sha256": "3c1c2d9d1888c303d51763740611301262e10f147169985c9403fc69088e5305"
+    },
+    "software-outputs/render-64.bin": {
+      "bytes": 5120,
+      "sha256": "bcdec64b0ecf8da82fe4bd49be59cfb0e18745568e98ad64967b9184cfe120b8"
+    },
+    "software-outputs/render-65.bin": {
+      "bytes": 5120,
+      "sha256": "bcdec64b0ecf8da82fe4bd49be59cfb0e18745568e98ad64967b9184cfe120b8"
+    }
+  },
+  "compiledModules": 2,
+  "compiledPipelines": 5,
+  "ok": true
+}

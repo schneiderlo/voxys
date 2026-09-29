@@ -28,6 +28,7 @@ set(TEST_SOURCES
     test_adventure_movement.cpp
     test_adventure_pointer.cpp
     test_adventure_walkable.cpp
+    test_adventure_query_candidates.cpp
     test_adventure_navigation.cpp
     test_adventure_minimap.cpp
     test_adventure_encounters.cpp
@@ -1221,3 +1222,11 @@ gtest_discover_tests(frontier_interactions_tests)
 add_executable(frontier_combat_tests test_frontier_combat.cpp)
 target_link_libraries(frontier_combat_tests PRIVATE voxy_core gtest gtest_main)
 gtest_discover_tests(frontier_combat_tests)
+
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+    add_executable(frontier_runtime_performance_tests test_frontier_runtime_performance.cpp)
+    target_link_libraries(frontier_runtime_performance_tests PRIVATE voxy_core gtest gtest_main tinygltf)
+    target_compile_definitions(frontier_runtime_performance_tests PRIVATE VOXY_NATIVE=1)
+    set_project_warnings(frontier_runtime_performance_tests)
+    gtest_discover_tests(frontier_runtime_performance_tests)
+endif()

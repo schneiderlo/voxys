@@ -1,0 +1,100 @@
+--- a/src/render/mesh_path.cpp
++++ b/src/render/mesh_path.cpp
+@@ -388,16 +388,18 @@
+ };
+ 
+ struct MeshPath::FrameScratch {
+-    std::vector<GpuDrawInstance> gpuInstances, sortedInstances;
++    std::vector<GpuDrawInstance> gpuInstances;
+     std::vector<PendingDraw> draws, batches;
++    std::vector<size_t> sourceInstanceIndices;
+     std::vector<uint32_t> liveIndices;
+ };
+ 
+ uint64_t MeshPath::frameScratchCapacityBytes() const noexcept {
+     if (!frameScratch_) return 0;
+     const auto& scratch = *frameScratch_;
+-    return (scratch.gpuInstances.capacity() + scratch.sortedInstances.capacity()) * sizeof(GpuDrawInstance)
++    return scratch.gpuInstances.capacity() * sizeof(GpuDrawInstance)
+         + (scratch.draws.capacity() + scratch.batches.capacity()) * sizeof(PendingDraw)
++        + scratch.sourceInstanceIndices.capacity() * sizeof(size_t)
+         + scratch.liveIndices.capacity() * sizeof(uint32_t);
+ }
+ 
+@@ -1505,11 +1507,14 @@
+     if (!frameScratch_) frameScratch_ = std::make_shared<FrameScratch>();
+     auto& gpuInstances = frameScratch_->gpuInstances;
+     auto& draws = frameScratch_->draws;
++    auto& sourceInstanceIndices = frameScratch_->sourceInstanceIndices;
+     gpuInstances.clear();
+     draws.clear();
+-    gpuInstances.reserve(std::min<size_t>(instances_.size(), maxDrawsPerFrame_));
++    sourceInstanceIndices.clear();
+     draws.reserve(std::min<size_t>(instances_.size(), maxDrawsPerFrame_));
+-    for (const MeshDrawInstance& instance : instances_) {
++    sourceInstanceIndices.reserve(std::min<size_t>(instances_.size(), maxDrawsPerFrame_));
++    for (size_t sourceIndex = 0; sourceIndex < instances_.size(); ++sourceIndex) {
++        const MeshDrawInstance& instance = instances_[sourceIndex];
+         if (instance.assetIndex >= assets_.size()
+             || !validModelMatrix(instance.modelMatrix)
+             || !finiteVec4(instance.tintColor)
+@@ -1572,8 +1577,8 @@
+         for (const uint32_t submeshIndex : bounds.submeshIndices) {
+             ++lastSubmeshVisitCount_;
+             const moto::VmeshSubmesh& submesh = asset.submeshes[submeshIndex];
+-            if (gpuInstances.size() >= maxDrawsPerFrame_
+-                || gpuInstances.size()
++            if (sourceInstanceIndices.size() >= maxDrawsPerFrame_
++                || sourceInstanceIndices.size()
+                     >= std::numeric_limits<uint32_t>::max()) {
+                 LOG_ERROR("MeshPath::render: expanded draw count exceeds {}",
+                           maxDrawsPerFrame_);
+@@ -1581,8 +1586,8 @@
+                 return false;
+             }
+             const uint32_t firstInstance =
+-                static_cast<uint32_t>(gpuInstances.size());
+-            gpuInstances.emplace_back(instance, submesh.materialIndex);
++                static_cast<uint32_t>(sourceInstanceIndices.size());
++            sourceInstanceIndices.push_back(sourceIndex);
+             draws.push_back({
+                 instance.assetIndex, submeshIndex, firstInstance,
+                 submesh.materialIndex,
+@@ -1592,7 +1597,7 @@
+         }
+     }
+ 
+-    if (gpuInstances.empty() && staticVisible==0) return beforeColor(encoder,nullptr);
++    if (draws.empty() && staticVisible==0) return beforeColor(encoder,nullptr);
+     std::sort(draws.begin(), draws.end(), [](const PendingDraw& left,
+                                              const PendingDraw& right) {
+         const bool leftBlend = left.alphaMode == moto::VmeshAlphaBlend;
+@@ -1617,15 +1622,15 @@
+     // material/depth order, then coalesce compatible consecutive draws. Each
+     // instance keeps its transform, paint, live-body handle and surface state.
+     // Blended records retain back-to-front order; no new transparency sorting.
+-    auto& sortedInstances = frameScratch_->sortedInstances;
+-    sortedInstances.clear();
+-    sortedInstances.reserve(gpuInstances.size());
++    // PendingDraw keeps its original expanded index and layout through sorting.
++    // Map that index back to the source and construct each final GPU record once.
++    gpuInstances.reserve(draws.size());
+     auto& batches = frameScratch_->batches;
+     batches.clear();
+     batches.reserve(draws.size());
+     for (auto draw : draws) {
+-        sortedInstances.push_back(gpuInstances[draw.firstInstance]);
+-        draw.firstInstance = static_cast<uint32_t>(sortedInstances.size()-1u);
++        gpuInstances.emplace_back(instances_[sourceInstanceIndices[draw.firstInstance]], draw.materialIndex);
++        draw.firstInstance = static_cast<uint32_t>(gpuInstances.size()-1u);
+         if (!batches.empty()) {
+             auto& previous = batches.back();
+             if (previous.assetIndex == draw.assetIndex && previous.submeshIndex == draw.submeshIndex
+@@ -1637,7 +1642,6 @@
+         }
+         batches.push_back(draw);
+     }
+-    gpuInstances.swap(sortedInstances);
+     draws.swap(batches);
+ 
+     const auto oldBuffer=instanceBuffer_;

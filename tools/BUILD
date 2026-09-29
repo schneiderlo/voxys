@@ -4,6 +4,13 @@ load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS", "PROJECT_TEST_CO
 
 # Explicit same-host CPU component workload; never used as a rendered FPS gate.
 cc_binary(
+    name = "adventure_queries_benchmark",
+    srcs = ["benchmarks/adventure_queries_benchmark.cpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    deps = ["//src/game:adventure_core"],
+)
+
+cc_binary(
     name = "free_build_benchmark",
     srcs = ["benchmarks/free_build_benchmark.cpp"],
     copts = PROJECT_DEFAULT_COPTS + ["-DVOXY_NATIVE=1"],

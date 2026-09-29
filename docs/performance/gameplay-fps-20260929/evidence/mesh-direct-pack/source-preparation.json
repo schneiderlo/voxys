@@ -1,0 +1,30 @@
+{
+  "scope": "Read-only textual preparation checks only; not compiled or executed",
+  "checks": {
+    "gpuRecordAbi": true,
+    "sortComparator": true,
+    "capacityUploadOffsetsAndEncoding": true
+  },
+  "files": {
+    "baseline-mesh_path.cpp": {
+      "sha256": "f2996a7940e103f0bb9ea4e5bc908bcc868d5be0c45df605385dfb841c3b4da3",
+      "bytes": 91326
+    },
+    "candidate-mesh_path.cpp": {
+      "sha256": "ae8b92c0f552ed9c408ce9562ec33aa469ec76ae2a00c6000714c62742e6fa0e",
+      "bytes": 91663
+    },
+    "direct-index-mesh_path.cpp": {
+      "sha256": "a592576d5cec1750760c7e3430f91153b2699180e581b0c2497895948f1341e5",
+      "bytes": 91389
+    },
+    "source-mesh_path.hpp": {
+      "sha256": "725849c4c3abfb548d03e6db9242090ffa6e20e3b32737fb0419371860063429",
+      "bytes": 15741
+    },
+    "change.patch": {
+      "sha256": "f0476874cbb76f2e56d54fd9e8f2a9c3e784118384fd1ee16f3fa131d77ec502",
+      "bytes": 4901
+    }
+  }
+}

@@ -1,0 +1,784 @@
+{
+  "schema": "voxys.gameplay-fps-review.v1",
+  "accepted": false,
+  "startedAt": "2026-09-29T20:41:26.065Z",
+  "finishedAt": "2026-09-29T21:13:29.184Z",
+  "comparison": [
+    {
+      "workload": "frontier/idle",
+      "baselineRuns": 2,
+      "candidateRuns": 2,
+      "failures": [
+        "acquiredFps regressed beyond 7.5%",
+        "intervalP99Ms regressed beyond 7.5%"
+      ],
+      "acquiredFps": {
+        "baseline": 9.32503163148926,
+        "candidate": 8.51682524286476,
+        "changePercent": -8.667063239713912
+      },
+      "intervalP95Ms": {
+        "baseline": 479.1500000022352,
+        "candidate": 489.2000000011176,
+        "changePercent": 2.097464259383397
+      },
+      "intervalP99Ms": {
+        "baseline": 608.3999999985099,
+        "candidate": 752.75,
+        "changePercent": 23.726166995700805
+      }
+    },
+    {
+      "workload": "frontier/orbit",
+      "baselineRuns": 2,
+      "candidateRuns": 2,
+      "failures": [],
+      "acquiredFps": {
+        "baseline": 7.732943455348565,
+        "candidate": 7.833552234641385,
+        "changePercent": 1.3010411866290372
+      },
+      "intervalP95Ms": {
+        "baseline": 664.3000000007451,
+        "candidate": 712.5999999996275,
+        "changePercent": 7.270811380224029
+      },
+      "intervalP99Ms": {
+        "baseline": 921.8499999996275,
+        "candidate": 911.1500000003725,
+        "changePercent": -1.1607094428875864
+      }
+    },
+    {
+      "workload": "frontier/walk",
+      "baselineRuns": 2,
+      "candidateRuns": 2,
+      "failures": [
+        "acquiredFps regressed beyond 7.5%",
+        "intervalP95Ms regressed beyond 7.5%",
+        "intervalP99Ms regressed beyond 7.5%"
+      ],
+      "acquiredFps": {
+        "baseline": 6.911920836229953,
+        "candidate": 6.211785102939218,
+        "changePercent": -10.129394561651516
+      },
+      "intervalP95Ms": {
+        "baseline": 568.2999999988824,
+        "candidate": 706.4499999992549,
+        "changePercent": 24.309343656632798
+      },
+      "intervalP99Ms": {
+        "baseline": 826.3499999996275,
+        "candidate": 960.4499999992549,
+        "changePercent": 16.227990560862573
+      }
+    }
+  ],
+  "allSceneValid": true,
+  "lightingStatus": "v4 requested mode only; actual renderer enabled/hour/intensity was not measured. Conditional late startup read skipped getters.",
+  "hostCondition": "Startup-only Windows snapshot reports100% CPU with unrelated active processes and ~1.92GiB free RAM; cause of measured drift is unproven. No owned orphan Chrome found.",
+  "power": [
+    "Online",
+    "Online",
+    "Online",
+    "Online"
+  ],
+  "rows": [
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "workload": "frontier/idle",
+      "elapsedMs": 21636.5,
+      "playerTicks": 601,
+      "summary": {
+        "acquiredFrames": 212,
+        "surfaceFrames": 212,
+        "loopFrames": 212,
+        "physicsTicks": 212,
+        "uniqueSurfaceTextures": 212,
+        "uniqueSurfaceTurnoverFps": 9.798257574006886,
+        "queueSubmissions": 212,
+        "submittedCommands": 212,
+        "acquiredFps": 9.798257574006886,
+        "loopFps": 9.798257574006886,
+        "acquisitionIntervalMs": {
+          "count": 211,
+          "p50": 24.400000002235174,
+          "p95": 408.9000000022352,
+          "p99": 505.69999999925494,
+          "maximum": 579
+        },
+        "cpuMs": {
+          "count": 195,
+          "p50": 20.2,
+          "p95": 28.7,
+          "p99": 62,
+          "maximum": 62
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 71,
+        "pacingSkips": 72
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "730"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1331"
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "workload": "frontier/orbit",
+      "elapsedMs": 24002.10000000149,
+      "playerTicks": 603,
+      "summary": {
+        "acquiredFrames": 209,
+        "surfaceFrames": 209,
+        "loopFrames": 209,
+        "physicsTicks": 209,
+        "uniqueSurfaceTextures": 209,
+        "uniqueSurfaceTurnoverFps": 8.70757142083347,
+        "queueSubmissions": 209,
+        "submittedCommands": 209,
+        "acquiredFps": 8.70757142083347,
+        "loopFps": 8.70757142083347,
+        "acquisitionIntervalMs": {
+          "count": 208,
+          "p50": 28,
+          "p95": 545.5,
+          "p99": 779.5,
+          "maximum": 871.1999999992549
+        },
+        "cpuMs": {
+          "count": 214,
+          "p50": 22.1,
+          "p95": 38.8,
+          "p99": 53.1,
+          "maximum": 63.9
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 110,
+        "pacingSkips": 65
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1437"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2040"
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "workload": "frontier/walk",
+      "elapsedMs": 23646.900000002235,
+      "playerTicks": 606,
+      "summary": {
+        "acquiredFrames": 180,
+        "surfaceFrames": 180,
+        "loopFrames": 180,
+        "physicsTicks": 180,
+        "uniqueSurfaceTextures": 180,
+        "uniqueSurfaceTurnoverFps": 7.611991423822277,
+        "queueSubmissions": 180,
+        "submittedCommands": 180,
+        "acquiredFps": 7.611991423822277,
+        "loopFps": 7.611991423822277,
+        "acquisitionIntervalMs": {
+          "count": 179,
+          "p50": 33.600000001490116,
+          "p95": 514,
+          "p99": 670.1999999992549,
+          "maximum": 914.0999999977648
+        },
+        "cpuMs": {
+          "count": 209,
+          "p50": 22.7,
+          "p95": 55.1,
+          "p99": 101.3,
+          "maximum": 101.3
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 180,
+        "pacingSkips": 73
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2140"
+      },
+      "afterPlayer": {
+        "x": 1224.9047939348472,
+        "y": 1.4649684476852416,
+        "z": -1068.8947145396826,
+        "yaw": -2.18,
+        "tick": "2746"
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "workload": "frontier/idle",
+      "elapsedMs": 25904.5,
+      "playerTicks": 600,
+      "summary": {
+        "acquiredFrames": 232,
+        "surfaceFrames": 232,
+        "loopFrames": 232,
+        "physicsTicks": 232,
+        "uniqueSurfaceTextures": 232,
+        "uniqueSurfaceTurnoverFps": 8.95597290046131,
+        "queueSubmissions": 232,
+        "submittedCommands": 232,
+        "acquiredFps": 8.95597290046131,
+        "loopFps": 8.95597290046131,
+        "acquisitionIntervalMs": {
+          "count": 231,
+          "p50": 24.300000000745058,
+          "p95": 544.5,
+          "p99": 818.3000000007451,
+          "maximum": 1009.8000000007451
+        },
+        "cpuMs": {
+          "count": 234,
+          "p50": 21.1,
+          "p95": 30.8,
+          "p99": 50.7,
+          "maximum": 50.7
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 73,
+        "pacingSkips": 62
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "721"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1321"
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "workload": "frontier/orbit",
+      "elapsedMs": 26021.199999999255,
+      "playerTicks": 600,
+      "summary": {
+        "acquiredFrames": 204,
+        "surfaceFrames": 204,
+        "loopFrames": 204,
+        "physicsTicks": 204,
+        "uniqueSurfaceTextures": 204,
+        "uniqueSurfaceTurnoverFps": 7.839761425299596,
+        "queueSubmissions": 204,
+        "submittedCommands": 204,
+        "acquiredFps": 7.839761425299596,
+        "loopFps": 7.839761425299596,
+        "acquisitionIntervalMs": {
+          "count": 203,
+          "p50": 29.599999997764826,
+          "p95": 696,
+          "p99": 852.6999999992549,
+          "maximum": 933.1000000014901
+        },
+        "cpuMs": {
+          "count": 226,
+          "p50": 22.5,
+          "p95": 35.9,
+          "p99": 45.5,
+          "maximum": 55.1
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 110,
+        "pacingSkips": 59
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1410"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2010"
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "workload": "frontier/walk",
+      "elapsedMs": 30503.70000000298,
+      "playerTicks": 605,
+      "summary": {
+        "acquiredFrames": 190,
+        "surfaceFrames": 190,
+        "loopFrames": 190,
+        "physicsTicks": 190,
+        "uniqueSurfaceTextures": 190,
+        "uniqueSurfaceTurnoverFps": 6.228752577555556,
+        "queueSubmissions": 190,
+        "submittedCommands": 190,
+        "acquiredFps": 6.228752577555556,
+        "loopFps": 6.228752577555556,
+        "acquisitionIntervalMs": {
+          "count": 189,
+          "p50": 32.400000002235174,
+          "p95": 686.3999999985099,
+          "p99": 1076.5,
+          "maximum": 1268.5999999977648
+        },
+        "cpuMs": {
+          "count": 267,
+          "p50": 25.7,
+          "p95": 50.3,
+          "p99": 75.1,
+          "maximum": 75.1
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 190,
+        "pacingSkips": 58
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2108"
+      },
+      "afterPlayer": {
+        "x": 1224.822456151978,
+        "y": 1.4649684476852416,
+        "z": -1068.9521644266465,
+        "yaw": -2.18,
+        "tick": "2713"
+      }
+    },
+    {
+      "trial": 3,
+      "variant": "candidate",
+      "workload": "frontier/idle",
+      "elapsedMs": 24264.400000002235,
+      "playerTicks": 602,
+      "summary": {
+        "acquiredFrames": 196,
+        "surfaceFrames": 196,
+        "loopFrames": 196,
+        "physicsTicks": 196,
+        "uniqueSurfaceTextures": 196,
+        "uniqueSurfaceTurnoverFps": 8.07767758526821,
+        "queueSubmissions": 196,
+        "submittedCommands": 196,
+        "acquiredFps": 8.07767758526821,
+        "loopFps": 8.07767758526821,
+        "acquisitionIntervalMs": {
+          "count": 195,
+          "p50": 25.199999999254942,
+          "p95": 433.9000000022352,
+          "p99": 687.1999999992549,
+          "maximum": 709.2000000029802
+        },
+        "cpuMs": {
+          "count": 219,
+          "p50": 21.1,
+          "p95": 31.1,
+          "p99": 40.9,
+          "maximum": 54.1
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 75,
+        "pacingSkips": 74
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "754"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1356"
+      }
+    },
+    {
+      "trial": 3,
+      "variant": "candidate",
+      "workload": "frontier/orbit",
+      "elapsedMs": 28106.599999997765,
+      "playerTicks": 603,
+      "summary": {
+        "acquiredFrames": 220,
+        "surfaceFrames": 220,
+        "loopFrames": 220,
+        "physicsTicks": 220,
+        "uniqueSurfaceTextures": 220,
+        "uniqueSurfaceTurnoverFps": 7.827343043983174,
+        "queueSubmissions": 220,
+        "submittedCommands": 220,
+        "acquiredFps": 7.827343043983174,
+        "loopFps": 7.827343043983174,
+        "acquisitionIntervalMs": {
+          "count": 219,
+          "p50": 24.900000002235174,
+          "p95": 729.1999999992549,
+          "p99": 969.6000000014901,
+          "maximum": 1114.800000000745
+        },
+        "cpuMs": {
+          "count": 254,
+          "p50": 20.1,
+          "p95": 29.7,
+          "p99": 39.3,
+          "maximum": 39.6
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 116,
+        "pacingSkips": 70
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1438"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2041"
+      }
+    },
+    {
+      "trial": 3,
+      "variant": "candidate",
+      "workload": "frontier/walk",
+      "elapsedMs": 31962.20000000298,
+      "playerTicks": 602,
+      "summary": {
+        "acquiredFrames": 198,
+        "surfaceFrames": 198,
+        "loopFrames": 198,
+        "physicsTicks": 198,
+        "uniqueSurfaceTextures": 198,
+        "uniqueSurfaceTurnoverFps": 6.1948176283228795,
+        "queueSubmissions": 198,
+        "submittedCommands": 198,
+        "acquiredFps": 6.1948176283228795,
+        "loopFps": 6.1948176283228795,
+        "acquisitionIntervalMs": {
+          "count": 197,
+          "p50": 28.800000000745058,
+          "p95": 726.5,
+          "p99": 844.3999999985099,
+          "maximum": 860.6000000014901
+        },
+        "cpuMs": {
+          "count": 287,
+          "p50": 22.6,
+          "p95": 39.3,
+          "p99": 72,
+          "maximum": 72
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 198,
+        "pacingSkips": 65
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2134"
+      },
+      "afterPlayer": {
+        "x": 1224.5754428033704,
+        "y": 1.4558734941482543,
+        "z": -1069.1245140875383,
+        "yaw": -2.18,
+        "tick": "2736"
+      }
+    },
+    {
+      "trial": 4,
+      "variant": "baseline",
+      "workload": "frontier/idle",
+      "elapsedMs": 25192.60000000149,
+      "playerTicks": 603,
+      "summary": {
+        "acquiredFrames": 223,
+        "surfaceFrames": 223,
+        "loopFrames": 223,
+        "physicsTicks": 223,
+        "uniqueSurfaceTextures": 223,
+        "uniqueSurfaceTurnoverFps": 8.851805688971634,
+        "queueSubmissions": 223,
+        "submittedCommands": 223,
+        "acquiredFps": 8.851805688971634,
+        "loopFps": 8.851805688971634,
+        "acquisitionIntervalMs": {
+          "count": 222,
+          "p50": 24.099999997764826,
+          "p95": 549.4000000022352,
+          "p99": 711.0999999977648,
+          "maximum": 887.8999999985099
+        },
+        "cpuMs": {
+          "count": 225,
+          "p50": 19.6,
+          "p95": 31.8,
+          "p99": 38,
+          "maximum": 43.6
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 76,
+        "pacingSkips": 63
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "733"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1336"
+      }
+    },
+    {
+      "trial": 4,
+      "variant": "baseline",
+      "workload": "frontier/orbit",
+      "elapsedMs": 30776.900000002235,
+      "playerTicks": 600,
+      "summary": {
+        "acquiredFrames": 208,
+        "surfaceFrames": 208,
+        "loopFrames": 208,
+        "physicsTicks": 208,
+        "uniqueSurfaceTextures": 208,
+        "uniqueSurfaceTurnoverFps": 6.75831548986366,
+        "queueSubmissions": 208,
+        "submittedCommands": 208,
+        "acquiredFps": 6.75831548986366,
+        "loopFps": 6.75831548986366,
+        "acquisitionIntervalMs": {
+          "count": 207,
+          "p50": 29.599999997764826,
+          "p95": 783.1000000014901,
+          "p99": 1064.199999999255,
+          "maximum": 1212.5999999977648
+        },
+        "cpuMs": {
+          "count": 268,
+          "p50": 22.6,
+          "p95": 38.3,
+          "p99": 40.3,
+          "maximum": 40.3
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 108,
+        "pacingSkips": 57
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "1419"
+      },
+      "afterPlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2019"
+      }
+    },
+    {
+      "trial": 4,
+      "variant": "baseline",
+      "workload": "frontier/walk",
+      "elapsedMs": 30586.699999999255,
+      "playerTicks": 607,
+      "summary": {
+        "acquiredFrames": 190,
+        "surfaceFrames": 190,
+        "loopFrames": 190,
+        "physicsTicks": 190,
+        "uniqueSurfaceTextures": 190,
+        "uniqueSurfaceTurnoverFps": 6.211850248637631,
+        "queueSubmissions": 190,
+        "submittedCommands": 190,
+        "acquiredFps": 6.211850248637631,
+        "loopFps": 6.211850248637631,
+        "acquisitionIntervalMs": {
+          "count": 189,
+          "p50": 30.800000000745058,
+          "p95": 622.5999999977648,
+          "p99": 982.5,
+          "maximum": 1040.199999999255
+        },
+        "cpuMs": {
+          "count": 262,
+          "p50": 23.1,
+          "p95": 45.1,
+          "p99": 178.1,
+          "maximum": 361.3
+        },
+        "gpuMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "maximum": null
+        },
+        "terrainRefreshes": 190,
+        "pacingSkips": 57
+      },
+      "beforePlayer": {
+        "x": 1180,
+        "y": -0.13500731706619262,
+        "z": -1100,
+        "yaw": -2.18,
+        "tick": "2127"
+      },
+      "afterPlayer": {
+        "x": 1224.9871317177165,
+        "y": 1.4649684476852416,
+        "z": -1068.8372646527187,
+        "yaw": -2.18,
+        "tick": "2734"
+      }
+    }
+  ],
+  "artifacts": {
+    "report.json": {
+      "sha256": "46c344da32eaa88b5f22ba8d77bc26fc236b7e30c76050ecab3c5f89f88df5bf",
+      "bytes": 1019055
+    },
+    "trial2-startup-system-load.json": {
+      "sha256": "65afe58ae408bbe9d03998d57355548b6c2e55306a974ea1bce1b01c105a15b2",
+      "bytes": 20108
+    },
+    "trial2-startup-chrome-ownership.json": {
+      "sha256": "3d1e5992547e5f405370a851b5e7a5c7290bc204807dfbd64f8687336dc9c462",
+      "bytes": 8125
+    },
+    "trial2-startup-all-chrome-profile-audit.json": {
+      "sha256": "d31c169a2efa30a45cf2cccd8b30ceb3a92b3a78962495c39f9a20f2a7753801",
+      "bytes": 27797
+    },
+    "trial4-pre-control-lighting-read.json": {
+      "sha256": "36743b375d1dce55040eccb054fb840775fcc2cae3891e7634853798d2b4368d",
+      "bytes": 202
+    }
+  },
+  "captureRoot": "/mnt/c/Users/Public/voxys-fps-20260929/foot-primary-screen-v4"
+}

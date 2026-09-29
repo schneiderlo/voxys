@@ -60,6 +60,10 @@ public:
     const AdventureState& state() const {return session_->state();}
     const AdventureContent& content() const {return content_;}
     const AdventureSpatialQueries& spatialQueries() const noexcept {return queries_;}
+    uint64_t playerTick() const noexcept {return player_.tick();}
+    uint64_t hudUploadCount() const noexcept {return hud_.uploadCount();}
+    uint64_t hudTriangleUploadCount() const noexcept {return hud_.triangleUploadCount();}
+    uint32_t hudThumbnailCount() const noexcept {return hud_.layout().thumbnailCount;}
     std::span<const uint32_t> thrownBrickBodyIds() const noexcept {return brickThrower_.bodyIds();}
 private:
     enum class Menu {None,Main,Catalog,Chest,Dialogue,Workbench,Journal,Bag,Settings,Controls,CombatBinding,BindingChoice,GuideTopics,Guide,Colours};

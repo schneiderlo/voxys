@@ -943,6 +943,7 @@ cc_test(
         "test_adventure_movement.cpp",
         "test_adventure_pointer.cpp",
         "test_adventure_walkable.cpp",
+        "test_adventure_query_candidates.cpp",
         "test_adventure_navigation.cpp",
         "test_adventure_encounters.cpp",
         "test_adventure_combat.cpp",
@@ -1485,6 +1486,22 @@ cc_test(
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = ["//src/game:adventure_runtime", "//src/game:adventure_core", "//src/gpu:gpu", "//src/camera:camera", "//src/engine/platform:input", "@googletest//:gtest_main"],
     data = ["//data:adventure_runtime", "//shaders:shaders"],
+)
+
+cc_test(
+    name = "frontier_runtime_performance",
+    srcs = ["test_frontier_runtime_performance.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = ["//src/game:adventure_runtime", "//src/game:adventure_core", "//src/gpu:gpu", "//src/camera:camera", "//src/engine/platform:input", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    data = ["//data:adventure_runtime", "//shaders:shaders"],
+)
+
+cc_test(
+    name = "adventure_query_candidates",
+    srcs = ["test_adventure_query_candidates.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:adventure_core", "@googletest//:gtest_main"],
 )
 
 cc_test(

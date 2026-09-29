@@ -1,0 +1,126 @@
+{
+  "scope": "Full native runtime state/save/HUD correctness only; concurrent builds/GPU proof exclude timings",
+  "startedUtc": "2026-09-29T21:19:02.491804+00:00",
+  "runs": [
+    {
+      "label": "default-oracle",
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/query-streaming/runtime/default-oracle.xml"
+      ],
+      "comparison": {
+        "scope": "Exact native Frontier JSON, archive bytes and actual GPU HUD pixel hashes; no FPS claim",
+        "configurationExact": true,
+        "observationFrames": 1200,
+        "jsonBytesExact": true,
+        "firstDifferingFrame": null,
+        "firstDifferingPath": null,
+        "saveBytesExact": true,
+        "saveHashesVerified": true,
+        "pixelFramesComplete": true,
+        "hudPixelsExact": true,
+        "beforeHudUploads": 1442,
+        "afterHudUploads": 125,
+        "beforeTriangleUploads": 0,
+        "afterTriangleUploads": 0,
+        "beforeSimulationCpu": {
+          "count": 181,
+          "p50_us": 1185.101,
+          "p95_us": 2396.414,
+          "p99_us": 3192.126
+        },
+        "afterSimulationCpu": {
+          "count": 181,
+          "p50_us": 1563.981,
+          "p95_us": 9463.565,
+          "p99_us": 13374.497
+        },
+        "beforePausedCpu": {
+          "count": 959,
+          "p50_us": 608.134,
+          "p95_us": 1272.432,
+          "p99_us": 2308.159
+        },
+        "afterPausedCpu": {
+          "count": 959,
+          "p50_us": 1148.6,
+          "p95_us": 7432.11,
+          "p99_us": 11384.884
+        },
+        "exact": true
+      }
+    },
+    {
+      "label": "nearby-oracle",
+      "command": [
+        "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance",
+        "--gtest_filter=FrontierRuntimePerformance.DeterministicPublicReplayProducesExactStateAndHudOracle",
+        "--gtest_output=xml:/tmp/voxys-fps-20260929/query-streaming/runtime/nearby-oracle.xml"
+      ],
+      "comparison": {
+        "scope": "Exact native Frontier JSON, archive bytes and actual GPU HUD pixel hashes; no FPS claim",
+        "configurationExact": true,
+        "observationFrames": 1200,
+        "jsonBytesExact": true,
+        "firstDifferingFrame": null,
+        "firstDifferingPath": null,
+        "saveBytesExact": true,
+        "saveHashesVerified": true,
+        "pixelFramesComplete": true,
+        "hudPixelsExact": true,
+        "beforeHudUploads": 1442,
+        "afterHudUploads": 78,
+        "beforeTriangleUploads": 0,
+        "afterTriangleUploads": 0,
+        "beforeSimulationCpu": {
+          "count": 181,
+          "p50_us": 1134.065,
+          "p95_us": 1551.161,
+          "p99_us": 2391.3
+        },
+        "afterSimulationCpu": {
+          "count": 181,
+          "p50_us": 1784.356,
+          "p95_us": 12889.029,
+          "p99_us": 14751.914
+        },
+        "beforePausedCpu": {
+          "count": 959,
+          "p50_us": 563.968,
+          "p95_us": 1282.293,
+          "p99_us": 3491.463
+        },
+        "afterPausedCpu": {
+          "count": 959,
+          "p50_us": 1197.621,
+          "p95_us": 11115.708,
+          "p99_us": 12114.461
+        },
+        "exact": true
+      }
+    }
+  ],
+  "finishedUtc": "2026-09-29T21:24:54.954001+00:00",
+  "inputs": {
+    "/tmp/voxys-fps-20260929/native-candidate/executables/frontier_runtime_performance": "fcb4c9ea7dc7da7e85c171b69a0ddaf11878792a95222ce901145a47fb21f8dc",
+    "/tmp/voxys-fps-20260929/query-streaming/libquery-streaming.so": "ea3276ba7df709bbdcb9806c5703e154b79c49a2b30f770411cb59af89145b76",
+    "/tmp/voxys-fps-20260929/query-streaming/spatial_queries.cpp": "8209f1ac7a8cf944e84dcb7903b437fd8890b74181a2aa46a6b54be913e085c5",
+    "/tmp/voxys-fps-20260929/terrain.r16": "2a0ae88395e6d6e59d8853540c875d834f0f04015ee953d76faf68abae610965",
+    "/nix/store/ikgcxdw09g63rxb40w73m36474rds29c-mesa-26.0.0/share/vulkan/icd.d/lvp_icd.x86_64.json": "4230d766fc7ae95bb0239a9dcc2db7e731068da7baf365f50e4bf8568ab58a2c"
+  },
+  "outputs": {
+    "nearby-oracle.pixels.json": "c67d53c7949c9bba0a96ff478fd0f9beb53479cfdda4a13f7e4ed3209ab9254c",
+    "default-oracle.save": "d4ac33bf2ecd97b41ec7401893e08a78a27ed11f4cd00ed5347c5732f35afa1b",
+    "nearby-oracle-comparison.json": "52518eb05c2d949339672b0d6aaebef99bbd91a912a7f918659b53f63ef71fe9",
+    "default-oracle-comparison.json": "75c542ba21491135119f477b0c0e98277ae6409e18692271315791938266c356",
+    "nearby-oracle.save": "4d4f929a6e41f8439eab7a699aa1ece0c1d8170f9f2c14af75043bc4fd1776bb",
+    "default-oracle.pixels.json": "a41245ef23a466b96bf9ad1002541fb1f60a0dab09309e0cfbbc18e4a0b5900f",
+    "nearby-oracle.log": "b6cc1a0cdf14d49f68828b5b134c1028e8e4c7f6c8ef1c6d7f86dc2397fb88c7",
+    "default-oracle.log": "dfd10529545e4454dca83c50b85429126a41e3c630cd6498cf64fd194c34b0cb",
+    "nearby-oracle.jsonl": "fb0ce302faf1890eabbcec50d14c80d23e06ff7dec2fc1b69bf9449c0d615cfe",
+    "nearby-oracle.xml": "1f2e4d6dc5c0690eef7a552ab9ad350b9987489bacd3d14ffd3584f9cc9da8a4",
+    "default-oracle.xml": "82d6e0980e0a97761772e68bbef2c8de5a9d20e4e3fc1d85cab769f4fc4e257b",
+    "default-oracle.jsonl": "e30c66b10cdd2a94eeb0ee47793f12aaae2b6b90a657eca99f1097753eb29c7f"
+  }
+}
