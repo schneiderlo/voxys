@@ -1,4 +1,5 @@
 import gzip
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -111,7 +112,7 @@ class GraphicsRecipeTest(unittest.TestCase):
             index = site / 'index.html'
             index.write_text("<script>window.voxyReleaseFiles = '" + json.dumps(manifest) + "';</script>")
             (site / 'physics.wgsl').write_text('shader')
-            recipe = {'schema': 1, 'release': 'a' * 64 + ':' + 'b' * 64, 'experience': 'build',
+            recipe = {'schema': 1, 'release': 'a' * 64 + ':' + 'b' * 64, 'experience': 'frontier',
                       'resources': [{'kind': 'createShaderModule', 'descriptor': {'label': 'physics.wgsl', 'code': 'shader'}}],
                       'pipelines': [{'kind': 'createComputePipelineAsync', 'descriptor': {'compute': {'module': {'$gpu': 0}}}}]}
             capture = site / 'capture.json'
@@ -120,11 +121,19 @@ class GraphicsRecipeTest(unittest.TestCase):
             subprocess.run(command, check=True, capture_output=True)
             self.assertIn('voxy_graphics.json', index.read_text())
             published = (site / 'voxy_graphics.json').read_bytes()
-            recipe['release'] = 'stale'
-            capture.write_text(json.dumps(recipe))
-            failed = subprocess.run(command, capture_output=True)
-            self.assertNotEqual(failed.returncode, 0)
-            self.assertEqual((site / 'voxy_graphics.json').read_bytes(), published)
+            published_index = index.read_text()
+            self.assertEqual(json.loads(published)['experience'], 'frontier')
+            self.assertIn(hashlib.sha256(published).hexdigest(), published_index)
+            for changes in [{'release': 'stale'}, {'schema': 2}, {'schema': None},
+                            {'experience': 'build'}, {'experience': 'terrain'},
+                            {'experience': None}, {'configuration': 'physicsBackend=jolt'}]:
+                with self.subTest(changes=changes):
+                    capture.write_text(json.dumps({**recipe, **changes}))
+                    failed = subprocess.run(command, capture_output=True, text=True)
+                    self.assertNotEqual(failed.returncode, 0)
+                    self.assertIn('do not match this release/default experience', failed.stderr)
+                    self.assertEqual((site / 'voxy_graphics.json').read_bytes(), published)
+                    self.assertEqual(index.read_text(), published_index)
 
 
 if __name__ == '__main__':

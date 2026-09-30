@@ -28,7 +28,7 @@
             ? `${wasm}:${data}` : null;
     }
 
-    function install(device, {manifest, experience = 'build', profile = {}, configuration = '', environment = global} = {}) {
+    function install(device, {manifest, experience = 'frontier', profile = {}, configuration = '', environment = global} = {}) {
         if (installed.has(device)) return installed.get(device);
         const release = releaseKey(manifest);
         const resources = [], resourceKeys = new Map(), objects = new WeakMap();
@@ -205,9 +205,9 @@
                 if (saved) { stats.recipeSource = 'saved'; await replay(saved); return; }
             } catch { ++stats.recipeFailures; }
             const entry = manifest?.[recipeFile];
-            // The published recipe is captured from the default experience.
+            // The published recipe is captured from the default Frontier experience.
             // Other modes learn their own recipe after a successful startup.
-            if (!entry || experience !== 'build' || configuration || profile.name === 'cpu-fallback'
+            if (!entry || experience !== 'frontier' || configuration || profile.name === 'cpu-fallback'
                 || entry.size > maxBytes || stopped || lost) return;
             try {
                 const recipe = await read(await environment.fetch(`${recipeFile}?h=${entry.sha256}`, {

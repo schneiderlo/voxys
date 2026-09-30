@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
 import '../web/gpu_startup.js';
 
 const {install} = globalThis.VoxyGpuStartup;
@@ -34,6 +36,19 @@ function descriptor(device, code = '@compute @workgroup_size(1) fn main() {}') {
     const layout = device.createPipelineLayout({bindGroupLayouts: [group]});
     return {label: 'compute', layout, compute: {module, entryPoint: 'main', constants: {COUNT: 1}}};
 }
+
+test('the startup recipe default matches the main page default experience', async () => {
+    const page = await readFile(new URL('../web/index.html', import.meta.url), 'utf8');
+    const declaration = page.match(/const experience = [^\n]+;/)?.[0];
+    assert.ok(declaration, 'main page declares its experience selection');
+    const experience = vm.runInNewContext(`${declaration}\nexperience`, {
+        URLSearchParams, location: {search: ''},
+    });
+    assert.equal(experience, 'frontier');
+    const f = fixture(); const api = install(f.device, {environment: f.environment});
+    assert.equal(api.snapshot().experience, experience);
+    await api.finish();
+});
 
 test('identical descriptors coalesce pending work across independently created modules/layouts', async () => {
     const f = fixture({blocked: true}); const api = install(f.device, {environment: f.environment});
@@ -97,15 +112,62 @@ test('a later page recreates GPU objects early and engine requests reuse them', 
     assert.notEqual(first.calls[0], next.calls[0], 'GPU objects never cross devices');
 });
 
-test('a release recipe enables early compilation on a first visit', async () => {
-    const first = fixture(); const a = install(first.device, {manifest, environment: first.environment});
+test('a Frontier release recipe enables early compilation on a first visit', async () => {
+    const first = fixture(); const a = install(first.device, {manifest, experience: 'frontier', environment: first.environment});
     await first.device.createComputePipelineAsync(descriptor(first.device)); await a.finish();
     const next = fixture({stored: a.recipe});
-    const b = install(next.device, {manifest: {...manifest, 'voxy_graphics.json': {sha256: 'c'.repeat(64), size: 2000}}, environment: next.environment});
+    const b = install(next.device, {manifest: {...manifest, 'voxy_graphics.json': {sha256: 'c'.repeat(64), size: 2000}}, experience: 'frontier', environment: next.environment});
     await b.warmup;
     assert.equal(b.stats.earlySubmitted, 1); assert.equal(b.stats.recipeSource, 'release');
     await next.device.createComputePipelineAsync(descriptor(next.device)); await b.finish();
     assert.equal(b.stats.earlyHits, 1);
+});
+
+test('published recipes require the exact release, schema, experience and configuration', async () => {
+    const first = fixture(); const a = install(first.device, {manifest, experience: 'frontier', environment: first.environment});
+    await first.device.createComputePipelineAsync(descriptor(first.device)); await a.finish();
+    for (const changes of [{release: 'stale'}, {schema: 2}, {experience: 'build'},
+        {experience: 'terrain'}, {configuration: 'physicsBackend=jolt'}]) {
+        const next = fixture({stored: {...a.recipe, ...changes}});
+        const b = install(next.device, {manifest: {...manifest,
+            'voxy_graphics.json': {sha256: 'c'.repeat(64), size: 2000}}, experience: 'frontier', environment: next.environment});
+        await b.warmup;
+        assert.equal(b.stats.recipeSource, 'release');
+        assert.equal(b.stats.recipeFailures, 1, JSON.stringify(changes));
+        assert.equal(next.calls.length, 0, 'mismatched recipes create no GPU objects');
+        await next.device.createComputePipelineAsync(descriptor(next.device)); await b.finish();
+        assert.equal(b.stats.earlySubmitted, 0);
+        assert.equal(b.stats.requests, 1, 'normal startup still works');
+    }
+});
+
+test('other experiences, custom configurations and CPU fallback do not fetch the Frontier release recipe', async () => {
+    for (const options of [{experience: 'build'}, {experience: 'terrain'},
+        {experience: 'frontier', configuration: 'physicsBackend=jolt'},
+        {experience: 'frontier', profile: {name: 'cpu-fallback'}}]) {
+        const f = fixture(); let fetches = 0;
+        f.environment.fetch = async () => { ++fetches; return new Response('null'); };
+        const api = install(f.device, {manifest: {...manifest,
+            'voxy_graphics.json': {sha256: 'c'.repeat(64), size: 2000}}, ...options, environment: f.environment});
+        await api.warmup;
+        assert.equal(fetches, 0, JSON.stringify(options));
+        assert.equal(f.calls.length, 0);
+        await api.finish();
+    }
+});
+
+test('non-default experiences still learn and replay their own saved recipes', async () => {
+    for (const experience of ['build', 'terrain']) {
+        const first = fixture(); const a = install(first.device, {manifest, experience, environment: first.environment});
+        await first.device.createComputePipelineAsync(descriptor(first.device)); await a.finish();
+        const next = fixture({cache: first.cache});
+        const b = install(next.device, {manifest, experience, environment: next.environment});
+        await b.warmup;
+        assert.equal(b.stats.recipeSource, 'saved');
+        assert.equal(b.stats.earlySubmitted, 1);
+        await next.device.createComputePipelineAsync(descriptor(next.device)); await b.finish();
+        assert.equal(b.stats.earlyHits, 1);
+    }
 });
 
 test('changed releases and different experiences do not replay the old recipe', async () => {

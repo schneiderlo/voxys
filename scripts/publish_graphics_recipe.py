@@ -85,7 +85,7 @@ def main():
     recipe = json.loads(args.capture.read_text())
     release = ':'.join(manifest[name]['sha256'] for name in ['voxy_wasm.wasm', 'voxy_wasm.data'])
     if (recipe.get('schema') != 1 or recipe.get('release') != release
-            or recipe.get('experience') != 'build' or recipe.get('configuration')):
+            or recipe.get('experience') != 'frontier' or recipe.get('configuration')):
         raise SystemExit('Captured graphics do not match this release/default experience')
     recipe = portable_recipe(recipe, args.shaders)
     body = json.dumps(recipe, separators=(',', ':')).encode()
