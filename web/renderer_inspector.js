@@ -27,8 +27,13 @@
                     key: 'browser.resolutionScale', label: 'Resolution',
                     type: 'number', min: 0.35, max: 1.5, step: 0.01,
                     default: 1, unit: '×', browser: true,
-                    description: 'Internal pixel density. Render targets resize when released.',
+                    description: 'Pixel density ceiling with Smooth movement on; fixed density with it off. Resizes when released.',
                     cost: 'resize',
+                },
+                {
+                    key: 'browser.adaptiveResolution', label: 'Smooth movement',
+                    type: 'boolean', default: 1, browser: true,
+                    description: 'Temporarily reduce pixel density when the GPU is busy, then restore sharpness while stationary.',
                 },
                 {
                     key: 'render.path', label: 'Render Path', type: 'select',
@@ -215,6 +220,7 @@
             this.module = options.module;
             this.canvas = options.canvas;
             this.onRenderScale = options.onRenderScale;
+            this.onAdaptiveResolution = options.onAdaptiveResolution;
             this.values = new Map();
             this.defaults = new Map();
             this.rows = new Map();
@@ -678,7 +684,9 @@
                 for (const control of group.controls) {
                     let value;
                     if (control.browser) {
-                        value = RendererInspector.getStoredRenderScale();
+                        value = control.key === 'browser.adaptiveResolution'
+                            ? Number(RendererInspector.getStoredAdaptiveResolution())
+                            : RendererInspector.getStoredRenderScale();
                     } else if (control.type === 'color') {
                         value = ['r', 'g', 'b'].map(channel =>
                             this.getEngineNumber(`${control.key}.${channel}`));
@@ -769,7 +777,8 @@
 
         sendControl(control, value, commit) {
             if (control.browser) {
-                this.onRenderScale?.(value, commit);
+                if (control.key === 'browser.adaptiveResolution') this.onAdaptiveResolution?.(value, commit);
+                else this.onRenderScale?.(value, commit);
                 this.updateResolutionLabel();
                 return;
             }
@@ -1011,7 +1020,8 @@
         restorePersistedSettings() {
             const persisted = safeParse(STORAGE_KEY, null);
             if (persisted?.settings) {
-                this.applySnapshot(persisted.settings,
+                this.applySnapshot({...persisted.settings,
+                    'browser.adaptiveResolution': Number(RendererInspector.getStoredAdaptiveResolution())},
                     {recordHistory: false, persist: false});
             }
         }
@@ -1117,6 +1127,12 @@
             this.toastTimer = setTimeout(() => element.classList.remove('is-visible'), 1800);
         }
 
+        static getStoredAdaptiveResolution() {
+            try {
+                return Boolean(global.VoxyAdaptiveResolution?.preference(global.localStorage, global.location?.search));
+            } catch (_) { return false; }
+        }
+
         static getStoredRenderScale() {
             const persisted = safeParse(STORAGE_KEY, null);
             const value = Number(persisted?.settings?.['browser.resolutionScale']);
@@ -1132,5 +1148,6 @@
             return this.instance;
         },
         getStoredRenderScale: RendererInspector.getStoredRenderScale,
+        getStoredAdaptiveResolution: RendererInspector.getStoredAdaptiveResolution,
     };
 })(window);

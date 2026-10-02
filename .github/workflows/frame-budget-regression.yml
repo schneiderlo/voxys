@@ -11,6 +11,9 @@ on:
       - src/app/application.hpp
       - src/engine/platform/wasm/entry.cpp
       - web/frame_budget.js
+      - web/adaptive_resolution.js
+      - web/renderer_inspector.js
+      - scripts/test_adaptive_resolution.mjs
       - web/index.html
       - tools/test_water_fft_fusion.py
       - scripts/test_water_fft_fusion.mjs
@@ -28,6 +31,9 @@ on:
       - src/app/application.hpp
       - src/engine/platform/wasm/entry.cpp
       - web/frame_budget.js
+      - web/adaptive_resolution.js
+      - web/renderer_inspector.js
+      - scripts/test_adaptive_resolution.mjs
       - web/index.html
       - tools/test_water_fft_fusion.py
       - scripts/test_water_fft_fusion.mjs
@@ -53,8 +59,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm --prefix ui ci
       - run: python3 tools/test_water_fft_fusion.py
-      - run: node --test scripts/test_frame_budget.mjs scripts/test_webgpu_timestamp_compat.mjs scripts/performance/test_gameplay_work.mjs
+      - run: node --test scripts/test_adaptive_resolution.mjs scripts/test_frame_budget.mjs scripts/test_webgpu_timestamp_compat.mjs scripts/performance/test_gameplay_work.mjs
       - name: Complete two-cascade ocean differential and paired timing test
         run: node scripts/test_water_fft_fusion.mjs
       - uses: actions/upload-artifact@v4

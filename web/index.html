@@ -540,6 +540,7 @@
     <script src="loader.js?v=__VOXY_BUILD_ID__"></script>
     <script src="gpu_startup.js?v=__VOXY_BUILD_ID__"></script>
     <script src="frame_budget.js?v=__VOXY_BUILD_ID__"></script>
+    <script src="adaptive_resolution.js?v=__VOXY_BUILD_ID__"></script>
     <script src="renderer_inspector.js"></script>
     <script>
         window.voxyBuildId = '__VOXY_BUILD_ID__';
@@ -616,14 +617,18 @@
         // Ray casting and terrain shadows scale directly with canvas pixel count.
         // Full phone/Retina DPR often costs 4-9x more GPU work than CSS resolution.
         const maxRenderDpr = isTouchDevice ? 1.25 : 1.5;
-        let rendererResolutionScale =
-            VoxyRendererInspector.getStoredRenderScale();
+        let rendererResolutionCeiling = VoxyRendererInspector.getStoredRenderScale();
+        let rendererResolutionScale = rendererResolutionCeiling;
+        let adaptiveResolution = null;
+        let adaptiveResolutionEnabled = VoxyRendererInspector.getStoredAdaptiveResolution();
 
         function sizeCanvas(canvas) {
             const size = VoxyLoader.calculateCanvasSize(
                 maxRenderDpr, rendererResolutionScale);
-            canvas.width = size.width;
-            canvas.height = size.height;
+            // Assigning identical dimensions clears the canvas and can recreate
+            // its backing surface. Only update dimensions when they change.
+            if (canvas.width !== size.width) canvas.width = size.width;
+            if (canvas.height !== size.height) canvas.height = size.height;
             canvas.style.width = window.innerWidth + 'px';
             canvas.style.height = window.innerHeight + 'px';
             return size;
@@ -1523,14 +1528,35 @@
                 await window.voxyGpuStartup.finish();
                 setupPhysicsBackendSwitcher();
 
+                adaptiveResolution = VoxyAdaptiveResolution.install({
+                    module: voxyModule, canvas,
+                    ceiling: rendererResolutionCeiling,
+                    enabled: adaptiveResolutionEnabled,
+                    applyScale(scale) {
+                        rendererResolutionScale = scale;
+                        const previousWidth = canvas.width, previousHeight = canvas.height;
+                        const size = sizeCanvas(canvas);
+                        if (size.width !== previousWidth || size.height !== previousHeight)
+                            voxyModule._voxy_resize?.(size.width, size.height);
+                    },
+                });
+                window.voxyAdaptiveResolution = adaptiveResolution;
+                window.addEventListener('pagehide', event => {
+                    if (!event.persisted) adaptiveResolution.dispose();
+                });
+
                 if (window.voxyDebugEnabled) VoxyRendererInspector.mount({
                     module: voxyModule,
                     canvas,
                     onRenderScale(scale, commit) {
-                        rendererResolutionScale = scale;
-                        if (!commit || !voxyModule._voxy_resize) return;
-                        const size = sizeCanvas(canvas);
-                        voxyModule._voxy_resize(size.width, size.height);
+                        if (!commit) return;
+                        rendererResolutionCeiling = scale;
+                        adaptiveResolution.configure(scale, adaptiveResolutionEnabled);
+                    },
+                    onAdaptiveResolution(enabled, commit) {
+                        if (!commit) return;
+                        adaptiveResolutionEnabled = Boolean(enabled);
+                        adaptiveResolution.configure(rendererResolutionCeiling, adaptiveResolutionEnabled);
                     },
                 });
 
@@ -1793,10 +1819,11 @@
 
                 // Handle window resize
                 function resize() {
+                    const previousWidth = canvas.width, previousHeight = canvas.height;
                     const size = sizeCanvas(canvas);
-                    if (voxyModule && voxyModule._voxy_resize) {
-                        voxyModule._voxy_resize(size.width, size.height);
-                    }
+                    if (size.width === previousWidth && size.height === previousHeight) return;
+                    voxyModule?._voxy_resize?.(size.width, size.height);
+                    adaptiveResolution?.resized();
                 }
                 window.addEventListener('resize', resize);
 
